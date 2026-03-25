@@ -15,7 +15,7 @@ import { combineReducers } from "redux";
 import userSlice from "./user/userSlice";
 import adminSlice from "./adminSlice";
 import themeReducer from "./theme/themeSlice"; // ✅ add this
-
+import superadminThemeReducer from "./superadminThemeSlice";
 const rootPersistConfig = {
   key: "root",
   storage,
@@ -27,6 +27,7 @@ const rootReducer = combineReducers({
   user: userSlice,
   admin: adminSlice,
   theme: themeReducer, // ✅ add this
+  superadminTheme : superadminThemeReducer
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);

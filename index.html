@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="/src/index.css" />
+
+    <title>Ocean Bull</title>
+    <style>
+
+
+/* Add this inside your <style> tag or global CSS */
+.PhoneInput {
+  width: 100%;
+  border-radius: 0.5rem; /* same as your other inputs */
+  background-color: rgba(30, 58, 138, 0.85); /* your form bg */
+  border: 1px solid #4b5563; /* border-secondary-600 */
+  color: #fff;
+  padding: 0.75rem 1rem 0.75rem 3rem; /* left padding for flag */
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.PhoneInput:focus {
+  border-color: #3b82f6; /* Tailwind blue-500 focus ring */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.PhoneInputCountrySelect {
+  background-color: rgba(30, 58, 138, 0.85);
+  border: none;
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.PhoneInputCountryIcon {
+  vertical-align: middle;
+}
+
+.PhoneInputCountrySelectArrow {
+  color: #fff;
+}
+
+.PhoneInputInput::placeholder {
+  color: #9ca3af; /* placeholder-gray-400 */
+}
+
+
+      /* Smooth and animated scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #4f46e5, #312e81);
+  border-radius: 9999px;
+  transition: background 0.3s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #6366f1, #4338ca);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,23 @@
+/* tradingview-widget.css */
+.tradingview-widget-container {
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+ width: 100%;
+  height: 250px; /* match widget height */
+}
+
+.tradingview-widget-container:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+.tradingview-widget-container__widget iframe {
+  border-radius: 16px;
+}
+
+.tradingview-widget-copyright {
+  display: none; /* Hide copyright for cleaner look, optional */
+}

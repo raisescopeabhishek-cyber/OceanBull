@@ -1,0 +1,60 @@
+.modern-heading {
+    position: relative;
+    display: inline-block;
+    padding: 0 10px;
+}
+
+/* Gradient animated heading text */
+.heading-text {
+    font-weight: 900;
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, #cccad2, #9898e2, #d9d7e3);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* Removed heavy blur shadow */
+    /* text-shadow: 0 0 2px rgba(0, 212, 255, 0.8), 0 0 4px rgba(138, 43, 226, 0.6); */
+    animation: gradientShift 6s ease infinite;
+    transition: all 0.3s ease-in-out;
+}
+
+.heading-text:hover {
+    text-shadow: 0 0 4px rgba(210, 224, 224, 0.9), 0 0 6px rgba(138, 43, 226, 0.7);
+}
+
+/* Gradient shifting animation */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Neon underline */
+.heading-underline {
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #2a0576, #1a1aff, #330dca);
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0, 212, 255, 0.7);
+    animation: pulseUnderline 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulseUnderline {
+    0% {
+        opacity: 0.8;
+        transform: scaleX(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}

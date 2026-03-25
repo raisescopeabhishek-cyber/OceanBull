@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default theme (Mode 1) */
+:root {
+  --bg: 10 10 10;
+  --fg: 255 255 255;
+  --card: 15 23 42;
+  --border: 34 197 94;
+
+  --primary: 34 197 94;
+  --primary-fg: 0 0 0;
+
+  --sidebar: 17 24 39;
+  --sidebar-hover: 30 41 59;
+  --sidebar-active: 34 197 94;
+
+  --radius: 16px;
+}
+
+/* Example Mode 2 (Light) */
+[data-theme="light"] {
+  --bg: 245 245 245;
+  --fg: 15 15 15;
+  --card: 255 255 255;
+  --border: 0 0 0;
+
+  --primary: 59 130 246;
+  --primary-fg: 255 255 255;
+
+  --sidebar: 255 255 255;
+  --sidebar-hover: 243 244 246;
+  --sidebar-active: 59 130 246;
+
+  --radius: 16px;
+}
+
+/* IMPORTANT: remove Vite default centering */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+}

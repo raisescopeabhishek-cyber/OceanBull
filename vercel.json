@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://server10.testcrm.co.in/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://server.oceanbullfx.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -6,7 +6,7 @@ export default function GroupManagement() {
   const [refresh, setRefresh] = useState(false);
 
   return (
-    <div className="space-y-10 w-full">
+    <div className="w-full space-y-6 sm:space-y-8">
       <AddGroup refresh={refresh} setRefresh={setRefresh} />
       <Group refresh={refresh} />
     </div>

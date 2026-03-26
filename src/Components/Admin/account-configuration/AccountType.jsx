@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Trash2, Loader2, RefreshCw } from "lucide-react";
+import {
+  PlusCircle,
+  Trash2,
+  Loader2,
+  RefreshCw,
+  Layers3,
+  ChevronDown,
+} from "lucide-react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 import { backendApi } from "../../../utils/apiClients";
 
 const AccountTypes = () => {
+  const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
+  const isDark = mode === "dark";
+
   const [accountTypes, setAccountTypes] = useState([]);
   const [existingData, setExistingData] = useState([]);
   const [newAccountType, setNewAccountType] = useState({
@@ -19,7 +30,7 @@ const AccountTypes = () => {
     setIsFetching(true);
     try {
       const res = await backendApi.get(`/get-custom-groups`);
-      setAccountTypes(res.data.data);
+      setAccountTypes(res.data.data || []);
     } catch (error) {
       console.log("Error fetching account types", error);
       toast.error("Failed to fetch account types");
@@ -32,7 +43,7 @@ const AccountTypes = () => {
     setIsFetching(true);
     try {
       const res = await backendApi.get(`/get-account-types`);
-      setExistingData(res.data.data);
+      setExistingData(res.data.data || []);
     } catch (error) {
       console.log("Error fetching existing account types data", error);
       toast.error("Failed to fetch existing data");
@@ -43,23 +54,28 @@ const AccountTypes = () => {
 
   const handleInputChange = (e, index, field, subfield) => {
     const { name, value } = e.target;
+
     setNewAccountType((prev) => {
       const updated = { ...prev };
+
       if (field) {
         updated[field][index][subfield] = value;
       } else if (name === "accountType") {
         const selectedType = accountTypes.find(
           (type) => type.customGroup === value
         );
+
         if (selectedType) {
           updated.accountType = selectedType.customGroup;
           updated.apiGroup = selectedType.apiGroup;
         } else {
+          updated.accountType = value;
           updated.apiGroup = "";
         }
       } else {
         updated[name] = value;
       }
+
       return updated;
     });
   };
@@ -86,6 +102,7 @@ const AccountTypes = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
       const res = await backendApi.post(`/add-account-type`, {
         apiGroup: newAccountType.apiGroup,
@@ -93,12 +110,15 @@ const AccountTypes = () => {
         leverage: newAccountType.leverage,
         accountSize: newAccountType.accountSize,
       });
+
       if (res.data.status) {
         setNewAccountType({
           accountType: "",
+          apiGroup: "",
           leverage: [{ label: "", value: "" }],
           accountSize: [{ deposit: "", balance: "" }],
         });
+
         toast.success("Account type added successfully!");
         fetchExistingData();
       }
@@ -140,35 +160,101 @@ const AccountTypes = () => {
   }, []);
 
   return (
-    <div className="mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">
-          Configure Account Types
-        </h1>
+    <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+      {/* Page Header */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div
+            className={[
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+              isDark
+                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
+                : "border-orange-200 bg-orange-50 text-orange-700",
+            ].join(" ")}
+          >
+            <Layers3 size={14} />
+            Account Configuration
+          </div>
+
+          <h1
+            className={[
+              "text-2xl sm:text-3xl font-bold tracking-tight",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            Configure Account Types
+          </h1>
+
+          <p
+            className={[
+              "mt-1 text-sm",
+              isDark ? "text-white/50" : "text-slate-600",
+            ].join(" ")}
+          >
+            Create and manage account types with leverage and balance settings.
+          </p>
+        </div>
+
         <button
           onClick={handleRefresh}
           disabled={isFetching}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+          className={[
+            "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
+            isDark
+              ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
+              : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+          ].join(" ")}
         >
           {isFetching ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <RefreshCw className="h-5 w-5" />
+            <RefreshCw className="h-4 w-4" />
           )}
           <span>Refresh</span>
         </button>
       </div>
 
-      {/* Add New Account Type Form */}
-      <div className="bg-primary-800 rounded-xl shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl">
-        <h2 className="text-2xl font-semibold text-white mb-6">
-          Add New Account Type
-        </h2>
+      {/* Add Form */}
+      <div
+        className={[
+          "rounded-[24px] border p-4 sm:p-5 mb-6 backdrop-blur-xl transition-all duration-300",
+          isDark
+            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
+            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+        ].join(" ")}
+      >
+        <div className="mb-5">
+          <h2
+            className={[
+              "text-xl sm:text-2xl font-semibold",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            Add New Account Type
+          </h2>
+          <p
+            className={[
+              "mt-1 text-sm",
+              isDark ? "text-white/45" : "text-slate-500",
+            ].join(" ")}
+          >
+            Select a custom group and configure leverage options for the account
+            type.
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Account Type Select */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">
+            <label
+              className={[
+                "mb-2 block text-sm font-medium",
+                isDark ? "text-white/75" : "text-slate-700",
+              ].join(" ")}
+            >
               Account Type
             </label>
+
             <div className="relative">
               <select
                 name="accountType"
@@ -176,7 +262,12 @@ const AccountTypes = () => {
                 onChange={(e) => handleInputChange(e)}
                 required
                 disabled={isLoading || isFetching}
-                className="w-full p-3 bg-white text-gray-900 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 disabled:opacity-50 transition-all appearance-none"
+                className={[
+                  "w-full appearance-none rounded-xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-300",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
+                    : "border-slate-200 bg-white text-slate-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                ].join(" ")}
               >
                 <option value="" disabled>
                   Select an account type
@@ -187,84 +278,116 @@ const AccountTypes = () => {
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+
+              <div
+                className={[
+                  "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
                 {isFetching ? (
-                  <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <svg
-                    className="h-5 w-5 text-gray-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
+                  <ChevronDown className="h-5 w-5" />
                 )}
               </div>
             </div>
           </div>
 
+          {/* Leverage Fields */}
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">
+            <label
+              className={[
+                "mb-2 block text-sm font-medium",
+                isDark ? "text-white/75" : "text-slate-700",
+              ].join(" ")}
+            >
               Leverage
             </label>
-            {newAccountType.leverage.map((lev, index) => (
-              <div
-                key={index}
-                className="flex flex-col md:flex-row gap-3 mb-3 items-center"
-              >
-                <input
-                  type="text"
-                  placeholder="Label (e.g. 1:100)"
-                  value={lev.label}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "leverage", "label")
-                  }
-                  required
-                  disabled={isLoading}
-                  className="flex-1 p-3 bg-white text-gray-900 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="Value"
-                  value={lev.value}
-                  onChange={(e) =>
-                    handleInputChange(e, index, "leverage", "value")
-                  }
-                  required
-                  disabled={isLoading}
-                  className="flex-1 p-3 bg-white text-gray-900 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeField("leverage", index)}
-                  disabled={isLoading}
-                  className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+
+            <div className="space-y-3">
+              {newAccountType.leverage.map((lev, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col md:flex-row gap-3 items-center"
                 >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              </div>
-            ))}
+                  <input
+                    type="text"
+                    placeholder="Label (e.g. 1:100)"
+                    value={lev.label}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "leverage", "label")
+                    }
+                    required
+                    disabled={isLoading}
+                    className={[
+                      "w-full flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
+                        : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                    ].join(" ")}
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={lev.value}
+                    onChange={(e) =>
+                      handleInputChange(e, index, "leverage", "value")
+                    }
+                    required
+                    disabled={isLoading}
+                    className={[
+                      "w-full flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
+                        : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                    ].join(" ")}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeField("leverage", index)}
+                    disabled={isLoading}
+                    className={[
+                      "inline-flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
+                      isDark
+                        ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                        : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                    ].join(" ")}
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
             <button
               type="button"
               onClick={() => addField("leverage")}
               disabled={isLoading}
-              className="mt-2 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+              className={[
+                "mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
+                isDark
+                  ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
+                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+              ].join(" ")}
             >
-              <PlusCircle className="h-5 w-5" />
+              <PlusCircle className="h-4 w-4" />
               Add Leverage
             </button>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={isLoading || isFetching}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+            className={[
+              "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
+              isDark
+                ? "bg-emerald-500/90 text-white hover:bg-emerald-500 shadow-[0_10px_25px_rgba(16,185,129,0.25)]"
+                : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_10px_25px_rgba(16,185,129,0.20)]",
+            ].join(" ")}
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -276,79 +399,187 @@ const AccountTypes = () => {
         </form>
       </div>
 
-      {/* Existing Account Types Table */}
-      <div className="bg-primary-800 rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl">
-        <h2 className="text-2xl font-semibold text-white mb-6">
-          Existing Account Types
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-primary-600">
-                <th className="px-6 py-3 text-left text-gray-100 font-medium">
-                  Account Type
-                </th>
-                <th className="px-6 py-3 text-left text-gray-100 font-medium">
-                  Leverage
-                </th>
-                <th className="px-6 py-3 text-center text-gray-100 font-medium">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {existingData?.length === 0 && !isFetching ? (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-6 py-4 text-center text-gray-300"
-                  >
-                    No account types found
-                  </td>
-                </tr>
-              ) : (
-                existingData?.map((type) => (
-                  <tr
-                    key={type._id}
-                    className="border-t border-primary-700 hover:bg-primary-700/50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-gray-200">
-                      {type.accountType}
-                    </td>
-                    <td className="px-6 py-4 text-gray-200">
-                      {type.leverage?.map((lev, i) => (
-                        <div
-                          key={i}
-                          className="py-1 border-b border-primary-600 last:border-b-0"
-                        >
-                          <p>
-                            <span className="text-gray-400">Label:</span>{" "}
-                            {lev.label}
-                          </p>
-                          <p>
-                            <span className="text-gray-400">Value:</span>{" "}
-                            {lev.value}
-                          </p>
-                        </div>
-                      ))}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          deleteHandler(type._id, type.accountType)
-                        }
-                        disabled={isLoading}
-                        className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Existing Table */}
+      <div
+        className={[
+          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
+          isDark
+            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
+            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+        ].join(" ")}
+      >
+        <div className="mb-5">
+          <h2
+            className={[
+              "text-xl sm:text-2xl font-semibold",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            Existing Account Types
+          </h2>
+          <p
+            className={[
+              "mt-1 text-sm",
+              isDark ? "text-white/45" : "text-slate-500",
+            ].join(" ")}
+          >
+            Review existing account types and their leverage settings.
+          </p>
         </div>
+
+        {isFetching && existingData.length === 0 ? (
+          <div
+            className={[
+              "flex justify-center items-center rounded-[18px] border py-10",
+              isDark
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-slate-200 bg-slate-50",
+            ].join(" ")}
+          >
+            <Loader2
+              className={[
+                "h-8 w-8 animate-spin",
+                isDark ? "text-blue-300" : "text-orange-500",
+              ].join(" ")}
+            />
+          </div>
+        ) : existingData?.length === 0 ? (
+          <div
+            className={[
+              "rounded-[18px] border py-10 text-center text-sm",
+              isDark
+                ? "border-white/10 bg-white/[0.03] text-white/55"
+                : "border-slate-200 bg-slate-50 text-slate-500",
+            ].join(" ")}
+          >
+            No account types found
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <div
+              className={[
+                "overflow-hidden rounded-[20px] border",
+                isDark ? "border-white/10" : "border-slate-200",
+              ].join(" ")}
+            >
+              <table className="w-full border-collapse">
+                <thead
+                  className={[
+                    isDark
+                      ? "bg-white/[0.06] text-white/80"
+                      : "bg-slate-100/80 text-slate-700",
+                  ].join(" ")}
+                >
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]">
+                      Account Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]">
+                      Leverage
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em]">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className={isDark ? "bg-transparent" : "bg-white/40"}>
+                  {existingData?.map((type) => (
+                    <tr
+                      key={type._id}
+                      className={[
+                        "border-t transition-colors duration-200",
+                        isDark
+                          ? "border-white/10 hover:bg-white/[0.03]"
+                          : "border-slate-200 hover:bg-slate-50/80",
+                      ].join(" ")}
+                    >
+                      <td
+                        className={[
+                          "px-6 py-4 text-sm font-medium",
+                          isDark ? "text-white/85" : "text-slate-800",
+                        ].join(" ")}
+                      >
+                        {type.accountType}
+                      </td>
+
+                      <td
+                        className={[
+                          "px-6 py-4 text-sm",
+                          isDark ? "text-white/75" : "text-slate-700",
+                        ].join(" ")}
+                      >
+                        <div className="space-y-2">
+                          {type.leverage?.map((lev, i) => (
+                            <div
+                              key={i}
+                              className={[
+                                "rounded-xl border px-3 py-2",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.03]"
+                                  : "border-slate-200 bg-slate-50/80",
+                              ].join(" ")}
+                            >
+                              <p>
+                                <span
+                                  className={
+                                    isDark ? "text-white/40" : "text-slate-500"
+                                  }
+                                >
+                                  Label:
+                                </span>{" "}
+                                <span
+                                  className={
+                                    isDark ? "text-white/85" : "text-slate-800"
+                                  }
+                                >
+                                  {lev.label}
+                                </span>
+                              </p>
+                              <p className="mt-1">
+                                <span
+                                  className={
+                                    isDark ? "text-white/40" : "text-slate-500"
+                                  }
+                                >
+                                  Value:
+                                </span>{" "}
+                                <span
+                                  className={
+                                    isDark ? "text-white/85" : "text-slate-800"
+                                  }
+                                >
+                                  {lev.value}
+                                </span>
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() =>
+                            deleteHandler(type._id, type.accountType)
+                          }
+                          disabled={isLoading}
+                          className={[
+                            "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
+                            isDark
+                              ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                              : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                          ].join(" ")}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -120,36 +120,13 @@ const Header = () => {
           }}
         />
 
-        <div className="relative px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div
-              className={[
-                "flex items-center gap-2",
-                isDark ? "text-white/75" : "text-slate-700",
-              ].join(" ")}
-            >
-              <KeyRound size={16} className={isDark ? "text-white/65" : "text-slate-500"} />
-              <span className="tracking-[0.22em] text-[11px] sm:text-xs font-semibold">
-                SUPERADMIN SECURITY WORLD
-              </span>
-            </div>
-            <div
-              className={[
-                "text-[11px] hidden sm:block",
-                isDark ? "text-white/35" : "text-slate-500",
-              ].join(" ")}
-            >
-              Protected Area • Authorized Personnel Only
-            </div>
-          </div>
-        </div>
 
-        <div className="relative py-4 sm:py-5">
+        <div className="relative py-4 sm:py-8">
           <div className="flex items-center justify-between px-6">
             <div className="w-0 md:w-0" />
 
             <div className="flex-1 flex items-center justify-center">
-              {shouldRenderLogo ? (
+              {/* {shouldRenderLogo ? (
                 <img
                   src={safeLogoSrc}
                   alt={safeAlt}
@@ -167,7 +144,7 @@ const Header = () => {
                   label={getSafeText(siteConfig?.siteName, "LOGO")}
                   isDark={isDark}
                 />
-              )}
+              )} */}
             </div>
 
             <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 sm:gap-3">
@@ -185,17 +162,6 @@ const Header = () => {
                 {isDark ? <SunMedium size={18} /> : <MoonStar size={18} />}
               </button>
 
-              <button
-                className={[
-                  "grid h-10 w-10 place-items-center rounded-xl border transition",
-                  isDark
-                    ? "border-white/10 bg-white/[0.05] text-white/70 hover:bg-white/[0.09] hover:text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-                ].join(" ")}
-                aria-label="Profile"
-              >
-                <User size={18} />
-              </button>
 
               <button
                 className={[

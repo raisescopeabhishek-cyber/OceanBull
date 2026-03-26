@@ -1,6 +1,3 @@
-// ✅ Super Admin Site Configuration - Platform Theme UI (FULL UPDATED)
-// ✅ Now supports pasting ImgBB "viewer links" (https://ibb.co/xxxx) and auto-resolves to direct image URL (https://i.ibb.co/.../file.png)
-
 import { useState, useEffect, useRef } from "react";
 import {
   Pencil,
@@ -9,24 +6,14 @@ import {
   ExternalLink,
   Save,
   CheckCircle2,
+  Settings2,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 import { Switch } from "@/Components/ui/switch";
 import { superAdminApi } from "@/utils/apiClients";
 
-// ✅ Common Dark Input Class (fixes black-on-black)
-const INPUT_CLASS =
-  "w-full px-4 py-2 rounded-md border border-gray-700 bg-primary-900/60 text-white placeholder:text-gray-400 " +
-  "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 " +
-  "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
-
-/* ============================
-   ✅ ImgBB URL Resolver Helpers
-   ============================ */
-
-// Basic cleanup
 const cleanUrl = (val) => (typeof val === "string" ? val.trim() : "");
 
-// Recognize "direct image" links
 const isDirectImageUrl = (url) => {
   if (!url) return false;
   const u = url.toLowerCase();
@@ -36,7 +23,6 @@ const isDirectImageUrl = (url) => {
   );
 };
 
-// Recognize ImgBB "viewer links"
 const isIbbViewerLink = (url) => {
   if (!url) return false;
   try {
@@ -48,11 +34,9 @@ const isIbbViewerLink = (url) => {
   }
 };
 
-// Parse og:image / twitter:image from HTML
 const extractDirectFromHtml = (html) => {
   if (!html) return "";
 
-  // og:image first
   const og =
     html.match(
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
@@ -60,7 +44,6 @@ const extractDirectFromHtml = (html) => {
 
   if (og) return og;
 
-  // twitter:image fallback
   const tw =
     html.match(
       /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
@@ -69,9 +52,6 @@ const extractDirectFromHtml = (html) => {
   return tw || "";
 };
 
-// Resolve ImgBB viewer link -> direct link (best-effort)
-// NOTE: Some browsers may block cross-origin HTML fetch due to CORS on ibb.co.
-// If that happens, we gracefully fallback to the original URL and show a console warning.
 const resolveIbbToDirect = async (url, { timeoutMs = 8000 } = {}) => {
   const value = cleanUrl(url);
   if (!value) return "";
@@ -85,9 +65,8 @@ const resolveIbbToDirect = async (url, { timeoutMs = 8000 } = {}) => {
     const res = await fetch(value, {
       method: "GET",
       signal: controller.signal,
-      // mode: "cors" is default. If ibb blocks CORS, it will throw.
       headers: {
-        "Accept": "text/html",
+        Accept: "text/html",
       },
     });
 
@@ -97,7 +76,7 @@ const resolveIbbToDirect = async (url, { timeoutMs = 8000 } = {}) => {
     return direct || value;
   } catch (err) {
     console.warn(
-      "⚠️ Could not auto-resolve ImgBB viewer link (likely CORS). Please paste direct link like https://i.ibb.co/.../image.png",
+      "Could not auto-resolve ImgBB viewer link. Please paste direct link like https://i.ibb.co/.../image.png",
       err
     );
     return value;
@@ -107,6 +86,17 @@ const resolveIbbToDirect = async (url, { timeoutMs = 8000 } = {}) => {
 };
 
 const SadminSiteConfiguration = () => {
+  const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
+  const isDark = mode === "dark";
+
+  const inputClass = [
+    "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
+    isDark
+      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
+      : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+    "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+  ].join(" ");
+
   const [details, setDetails] = useState({
     serverName: "",
     mt5Digit: "",
@@ -121,13 +111,11 @@ const SadminSiteConfiguration = () => {
     logoSize: 4,
   });
 
-  // ✅ Resolved preview URLs (so even if user pastes viewer link, preview uses direct URL)
   const [resolvedMedia, setResolvedMedia] = useState({
     logo: "",
     favicon: "",
   });
 
-  // ✅ Avoid resolving on every keystroke too aggressively
   const resolveTimersRef = useRef({ logo: null, favicon: null });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -147,7 +135,7 @@ const SadminSiteConfiguration = () => {
     { name: "bankDetailsUi", description: "Show bank details in account" },
     { name: "kycForWithdrawal", description: "Require KYC for withdrawal" },
     { name: "emailToAll", description: "Allow admin to email all users" },
-    { name: "ibZone", description: "Enable/Disable IB panel" },
+    { name: "ibZone", description: "Enable or disable IB panel" },
   ];
 
   const mediaAssets = [
@@ -161,15 +149,15 @@ const SadminSiteConfiguration = () => {
       const incoming = res.data?.data || {};
       setDetails((prev) => ({ ...prev, ...incoming }));
 
-      // ✅ build resolved previews after fetch
       const nextLogo = await resolveIbbToDirect(incoming.logo || "");
       const nextFav = await resolveIbbToDirect(incoming.favicon || "");
+
       setResolvedMedia({
         logo: nextLogo,
         favicon: nextFav,
       });
     } catch (err) {
-      console.error("❌ Fetch Error:", err);
+      console.error("Fetch Error:", err);
     } finally {
       setLoading(false);
     }
@@ -183,7 +171,6 @@ const SadminSiteConfiguration = () => {
       [name]: type === "number" ? Number(value) : value,
     }));
 
-    // ✅ If media URL, resolve viewer link -> direct link (debounced)
     if (name === "logo" || name === "favicon") {
       if (resolveTimersRef.current[name]) {
         clearTimeout(resolveTimersRef.current[name]);
@@ -203,7 +190,6 @@ const SadminSiteConfiguration = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // ✅ Always save DIRECT links if we could resolve them
       const normalizedLogo = await resolveIbbToDirect(details.logo);
       const normalizedFavicon = await resolveIbbToDirect(details.favicon);
 
@@ -215,7 +201,6 @@ const SadminSiteConfiguration = () => {
 
       await superAdminApi.put("/site-config", payload);
 
-      // ✅ Update state to show saved normalized URLs
       setDetails(payload);
       setResolvedMedia({
         logo: normalizedLogo,
@@ -226,7 +211,7 @@ const SadminSiteConfiguration = () => {
       setTimeout(() => setSaveSuccess(false), 2500);
       setIsEditing(false);
     } catch (err) {
-      console.error("❌ Save Error:", err);
+      console.error("Save Error:", err);
     } finally {
       setSaving(false);
     }
@@ -236,8 +221,9 @@ const SadminSiteConfiguration = () => {
     fetchData();
 
     return () => {
-      // cleanup debounce timers
-      Object.values(resolveTimersRef.current).forEach((t) => t && clearTimeout(t));
+      Object.values(resolveTimersRef.current).forEach(
+        (t) => t && clearTimeout(t)
+      );
     };
   }, []);
 
@@ -248,17 +234,37 @@ const SadminSiteConfiguration = () => {
       .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Title */}
-      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">
-        Site Configuration
-      </h2>
-
-      {/* Header Action Bar */}
-      <div className="bg-primary-700/40 text-white rounded-lg shadow-lg p-4 sm:p-6 flex flex-col md:flex-row justify-between gap-4 md:items-center">
+    <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-gray-200">
-            Manage website core settings and appearance
+          <div
+            className={[
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+              isDark
+                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
+                : "border-orange-200 bg-orange-50 text-orange-700",
+            ].join(" ")}
+          >
+            <Settings2 size={14} />
+            Site Configuration
+          </div>
+
+          <h2
+            className={[
+              "text-2xl sm:text-3xl font-bold tracking-tight",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            Site Configuration
+          </h2>
+
+          <p
+            className={[
+              "mt-1 text-sm",
+              isDark ? "text-white/50" : "text-slate-600",
+            ].join(" ")}
+          >
+            Manage website core settings, media assets, and interface behavior.
           </p>
         </div>
 
@@ -268,55 +274,89 @@ const SadminSiteConfiguration = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 ${
-                  saving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
+                className={[
+                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
+                  isDark
+                    ? "bg-emerald-500/90 text-white hover:bg-emerald-500 shadow-[0_10px_25px_rgba(16,185,129,0.25)]"
+                    : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_10px_25px_rgba(16,185,129,0.20)]",
+                ].join(" ")}
               >
                 {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4" />
+                  <Save className="h-4 w-4" />
                 )}
                 {saving ? "Saving..." : "Save"}
               </button>
 
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-700 flex items-center gap-2"
+                disabled={saving}
+                className={[
+                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
+                  isDark
+                    ? "bg-red-500/90 text-white hover:bg-red-500 shadow-[0_10px_25px_rgba(239,68,68,0.20)]"
+                    : "bg-red-500 text-white hover:bg-red-600 shadow-[0_10px_25px_rgba(239,68,68,0.18)]",
+                ].join(" ")}
               >
-                <X className="w-4 h-4" /> Cancel
+                <X className="h-4 w-4" />
+                Cancel
               </button>
             </>
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className={[
+                "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300",
+                isDark
+                  ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
+                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+              ].join(" ")}
             >
-              <Pencil className="w-4 h-4" /> Edit
+              <Pencil className="h-4 w-4" />
+              Edit
             </button>
           )}
         </div>
       </div>
 
-      {/* Save Success */}
       {saveSuccess && (
-        <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-green-500/20 text-green-300 border border-green-500/40">
-          <CheckCircle2 className="w-5 h-5" /> Changes saved successfully!
+        <div
+          className={[
+            "mb-6 flex items-center gap-2 rounded-[18px] border px-4 py-3 text-sm font-medium",
+            isDark
+              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700",
+          ].join(" ")}
+        >
+          <CheckCircle2 className="h-5 w-5" />
+          Changes saved successfully!
         </div>
       )}
 
-      {/* Loader */}
       {loading ? (
-        <div className="mt-6 bg-primary-700/40 text-white rounded-lg shadow-lg p-6 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin" />
+        <div
+          className={[
+            "rounded-[24px] border p-6 flex items-center gap-3",
+            isDark
+              ? "border-white/10 bg-white/[0.04] text-white shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
+              : "border-orange-100 bg-white/70 text-slate-700 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <Loader2
+            className={[
+              "h-5 w-5 animate-spin",
+              isDark ? "text-blue-300" : "text-orange-500",
+            ].join(" ")}
+          />
           <p>Loading configuration...</p>
         </div>
       ) : (
         <>
-          {/* General Settings */}
-          <Section title="General Settings">
+          <Section
+            title="General Settings"
+            isDark={isDark}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {generalSettingsFields.map((field) => (
                 <SettingCard
@@ -327,13 +367,18 @@ const SadminSiteConfiguration = () => {
                   saving={saving}
                   handleChange={handleChange}
                   formatLabel={formatLabel}
+                  inputClass={inputClass}
+                  isDark={isDark}
                 />
               ))}
             </div>
           </Section>
 
-          {/* UI Settings */}
-          <Section title="UI Settings" subtitle="Configure user interface preferences">
+          <Section
+            title="UI Settings"
+            subtitle="Configure user interface preferences"
+            isDark={isDark}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {uiSettings.map((setting) => (
                 <ToggleCard
@@ -344,13 +389,16 @@ const SadminSiteConfiguration = () => {
                   saving={saving}
                   onToggle={handleToggle}
                   formatLabel={formatLabel}
+                  isDark={isDark}
                 />
               ))}
             </div>
           </Section>
 
-          {/* Media Assets */}
-          <Section title="Media Assets">
+          <Section
+            title="Media Assets"
+            isDark={isDark}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {mediaAssets.map((asset) => (
                 <MediaCard
@@ -362,6 +410,8 @@ const SadminSiteConfiguration = () => {
                   saving={saving}
                   handleChange={handleChange}
                   formatLabel={formatLabel}
+                  inputClass={inputClass}
+                  isDark={isDark}
                 />
               ))}
             </div>
@@ -372,16 +422,44 @@ const SadminSiteConfiguration = () => {
   );
 };
 
-/* ===== Platform-theme Subcomponents ===== */
-
-const Section = ({ title, subtitle, children }) => (
-  <div className="mt-6 bg-primary-700/40 text-white rounded-lg shadow-lg p-4 sm:p-6">
+const Section = ({ title, subtitle, children, isDark }) => (
+  <div
+    className={[
+      "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
+      isDark
+        ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
+        : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+    ].join(" ")}
+  >
     <div className="mb-4">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {subtitle && <p className="text-sm text-gray-200 mt-1">{subtitle}</p>}
+      <h3
+        className={[
+          "text-lg font-semibold",
+          isDark ? "text-white" : "text-slate-900",
+        ].join(" ")}
+      >
+        {title}
+      </h3>
+      {subtitle && (
+        <p
+          className={[
+            "mt-1 text-sm",
+            isDark ? "text-white/45" : "text-slate-500",
+          ].join(" ")}
+        >
+          {subtitle}
+        </p>
+      )}
     </div>
 
-    <div className="border border-gray-700 rounded-lg p-4 bg-primary-700/30">
+    <div
+      className={[
+        "rounded-[20px] border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.03]"
+          : "border-slate-200 bg-white/50",
+      ].join(" ")}
+    >
       {children}
     </div>
   </div>
@@ -394,9 +472,25 @@ const SettingCard = ({
   saving,
   handleChange,
   formatLabel,
+  inputClass,
+  isDark,
 }) => (
-  <div className="border border-gray-700 rounded-lg p-4 bg-primary-700/40">
-    <p className="text-xs text-gray-200 mb-2">{formatLabel(field.name)}</p>
+  <div
+    className={[
+      "rounded-[18px] border p-4",
+      isDark
+        ? "border-white/10 bg-white/[0.03]"
+        : "border-slate-200 bg-white/70",
+    ].join(" ")}
+  >
+    <p
+      className={[
+        "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
+        isDark ? "text-white/45" : "text-slate-500",
+      ].join(" ")}
+    >
+      {formatLabel(field.name)}
+    </p>
 
     {isEditing ? (
       <input
@@ -406,14 +500,25 @@ const SettingCard = ({
         onChange={handleChange}
         disabled={saving}
         placeholder={field.placeholder}
-        className={INPUT_CLASS}
+        className={inputClass}
       />
     ) : (
-      <div className="px-4 py-2 border border-gray-700 rounded-md bg-primary-700/50">
+      <div
+        className={[
+          "rounded-xl border px-4 py-3 text-sm",
+          isDark
+            ? "border-white/10 bg-white/[0.03]"
+            : "border-slate-200 bg-slate-50",
+        ].join(" ")}
+      >
         {details[field.name] !== "" && details[field.name] !== null ? (
-          <span className="text-white">{String(details[field.name])}</span>
+          <span className={isDark ? "text-white" : "text-slate-900"}>
+            {String(details[field.name])}
+          </span>
         ) : (
-          <span className="text-gray-300 italic">Not Set</span>
+          <span className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}>
+            Not Set
+          </span>
         )}
       </div>
     )}
@@ -427,13 +532,33 @@ const ToggleCard = ({
   saving,
   onToggle,
   formatLabel,
+  isDark,
 }) => (
-  <div className="border border-gray-700 rounded-lg p-4 bg-primary-700/40 flex items-center justify-between gap-4">
+  <div
+    className={[
+      "rounded-[18px] border p-4 flex items-center justify-between gap-4",
+      isDark
+        ? "border-white/10 bg-white/[0.03]"
+        : "border-slate-200 bg-white/70",
+    ].join(" ")}
+  >
     <div>
-      <p className="text-sm font-medium text-white">
+      <p
+        className={[
+          "text-sm font-semibold",
+          isDark ? "text-white" : "text-slate-900",
+        ].join(" ")}
+      >
         {formatLabel(setting.name)}
       </p>
-      <p className="text-xs text-gray-200 mt-1">{setting.description}</p>
+      <p
+        className={[
+          "mt-1 text-xs",
+          isDark ? "text-white/45" : "text-slate-500",
+        ].join(" ")}
+      >
+        {setting.description}
+      </p>
     </div>
 
     {isEditing ? (
@@ -444,11 +569,16 @@ const ToggleCard = ({
       />
     ) : (
       <span
-        className={`px-3 py-1 rounded-full text-xs font-medium border ${
+        className={[
+          "px-3 py-1 rounded-full text-xs font-medium border",
           details[setting.name]
-            ? "bg-green-500/20 text-green-300 border-green-500/40"
-            : "bg-red-500/20 text-red-300 border-red-500/40"
-        }`}
+            ? isDark
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+              : "bg-emerald-50 text-emerald-700 border-emerald-200"
+            : isDark
+            ? "bg-red-500/20 text-red-300 border-red-500/40"
+            : "bg-red-50 text-red-600 border-red-200",
+        ].join(" ")}
       >
         {details[setting.name] ? "Enabled" : "Disabled"}
       </span>
@@ -464,25 +594,54 @@ const MediaCard = ({
   saving,
   handleChange,
   formatLabel,
+  inputClass,
+  isDark,
 }) => {
   const rawUrl = details[asset.name] || "";
   const previewUrl = resolvedMedia?.[asset.name] || rawUrl;
 
   return (
-    <div className="border border-gray-700 rounded-lg p-4 bg-primary-700/40">
-      <p className="text-xs text-gray-200 mb-2">{formatLabel(asset.name)}</p>
+    <div
+      className={[
+        "rounded-[18px] border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.03]"
+          : "border-slate-200 bg-white/70",
+      ].join(" ")}
+    >
+      <p
+        className={[
+          "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
+          isDark ? "text-white/45" : "text-slate-500",
+        ].join(" ")}
+      >
+        {formatLabel(asset.name)}
+      </p>
 
       {isEditing ? (
         <>
           {(previewUrl || rawUrl) && (
-            <div className="mb-4 flex items-center gap-4 border border-gray-700 rounded-lg p-3 bg-primary-700/30">
-              <div className="w-28 h-16 flex items-center justify-center bg-primary-700/50 rounded-md overflow-hidden border border-gray-700">
+            <div
+              className={[
+                "mb-4 flex items-center gap-4 rounded-[16px] border p-3",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-slate-200 bg-slate-50",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "w-28 h-16 flex items-center justify-center rounded-xl overflow-hidden border",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-slate-200 bg-white",
+                ].join(" ")}
+              >
                 <img
                   src={previewUrl}
                   alt={asset.altText}
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
-                    // If preview fails, don't break UI
                     e.currentTarget.style.opacity = "0.4";
                   }}
                 />
@@ -492,9 +651,13 @@ const MediaCard = ({
                 href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-300 text-sm inline-flex items-center gap-1"
+                className={[
+                  "text-sm inline-flex items-center gap-1",
+                  isDark ? "text-blue-300" : "text-orange-600",
+                ].join(" ")}
               >
-                <ExternalLink className="w-4 h-4" /> View
+                <ExternalLink className="w-4 h-4" />
+                View
               </a>
             </div>
           )}
@@ -506,21 +669,37 @@ const MediaCard = ({
             onChange={handleChange}
             placeholder={asset.placeholder}
             disabled={saving}
-            className={INPUT_CLASS}
+            className={inputClass}
           />
 
-          {/* Small hint if user pasted viewer link */}
-          {rawUrl && (rawUrl.includes("ibb.co/") || rawUrl.includes("imgbb.com/")) && (
-            <p className="mt-2 text-xs text-gray-300">
-              Tip: You can paste viewer link — we’ll try to auto-convert to direct link.
-              If preview doesn’t load, use direct format like{" "}
-              <span className="text-blue-300">https://i.ibb.co/.../logo.png</span>
-            </p>
-          )}
+          {rawUrl &&
+            (rawUrl.includes("ibb.co/") || rawUrl.includes("imgbb.com/")) && (
+              <p
+                className={[
+                  "mt-2 text-xs",
+                  isDark ? "text-white/45" : "text-slate-500",
+                ].join(" ")}
+              >
+                Tip: You can paste viewer link — we’ll try to auto-convert to a
+                direct link. If preview doesn’t load, use direct format like{" "}
+                <span
+                  className={isDark ? "text-blue-300" : "text-orange-600"}
+                >
+                  https://i.ibb.co/.../logo.png
+                </span>
+              </p>
+            )}
         </>
       ) : previewUrl ? (
         <div className="flex flex-col md:flex-row gap-4 items-start">
-          <div className="w-36 h-20 flex items-center justify-center bg-primary-700/50 rounded-md p-2 border border-gray-700">
+          <div
+            className={[
+              "w-36 h-20 flex items-center justify-center rounded-xl p-2 border",
+              isDark
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-slate-200 bg-white",
+            ].join(" ")}
+          >
             <img
               src={previewUrl}
               alt={asset.altText}
@@ -530,20 +709,37 @@ const MediaCard = ({
               }}
             />
           </div>
+
           <div>
-            <p className="text-blue-300 text-sm break-all">{previewUrl}</p>
+            <p
+              className={[
+                "text-sm break-all",
+                isDark ? "text-blue-300" : "text-orange-600",
+              ].join(" ")}
+            >
+              {previewUrl}
+            </p>
+
             <a
               href={previewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-blue-500/20 text-blue-300 rounded-md text-sm border border-blue-500/30"
+              className={[
+                "inline-flex items-center gap-1 mt-2 rounded-lg px-3 py-1.5 text-sm border",
+                isDark
+                  ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
+                  : "bg-orange-50 text-orange-700 border-orange-200",
+              ].join(" ")}
             >
-              <ExternalLink className="w-4 h-4" /> Open
+              <ExternalLink className="w-4 h-4" />
+              Open
             </a>
           </div>
         </div>
       ) : (
-        <p className="text-gray-300 italic">No {formatLabel(asset.name)} Set</p>
+        <p className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}>
+          No {formatLabel(asset.name)} Set
+        </p>
       )}
     </div>
   );

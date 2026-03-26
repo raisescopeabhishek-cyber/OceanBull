@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  mode: "dark", // "dark" | "light"
+  mode: "light", // "dark" | "light"
 };
 
 const superadminThemeSlice = createSlice({

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Pencil, Check, X, Loader2, ExternalLink } from "lucide-react";
 import { adminApi } from "@/utils/apiClients";
 import { useDispatch } from "react-redux";
-import { resetTheme } from "../../redux/user/userSlice";
+// import { resetTheme } from "../../redux/user/userSlice";
 
 const SiteConfiguration = () => {
   const [details, setDetails] = useState({
@@ -79,7 +79,7 @@ const SiteConfiguration = () => {
   };
 
   const handleResetTheme = async () => {
-    dispatch(resetTheme());
+    // dispatch(resetTheme());
     setDetails((prevDetails) => ({
       ...prevDetails,
       themeColor: "#F23645", // Default theme color

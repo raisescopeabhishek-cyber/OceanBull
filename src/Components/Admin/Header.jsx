@@ -1,41 +1,63 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import { User, LogOut, Bell, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  User,
+  LogOut,
+  Bell,
+  X,
+  Sun,
+  Moon,
+  Menu,
+} from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
-import Sidebar from "./Sidebar";
+
 import { adminApi } from "../../utils/apiClients";
-import { setNotification } from "../../redux/adminSlice"; // adjust slice path if needed
-import { handleToggleSidebar } from "../../redux/user/userSlice"; // if you have an admin toggle, swap this import
+import { setNotification } from "../../redux/adminSlice";
+import { handleToggleSidebar } from "../../redux/user/userSlice";
+import { toggleAdminTheme } from "../../redux/adminThemeSlice";
 import { FloatingParticles } from "../../utils/FloatingParticles";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) => (Number.isFinite(n) ? n : 0));
-  return { r, g, b };
-};
-const rgb = (v) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
+/* helpers */
+const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
+
+const getThemeColors = (isDark) => {
+  return isDark
+    ? {
+        fg: "255,255,255",
+        muted: "255,255,255",
+        bg: "5,7,11",
+        surface: "17,24,39",
+        surface2: "30,41,59",
+        border: "255,255,255",
+        accent: "59,130,246",
+        danger: "244,63,94",
+        success: "16,185,129",
+      }
+    : {
+        fg: "15,23,42",
+        muted: "71,85,105",
+        bg: "255,250,247",
+        surface: "255,255,255",
+        surface2: "255,244,235",
+        border: "251,146,60",
+        accent: "249,115,22",
+        danger: "244,63,94",
+        success: "5,150,105",
+      };
 };
 
-/* ---------------- Notification Dropdown ---------------- */
-const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
+/* Notification Dropdown */
+const NotificationDropdown = ({ isOpen, onClose, adminId, colors }) => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const notifications = useSelector((state) => state.admin.notification) || [];
-  const radius = theme?.radius || "14px";
 
   useEffect(() => {
     if (!adminId) return;
+
     const fetchNotifications = async () => {
       try {
         const { data } = await adminApi.get(`/get-all-notification/${adminId}`);
@@ -44,13 +66,17 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
         console.error(err);
       }
     };
+
     fetchNotifications();
   }, [adminId, location.pathname, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) onClose();
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onClose();
+      }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
@@ -60,9 +86,12 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
       await adminApi.put(`/admin/mark-notification-read/${note._id}`);
       dispatch(
         setNotification(
-          notifications.map((n) => (n._id === note._id ? { ...n, isRead: true } : n))
+          notifications.map((n) =>
+            n._id === note._id ? { ...n, isRead: true } : n
+          )
         )
       );
+
       if (note.adminLink) navigate(note.adminLink);
       onClose();
     } catch (err) {
@@ -79,32 +108,22 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 right-0 top-10 w-80 overflow-hidden"
+            className="absolute z-50 right-0 top-10 w-80 overflow-hidden rounded-2xl border backdrop-blur-xl"
             style={{
-              borderRadius: radius,
-              background: `linear-gradient(180deg, ${rgba(theme?.bg || "0 0 0", 0.95)}, ${rgba(
-                theme?.surface2 || theme?.card || "18 18 18",
-                0.92
-              )})`,
-              border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
-              boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-              color: rgb(theme?.fg || "255 255 255"),
-              backdropFilter: "blur(10px)",
+              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
+              borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
+              color: rgba(...colors.fg.split(",").map(Number), 1),
+              boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
             }}
           >
             <div
-              className="flex items-center justify-between px-4 py-2 border-b"
-              style={{ borderBottomColor: rgba(theme?.border || "255 255 255", 0.12) }}
+              className="flex items-center justify-between px-4 py-3 border-b"
+              style={{
+                borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.12),
+              }}
             >
               <p className="font-semibold">Notifications</p>
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="transition-colors"
-                style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7) }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = rgba(theme?.fg || "255 255 255", 0.95))}
-                onMouseLeave={(e) => (e.currentTarget.style.color = rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7))}
-              >
+              <button onClick={onClose}>
                 <X size={16} />
               </button>
             </div>
@@ -122,27 +141,39 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
                       transition={{ delay: index * 0.05 }}
                       className="w-full text-left px-4 py-3 transition-all flex flex-col border-b"
                       style={{
-                        borderBottomColor: rgba(theme?.border || "255 255 255", 0.1),
-                        background: unread ? rgba(theme?.accent || "59 130 246", 0.08) : "transparent",
-                        color: unread ? rgba(theme?.fg || "255 255 255", 0.92) : rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.75),
+                        borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.08),
+                        background: unread
+                          ? rgba(...colors.accent.split(",").map(Number), 0.08)
+                          : "transparent",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.22))}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = unread ? rgba(theme?.accent || "59 130 246", 0.08) : "transparent")}
                     >
                       <div className="flex justify-between items-center">
-                        <p className="text-sm">{note.title}</p>
-                        <span className="text-[10px]" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.55) }}>
+                        <p className="text-sm font-medium">{note.title}</p>
+                        <span
+                          className="text-[10px]"
+                          style={{
+                            color: rgba(...colors.muted.split(",").map(Number), 0.75),
+                          }}
+                        >
                           {new Date(note.createdAt).toLocaleTimeString()}
                         </span>
                       </div>
-                      <p className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.55) }}>
+                      <p
+                        className="text-xs mt-1"
+                        style={{
+                          color: rgba(...colors.muted.split(",").map(Number), 0.9),
+                        }}
+                      >
                         {note.message}
                       </p>
                     </motion.button>
                   );
                 })
               ) : (
-                <p className="px-4 py-2 text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.6) }}>
+                <p
+                  className="px-4 py-3 text-sm"
+                  style={{ color: rgba(...colors.muted.split(",").map(Number), 0.9) }}
+                >
                   No notifications
                 </p>
               )}
@@ -154,26 +185,25 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, theme }) => {
   );
 };
 
-/* ---------------- Admin Dropdown ---------------- */
-const AdminDropdown = ({ isOpen, onClose, admin, theme }) => {
+/* Admin Dropdown */
+const AdminDropdown = ({ isOpen, onClose, admin, colors }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const radius = theme?.radius || "14px";
-
-  const logoutHandler = () => {
-    // clear admin state or token
-    navigate("/login");
-  };
-
-  const menuItems = [];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) onClose();
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onClose();
+      }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
+
+  const logoutHandler = () => {
+    navigate("/auth/admin/login");
+  };
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -184,41 +214,45 @@ const AdminDropdown = ({ isOpen, onClose, admin, theme }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 right-0 top-10 w-48 overflow-hidden"
+            className="absolute z-50 right-0 top-10 w-48 overflow-hidden rounded-2xl border backdrop-blur-xl"
             style={{
-              borderRadius: radius,
-              background: `linear-gradient(180deg, ${rgba(theme?.bg || "0 0 0", 0.95)}, ${rgba(
-                theme?.surface2 || theme?.card || "18 18 18",
-                0.92
-              )})`,
-              border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
-              boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-              color: rgb(theme?.fg || "255 255 255"),
-              backdropFilter: "blur(10px)",
+              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
+              borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
+              color: rgba(...colors.fg.split(",").map(Number), 1),
+              boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
             }}
           >
-            <div className="py-1">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className="flex items-center px-4 py-2 text-sm transition-all"
-                  style={{ color: rgba(theme?.fg || "255 255 255", 0.85) }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.22))}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div className="py-2">
+              <div className="px-4 py-2 text-sm font-semibold">
+                {admin?.firstName || "Admin"}
+              </div>
+
+
+  <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/login-logs")}}>
+                Logs
+              </div>
+
+
+
+                <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/getway/manual")}}>
+                Gateway Settings
+              </div>
+
+
+                <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/ib-zone")}}>
+                Referral Zone
+              </div>
+
 
               <button
                 onClick={logoutHandler}
                 className="flex items-center w-full px-4 py-2 text-sm font-semibold transition-all"
-                style={{ color: rgba(theme?.danger || "244 63 94", 0.95) }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.danger || "244 63 94", 0.12))}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                style={{
+                  color: rgba(...colors.danger.split(",").map(Number), 1),
+                }}
               >
-                <LogOut className="w-4 h-4 mr-2" /> Logout
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
               </button>
             </div>
           </motion.div>
@@ -228,145 +262,133 @@ const AdminDropdown = ({ isOpen, onClose, admin, theme }) => {
   );
 };
 
-/* ---------------- Main Admin Header (THEME-APPLIED) ---------------- */
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // NOTE: you were reading sidebar open from admin slice but toggling user slice.
-  // Keeping your current logic, but making it safe.
-  const isSidebarOpen = useSelector((store) => store.admin.isSidebarOpen);
+  const isSidebarOpen = useSelector((store) => store.admin?.isSidebarOpen);
+  const admin = useSelector((store) => store.admin?.adminUser);
+  const adminSiteConfig = useSelector((store) => store.admin?.siteConfig);
+  const userSiteConfig = useSelector((store) => store.user?.siteConfig);
+  const notifications = useSelector((store) => store.admin?.notification) || [];
+  const mode = useSelector((store) => store.adminTheme?.mode || "light");
+
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const admin = useSelector((store) => store.admin.adminUser);
-
-  // Theme from user slice
-  const themeConfig = useSelector((store) => store.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
-
-  // 🔥 Try admin.siteConfig first, then fall back to user.siteConfig
-  const adminSiteConfig = useSelector((store) => store.admin.siteConfig);
-  const userSiteConfig = useSelector((store) => store.user.siteConfig);
-  const siteConfig = adminSiteConfig || userSiteConfig || {};
-
-  const baseHeight = siteConfig.logoSize || 4;
-  const notifications = useSelector((store) => store.admin.notification) || [];
+  const isDark = mode === "dark";
+  const colors = getThemeColors(isDark);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const siteConfig = adminSiteConfig || userSiteConfig || {};
+  const baseHeight = siteConfig.logoSize || 4;
 
-  const sidebarHandler = () => dispatch(handleToggleSidebar(!isSidebarOpen));
+  const sidebarHandler = () => {
+    dispatch(handleToggleSidebar(!isSidebarOpen));
+  };
+
+  const toggleThemeHandler = () => {
+    dispatch(toggleAdminTheme());
+  };
 
   return (
     <nav
-      className="sticky top-0 z-50 h-16 w-full"
+      className="sticky top-0 z-50 h-16 w-full border-b backdrop-blur-xl"
       style={{
-        color: rgb(theme?.fg || "255 255 255"),
-        background: `linear-gradient(90deg, ${rgba(theme?.bg || "0 0 0", 0.92)}, ${rgba(
-          theme?.headerRow || theme?.surface3 || "30 30 30",
-          0.72
-        )}, ${rgba(theme?.bg || "0 0 0", 0.92)})`,
-        borderBottom: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
-        position: "sticky",
-        top: 0,
+        color: rgba(...colors.fg.split(",").map(Number), 1),
+        background: `linear-gradient(90deg, ${rgba(...colors.bg.split(",").map(Number), 0.92)}, ${rgba(...colors.surface2.split(",").map(Number), 0.78)}, ${rgba(...colors.bg.split(",").map(Number), 0.92)})`,
+        borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.14),
       }}
     >
-      {/* particle layer */}
-      {theme?.effectsEnabled !== false && <FloatingParticles />}
+      <FloatingParticles />
 
-      <Sidebar />
-
-      <div className="flex justify-between items-center md:px-5 h-full">
-        {/* Left: Sidebar Toggle + Logo */}
+      <div className="flex justify-between items-center px-3 md:px-5 h-full">
         <div className="flex gap-2 items-center">
           <button
-            className="sm:hidden"
+            className="md:hidden flex items-center justify-center"
             onClick={sidebarHandler}
             aria-label="Toggle sidebar"
             style={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               borderRadius: "999px",
-              border: `1px solid ${rgba(theme?.border || "255 255 255", 0.16)}`,
-              background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2),
-              color: rgba(theme?.fg || "255 255 255", 0.9),
+              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
+              background: rgba(...colors.surface.split(",").map(Number), 0.35),
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.24))}
-            onMouseLeave={(e) => (e.currentTarget.style.background = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2))}
           >
-            <User className="w-4 h-4 mx-auto" />
+            <Menu className="w-4 h-4" />
           </button>
 
-          <a href="/admin/dashboard" className="mr-4">
+          <Link to="/admin/dashboard" className="mr-2">
             {siteConfig.logo ? (
               <img
                 src={siteConfig.logo}
                 alt={siteConfig.siteName || "Logo"}
-                className="block md:hidden object-contain w-auto dynamic-logo"
+                className="block md:hidden object-contain w-auto"
+                style={{ height: `${baseHeight * 0.8}rem` }}
               />
             ) : null}
-
-            <style jsx>{`
-              .dynamic-logo {
-                height: ${baseHeight * 0.8}rem;
-              }
-              @media (min-width: 640px) {
-                .dynamic-logo {
-                  height: ${baseHeight * 0.666}rem;
-                }
-              }
-              @media (min-width: 768px) {
-                .dynamic-logo {
-                  height: ${baseHeight}rem;
-                }
-              }
-              @media (min-width: 1024px) {
-                .dynamic-logo {
-                  height: ${baseHeight * 1.2}rem;
-                }
-              }
-            `}</style>
-          </a>
+          </Link>
         </div>
 
-        {/* Center Title / Logo */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          {siteConfig?.logo && (
+        <div className="flex-1 flex items-center justify-center">
+          {siteConfig?.logo ? (
             <img
               src={siteConfig.logo}
               alt={siteConfig?.siteName || "Logo"}
-              className="object-contain w-44"
+              className="object-contain w-40 md:w-44"
               style={{ height: `${baseHeight}rem` }}
             />
+          ) : (
+            <h1 className="font-bold text-sm md:text-base">Admin Panel</h1>
           )}
         </div>
 
-        {/* Right: Notifications + Admin */}
-        <div className="relative flex items-center gap-3 pr-3">
-          {/* Bell */}
+        <div className="relative flex items-center gap-2 md:gap-3">
+
+            <p className="hidden cursor-pointer sm:block text-sm font-semibold whitespace-nowrap" onClick={()=>{navigate("/admin/ib-users")}}>
+            Network
+          </p>
+          <button
+            onClick={toggleThemeHandler}
+            className="flex items-center justify-center transition"
+            aria-label="Toggle theme"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "999px",
+              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
+              background: rgba(...colors.surface.split(",").map(Number), 0.35),
+            }}
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          
+
           <button
             onClick={() => {
-              setIsNotificationOpen((v) => !v);
+              setIsNotificationOpen((prev) => !prev);
               setIsDropdownOpen(false);
             }}
             className="relative flex items-center justify-center transition"
             aria-label="Notifications"
             style={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               borderRadius: "999px",
-              border: `1px solid ${rgba(theme?.border || "255 255 255", 0.16)}`,
-              background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2),
+              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
+              background: rgba(...colors.surface.split(",").map(Number), 0.35),
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.24))}
-            onMouseLeave={(e) => (e.currentTarget.style.background = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2))}
           >
-            <Bell className="w-5 h-5" style={{ color: rgba(theme?.fg || "255 255 255", 0.85) }} />
+
+            
+            <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
               <span
-                className="absolute -top-1 -right-1 w-4 h-4 text-[10px] flex items-center justify-center rounded-full"
+                className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] flex items-center justify-center rounded-full"
                 style={{
-                  background: rgb(theme?.danger || "244 63 94"),
-                  color: rgb(theme?.dangerFg || "255 255 255"),
+                  background: rgba(...colors.danger.split(",").map(Number), 1),
+                  color: "#fff",
                 }}
               >
                 {unreadCount}
@@ -378,42 +400,34 @@ const Header = () => {
             isOpen={isNotificationOpen}
             onClose={() => setIsNotificationOpen(false)}
             adminId={admin?._id}
-            theme={theme}
+            colors={colors}
           />
 
-          {/* Admin name */}
-          <div className="flex items-center gap-1">
-            <p className="md:text-sm text-[10px] font-semibold whitespace-nowrap" style={{ color: rgba(theme?.fg || "255 255 255", 0.82) }}>
-              {admin?.firstName}
-            </p>
-          </div>
 
-          {/* Admin avatar */}
+
           <button
             onClick={() => {
-              setIsDropdownOpen((v) => !v);
+              setIsDropdownOpen((prev) => !prev);
               setIsNotificationOpen(false);
             }}
             className="flex items-center justify-center transition"
             aria-label="Open admin menu"
             style={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               borderRadius: "999px",
-              border: `1px solid ${rgba(theme?.border || "255 255 255", 0.16)}`,
-              background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2),
+              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
+              background: rgba(...colors.surface.split(",").map(Number), 0.35),
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.24))}
-            onMouseLeave={(e) => (e.currentTarget.style.background = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2))}
           >
-            <User className="w-4 h-4 md:w-6 md:h-6" style={{ color: rgba(theme?.fg || "255 255 255", 0.85) }} />
+            <User className="w-4 h-4 md:w-5 md:h-5" />
           </button>
 
           <AdminDropdown
             isOpen={isDropdownOpen}
             onClose={() => setIsDropdownOpen(false)}
             admin={admin}
-            theme={theme}
+            colors={colors}
           />
         </div>
       </div>

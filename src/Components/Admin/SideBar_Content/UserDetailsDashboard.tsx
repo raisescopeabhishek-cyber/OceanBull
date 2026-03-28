@@ -5,44 +5,24 @@ import {
   CreditCard,
   ArrowLeftRight,
   Users,
-  BoxIcon,
+  Boxes,
   Mail,
   MapPin,
   Calendar,
   RefreshCw,
   ArrowLeft,
+  ShieldCheck,
 } from "lucide-react";
-import UserInfoForm from "../user-detail/UserForm";
 import { useParams } from "react-router-dom";
-import UserTradeAccounts from "../user-detail/UserTradeAccounts";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { adminApi} from "../../../utils/apiClients";
-import { CFformatDate } from "../../../utils/CustomFunctions";
 
-// Ambient visuals
+import UserInfoForm from "../user-detail/UserForm";
+import UserTradeAccounts from "../user-detail/UserTradeAccounts";
+import { adminApi } from "../../../utils/apiClients";
+import { CFformatDate } from "../../../utils/CustomFunctions";
 import { FloatingParticles } from "../../../utils/FloatingParticles";
 import { AnimatedGrid } from "../../../utils/AnimatedGrid";
-
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
 
 const containerVariants = {
   hidden: { opacity: 1 },
@@ -50,89 +30,73 @@ const containerVariants = {
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 18 },
   visible: { opacity: 1, y: 0 },
 };
 
-// ---------- small helpers ----------
 const money = (n: any, d = 2) =>
   `$${Number(n || 0).toLocaleString(undefined, {
     minimumFractionDigits: d,
     maximumFractionDigits: d,
   })}`;
 
-const initials = (first?: string, last?: string) => (first?.[0] || "") + (last?.[0] || "");
+const initials = (first?: string, last?: string) =>
+  `${first?.[0] || ""}${last?.[0] || ""}` || "U";
 
-/* ------------------------- Themed building blocks ------------------------- */
 const StatCard = ({
   icon,
   amount,
   label,
-  theme,
-  radius,
+  isDark,
 }: {
-  icon: JSX.Element;
+  icon: React.ReactNode;
   amount: string;
   label: string;
-  theme: any;
-  radius: string;
+  isDark: boolean;
 }) => {
-  const cardStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: `linear-gradient(135deg,
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.70)},
-      ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.85)},
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.70)}
-    )`,
-    color: rgba(theme?.fg || "255 255 255", 0.92),
-    boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.45)}`,
-  } as React.CSSProperties;
-
-  const glowOverlay = {
-    background: `linear-gradient(90deg,
-      ${rgba(theme?.gradientFrom || theme?.accent || "59 130 246", 0.35)},
-      ${rgba(theme?.gradientTo || "147 51 234", 0.35)}
-    )`,
-    opacity: 0.18,
-    filter: "blur(14px)",
-  } as React.CSSProperties;
-
-  const iconWrap = {
-    width: 44,
-    height: 44,
-    borderRadius: radius,
-    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-      theme?.gradientTo || "147 51 234"
-    )})`,
-    boxShadow: `0 0 24px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
-  } as React.CSSProperties;
-
   return (
     <motion.div
       variants={cardVariants}
-      className="relative p-4 overflow-hidden transition-all"
-      style={cardStyle}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 40px ${rgba(
-          theme?.glow || theme?.accent || "59 130 246",
-          0.18
-        )}, 0 18px 70px ${rgba(theme?.shadowColor || "0 0 0", 0.55)}`;
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.45)}`;
-      }}
+      className={[
+        "group relative overflow-hidden rounded-[24px] border p-4 sm:p-5 transition-all duration-300",
+        isDark
+          ? "border-white/10 bg-white/[0.04] shadow-[0_18px_60px_rgba(0,0,0,0.42)]"
+          : "border-orange-100/80 bg-white/75 shadow-[0_16px_40px_rgba(251,146,60,0.12)]",
+      ].join(" ")}
     >
-      <div className="absolute -inset-px rounded-[24px]" style={glowOverlay} />
-      <div className="relative flex items-center gap-3">
-        <div className="grid place-items-center" style={iconWrap}>
+      <div
+        className={[
+          "absolute inset-0 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100",
+          isDark ? "bg-blue-400/10" : "bg-orange-300/20",
+        ].join(" ")}
+      />
+      <div className="relative flex items-center gap-4">
+        <div
+          className={[
+            "grid h-12 w-12 place-items-center rounded-2xl border",
+            isDark
+              ? "border-blue-400/20 bg-blue-500/15 text-blue-200"
+              : "border-orange-200 bg-orange-50 text-orange-600",
+          ].join(" ")}
+        >
           {icon}
         </div>
+
         <div>
-          <p className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}>
+          <p
+            className={[
+              "text-xs uppercase tracking-[0.16em]",
+              isDark ? "text-white/45" : "text-slate-500",
+            ].join(" ")}
+          >
             {label}
           </p>
-          <p className="text-xl font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+          <p
+            className={[
+              "mt-1 text-xl font-semibold",
+              isDark ? "text-white/90" : "text-slate-900",
+            ].join(" ")}
+          >
             {amount}
           </p>
         </div>
@@ -146,75 +110,80 @@ const Panel = ({
   subtitle,
   right,
   children,
+  isDark,
   className = "",
-  theme,
-  radius,
 }: {
   title: string;
   subtitle?: string;
   right?: React.ReactNode;
   children: React.ReactNode;
+  isDark: boolean;
   className?: string;
-  theme: any;
-  radius: string;
 }) => {
-  const panelStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: `linear-gradient(135deg,
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)},
-      ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.88)},
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)}
-    )`,
-    boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-    overflow: "hidden",
-  } as React.CSSProperties;
-
-  const headerStyle = {
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
-    background: rgba(theme?.headerRow || theme?.surface3 || "30 30 30", 0.45),
-  } as React.CSSProperties;
-
   return (
-    <div className={className} style={panelStyle}>
-      <div className="flex items-start justify-between px-5 sm:px-6 py-4" style={headerStyle}>
+    <div
+      className={[
+        "overflow-hidden rounded-[24px] border backdrop-blur-xl transition-all duration-300",
+        isDark
+          ? "border-white/10 bg-white/[0.04] shadow-[0_18px_60px_rgba(0,0,0,0.42)]"
+          : "border-orange-100/80 bg-white/72 shadow-[0_16px_42px_rgba(251,146,60,0.10)]",
+        className,
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6",
+          isDark
+            ? "border-white/10 bg-white/[0.03]"
+            : "border-orange-100/80 bg-white/50",
+        ].join(" ")}
+      >
         <div>
-          <h3 className="font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+          <h3
+            className={[
+              "text-base font-semibold",
+              isDark ? "text-white/90" : "text-slate-900",
+            ].join(" ")}
+          >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-xs mt-0.5" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}>
+            <p
+              className={[
+                "mt-1 text-xs",
+                isDark ? "text-white/45" : "text-slate-500",
+              ].join(" ")}
+            >
               {subtitle}
             </p>
           )}
         </div>
         {right && <div className="shrink-0">{right}</div>}
       </div>
-      <div className="p-5 sm:p-6" style={{ borderRadius: radius }}>
-        {children}
-      </div>
+
+      <div className="p-4 sm:p-5 md:p-6">{children}</div>
     </div>
   );
 };
 
 const UserDetailDashboard = () => {
   const { id } = useParams();
-
-  // Theme from Redux (same as LoginLogs)
-  const themeConfig = useSelector((state: any) => state.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
+  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
   const [userData, setUserData] = useState<any>(null);
   const [deposits, setDeposits] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [totalBalance, setTotalBalance] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-  const [equityLoading, setEquityLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [equityLoading, setEquityLoading] = useState<boolean>(false);
 
   const accountsRef = useRef<HTMLDivElement | null>(null);
 
-  const totalTransactions = useMemo(() => [...deposits, ...withdrawals], [deposits, withdrawals]);
+  const totalTransactions = useMemo(
+    () => [...deposits, ...withdrawals],
+    [deposits, withdrawals]
+  );
 
   const totalInvestAmount = useMemo(
     () => deposits.reduce((t, v) => t + Number(v?.deposit || 0), 0),
@@ -226,7 +195,6 @@ const UserDetailDashboard = () => {
     [withdrawals]
   );
 
-  // ---------- data ----------
   const fetchUserData = async () => {
     setLoading(true);
     try {
@@ -236,18 +204,23 @@ const UserDetailDashboard = () => {
         adminApi.get(`/withdrawals`),
       ]);
 
-      const u = res?.data?.data;
-      setUserData(u || null);
+      const user = res?.data?.data || null;
+      setUserData(user);
 
-      const userId = u?._id;
-      const userDeposits = (depRes?.data?.data || []).filter((d: any) => d?.userId?._id === userId);
-      const userWithdrawals = (wRes?.data?.data || []).filter((w: any) => w?.userId?._id === userId);
+      const userId = user?._id;
+
+      const userDeposits = (depRes?.data?.data || []).filter(
+        (d: any) => d?.userId?._id === userId
+      );
+      const userWithdrawals = (wRes?.data?.data || []).filter(
+        (w: any) => w?.userId?._id === userId
+      );
 
       setDeposits(userDeposits);
       setWithdrawals(userWithdrawals);
-    } catch (e) {
-      toast.error("Failed to load user");
-      console.error(e);
+    } catch (error) {
+      console.error("Failed to load user:", error);
+      toast.error("Failed to load user data");
     } finally {
       setLoading(false);
     }
@@ -258,28 +231,25 @@ const UserDetailDashboard = () => {
       setTotalBalance(0);
       return;
     }
+
     setEquityLoading(true);
     try {
       const results = await Promise.allSettled(
-        accounts.map((acc) =>
-          adminApi.get(
-            `/server-logger-info`
-          )
-        )
+        accounts.map(() => adminApi.get(`/server-logger-info`))
       );
 
-      const sum = results.reduce((t, r) => {
-        if (r.status === "fulfilled") {
-          const eq = Number(r.value?.data?.data?.Equity || 0);
-          return t + (isFinite(eq) ? eq : 0);
+      const sum = results.reduce((total, result) => {
+        if (result.status === "fulfilled") {
+          const equity = Number(result.value?.data?.data?.Equity || 0);
+          return total + (Number.isFinite(equity) ? equity : 0);
         }
-        return t;
+        return total;
       }, 0);
 
       setTotalBalance(Number(sum.toFixed(2)));
-    } catch (e) {
-      console.error("Equity fetch failed", e);
-      toast.error("Could not update MT5 balances");
+    } catch (error) {
+      console.error("Equity fetch failed:", error);
+      toast.error("Could not refresh account balances");
     } finally {
       setEquityLoading(false);
     }
@@ -287,155 +257,129 @@ const UserDetailDashboard = () => {
 
   const goToAccounts = () => {
     if (!accountsRef.current) return;
-    const y = accountsRef.current.getBoundingClientRect().top + window.pageYOffset - 96;
+    const y = accountsRef.current.getBoundingClientRect().top + window.pageYOffset - 108;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
   useEffect(() => {
     if (id) fetchUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
-    if (userData?.accounts?.length) fetchAccountsEquity(userData.accounts);
-    else setTotalBalance(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (userData?.accounts?.length) {
+      fetchAccountsEquity(userData.accounts);
+    } else {
+      setTotalBalance(0);
+    }
   }, [userData]);
 
-  // ---------- derived for header ----------
   const fullName = `${userData?.firstName || ""} ${userData?.lastName || ""}`.trim();
   const email = userData?.email || "—";
   const country = userData?.country || "N/A";
   const joined = userData?.createdAt ? CFformatDate(userData.createdAt) : "—";
 
-  // ---------- theme-driven page styles (same vibe as LoginLogs) ----------
-  const pageBgStyle = {
-    minHeight: "100vh",
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(theme?.glow || theme?.accent, 0.16)}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(theme?.gradientTo || theme?.accent, 0.12)}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(theme?.surface1 || theme?.bg || "0 0 0")}, ${rgb(
-      theme?.bg || "0 0 0"
-    )})`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
-
-  const stickyHeaderStyle = {
-    background: `linear-gradient(to bottom, ${rgba(theme?.bg || "0 0 0", 0.78)}, transparent)`,
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-  } as React.CSSProperties;
-
-  const buttonBaseStyle = {
-    borderRadius: "999px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-    color: rgba(theme?.fg || "255 255 255", 0.9),
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.25),
-  } as React.CSSProperties;
-
-  const buttonHoverShadow = {
-    boxShadow: `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`,
-  } as React.CSSProperties;
-
-  const chipStyle = {
-    borderRadius: "999px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.16)}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-    color: rgba(theme?.fg || "255 255 255", 0.82),
-  } as React.CSSProperties;
-
-  const activityItemStyle = {
-    borderRadius: radius,
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-  } as React.CSSProperties;
-
-  // ---------- UI ----------
   return (
-    <div className="relative" style={pageBgStyle}>
+    <div className="relative">
       <AnimatedGrid />
       <FloatingParticles />
 
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Sticky header */}
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-4 backdrop-blur-md"
-          style={stickyHeaderStyle}
+          className={[
+            "sticky top-0 z-20 -mx-4 mb-6 border-b px-4 pb-4 pt-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8",
+            isDark
+              ? "border-white/10 bg-[#05070b]/70"
+              : "border-orange-100/80 bg-white/70",
+          ].join(" ")}
         >
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center gap-2 px-4 py-2 transition-all"
-                style={buttonBaseStyle}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, buttonHoverShadow)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = "none")}
+                className={[
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 w-fit",
+                  isDark
+                    ? "border-white/10 bg-white/[0.05] text-white/85 hover:bg-white/[0.08]"
+                    : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+                ].join(" ")}
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={17} />
                 Back
               </button>
 
               <div className="flex items-center gap-3">
                 <div
-                  className="h-12 w-12 grid place-items-center text-xl font-semibold"
-                  style={{
-                    borderRadius: radius,
-                    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.35),
-                    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-                    color: rgba(theme?.fg || "255 255 255", 0.88),
-                  }}
+                  className={[
+                    "grid h-14 w-14 place-items-center rounded-[20px] border text-lg font-semibold",
+                    isDark
+                      ? "border-white/10 bg-white/[0.05] text-white/90"
+                      : "border-orange-100 bg-white/80 text-slate-800",
+                  ].join(" ")}
                 >
-                  {initials(userData?.firstName, userData?.lastName) || "U"}
+                  {initials(userData?.firstName, userData?.lastName)}
                 </div>
 
                 <div>
                   <h1
-                    className="text-2xl md:text-3xl font-bold drop-shadow"
-                    style={{
-                      backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                        theme?.gradientTo || "147 51 234"
-                      )})`,
-                      WebkitBackgroundClip: "text",
-                      backgroundClip: "text",
-                      color: "transparent",
-                    }}
+                    className={[
+                      "text-2xl font-bold md:text-3xl",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
                   >
                     {fullName || "User Detail"}
                   </h1>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-0.5" style={{ color: rgba(theme?.fg || "255 255 255", 0.78) }}>
-                    <span className="inline-flex items-center gap-1" style={chipStyle}>
-                      <span className="inline-flex items-center gap-1 px-2 py-1">
-                        <Mail className="w-4 h-4" /> {email}
-                      </span>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                    <span
+                      className={[
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04] text-white/70"
+                          : "border-orange-100 bg-white/80 text-slate-600",
+                      ].join(" ")}
+                    >
+                      <Mail className="h-4 w-4" />
+                      {email}
                     </span>
-                    <span className="inline-flex items-center gap-1" style={chipStyle}>
-                      <span className="inline-flex items-center gap-1 px-2 py-1">
-                        <MapPin className="w-4 h-4" /> {country}
-                      </span>
+
+                    <span
+                      className={[
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04] text-white/70"
+                          : "border-orange-100 bg-white/80 text-slate-600",
+                      ].join(" ")}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      {country}
                     </span>
-                    <span className="inline-flex items-center gap-1" style={chipStyle}>
-                      <span className="inline-flex items-center gap-1 px-2 py-1">
-                        <Calendar className="w-4 h-4" /> Joined {joined}
-                      </span>
+
+                    <span
+                      className={[
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04] text-white/70"
+                          : "border-orange-100 bg-white/80 text-slate-600",
+                      ].join(" ")}
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Joined {joined}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={goToAccounts}
-                className="px-4 py-2.5 transition-all"
-                style={{
-                  borderRadius: radius,
-                  border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-                  color: rgba(theme?.fg || "255 255 255", 0.9),
-                  background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.25),
-                }}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, buttonHoverShadow)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = "none")}
-                title="Jump to MT5 Accounts"
+                className={[
+                  "rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300",
+                  isDark
+                    ? "border-blue-400/20 bg-blue-500/10 text-blue-200 hover:bg-blue-500/15"
+                    : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
+                ].join(" ")}
               >
                 View MT5 Accounts
               </button>
@@ -443,131 +387,202 @@ const UserDetailDashboard = () => {
               <button
                 onClick={fetchUserData}
                 disabled={loading}
-                className="px-4 py-2.5 transition-all flex items-center gap-2"
-                style={{
-                  borderRadius: radius,
-                  border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-                  color: rgba(theme?.fg || "255 255 255", loading ? 0.45 : 0.9),
-                  background: loading
-                    ? rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18)
-                    : rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`;
-                }}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = "none")}
+                className={[
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300",
+                  loading
+                    ? isDark
+                      ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-white/40"
+                      : "cursor-not-allowed border-orange-100 bg-white/70 text-slate-400"
+                    : isDark
+                    ? "border-white/10 bg-white/[0.05] text-white/85 hover:bg-white/[0.08]"
+                    : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+                ].join(" ")}
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={["h-4 w-4", loading ? "animate-spin" : ""].join(" ")} />
                 {loading ? "Refreshing…" : "Refresh"}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mt-6 mb-8"
+          className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
         >
-          <StatCard theme={theme} radius={radius} icon={<BoxIcon size={20} className="text-white" />} amount={`${userData?.accounts?.length || 0}`} label="Total MT5 Accounts" />
-          <StatCard theme={theme} radius={radius} icon={<CreditCard size={20} className="text-white" />} amount={equityLoading ? "Updating…" : money(totalBalance)} label="Total Available Balance" />
-          <StatCard theme={theme} radius={radius} icon={<Wallet size={20} className="text-white" />} amount={money(totalInvestAmount)} label="Total Deposits" />
-          <StatCard theme={theme} radius={radius} icon={<ArrowLeftRight size={20} className="text-white" />} amount={money(totalWithdrawalAmount)} label="Total Withdrawals" />
-          <StatCard theme={theme} radius={radius} icon={<ArrowLeftRight size={20} className="text-white" />} amount={`${totalTransactions.length}`} label="Transactions" />
-          <StatCard theme={theme} radius={radius} icon={<Users size={20} className="text-white" />} amount={money(0)} label="Referral Commission" />
+          <StatCard
+            isDark={isDark}
+            icon={<Boxes size={20} />}
+            amount={`${userData?.accounts?.length || 0}`}
+            label="Total MT5 Accounts"
+          />
+          <StatCard
+            isDark={isDark}
+            icon={<CreditCard size={20} />}
+            amount={equityLoading ? "Updating…" : money(totalBalance)}
+            label="Total Available Balance"
+          />
+          <StatCard
+            isDark={isDark}
+            icon={<Wallet size={20} />}
+            amount={money(totalInvestAmount)}
+            label="Total Deposits"
+          />
+          <StatCard
+            isDark={isDark}
+            icon={<ArrowLeftRight size={20} />}
+            amount={money(totalWithdrawalAmount)}
+            label="Total Withdrawals"
+          />
+          <StatCard
+            isDark={isDark}
+            icon={<ArrowLeftRight size={20} />}
+            amount={`${totalTransactions.length}`}
+            label="Transactions"
+          />
+          <StatCard
+            isDark={isDark}
+            icon={<Users size={20} />}
+            amount={money(0)}
+            label="Referral Commission"
+          />
         </motion.div>
 
-        {/* Main grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: User form */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Panel
-            theme={theme}
-            radius={radius}
+            isDark={isDark}
             title="User Information"
-            subtitle="View & update profile data"
+            subtitle="View and update profile details"
             className="lg:col-span-2"
             right={
-              <span className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                User ID:&nbsp;
-                <span style={{ color: rgba(theme?.fg || "255 255 255", 0.85) }}>{userData?._id || "—"}</span>
-              </span>
+              <div
+                className={[
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em]",
+                  isDark
+                    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                ].join(" ")}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                User ID: {userData?._id || "—"}
+              </div>
             }
           >
             {loading ? (
               <div className="animate-pulse space-y-4">
-                <div style={{ height: 32, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
-                <div style={{ height: 32, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
-                <div style={{ height: 32, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
-                <div style={{ height: 128, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
+                <div
+                  className={[
+                    "h-12 rounded-2xl",
+                    isDark ? "bg-white/[0.05]" : "bg-orange-50",
+                  ].join(" ")}
+                />
+                <div
+                  className={[
+                    "h-12 rounded-2xl",
+                    isDark ? "bg-white/[0.05]" : "bg-orange-50",
+                  ].join(" ")}
+                />
+                <div
+                  className={[
+                    "h-12 rounded-2xl",
+                    isDark ? "bg-white/[0.05]" : "bg-orange-50",
+                  ].join(" ")}
+                />
+                <div
+                  className={[
+                    "h-40 rounded-2xl",
+                    isDark ? "bg-white/[0.05]" : "bg-orange-50",
+                  ].join(" ")}
+                />
               </div>
             ) : (
               <UserInfoForm userData={userData} />
             )}
           </Panel>
 
-          {/* Right: Recent activity */}
-          <Panel theme={theme} radius={radius} title="Recent Activity" subtitle="Latest deposits & withdrawals">
+          <Panel
+            isDark={isDark}
+            title="Recent Activity"
+            subtitle="Latest deposit and withdrawal updates"
+          >
             <div className="space-y-5">
-              {/* Deposits */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium" style={{ color: rgba(theme?.fg || "255 255 255", 0.88) }}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className={isDark ? "text-white/90" : "text-slate-900"}>
                     Recent Deposits
                   </h4>
-                  <span className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}>
-                    Total:&nbsp;{deposits.length}
+                  <span className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+                    Total: {deposits.length}
                   </span>
                 </div>
 
                 {deposits.length ? (
-                  <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                    {deposits.slice(0, 8).map((d) => (
-                      <div key={d._id} className="flex items-center justify-between px-3 py-2" style={activityItemStyle}>
-                        <div className="text-sm" style={{ color: rgba(theme?.fg || "255 255 255", 0.75) }}>
+                  <div className="space-y-2">
+                    {deposits.slice(0, 6).map((d) => (
+                      <div
+                        key={d._id}
+                        className={[
+                          "flex items-center justify-between rounded-2xl border px-3 py-3",
+                          isDark
+                            ? "border-white/10 bg-white/[0.03]"
+                            : "border-orange-100 bg-orange-50/60",
+                        ].join(" ")}
+                      >
+                        <span className={isDark ? "text-sm text-white/70" : "text-sm text-slate-600"}>
                           {CFformatDate(d?.createdAt)}
-                        </div>
-                        <div className="text-sm font-semibold" style={{ color: rgba(theme?.success || theme?.primary || "34 197 94", 0.95) }}>
+                        </span>
+                        <span className={isDark ? "text-sm font-semibold text-emerald-300" : "text-sm font-semibold text-emerald-700"}>
                           {money(d?.deposit)}
-                        </div>
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                  <div className={isDark ? "text-sm text-white/50" : "text-sm text-slate-500"}>
                     No deposits yet.
                   </div>
                 )}
               </div>
 
-              {/* Withdrawals */}
-              <div className="pt-2" style={{ borderTop: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium" style={{ color: rgba(theme?.fg || "255 255 255", 0.88) }}>
+              <div
+                className={[
+                  "pt-5",
+                  isDark ? "border-t border-white/10" : "border-t border-orange-100",
+                ].join(" ")}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className={isDark ? "text-white/90" : "text-slate-900"}>
                     Recent Withdrawals
                   </h4>
-                  <span className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}>
-                    Total:&nbsp;{withdrawals.length}
+                  <span className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+                    Total: {withdrawals.length}
                   </span>
                 </div>
 
                 {withdrawals.length ? (
-                  <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                    {withdrawals.slice(0, 8).map((w) => (
-                      <div key={w._id} className="flex items-center justify-between px-3 py-2" style={activityItemStyle}>
-                        <div className="text-sm" style={{ color: rgba(theme?.fg || "255 255 255", 0.75) }}>
+                  <div className="space-y-2">
+                    {withdrawals.slice(0, 6).map((w) => (
+                      <div
+                        key={w._id}
+                        className={[
+                          "flex items-center justify-between rounded-2xl border px-3 py-3",
+                          isDark
+                            ? "border-white/10 bg-white/[0.03]"
+                            : "border-orange-100 bg-orange-50/60",
+                        ].join(" ")}
+                      >
+                        <span className={isDark ? "text-sm text-white/70" : "text-sm text-slate-600"}>
                           {CFformatDate(w?.createdAt)}
-                        </div>
-                        <div className="text-sm font-semibold" style={{ color: rgba(theme?.danger || "244 63 94", 0.95) }}>
+                        </span>
+                        <span className={isDark ? "text-sm font-semibold text-rose-300" : "text-sm font-semibold text-rose-700"}>
                           {money(w?.amount)}
-                        </div>
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                  <div className={isDark ? "text-sm text-white/50" : "text-sm text-slate-500"}>
                     No withdrawals yet.
                   </div>
                 )}
@@ -575,40 +590,36 @@ const UserDetailDashboard = () => {
             </div>
           </Panel>
 
-          {/* Bottom full-width: MT5 Accounts */}
-          <div ref={accountsRef} className="lg:col-span-3 scroll-mt-28">
+          <div ref={accountsRef} className="scroll-mt-28 lg:col-span-3">
             <Panel
-              theme={theme}
-              radius={radius}
+              isDark={isDark}
               title="MT5 Accounts"
-              subtitle="Manage & inspect user trading accounts"
+              subtitle="Manage and inspect user trading accounts"
               right={
                 <button
                   onClick={() => userData?.accounts && fetchAccountsEquity(userData.accounts)}
                   disabled={equityLoading}
-                  className="inline-flex items-center gap-2 px-3 py-2 transition-all"
-                  style={{
-                    borderRadius: radius,
-                    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.16)}`,
-                    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-                    color: rgba(theme?.fg || "255 255 255", equityLoading ? 0.55 : 0.9),
-                    cursor: equityLoading ? "not-allowed" : "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!equityLoading) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`;
-                  }}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = "none")}
+                  className={[
+                    "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300",
+                    equityLoading
+                      ? isDark
+                        ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-white/40"
+                        : "cursor-not-allowed border-orange-100 bg-white/70 text-slate-400"
+                      : isDark
+                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200 hover:bg-blue-500/15"
+                      : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
+                  ].join(" ")}
                 >
-                  <RefreshCw className={`w-4 h-4 ${equityLoading ? "animate-spin" : ""}`} />
+                  <RefreshCw className={["h-4 w-4", equityLoading ? "animate-spin" : ""].join(" ")} />
                   {equityLoading ? "Updating balances…" : "Refresh balances"}
                 </button>
               }
             >
               {loading ? (
                 <div className="animate-pulse space-y-3">
-                  <div style={{ height: 40, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
-                  <div style={{ height: 40, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
-                  <div style={{ height: 40, borderRadius: radius, background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28) }} />
+                  <div className={["h-12 rounded-2xl", isDark ? "bg-white/[0.05]" : "bg-orange-50"].join(" ")} />
+                  <div className={["h-12 rounded-2xl", isDark ? "bg-white/[0.05]" : "bg-orange-50"].join(" ")} />
+                  <div className={["h-12 rounded-2xl", isDark ? "bg-white/[0.05]" : "bg-orange-50"].join(" ")} />
                 </div>
               ) : (
                 <UserTradeAccounts fetchUserData={fetchUserData} userData={userData} />

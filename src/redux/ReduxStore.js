@@ -16,6 +16,10 @@ import userSlice from "./user/userSlice";
 import adminSlice from "./adminSlice";
 import themeReducer from "./theme/themeSlice"; // ✅ add this
 import superadminThemeReducer from "./superadminThemeSlice";
+import adminThemeReducer from "./adminThemeSlice";
+import userThemeReducer from "./userThemeSlice";
+
+
 const rootPersistConfig = {
   key: "root",
   storage,
@@ -27,7 +31,10 @@ const rootReducer = combineReducers({
   user: userSlice,
   admin: adminSlice,
   theme: themeReducer, // ✅ add this
-  superadminTheme : superadminThemeReducer
+  superadminTheme : superadminThemeReducer,
+      adminTheme: adminThemeReducer,
+      userTheme: userThemeReducer
+
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);

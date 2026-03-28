@@ -1,12 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Ban,
   CheckCircle,
   Image as ImageIcon,
-  Loader,
+  LoaderIcon,
   Search,
   ArrowLeft,
   RefreshCw,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -23,136 +28,59 @@ import {
   CFcalculateTimeSinceJoined,
   CFformatDate,
 } from "../../../utils/CustomFunctions";
-
-// ✨ ambient visuals
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
 import { useSelector } from "react-redux";
 
-/* ==================== Theme helpers (RGB strings -> CSS) =================== */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-const clampRadius = (r: any) => {
-  const v = String(r ?? "14px").trim();
-  if (v === "0" || v === "0px") return "0px";
-  return v || "14px";
-};
+const PAGE_LIMIT = 10;
 
 const KycUsers = () => {
-  const PAGE_SIZE = 10;
+  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [kycUsers, setKycUsers] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<"approve" | "reject" | "">("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [filters, setFilters] = useState({
+    search: "",
+  });
 
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pagination, setPagination] = useState<any>({});
   const [comment, setComment] = useState("");
-
-  // ✅ THEME FROM REDUX (user slice)
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-
-  const radius = clampRadius(theme?.radius);
-  const effectsEnabled = theme?.effectsEnabled !== false;
-  const pattern = theme?.pattern;
-
-  const C = useMemo(() => {
-    const t = theme || {};
-    return {
-      bg: t.bg ?? "0 0 0",
-      fg: t.fg ?? "255 255 255",
-      mutedFg: t.mutedFg ?? "203 213 225",
-      muted: t.muted ?? "148 163 184",
-      border: t.border ?? t.inputBorder ?? "100 116 139",
-      card: t.card ?? t.surface2 ?? "18 18 18",
-      surface1: t.surface1 ?? t.bg ?? "0 0 0",
-      surface2: t.surface2 ?? t.card ?? "18 18 18",
-      surface3: t.surface3 ?? "30 30 30",
-      accent: t.accent ?? "59 130 246",
-      ring: t.ring ?? t.accent ?? "59 130 246",
-      glow: t.glow ?? t.accent ?? "59 130 246",
-      gradientFrom: t.gradientFrom ?? t.accent ?? "59 130 246",
-      gradientTo: t.gradientTo ?? "147 51 234",
-      headerRow: t.headerRow ?? "30 41 59",
-      rowHover: t.rowHover ?? "15 23 42",
-      input: t.input ?? t.surface2 ?? "18 18 18",
-      inputBorder: t.inputBorder ?? t.border ?? "100 116 139",
-      success: t.success ?? "34 197 94",
-      danger: t.danger ?? "244 63 94",
-      warning: t.warning ?? "234 179 8",
-      info: t.info ?? "56 189 248",
-    };
-  }, [theme]);
-
-  /* ==================== Pagination helpers ==================== */
-  const DOTS = "...";
-  const range = (start: number, end: number) =>
-    Array.from({ length: end - start + 1 }, (_, i) => i + start);
+  const [actionLoading, setActionLoading] = useState<"" | "approve" | "reject">(
+    ""
+  );
 
   const totalPages = Math.max(
     1,
     Number(pagination?.totalPages) ||
-      Math.ceil((pagination?.totalUsers || 0) / PAGE_SIZE)
+      Math.ceil((Number(pagination?.totalUsers) || 0) / PAGE_LIMIT)
   );
 
-  const getPaginationRange = (
-    total: number,
-    current: number,
-    siblingCount = 1
-  ): Array<number | string> => {
-    const totalPageNumbers = siblingCount * 2 + 5;
-    if (totalPageNumbers >= total) return range(1, total);
-
-    const leftSiblingIndex = Math.max(current - siblingCount, 1);
-    const rightSiblingIndex = Math.min(current + siblingCount, total);
-
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < total - 1;
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + siblingCount * 2;
-      const leftRange = range(1, leftItemCount);
-      return [...leftRange, DOTS, total];
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + siblingCount * 2;
-      const rightRange = range(total - rightItemCount + 1, total);
-      return [1, DOTS, ...rightRange];
-    }
-
-    const middleRange = range(leftSiblingIndex, rightSiblingIndex);
-    return [1, DOTS, ...middleRange, DOTS, total];
+  const updateFilter = (key: string, value: string) => {
+    setCurrentPage(1);
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const paginationRange = getPaginationRange(totalPages, currentPage, 1);
+  const resetFilters = () => {
+    setCurrentPage(1);
+    setFilters({
+      search: "",
+    });
+    setDebouncedSearch("");
+  };
 
-  /* ==================== API ==================== */
   const fetchUsersData = async () => {
     setLoading(true);
     try {
       const res = await adminApi.get(
-        `/kyc-users?page=${currentPage}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
+        `/kyc-users?page=${currentPage}&limit=${PAGE_LIMIT}&search=${encodeURIComponent(
           debouncedSearch
         )}`
       );
@@ -166,13 +94,11 @@ const KycUsers = () => {
     }
   };
 
-  const handleSearchChange = (e: any) => setSearchQuery(e.target.value);
-
   const handleConfirmAction = async (
     user: any,
     action: "approve" | "reject"
   ) => {
-    setActionType(action);
+    setActionLoading(action);
     const toastId = toast.loading("Please wait...");
     try {
       const actionMessage =
@@ -240,6 +166,7 @@ ${rejectionReason}
         await adminApi.put(`/user/${user?._id}/kyc-status`, {
           status: "approved",
         });
+
         toast.success("KYC Approved", { id: toastId });
 
         try {
@@ -248,7 +175,6 @@ ${rejectionReason}
             content: customContent,
             subject: "KYC Approved",
           });
-          setComment("");
         } catch (err) {
           console.log("error sending mail", err);
         }
@@ -257,6 +183,7 @@ ${rejectionReason}
         await adminApi.put(`/user/${user?._id}/kyc-status`, {
           status: "rejected",
         });
+
         toast.success("KYC Rejected", { id: toastId });
 
         try {
@@ -265,38 +192,31 @@ ${rejectionReason}
             content: customContent,
             subject: "KYC Rejected",
           });
-          setComment("");
         } catch (err) {
           console.log("error sending mail", err);
         }
       }
 
-      fetchUsersData();
+      setComment("");
+      setIsDialogOpen(false);
+      await fetchUsersData();
     } catch (error: any) {
       console.error("Error updating KYC status:", error);
       toast.error(`${error?.response?.data?.message || "Something went wrong"}`, {
         id: toastId,
       });
     } finally {
-      setIsDialogOpen(false);
-      setActionType("");
+      setActionLoading("");
     }
   };
 
-  const handleNextPage = () =>
-    currentPage < totalPages && setCurrentPage((p) => p + 1);
-  const handlePreviousPage = () =>
-    currentPage > 1 && setCurrentPage((p) => p - 1);
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage) {
-      setCurrentPage(page);
-    }
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
 
   const togglePreview = (item: any) => {
     setSelectedUser(item);
@@ -304,470 +224,806 @@ ${rejectionReason}
   };
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, 500);
 
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [filters.search]);
 
   useEffect(() => {
     fetchUsersData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, debouncedSearch]);
 
   const imgUrl = (path?: string) =>
     path ? `${import.meta.env.VITE_API_BASE_URL}/${path}` : "";
 
-  /* ==================== Theme-driven styles ==================== */
-  const pageStyle: React.CSSProperties = {
-    background: `linear-gradient(135deg, ${rgba(C.bg, 1)}, ${rgba(
-      C.surface1,
-      1
-    )}, ${rgba(C.bg, 1)})`,
-    color: rgb(C.fg),
-  };
-
-  const topBarStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.bg, 0.82)}, transparent)`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-    boxShadow: effectsEnabled ? `0 10px 30px ${rgba(C.shadowColor ?? C.bg, 0.18)}` : undefined,
-  };
-
-  const cardStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 10px)`,
-    border: `1px solid ${rgba(C.border, 0.20)}`,
-    background: `linear-gradient(135deg, ${rgba(C.card, 0.80)}, ${rgba(
-      C.surface2,
-      0.55
-    )}, ${rgba(C.card, 0.80)})`,
-    boxShadow: effectsEnabled ? `0 18px 55px ${rgba(C.bg, 0.50)}` : undefined,
-  };
-
-  const headerRowStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.headerRow, 0.75)}, ${rgba(
-      C.headerRow,
-      0.45
-    )})`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-  };
-
-  const pill = (tone: "accent" | "info" | "success" | "danger") => {
-    const base =
-      tone === "accent"
-        ? C.accent
-        : tone === "info"
-        ? C.info
-        : tone === "success"
-        ? C.success
-        : C.danger;
-
-    return {
-      borderRadius: "999px",
-      border: `1px solid ${rgba(base, 0.35)}`,
-      background: rgba(base, 0.10),
-      color: rgba(base, 0.95),
-    } as React.CSSProperties;
-  };
-
-  const inputStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    background: rgba(C.input, 0.22),
-    border: `1px solid ${rgba(C.inputBorder, 0.35)}`,
-    color: rgb(C.fg),
-    boxShadow: effectsEnabled ? `0 0 0 1px ${rgba(C.ring, 0.08)} inset` : undefined,
-  };
-
-  const buttonBase: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.border, 0.20)}`,
-    background: rgba(C.surface2, 0.30),
-    color: rgba(C.fg, 0.90),
-  };
-
-  const primaryBtn: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.accent, 0.30)}`,
-    background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.32)}, ${rgba(
-      C.gradientTo,
-      0.32
-    )})`,
-    color: rgb(C.fg),
-    boxShadow: effectsEnabled ? `0 0 26px ${rgba(C.glow, 0.18)}` : undefined,
-  };
-
-  const approveBtn: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.success, 0.35)}`,
-    background: `linear-gradient(90deg, ${rgba(C.success, 0.75)}, ${rgba(
-      C.success,
-      0.55
-    )})`,
-    color: "white",
-  };
-
-  const rejectBtn: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.danger, 0.35)}`,
-    background: `linear-gradient(90deg, ${rgba(C.danger, 0.75)}, ${rgba(
-      C.danger,
-      0.55
-    )})`,
-    color: "white",
-  };
-
-  const rowStyle = (hovered: boolean) =>
-    ({
-      background: hovered ? rgba(C.rowHover, 0.22) : rgba(C.surface2, 0.10),
-      borderBottom: `1px solid ${rgba(C.border, 0.14)}`,
-      transition: "background 180ms ease",
-    } as React.CSSProperties);
-
-  const gridOverlayStyle =
-    pattern === "grid"
-      ? ({
-          opacity: effectsEnabled ? 0.10 : 0,
-          backgroundImage: `linear-gradient(${rgba(C.accent, 0.22)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(C.accent, 0.22)} 1px, transparent 1px)`,
-          backgroundSize: "46px 46px",
-          maskImage: "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-          WebkitMaskImage:
-            "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-        } as React.CSSProperties)
-      : ({ opacity: 0 } as React.CSSProperties);
-
   return (
-    <div className="relative min-h-screen" style={pageStyle}>
-      {/* ambient (your existing utilities) */}
-      <AnimatedGrid />
-      <FloatingParticles />
-
-      {/* theme overlay grid (so theme always reflects) */}
-      <div className="pointer-events-none absolute inset-0" style={gridOverlayStyle} />
-
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Sticky controls */}
+    <div className="w-full">
+      <div className="space-y-4 lg:space-y-5">
+        {/* Top Section */}
         <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md"
-          style={topBarStyle}
+          className={[
+            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.history.back()}
-                className="flex items-center gap-2 px-4 py-2 transition-all"
-                style={buttonBase}
-              >
-                <ArrowLeft size={18} />
-                Back
-              </button>
+          <div
+            className={[
+              "border-b px-4 py-4 sm:px-5 sm:py-5",
+              isDark ? "border-white/10" : "border-orange-100/80",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  onClick={() => window.history.back()}
+                  className={[
+                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <ArrowLeft size={18} />
+                </button>
 
-              <h1
-                className="text-2xl md:text-3xl font-bold drop-shadow"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${rgb(C.gradientFrom)}, ${rgb(
-                    C.gradientTo
-                  )})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                Updated KYC Users
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-96">
-                <input
-                  type="text"
-                  placeholder="Name / Email"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="w-full pl-10 pr-9 py-2.5 outline-none"
-                  style={inputStyle}
-                />
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: rgba(C.mutedFg, 0.75) }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: rgba(C.mutedFg, 0.9) }}
+                <div>
+                  <h1
+                    className={[
+                      "text-xl font-bold sm:text-2xl",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
                   >
-                    ×
-                  </button>
-                )}
+                    Updated KYC Users
+                  </h1>
+                  <p
+                    className={[
+                      "mt-1 text-sm leading-6",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    Search and manage all updated KYC requests from one place.
+                  </p>
+                </div>
               </div>
 
-              <button
-                onClick={fetchUsersData}
-                disabled={loading}
-                className="px-4 py-2.5 transition-all flex items-center gap-2"
-                style={primaryBtn}
+              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                <div className="relative w-full sm:min-w-[280px]">
+                  <Search
+                    size={18}
+                    className={[
+                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+                      isDark ? "text-white/35" : "text-slate-400",
+                    ].join(" ")}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name or email"
+                    value={filters.search}
+                    onChange={(e) => updateFilter("search", e.target.value)}
+                    className={[
+                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
+                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
+                    ].join(" ")}
+                  />
+                </div>
+
+                <button
+                  onClick={resetFilters}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <RotateCcw size={16} />
+                  Reset
+                </button>
+
+                <button
+                  onClick={fetchUsersData}
+                  disabled={loading}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-blue-400/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                      : "border-orange-200 bg-orange-500 text-white hover:bg-orange-600",
+                  ].join(" ")}
+                >
+                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                  {loading ? "Refreshing..." : "Refresh"}
+                </button>
+
+                <button
+                  onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? "Collapse" : "Expand"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Row */}
+          <div
+            className={[
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              isFiltersOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
+          >
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:p-5">
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200 bg-white/55",
+                ].join(" ")}
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                {loading ? "Refreshing…" : "Refresh"}
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Total Records
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {pagination?.totalUsers || 0}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Page
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {currentPage} / {totalPages}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Search
+                </p>
+                <p
+                  className={[
+                    "mt-1 truncate text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {debouncedSearch || "None"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Table */}
+        <div
+          className={[
+            "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px]">
+              <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
+                <tr
+                  className={[
+                    "border-b",
+                    isDark ? "border-white/10" : "border-orange-200",
+                  ].join(" ")}
+                >
+                  {[
+                    "User",
+                    "Total AC",
+                    "Email Verified",
+                    "Country",
+                    "Updated At",
+                    "Action",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className={[
+                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                        heading === "Total AC" ||
+                        heading === "Email Verified" ||
+                        heading === "Country"
+                          ? "text-center"
+                          : "",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12">
+                      <div
+                        className={[
+                          "flex items-center justify-center gap-3",
+                          isDark ? "text-white/65" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        <LoaderIcon className="animate-spin" />
+                        <span>Loading users...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : kycUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12 text-center">
+                      <p
+                        className={[
+                          "text-lg font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        No KYC users found
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Try changing your search options.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  kycUsers.map((item: any) => (
+                    <tr
+                      key={item._id}
+                      className={[
+                        "border-b transition",
+                        isDark
+                          ? "border-white/10 hover:bg-white/[0.03]"
+                          : "border-orange-200 hover:bg-orange-50/40",
+                      ].join(" ")}
+                    >
+                      <td className="px-5 py-4">
+                        <div>
+                          <p
+                            className={[
+                              "font-semibold",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            {item?.firstName || "Not found"} {item?.lastName || ""}
+                          </p>
+                          <p
+                            className={[
+                              "text-sm",
+                              isDark ? "text-blue-300" : "text-primary-600",
+                            ].join(" ")}
+                          >
+                            {item?.email || "Not found"}
+                          </p>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 text-center">
+                        <span
+                          className={[
+                            "inline-flex rounded-full px-3 py-1 text-sm font-semibold",
+                            isDark
+                              ? "bg-sky-500/10 text-sky-300"
+                              : "bg-sky-50 text-sky-700",
+                          ].join(" ")}
+                        >
+                          {item?.accounts?.length || 0}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-center">
+                        {item?.emailVerified ? (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : "bg-emerald-50 text-emerald-700",
+                            ].join(" ")}
+                          >
+                            <CheckCircle size={16} />
+                            Verified
+                          </span>
+                        ) : (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-red-500/10 text-red-300"
+                                : "bg-red-50 text-red-700",
+                            ].join(" ")}
+                          >
+                            <Ban size={16} />
+                            Unverified
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4 text-center">
+                        {item?.country ? (
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-blue-500/10 text-blue-300"
+                                : "bg-orange-50 text-orange-700",
+                            ].join(" ")}
+                          >
+                            {item.country}
+                          </span>
+                        ) : (
+                          <span className={isDark ? "text-white/45" : "text-slate-500"}>
+                            N/A
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p
+                          className={[
+                            "font-medium",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
+                          {CFformatDate(item?.updatedAt)}
+                        </p>
+                        <p
+                          className={[
+                            "text-sm",
+                            isDark ? "text-white/40" : "text-slate-500",
+                          ].join(" ")}
+                        >
+                          {CFcalculateTimeSinceJoined(item?.updatedAt)}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={() => togglePreview(item)}
+                          className={[
+                            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
+                            isDark
+                              ? "border-blue-400/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                              : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+                          ].join(" ")}
+                        >
+                          <ImageIcon size={16} />
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="grid grid-cols-1 gap-3 lg:hidden">
+          {loading ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex items-center justify-center gap-3",
+                  isDark ? "text-white/65" : "text-slate-600",
+                ].join(" ")}
+              >
+                <LoaderIcon className="animate-spin" />
+                <span>Loading users...</span>
+              </div>
+            </div>
+          ) : kycUsers.length === 0 ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 text-center backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <p
+                className={[
+                  "text-lg font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                No KYC users found
+              </p>
+              <p
+                className={[
+                  "mt-1 text-sm",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
+                Try changing your search options.
+              </p>
+            </div>
+          ) : (
+            kycUsers.map((item: any) => (
+              <div
+                key={item?._id}
+                className={[
+                  "rounded-[24px] border p-4 backdrop-blur-xl",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-100/80 bg-white/65",
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      className={[
+                        "truncate text-base font-semibold",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.firstName || "Not found"} {item?.lastName || ""}
+                    </h3>
+                    <p
+                      className={[
+                        "block truncate text-sm",
+                        isDark ? "text-blue-300" : "text-primary-600",
+                      ].join(" ")}
+                    >
+                      {item?.email || "Not found"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => togglePreview(item)}
+                    className={[
+                      "shrink-0 rounded-xl border p-2",
+                      isDark
+                        ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                        : "border-blue-200 bg-blue-50 text-blue-600",
+                    ].join(" ")}
+                  >
+                    <ImageIcon size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Total AC
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.accounts?.length || 0}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Country
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.country || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2 rounded-xl p-3">
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Email Verified
+                    </p>
+                    <div className="mt-1">
+                      {item?.emailVerified ? (
+                        <span
+                          className={[
+                            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                            isDark
+                              ? "bg-emerald-500/10 text-emerald-300"
+                              : "bg-emerald-50 text-emerald-700",
+                          ].join(" ")}
+                        >
+                          <CheckCircle size={15} />
+                          Verified
+                        </span>
+                      ) : (
+                        <span
+                          className={[
+                            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                            isDark
+                              ? "bg-red-500/10 text-red-300"
+                              : "bg-red-50 text-red-700",
+                          ].join(" ")}
+                        >
+                          <Ban size={15} />
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    "mt-4 border-t pt-4",
+                    isDark ? "border-white/10" : "border-orange-100/80",
+                  ].join(" ")}
+                >
+                  <p
+                    className={[
+                      "text-sm font-medium",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    {CFformatDate(item?.updatedAt)}
+                  </p>
+                  <p
+                    className={[
+                      "text-xs",
+                      isDark ? "text-white/40" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    {CFcalculateTimeSinceJoined(item?.updatedAt)}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Pagination */}
+        <div
+          className={[
+            "rounded-[24px] border p-4 backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p
+              className={[
+                "text-sm",
+                isDark ? "text-white/45" : "text-slate-500",
+              ].join(" ")}
+            >
+              Showing page{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {currentPage}
+              </span>{" "}
+              of{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {totalPages}
+              </span>
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === 1
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                    : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
+                }`}
+              >
+                <ChevronLeft size={16} />
+                Prev
+              </button>
+
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === totalPages
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                    : "bg-orange-500 text-white hover:bg-orange-600"
+                }`}
+              >
+                Next
+                <ChevronRight size={16} />
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Table Card */}
-        <div className="mt-6 overflow-hidden" style={cardStyle}>
-          <div className="overflow-x-auto relative">
-            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <table className="w-full min-w-[880px] whitespace-nowrap">
-                <thead className="sticky top-0 z-10">
-                  <tr style={headerRowStyle}>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      User | Email
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Total AC
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Email Verified
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Country
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Updated At
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="py-10">
-                        <div
-                          className="flex justify-center items-center gap-3"
-                          style={{ color: rgba(C.mutedFg, 0.9) }}
-                        >
-                          <span>Loading...</span>
-                          <Loader className="animate-spin" />
-                        </div>
-                      </td>
-                    </tr>
-                  ) : kycUsers?.length ? (
-                    kycUsers.map((item: any) => (
-                      <KycRow
-                        key={item._id}
-                        item={item}
-                        C={C}
-                        pill={pill}
-                        onView={() => togglePreview(item)}
-                        rowStyle={rowStyle}
-                      />
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={8} className="py-12">
-                        <div className="text-center" style={{ color: rgba(C.mutedFg, 0.8) }}>
-                          No KYC users found.
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* footer hint */}
-          <div
-            className="flex items-center justify-between px-4 sm:px-6 py-3"
-            style={{
-              borderTop: `1px solid ${rgba(C.border, 0.14)}`,
-              background: rgba(C.surface2, 0.18),
-            }}
-          >
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Total records:{" "}
-              <span style={{ color: rgba(C.fg, 0.95) }}>{pagination?.totalUsers || 0}</span>
-            </div>
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-              <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Pagination Controls */}
-        <div className="mt-6 flex flex-col items-center space-y-3">
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 transition-all border"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                borderColor: rgba(C.border, currentPage === 1 ? 0.12 : 0.20),
-                background: currentPage === 1 ? rgba(C.surface2, 0.18) : rgba(C.surface2, 0.28),
-                color: currentPage === 1 ? rgba(C.mutedFg, 0.45) : rgba(C.fg, 0.90),
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              }}
-            >
-              ← Previous
-            </button>
-
-            <div className="flex items-center gap-2 flex-wrap justify-center">
-              {paginationRange.map((item, idx) =>
-                item === DOTS ? (
-                  <span
-                    key={`dots-${idx}`}
-                    className="px-3 py-2 select-none"
-                    style={{ color: rgba(C.mutedFg, 0.6) }}
-                  >
-                    {DOTS}
-                  </span>
-                ) : (
-                  <button
-                    key={`page-${item}`}
-                    onClick={() => goToPage(item as number)}
-                    className="min-w-[40px] px-3 py-2 border transition-all"
-                    style={{
-                      borderRadius: `calc(${radius} + 6px)`,
-                      borderColor:
-                        currentPage === item ? rgba(C.accent, 0.35) : rgba(C.border, 0.18),
-                      background:
-                        currentPage === item
-                          ? `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.26)}, ${rgba(
-                              C.gradientTo,
-                              0.26
-                            )})`
-                          : rgba(C.surface2, 0.28),
-                      color: currentPage === item ? rgba(C.fg, 0.96) : rgba(C.fg, 0.88),
-                      boxShadow:
-                        currentPage === item && effectsEnabled
-                          ? `0 0 22px ${rgba(C.glow, 0.18)}`
-                          : "none",
-                    }}
-                    aria-current={currentPage === item ? "page" : undefined}
-                  >
-                    {item}
-                  </button>
-                )
-              )}
-            </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 transition-all border"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                borderColor: rgba(C.border, currentPage === totalPages ? 0.12 : 0.20),
-                background:
-                  currentPage === totalPages ? rgba(C.surface2, 0.18) : rgba(C.surface2, 0.28),
-                color:
-                  currentPage === totalPages ? rgba(C.mutedFg, 0.45) : rgba(C.fg, 0.90),
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-              }}
-            >
-              Next →
-            </button>
-          </div>
-
-          <span className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
-            Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-            <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
-          </span>
         </div>
       </div>
 
       {/* Dialog */}
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <AlertDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setComment("");
+            setActionLoading("");
+          }
+        }}
+      >
         <AlertDialogContent
-          className="max-w-3xl backdrop-blur-xl"
-          style={{
-            borderRadius: `calc(${radius} + 10px)`,
-            background: `linear-gradient(135deg, ${rgba(C.card, 0.92)}, ${rgba(
-              C.surface2,
-              0.75
-            )})`,
-            border: `1px solid ${rgba(C.border, 0.22)}`,
-            color: rgb(C.fg),
-            boxShadow: effectsEnabled ? `0 30px 90px ${rgba(C.bg, 0.65)}` : undefined,
-          }}
+          className={[
+            "max-w-3xl rounded-2xl backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-[#0b1220] text-white"
+              : "border-orange-200 bg-white text-slate-900",
+          ].join(" ")}
         >
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-semibold">
               Account Details
             </AlertDialogTitle>
+
             <AlertDialogDescription asChild>
-              <div className="mt-4 space-y-6">
-                <div>
-                  <h2
-                    className="text-lg font-semibold pb-2 mb-4"
-                    style={{
-                      borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-                    }}
-                  >
-                    KYC Details
-                  </h2>
+              <div className={isDark ? "text-white/70" : "text-slate-600"}>
+                <div className="mt-4 space-y-6">
+                  <div>
+                    <h2
+                      className={[
+                        "mb-4 border-b pb-2 text-lg font-semibold",
+                        isDark ? "border-white/10 text-white" : "border-orange-100 text-slate-900",
+                      ].join(" ")}
+                    >
+                      KYC Details
+                    </h2>
 
-                  <div className="grid sm:grid-cols-2 gap-y-2 gap-x-6 text-sm">
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Purpose:</span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedUser?.kycDetails?.purpose || "--"}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Occupation:</span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedUser?.kycDetails?.occupation || "--"}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>
-                        Country of issue:
-                      </span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedUser?.kycDetails?.countryOfIssue || "--"}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>
-                        Document Type:
-                      </span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedUser?.kycDetails?.documentType || "--"}
-                      </span>
-                    </p>
-                  </div>
+                    <div className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                      <p>
+                        Purpose:{" "}
+                        <span className={isDark ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                          {selectedUser?.kycDetails?.purpose || "--"}
+                        </span>
+                      </p>
+                      <p>
+                        Occupation:{" "}
+                        <span className={isDark ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                          {selectedUser?.kycDetails?.occupation || "--"}
+                        </span>
+                      </p>
+                      <p>
+                        Country of issue:{" "}
+                        <span className={isDark ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                          {selectedUser?.kycDetails?.countryOfIssue || "--"}
+                        </span>
+                      </p>
+                      <p>
+                        Document Type:{" "}
+                        <span className={isDark ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                          {selectedUser?.kycDetails?.documentType || "--"}
+                        </span>
+                      </p>
+                    </div>
 
-                  <div className="mt-6 grid gap-6 md:grid-cols-3">
-                    <KycImageCard
-                      title="Front Side of Document"
-                      src={selectedUser?.kycDetails?.frontSideOfDocument}
-                      imgUrl={imgUrl}
-                      C={C}
-                      radius={radius}
-                    />
-                    <KycImageCard
-                      title="Back Side of Document"
-                      src={selectedUser?.kycDetails?.backSideOfDocument}
-                      imgUrl={imgUrl}
-                      C={C}
-                      radius={radius}
-                    />
-                    <KycImageCard
-                      title="Selfie With Document"
-                      src={selectedUser?.kycDetails?.selfieWithDocument}
-                      imgUrl={imgUrl}
-                      C={C}
-                      radius={radius}
-                    />
+                    <div className="mt-6 grid gap-6 md:grid-cols-3">
+                      <KycImageCard
+                        title="Front Side of Document"
+                        src={selectedUser?.kycDetails?.frontSideOfDocument}
+                        imgUrl={imgUrl}
+                        isDark={isDark}
+                      />
+                      <KycImageCard
+                        title="Back Side of Document"
+                        src={selectedUser?.kycDetails?.backSideOfDocument}
+                        imgUrl={imgUrl}
+                        isDark={isDark}
+                      />
+                      <KycImageCard
+                        title="Selfie With Document"
+                        src={selectedUser?.kycDetails?.selfieWithDocument}
+                        imgUrl={imgUrl}
+                        isDark={isDark}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -777,8 +1033,10 @@ ${rejectionReason}
           <AlertDialogFooter className="mt-6">
             <div className="w-full">
               <h3
-                className="text-lg font-semibold pb-2 mb-4"
-                style={{ borderBottom: `1px solid ${rgba(C.border, 0.18)}` }}
+                className={[
+                  "mb-4 border-b pb-2 text-lg font-semibold",
+                  isDark ? "border-white/10 text-white" : "border-orange-100 text-slate-900",
+                ].join(" ")}
               >
                 Action
               </h3>
@@ -788,45 +1046,51 @@ ${rejectionReason}
                   placeholder="Add a comment..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="min-h-24 px-3 py-2 w-full outline-none"
-                  style={{
-                    borderRadius: `calc(${radius} + 6px)`,
-                    background: rgba(C.surface2, 0.22),
-                    border: `1px solid ${rgba(C.inputBorder, 0.35)}`,
-                    color: rgb(C.fg),
-                    boxShadow: `0 0 0 1px ${rgba(C.ring, 0.08)} inset`,
-                  }}
+                  className={[
+                    "min-h-24 w-full rounded-xl border px-3 py-2 outline-none transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40"
+                      : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
+                  ].join(" ")}
                 />
 
                 <div className="flex flex-wrap gap-3">
                   <AlertDialogCancel
                     onClick={() => setIsDialogOpen(false)}
-                    className="px-4 py-2 transition-all"
-                    style={buttonBase}
+                    className={[
+                      "rounded-xl border px-4 py-2",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                        : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
+                    ].join(" ")}
                   >
                     Close
                   </AlertDialogCancel>
 
                   <button
-                    className="px-4 py-2 transition-all"
-                    style={approveBtn}
+                    className={[
+                      "rounded-xl border px-4 py-2 text-white transition disabled:opacity-60",
+                      "border-emerald-500 bg-emerald-600 hover:bg-emerald-700",
+                    ].join(" ")}
                     onClick={() =>
                       selectedUser && handleConfirmAction(selectedUser, "approve")
                     }
-                    disabled={actionType === "approve"}
+                    disabled={actionLoading === "approve"}
                   >
-                    {actionType === "approve" ? "Approving..." : "Approve"}
+                    {actionLoading === "approve" ? "Approving..." : "Approve"}
                   </button>
 
                   <button
-                    className="px-4 py-2 transition-all"
-                    style={rejectBtn}
+                    className={[
+                      "rounded-xl border px-4 py-2 text-white transition disabled:opacity-60",
+                      "border-red-500 bg-red-600 hover:bg-red-700",
+                    ].join(" ")}
                     onClick={() =>
                       selectedUser && handleConfirmAction(selectedUser, "reject")
                     }
-                    disabled={actionType === "reject"}
+                    disabled={actionLoading === "reject"}
                   >
-                    {actionType === "reject" ? "Rejecting..." : "Reject"}
+                    {actionLoading === "reject" ? "Rejecting..." : "Reject"}
                   </button>
                 </div>
               </div>
@@ -840,131 +1104,61 @@ ${rejectionReason}
 
 export default KycUsers;
 
-/* ==================== Small components ==================== */
-const KycRow = ({
-  item,
-  C,
-  pill,
-  onView,
-  rowStyle,
-}: {
-  item: any;
-  C: any;
-  pill: (tone: "accent" | "info" | "success" | "danger") => React.CSSProperties;
-  onView: () => void;
-  rowStyle: (hovered: boolean) => React.CSSProperties;
-}) => {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <tr
-      style={rowStyle(hovered)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <td className="py-3 px-4">
-        <div className="font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
-          {item?.firstName || "Not found"} {item?.lastName || ""}
-        </div>
-        <div className="text-sm" style={{ color: rgba(C.mutedFg, 0.75) }}>
-          {item?.email || "Not found"}
-        </div>
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        <span className="inline-flex px-3 py-1 text-sm" style={pill("info")}>
-          {item?.accounts?.length || 0}
-        </span>
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        {item?.emailVerified ? (
-          <span className="inline-flex items-center gap-1 px-3 py-1 text-sm" style={pill("success")}>
-            <CheckCircle className="w-4 h-4" /> Verified
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-3 py-1 text-sm" style={pill("danger")}>
-            <Ban className="w-4 h-4" /> Unverified
-          </span>
-        )}
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        {item?.country ? (
-          <span className="inline-flex px-3 py-1 text-sm" style={pill("accent")}>
-            {item.country}
-          </span>
-        ) : (
-          <span style={{ color: rgba(C.mutedFg, 0.7) }}>N/A</span>
-        )}
-      </td>
-
-      <td className="py-3 whitespace-nowrap px-4">
-        <div style={{ color: rgba(C.fg, 0.92) }}>{CFformatDate(item?.updatedAt)}</div>
-        <div className="text-xs" style={{ color: rgba(C.mutedFg, 0.70) }}>
-          {CFcalculateTimeSinceJoined(item?.updatedAt)}
-        </div>
-      </td>
-
-      <td className="py-3 px-4">
-        <button
-          className="inline-flex items-center gap-2 hover:scale-105 transition-all"
-          onClick={onView}
-          style={{ color: rgba(C.accent, 0.95) }}
-        >
-          <ImageIcon className="w-4 h-4" /> View
-        </button>
-      </td>
-    </tr>
-  );
-};
-
 const KycImageCard = ({
   title,
   src,
   imgUrl,
-  C,
-  radius,
+  isDark,
 }: {
   title: string;
   src?: string;
   imgUrl: (p?: string) => string;
-  C: any;
-  radius: string;
+  isDark: boolean;
 }) => {
   return (
     <div
-      className="p-3"
-      style={{
-        borderRadius: `calc(${radius} + 6px)`,
-        border: `1px solid ${rgba(C.border, 0.18)}`,
-        background: rgba(C.surface2, 0.18),
-      }}
+      className={[
+        "rounded-xl border p-3",
+        isDark
+          ? "border-white/10 bg-white/[0.04]"
+          : "border-orange-100 bg-orange-50/40",
+      ].join(" ")}
     >
-      <p className="text-sm mb-2" style={{ color: rgba(C.mutedFg, 0.85) }}>
+      <p
+        className={[
+          "mb-2 text-sm",
+          isDark ? "text-white/70" : "text-slate-600",
+        ].join(" ")}
+      >
         {title}
       </p>
 
       {src ? (
         <>
           <img
-            className="mx-auto max-h-56 w-auto"
-            style={{ borderRadius: `calc(${radius} + 2px)` }}
+            className="mx-auto max-h-56 w-auto rounded-lg"
             src={imgUrl(src)}
             alt={title}
           />
           <a
             target="_blank"
             rel="noreferrer"
-            className="block text-right mt-2"
-            style={{ color: rgba(C.accent, 0.95) }}
+            className={[
+              "mt-2 block text-right text-sm",
+              isDark ? "text-blue-300" : "text-blue-600",
+            ].join(" ")}
             href={imgUrl(src)}
           >
             View Full Image
           </a>
         </>
       ) : (
-        <div className="text-sm" style={{ color: rgba(C.mutedFg, 0.65) }}>
+        <div
+          className={[
+            "text-sm",
+            isDark ? "text-white/45" : "text-slate-500",
+          ].join(" ")}
+        >
           Not uploaded
         </div>
       )}

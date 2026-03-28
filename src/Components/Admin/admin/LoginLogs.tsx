@@ -1,110 +1,117 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
-import { Search, ArrowLeft, RefreshCw } from "lucide-react";
+import {
+  Search,
+  ArrowLeft,
+  RefreshCw,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  LoaderIcon,
+} from "lucide-react";
+import { useSelector } from "react-redux";
 
-// ✨ ambient visuals (same as other themed pages)
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
-
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) => (Number.isFinite(n) ? n : 0));
-  return { r, g, b };
-};
-
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
+const PAGE_LIMIT = 10;
 
 const LoginLogs = () => {
-  // Theme from Redux
-  const themeConfig = useSelector((state: any) => state.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
+  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
-  const [challengesData, setChallengesData] = useState<any[]>([]);
-  const [loader, setLoader] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [logsData, setLogsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  const fetchChallengesData = async () => {
-    setLoader(true);
+  const [filters, setFilters] = useState({
+    search: "",
+  });
+
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const updateFilter = (key: string, value: string) => {
+    setCurrentPage(1);
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const resetFilters = () => {
+    setCurrentPage(1);
+    setFilters({
+      search: "",
+    });
+    setDebouncedSearch("");
+  };
+
+  const fetchLogsData = async () => {
+    setLoading(true);
     try {
       const res = await adminApi.get(`/logs`);
-      setChallengesData((res.data.data || []).reverse());
+      setLogsData((res.data?.data || []).reverse());
     } catch (error) {
-      console.log("error in fetch user challenges", error);
+      console.log("error in fetch login logs", error);
       toast.error("Data fetching failed!");
     } finally {
-      setLoader(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchChallengesData();
+    fetchLogsData();
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, 500);
 
-  const filteredData = challengesData?.filter((item: any) => {
-    if (!searchQuery.trim()) return true;
+    return () => clearTimeout(timer);
+  }, [filters.search]);
 
-    const searchLower = searchQuery.toLowerCase().trim();
+  const filteredData = logsData?.filter((item: any) => {
+    if (!debouncedSearch.trim()) return true;
+
+    const searchLower = debouncedSearch.toLowerCase().trim();
     const searchableFields = [
       item?.userId?.firstName,
+      item?.userId?.lastName,
       item?.userId?.email,
+      item?.userId?.phone,
       item?.ip,
       item?.browser,
       item?.os,
-      item?.userId?.phone,
       item?.country,
     ];
 
-    return searchableFields.some((field) => field?.toLowerCase?.()?.includes(searchLower));
+    return searchableFields.some((field) =>
+      field?.toLowerCase?.()?.includes(searchLower)
+    );
   });
 
-  const totalPages = Math.ceil((filteredData?.length || 0) / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData?.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil((filteredData?.length || 0) / PAGE_LIMIT)
+  );
 
-  const getPageNumbers = () => {
-    const pageNumbers: (number | string)[] = [];
-    const maxVisiblePages = 5;
+  const startIndex = (currentPage - 1) * PAGE_LIMIT;
+  const paginatedData = filteredData?.slice(startIndex, startIndex + PAGE_LIMIT);
 
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pageNumbers.push(i);
-        pageNumbers.push("...", totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1, "...");
-        for (let i = totalPages - 3; i <= totalPages; i++) pageNumbers.push(i);
-      } else {
-        pageNumbers.push(1, "...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-        pageNumbers.push("...", totalPages);
-      }
-    }
-    return pageNumbers;
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  const handleSearchChange = (e: any) => setSearchQuery(e.target.value);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
 
-  // format date ---------------------
   function formatDate(isoDateString?: string) {
     if (!isoDateString) return "--";
     const date = new Date(isoDateString);
@@ -125,7 +132,6 @@ const LoginLogs = () => {
     return `${formattedDate}, ${formattedTime}`;
   }
 
-  // since joined ---------------
   function calculateTimeSinceJoined(isoDateString?: string) {
     if (!isoDateString) return "--";
     const joinDate = new Date(isoDateString);
@@ -133,8 +139,12 @@ const LoginLogs = () => {
 
     const timeDifference = today.getTime() - joinDate.getTime();
     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const hours = Math.floor(
+      (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor(
+      (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+    );
 
     const parts: string[] = [];
     if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
@@ -143,195 +153,268 @@ const LoginLogs = () => {
     return parts.length ? `${parts.join(", ")} ago` : "less than a minute ago";
   }
 
-  // --- theme-driven card styles ---
-  const pageBgStyle = {
-    minHeight: "100vh",
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(theme?.glow || theme?.accent, 0.16)}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(theme?.gradientTo || theme?.accent, 0.12)}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(theme?.surface1 || theme?.bg || "0 0 0")}, ${rgb(
-      theme?.bg || "0 0 0"
-    )})`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
-
-  const stickyHeaderStyle = {
-    background: `linear-gradient(to bottom, ${rgba(theme?.bg || "0 0 0", 0.78)}, transparent)`,
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-  } as React.CSSProperties;
-
-  const tableCardStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: `linear-gradient(135deg, ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.75)}, ${rgba(
-      theme?.surface1 || theme?.bg || "0 0 0",
-      0.85
-    )}, ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.75)})`,
-    boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-  } as React.CSSProperties;
-
-  const thStyle = {
-    color: rgba(theme?.fg || "255 255 255", 0.82),
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: rgba(theme?.headerRow || theme?.surface3 || "30 30 30", 0.55),
-  } as React.CSSProperties;
-
-  const inputStyle = {
-    borderRadius: radius,
-    background: rgba(theme?.input || theme?.surface2 || "18 18 18", 0.35),
-    border: `1px solid ${rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18)}`,
-    color: rgb(theme?.fg || "255 255 255"),
-    boxShadow: `0 0 0 0px ${rgba(theme?.ring || theme?.accent || "59 130 246", 0)}`,
-  } as React.CSSProperties;
-
-  const buttonBaseStyle = {
-    borderRadius: "999px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-    color: rgba(theme?.fg || "255 255 255", 0.9),
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.25),
-  } as React.CSSProperties;
-
-  const buttonHoverShadow = {
-    boxShadow: `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`,
-  } as React.CSSProperties;
-
-  const pill = (kind: "info" | "warning" | "success" | "danger") => {
-    const map: any = {
-      info: theme?.info || theme?.accent || "59 130 246",
-      warning: theme?.warning || "234 179 8",
-      success: theme?.success || theme?.primary || "34 197 94",
-      danger: theme?.danger || "244 63 94",
-    };
-    const c = map[kind];
-    return {
-      borderRadius: "999px",
-      background: rgba(c, 0.12),
-      border: `1px solid ${rgba(c, 0.28)}`,
-      color: rgba(c, 0.92),
-    } as React.CSSProperties;
-  };
-
   return (
-    <div className="relative" style={pageBgStyle}>
-      {/* ambient theme */}
-      <AnimatedGrid />
-      <FloatingParticles />
-
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Sticky controls */}
+    <div className="w-full">
+      <div className="space-y-4 lg:space-y-5">
+        {/* Top Section */}
         <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md"
-          style={stickyHeaderStyle}
+          className={[
+            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.history.back()}
-                className="flex items-center gap-2 px-4 py-2 transition-all"
-                style={buttonBaseStyle}
-                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLButtonElement).style, buttonHoverShadow)}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = "none")}
-              >
-                <ArrowLeft size={18} />
-                Back
-              </button>
+          <div
+            className={[
+              "border-b px-4 py-4 sm:px-5 sm:py-5",
+              isDark ? "border-white/10" : "border-orange-100/80",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  onClick={() => window.history.back()}
+                  className={[
+                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <ArrowLeft size={18} />
+                </button>
 
-              <h2
-                className="text-2xl md:text-3xl font-bold drop-shadow"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                    theme?.gradientTo || "147 51 234"
-                  )})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                Login Logs
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-96">
-                <input
-                  type="text"
-                  placeholder="Search by any field"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="w-full pl-10 pr-9 py-2.5 focus:outline-none backdrop-blur"
-                  style={inputStyle}
-                  onFocus={(e) => {
-                    (e.currentTarget as HTMLInputElement).style.boxShadow = `0 0 0 3px ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.25)}`;
-                    (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.ring || theme?.accent || "59 130 246", 0.45);
-                  }}
-                  onBlur={(e) => {
-                    (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
-                    (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18);
-                  }}
-                />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.6) }} />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.6) }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.fg || "255 255 255", 0.9))}
-                    onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.6))}
+                <div>
+                  <h1
+                    className={[
+                      "text-xl font-bold sm:text-2xl",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
                   >
-                    ×
-                  </button>
-                )}
+                    Login Logs
+                  </h1>
+                  <p
+                    className={[
+                      "mt-1 text-sm leading-6",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    Search and review all login logs from one place.
+                  </p>
+                </div>
               </div>
 
-              <button
-                onClick={fetchChallengesData}
-                disabled={loader}
-                className="px-4 py-2.5 transition-all flex items-center gap-2"
-                style={{
-                  borderRadius: radius,
-                  border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-                  color: rgba(theme?.fg || "255 255 255", loader ? 0.45 : 0.9),
-                  background: loader ? rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18) : rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-                  cursor: loader ? "not-allowed" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loader) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`;
-                }}
-                onMouseLeave={(e) => (((e.currentTarget as HTMLButtonElement).style.boxShadow = "none"))}
+              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                <div className="relative w-full sm:min-w-[280px]">
+                  <Search
+                    size={18}
+                    className={[
+                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+                      isDark ? "text-white/35" : "text-slate-400",
+                    ].join(" ")}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by any field"
+                    value={filters.search}
+                    onChange={(e) => updateFilter("search", e.target.value)}
+                    className={[
+                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
+                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
+                    ].join(" ")}
+                  />
+                </div>
+
+                <button
+                  onClick={resetFilters}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <RotateCcw size={16} />
+                  Reset
+                </button>
+
+                <button
+                  onClick={fetchLogsData}
+                  disabled={loading}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-blue-400/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                      : "border-orange-200 bg-orange-500 text-white hover:bg-orange-600",
+                  ].join(" ")}
+                >
+                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                  {loading ? "Refreshing..." : "Refresh"}
+                </button>
+
+                <button
+                  onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? "Collapse" : "Expand"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Expand / Collapse Row */}
+          <div
+            className={[
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              isFiltersOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
+          >
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:p-5">
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200 bg-white/55",
+                ].join(" ")}
               >
-                <RefreshCw className={`w-4 h-4 ${loader ? "animate-spin" : ""}`} />
-                {loader ? "Refreshing…" : "Refresh"}
-              </button>
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Total Records
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {filteredData?.length || 0}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Page
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {currentPage} / {totalPages}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Search
+                </p>
+                <p
+                  className={[
+                    "mt-1 truncate text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {debouncedSearch || "None"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Table Card */}
-        <div className="mt-6 overflow-hidden" style={tableCardStyle}>
-          <div className="overflow-x-auto relative max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <table className="w-full min-w-[880px] whitespace-nowrap">
-              {/* sticky header w/ glass effect */}
-              <thead className="sticky top-0 z-10">
-                <tr style={thStyle}>
-                  <th className="p-3 text-left font-medium">Name / Email</th>
-                  <th className="p-3 text-center font-medium">Phone</th>
-                  <th className="p-3 text-center font-medium">IP</th>
-                  <th className="p-3 text-center font-medium">Browser</th>
-                  <th className="p-3 text-center font-medium">OS</th>
-                  <th className="p-3 text-center font-medium">Country</th>
-                  <th className="p-3 text-center font-medium">Timestamp</th>
+        {/* Desktop Table */}
+        <div
+          className={[
+            "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px]">
+              <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
+                <tr
+                  className={[
+                    "border-b",
+                    isDark ? "border-white/10" : "border-orange-200",
+                  ].join(" ")}
+                >
+                  {[
+                    "Name / Email",
+                    "Phone",
+                    "IP",
+                    "Browser",
+                    "OS",
+                    "Country",
+                    "Timestamp",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className={[
+                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                        heading !== "Name / Email" && heading !== "Timestamp"
+                          ? "text-center"
+                          : "",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
               <tbody>
-                {loader ? (
+                {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-10">
-                      <div className="flex justify-center items-center gap-3" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.75) }}>
-                        <span>Loading...</span>
-                        <div
-                          className="animate-spin rounded-full h-6 w-6 border-b-2"
-                          style={{ borderBottomColor: rgba(theme?.accent || "59 130 246", 0.9) }}
-                        />
+                    <td colSpan={7} className="px-5 py-12">
+                      <div
+                        className={[
+                          "flex items-center justify-center gap-3",
+                          isDark ? "text-white/65" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        <LoaderIcon className="animate-spin" />
+                        <span>Loading logs...</span>
                       </div>
                     </td>
                   </tr>
@@ -339,168 +422,460 @@ const LoginLogs = () => {
                   paginatedData.map((value: any, index: number) => (
                     <tr
                       key={index}
-                      className="border-b transition-colors"
-                      style={{
-                        borderBottomColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12),
-                        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
-                      }}
-                      onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.28))}
-                      onMouseLeave={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18))}
+                      className={[
+                        "border-b transition",
+                        isDark
+                          ? "border-white/10 hover:bg-white/[0.03]"
+                          : "border-orange-200 hover:bg-orange-50/40",
+                      ].join(" ")}
                     >
-                      <td className="p-3 align-top">
-                        <div style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>{value?.userId?.firstName || "--"}</div>
-                        <div className="text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                          {value?.userId?.email || "--"}
+                      <td className="px-5 py-4">
+                        <div>
+                          <p
+                            className={[
+                              "font-semibold",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            {value?.userId?.firstName || "--"}
+                          </p>
+                          <p
+                            className={[
+                              "text-sm",
+                              isDark ? "text-blue-300" : "text-primary-600",
+                            ].join(" ")}
+                          >
+                            {value?.userId?.email || "--"}
+                          </p>
                         </div>
                       </td>
 
-                      <td className="p-3 text-center" style={{ color: rgba(theme?.fg || "255 255 255", 0.8) }}>
+                      <td
+                        className={[
+                          "px-5 py-4 text-center",
+                          isDark ? "text-white/80" : "text-slate-700",
+                        ].join(" ")}
+                      >
                         {value?.userId?.phone || "--"}
                       </td>
-                      <td className="p-3 text-center" style={{ color: rgba(theme?.fg || "255 255 255", 0.8) }}>
+
+                      <td
+                        className={[
+                          "px-5 py-4 text-center",
+                          isDark ? "text-white/80" : "text-slate-700",
+                        ].join(" ")}
+                      >
                         {value?.ip || "--"}
                       </td>
 
-                      <td className="p-3 text-center">
+                      <td className="px-5 py-4 text-center">
                         {value?.browser ? (
-                          <span className="inline-flex px-3 py-1 text-sm" style={pill("info")}>
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-sky-500/10 text-sky-300"
+                                : "bg-sky-50 text-sky-700",
+                            ].join(" ")}
+                          >
                             {value?.browser}
                           </span>
                         ) : (
-                          <span style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>--</span>
+                          <span className={isDark ? "text-white/45" : "text-slate-500"}>
+                            --
+                          </span>
                         )}
                       </td>
 
-                      <td className="p-3 text-center">
+                      <td className="px-5 py-4 text-center">
                         {value?.os ? (
-                          <span className="inline-flex px-3 py-1 text-sm" style={pill("warning")}>
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-yellow-500/10 text-yellow-300"
+                                : "bg-yellow-50 text-yellow-700",
+                            ].join(" ")}
+                          >
                             {value?.os}
                           </span>
                         ) : (
-                          <span style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>--</span>
+                          <span className={isDark ? "text-white/45" : "text-slate-500"}>
+                            --
+                          </span>
                         )}
                       </td>
 
-                      <td className="p-3 text-center">
+                      <td className="px-5 py-4 text-center">
                         {value?.country ? (
-                          <span className="inline-flex px-3 py-1 text-sm" style={pill("success")}>
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                              isDark
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : "bg-emerald-50 text-emerald-700",
+                            ].join(" ")}
+                          >
                             {value?.country}
                           </span>
                         ) : (
-                          <span style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>--</span>
+                          <span className={isDark ? "text-white/45" : "text-slate-500"}>
+                            --
+                          </span>
                         )}
                       </td>
 
-                      <td className="py-3 text-center whitespace-nowrap px-4">
-                        <div style={{ color: rgba(theme?.fg || "255 255 255", 0.82) }}>{formatDate(value?.updatedAt)}</div>
-                        <div className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>
+                      <td className="px-5 py-4 text-center">
+                        <p
+                          className={[
+                            "font-medium",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
+                          {formatDate(value?.updatedAt)}
+                        </p>
+                        <p
+                          className={[
+                            "text-sm",
+                            isDark ? "text-white/40" : "text-slate-500",
+                          ].join(" ")}
+                        >
                           {calculateTimeSinceJoined(value?.updatedAt)}
-                        </div>
+                        </p>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-12">
-                      <div className="text-center" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                        No results found for “{searchQuery}”
-                      </div>
+                    <td colSpan={7} className="px-5 py-12 text-center">
+                      <p
+                        className={[
+                          "text-lg font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        No results found
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        No logs found for “{debouncedSearch}”
+                      </p>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* footer hint */}
-          {!loader && filteredData?.length > 0 && (
+        {/* Mobile Cards */}
+        <div className="grid grid-cols-1 gap-3 lg:hidden">
+          {loading ? (
             <div
-              className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 border-t"
-              style={{
-                borderTopColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12),
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-              }}
+              className={[
+                "rounded-[24px] border p-8 backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
             >
-              <div className="text-xs sm:text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} entries
+              <div
+                className={[
+                  "flex items-center justify-center gap-3",
+                  isDark ? "text-white/65" : "text-slate-600",
+                ].join(" ")}
+              >
+                <LoaderIcon className="animate-spin" />
+                <span>Loading logs...</span>
               </div>
-              <div className="text-xs sm:text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                Total: <span style={{ color: rgba(theme?.fg || "255 255 255", 0.85) }}>{filteredData.length}</span>
+            </div>
+          ) : paginatedData?.length ? (
+            paginatedData.map((value: any, index: number) => (
+              <div
+                key={index}
+                className={[
+                  "rounded-[24px] border p-4 backdrop-blur-xl",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-100/80 bg-white/65",
+                ].join(" ")}
+              >
+                <div className="min-w-0">
+                  <h3
+                    className={[
+                      "truncate text-base font-semibold",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    {value?.userId?.firstName || "--"}
+                  </h3>
+                  <p
+                    className={[
+                      "block truncate text-sm",
+                      isDark ? "text-blue-300" : "text-primary-600",
+                    ].join(" ")}
+                  >
+                    {value?.userId?.email || "--"}
+                  </p>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Phone
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {value?.userId?.phone || "--"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      IP
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {value?.ip || "--"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Browser
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {value?.browser || "--"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      OS
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {value?.os || "--"}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2 rounded-xl p-3">
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Country
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {value?.country || "--"}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    "mt-4 border-t pt-4",
+                    isDark ? "border-white/10" : "border-orange-100/80",
+                  ].join(" ")}
+                >
+                  <p
+                    className={[
+                      "text-sm font-medium",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    {formatDate(value?.updatedAt)}
+                  </p>
+                  <p
+                    className={[
+                      "text-xs",
+                      isDark ? "text-white/40" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    {calculateTimeSinceJoined(value?.updatedAt)}
+                  </p>
+                </div>
               </div>
+            ))
+          ) : (
+            <div
+              className={[
+                "rounded-[24px] border p-8 text-center backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <p
+                className={[
+                  "text-lg font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                No results found
+              </p>
+              <p
+                className={[
+                  "mt-1 text-sm",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
+                No logs found for “{debouncedSearch}”
+              </p>
             </div>
           )}
         </div>
 
         {/* Pagination */}
-        {!loader && filteredData?.length > 0 && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 transition-all border"
-              style={{
-                borderRadius: radius,
-                borderColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14),
-                background: currentPage === 1 ? rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18) : rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-                color: currentPage === 1 ? rgba(theme?.mutedFg || theme?.fg, 0.45) : rgba(theme?.fg || "255 255 255", 0.9),
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              }}
-            >
-              Previous
-            </button>
-
-            {getPageNumbers().map((pageNum, idx) => (
-              <button
-                key={idx}
-                onClick={() => pageNum !== "..." && setCurrentPage(pageNum as number)}
-                className="px-3 py-2 transition-all border"
-                style={{
-                  borderRadius: radius,
-                  borderColor:
-                    pageNum === "..."
-                      ? "transparent"
-                      : rgba(
-                          pageNum === currentPage ? theme?.ring || theme?.accent || "59 130 246" : theme?.border || theme?.inputBorder || "255 255 255",
-                          pageNum === currentPage ? 0.35 : 0.14
-                        ),
-                  background:
-                    pageNum === currentPage
-                      ? rgba(theme?.accent || "59 130 246", 0.18)
-                      : pageNum === "..."
-                      ? "transparent"
-                      : rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-                  color:
-                    pageNum === currentPage
-                      ? rgba(theme?.accent || "59 130 246", 0.95)
-                      : pageNum === "..."
-                      ? rgba(theme?.mutedFg || theme?.fg, 0.5)
-                      : rgba(theme?.fg || "255 255 255", 0.9),
-                  cursor: pageNum === "..." ? "default" : "pointer",
-                }}
+        {!loading && filteredData?.length > 0 && (
+          <div
+            className={[
+              "rounded-[24px] border p-4 backdrop-blur-xl",
+              isDark
+                ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+                : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p
+                className={[
+                  "text-sm",
+                  isDark ? "text-white/45" : "text-slate-500",
+                ].join(" ")}
               >
-                {pageNum}
-              </button>
-            ))}
+                Showing{" "}
+                <span
+                  className={[
+                    "font-semibold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {startIndex + 1}
+                </span>{" "}
+                to{" "}
+                <span
+                  className={[
+                    "font-semibold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {Math.min(startIndex + PAGE_LIMIT, filteredData.length)}
+                </span>{" "}
+                of{" "}
+                <span
+                  className={[
+                    "font-semibold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {filteredData.length}
+                </span>
+              </p>
 
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 transition-all border"
-              style={{
-                borderRadius: radius,
-                borderColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14),
-                background: currentPage === totalPages ? rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18) : rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-                color: currentPage === totalPages ? rgba(theme?.mutedFg || theme?.fg, 0.45) : rgba(theme?.fg || "255 255 255", 0.9),
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                boxShadow: currentPage === totalPages ? "none" : `0 0 0 ${rgba(theme?.glow || theme?.accent || "59 130 246", 0)}`,
-              }}
-              onMouseEnter={(e) => {
-                if (currentPage !== totalPages) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.glow || theme?.gradientTo || "147 51 234", 0.18)}`;
-              }}
-              onMouseLeave={(e) => (((e.currentTarget as HTMLButtonElement).style.boxShadow = "none"))}
-            >
-              Next
-            </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                    currentPage === 1
+                      ? isDark
+                        ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                        : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                      : isDark
+                      ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
+                  }`}
+                >
+                  <ChevronLeft size={16} />
+                  Prev
+                </button>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                    currentPage === totalPages
+                      ? isDark
+                        ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                        : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                      : isDark
+                      ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                      : "bg-orange-500 text-white hover:bg-orange-600"
+                  }`}
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

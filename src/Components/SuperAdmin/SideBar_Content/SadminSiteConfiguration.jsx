@@ -102,6 +102,7 @@ const SadminSiteConfiguration = () => {
     mt5Digit: "",
     websiteName: "",
     logo: "",
+    bgImage: "",
     favicon: "",
     inrUi: false,
     bankDetailsUi: false,
@@ -113,10 +114,15 @@ const SadminSiteConfiguration = () => {
 
   const [resolvedMedia, setResolvedMedia] = useState({
     logo: "",
+    bgImage: "",
     favicon: "",
   });
 
-  const resolveTimersRef = useRef({ logo: null, favicon: null });
+  const resolveTimersRef = useRef({
+    logo: null,
+    bgImage: null,
+    favicon: null,
+  });
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -140,6 +146,7 @@ const SadminSiteConfiguration = () => {
 
   const mediaAssets = [
     { name: "logo", placeholder: "Logo URL (ibb.co or i.ibb.co)", altText: "Logo" },
+    { name: "bgImage", placeholder: "Background Image URL (ibb.co or i.ibb.co)", altText: "Background Image" },
     { name: "favicon", placeholder: "Favicon URL (ibb.co or i.ibb.co)", altText: "Favicon" },
   ];
 
@@ -150,10 +157,12 @@ const SadminSiteConfiguration = () => {
       setDetails((prev) => ({ ...prev, ...incoming }));
 
       const nextLogo = await resolveIbbToDirect(incoming.logo || "");
+      const nextBgImage = await resolveIbbToDirect(incoming.bgImage || "");
       const nextFav = await resolveIbbToDirect(incoming.favicon || "");
 
       setResolvedMedia({
         logo: nextLogo,
+        bgImage: nextBgImage,
         favicon: nextFav,
       });
     } catch (err) {
@@ -171,7 +180,7 @@ const SadminSiteConfiguration = () => {
       [name]: type === "number" ? Number(value) : value,
     }));
 
-    if (name === "logo" || name === "favicon") {
+    if (name === "logo" || name === "bgImage" || name === "favicon") {
       if (resolveTimersRef.current[name]) {
         clearTimeout(resolveTimersRef.current[name]);
       }
@@ -191,11 +200,13 @@ const SadminSiteConfiguration = () => {
     setSaving(true);
     try {
       const normalizedLogo = await resolveIbbToDirect(details.logo);
+      const normalizedBgImage = await resolveIbbToDirect(details.bgImage);
       const normalizedFavicon = await resolveIbbToDirect(details.favicon);
 
       const payload = {
         ...details,
         logo: normalizedLogo,
+        bgImage: normalizedBgImage,
         favicon: normalizedFavicon,
       };
 
@@ -204,6 +215,7 @@ const SadminSiteConfiguration = () => {
       setDetails(payload);
       setResolvedMedia({
         logo: normalizedLogo,
+        bgImage: normalizedBgImage,
         favicon: normalizedFavicon,
       });
 
@@ -685,7 +697,7 @@ const MediaCard = ({
                 <span
                   className={isDark ? "text-blue-300" : "text-orange-600"}
                 >
-                  https://i.ibb.co/.../logo.png
+                  https://i.ibb.co/.../image.png
                 </span>
               </p>
             )}

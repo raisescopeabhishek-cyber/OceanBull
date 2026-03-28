@@ -462,13 +462,24 @@ export default function DashboardBase() {
   const gridStroke = rgba(theme?.fg || "255 255 255", 0.08);
 
   return (
-    <motion.div className="p-4 md:p-6 pb-12 min-h-screen relative overflow-hidden" style={outerStyle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
+    <motion.div 
+    
+    // className="p-4 md:p-6 pb-12 min-h-screen relative overflow-hidden" style={outerStyle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}
+
+     className={[
+            "rounded-[24px] border backdrop-blur-xl transition-all duration-300","border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+    
+    
+    >
       <FloatingParticles theme={theme} />
       <AnimatedGrid theme={theme} />
 
       <div className="max-w-7xl mx-auto">
+
+        comming soon .. 
         {/* Header */}
-        <div className="mb-5">
+        {/* <div className="mb-5">
           <h1
             className="text-3xl md:text-4xl font-extrabold drop-shadow"
             style={{
@@ -502,10 +513,10 @@ export default function DashboardBase() {
               </span>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Ticker */}
-        <div className="mb-5">
+        {/* <div className="mb-5">
           <div
             className="relative overflow-hidden border backdrop-blur-md"
             style={{
@@ -549,10 +560,10 @@ export default function DashboardBase() {
             </div>
             <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
           </div>
-        </div>
+        </div> */}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <KPI
             title="Total Users"
             value={totalUsers}
@@ -583,12 +594,12 @@ export default function DashboardBase() {
             theme={theme}
             iconBg={`linear-gradient(135deg, ${rgb(theme?.warning || "234 179 8")}, ${rgb(theme?.danger || "244 63 94")})`}
           />
-        </div>
+        </div> */}
 
         {/* ======= Aligned rows (2 columns each) ======= */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Row 1: User Information */}
-          <section style={sectionStyle}>
+          {/* <section style={sectionStyle}>
             <CardContent className="p-6" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
               <h2
                 className="text-lg mb-4 font-semibold"
@@ -640,10 +651,10 @@ export default function DashboardBase() {
                 ))}
               </div>
             </CardContent>
-          </section>
+          </section> */}
 
           {/* User Report Overview */}
-          <section style={sectionStyle}>
+          {/* <section style={sectionStyle}>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
                 User Report Overview
@@ -667,10 +678,10 @@ export default function DashboardBase() {
                 </ResponsiveContainer>
               </div>
             </CardContent>
-          </section>
+          </section> */}
 
           {/* Row 2: Deposit & Withdraw Report */}
-          <section style={sectionStyle}>
+          {/* <section style={sectionStyle}>
             <CardContent className="p-6">
               <h2
                 className="text-lg mb-4 font-semibold"
@@ -715,10 +726,10 @@ export default function DashboardBase() {
                 ))}
               </div>
             </CardContent>
-          </section>
+          </section> */}
 
           {/* Deposits vs Withdrawals */}
-          <Card
+          {/* <Card
             className="transition-colors"
             style={{
               ...sectionStyle,
@@ -867,10 +878,10 @@ export default function DashboardBase() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Row 3: IB Withdrawal Report */}
-          <section style={sectionStyle}>
+          {/* <section style={sectionStyle}>
             <CardContent className="p-6">
               <h2
                 className="text-lg mb-4 font-semibold"
@@ -913,10 +924,10 @@ export default function DashboardBase() {
                 ))}
               </div>
             </CardContent>
-          </section>
+          </section> */}
 
           {/* IB Withdrawal (Status) */}
-          <Card style={sectionStyle}>
+          {/* <Card style={sectionStyle}>
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <h2 className="text-lg font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
@@ -951,10 +962,10 @@ export default function DashboardBase() {
                 </ResponsiveContainer>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Row 4: MT5 Accounts Report */}
-          <Card style={sectionStyle}>
+          {/* <Card style={sectionStyle}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
@@ -988,10 +999,10 @@ export default function DashboardBase() {
                 </ResponsiveContainer>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Withdrawal Summary */}
-          <section style={sectionStyle}>
+          {/* <section style={sectionStyle}>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-2" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
                 📤 Withdrawal Summary
@@ -1021,11 +1032,11 @@ export default function DashboardBase() {
                 ))}
               </ul>
             </CardContent>
-          </section>
+          </section> */}
         </div>
 
         {/* Loading overlay */}
-        <motion.div
+        {/* <motion.div
           initial={false}
           animate={{ opacity: loading ? 1 : 0, pointerEvents: loading ? "auto" : "none" }}
           className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
@@ -1043,7 +1054,7 @@ export default function DashboardBase() {
           >
             Loading dashboard…
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </motion.div>
   );

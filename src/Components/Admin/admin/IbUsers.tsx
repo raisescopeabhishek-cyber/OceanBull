@@ -1,6 +1,17 @@
-// IbUsers.tsx
-import { useEffect, useMemo, useState } from "react";
-import { Ban, CheckCircle, Copy, Loader, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Ban,
+  CheckCircle,
+  Copy,
+  LoaderIcon,
+  Search,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
 import { RiUserSharedFill } from "react-icons/ri";
@@ -9,139 +20,65 @@ import { useDispatch, useSelector } from "react-redux";
 import UseUserHook from "../../../hooks/user/UseUserHook";
 import { Link } from "react-router-dom";
 
-// ✨ ambient visuals (shared theme)
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
-
-/* ==================== Theme helpers (RGB strings -> CSS) =================== */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-const clampRadius = (r: any) => {
-  const v = String(r ?? "14px").trim();
-  if (v === "0" || v === "0px") return "0px";
-  return v || "14px";
-};
+const PAGE_LIMIT = 10;
 
 const IbUsers = () => {
-  const PAGE_SIZE = 10;
+  const dispatch = useDispatch();
+  const { getReset } = UseUserHook();
+
+  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
+
   const [ibUsers, setIbUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   const [pagination, setPagination] = useState<any>({
     totalPages: 1,
     totalUsers: 0,
   });
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const dispatch = useDispatch();
-  const { getReset } = UseUserHook();
+  const [filters, setFilters] = useState({
+    search: "",
+  });
 
-  // ✅ THEME FROM REDUX
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = clampRadius(theme?.radius);
-  const effectsEnabled = theme?.effectsEnabled !== false;
-  const pattern = theme?.pattern;
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const C = useMemo(() => {
-    const t = theme || {};
-    return {
-      bg: t.bg ?? "0 0 0",
-      fg: t.fg ?? "255 255 255",
-      mutedFg: t.mutedFg ?? "203 213 225",
-      muted: t.muted ?? "148 163 184",
-      border: t.border ?? t.inputBorder ?? "100 116 139",
-      card: t.card ?? t.surface2 ?? "18 18 18",
-      surface1: t.surface1 ?? t.bg ?? "0 0 0",
-      surface2: t.surface2 ?? t.card ?? "18 18 18",
-      accent: t.accent ?? "59 130 246",
-      ring: t.ring ?? t.accent ?? "59 130 246",
-      glow: t.glow ?? t.accent ?? "59 130 246",
-      gradientFrom: t.gradientFrom ?? t.accent ?? "59 130 246",
-      gradientTo: t.gradientTo ?? "147 51 234",
-      headerRow: t.headerRow ?? "30 41 59",
-      rowHover: t.rowHover ?? "15 23 42",
-      input: t.input ?? t.surface2 ?? "18 18 18",
-      inputBorder: t.inputBorder ?? t.border ?? "100 116 139",
-      success: t.success ?? "34 197 94",
-      danger: t.danger ?? "244 63 94",
-      info: t.info ?? "56 189 248",
-      shadowColor: t.shadowColor ?? "0 0 0",
-    };
-  }, [theme]);
-
-  const extractedUrl = useMemo(() => {
+  const extractedUrl = (() => {
     try {
       return new URL(window.location.href).origin;
     } catch {
       return "";
     }
-  }, []);
-
-  /* -------- Numbered pagination helpers -------- */
-  const DOTS = "...";
-  const range = (start: number, end: number) =>
-    Array.from({ length: end - start + 1 }, (_, i) => i + start);
+  })();
 
   const totalPages = Math.max(
     1,
     Number(pagination?.totalPages) ||
-      Math.ceil((Number(pagination?.totalUsers) || 0) / PAGE_SIZE)
+      Math.ceil((Number(pagination?.totalUsers) || 0) / PAGE_LIMIT)
   );
 
-  const getPaginationRange = (
-    total: number,
-    current: number,
-    siblingCount = 1
-  ): Array<number | string> => {
-    const totalPageNumbers = siblingCount * 2 + 5;
-    if (totalPageNumbers >= total) return range(1, total);
-
-    const leftSiblingIndex = Math.max(current - siblingCount, 1);
-    const rightSiblingIndex = Math.min(current + siblingCount, total);
-
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < total - 1;
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + siblingCount * 2;
-      const leftRange = range(1, leftItemCount);
-      return [...leftRange, DOTS, total];
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + siblingCount * 2;
-      const rightRange = range(total - rightItemCount + 1, total);
-      return [1, DOTS, ...rightRange];
-    }
-
-    const middleRange = range(leftSiblingIndex, rightSiblingIndex);
-    return [1, DOTS, ...middleRange, DOTS, total];
+  const updateFilter = (key: string, value: string) => {
+    setCurrentPage(1);
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const paginationRange = getPaginationRange(totalPages, currentPage, 1);
+  const resetFilters = () => {
+    setCurrentPage(1);
+    setFilters({
+      search: "",
+    });
+    setDebouncedSearch("");
+  };
 
-  // fetch data------------------
   const fetchUsersData = async () => {
     setLoading(true);
     try {
       const res = await adminApi.get(
-        `/get-users?page=${currentPage}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
+        `/get-users?page=${currentPage}&limit=${PAGE_LIMIT}&search=${encodeURIComponent(
           debouncedSearch
         )}&referralUsers=true`
       );
@@ -155,379 +92,835 @@ const IbUsers = () => {
     }
   };
 
-  // copy link handler
   const copyToClipboard = (link: string) => {
     navigator.clipboard.writeText(link);
     toast.success("Link copied");
   };
 
-  // search input
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleLoginAsUser = (user: any) => {
+    getReset();
+    dispatch(setLoggedUser(user));
+    window.open("/user/dashboard", "_blank");
   };
 
-  // pagination controls
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage) {
-      setCurrentPage(page);
-    }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
-  // login as user
-  const handleLoginAsUser = (user: any) => {
-    console.log(user)
-    
-    // getReset();
-    // dispatch(setLoggedUser(user));
-    // window.open("/user/dashboard", "_blank");
-  };
-
-  // clamp if total pages shrink
   useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
-
-  // page reset on new search
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
-
-  // debounced search
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    const handler = setTimeout(() => setDebouncedSearch(filters.search), 500);
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [filters.search]);
 
-  // fetch on page / search
   useEffect(() => {
     fetchUsersData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, debouncedSearch]);
 
-  /* ==================== Theme-driven styles ==================== */
-  const pageStyle: React.CSSProperties = {
-    background: `linear-gradient(135deg, ${rgba(C.bg, 1)}, ${rgba(
-      C.surface1,
-      1
-    )}, ${rgba(C.bg, 1)})`,
-    color: rgb(C.fg),
-  };
-
-  const topBarStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.bg, 0.82)}, transparent)`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-  };
-
-  const gridOverlayStyle: React.CSSProperties =
-    pattern === "grid"
-      ? {
-          opacity: effectsEnabled ? 0.1 : 0,
-          backgroundImage: `linear-gradient(${rgba(C.accent, 0.22)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(C.accent, 0.22)} 1px, transparent 1px)`,
-          backgroundSize: "46px 46px",
-          maskImage:
-            "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-          WebkitMaskImage:
-            "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-        }
-      : { opacity: 0 };
-
-  const cardStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 10px)`,
-    border: `1px solid ${rgba(C.border, 0.2)}`,
-    background: `linear-gradient(135deg, ${rgba(C.card, 0.8)}, ${rgba(
-      C.surface2,
-      0.55
-    )}, ${rgba(C.card, 0.8)})`,
-    boxShadow: effectsEnabled ? `0 18px 55px ${rgba(C.bg, 0.5)}` : undefined,
-  };
-
-  const headerRowStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.headerRow, 0.75)}, ${rgba(
-      C.headerRow,
-      0.45
-    )})`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-  };
-
-  const inputStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    background: rgba(C.input, 0.22),
-    border: `1px solid ${rgba(C.inputBorder, 0.35)}`,
-    color: rgb(C.fg),
-    boxShadow: effectsEnabled ? `0 0 0 1px ${rgba(C.ring, 0.08)} inset` : undefined,
-  };
-
-  const pageTitleStyle: React.CSSProperties = {
-    backgroundImage: `linear-gradient(90deg, ${rgb(C.gradientFrom)}, ${rgb(
-      C.gradientTo
-    )})`,
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    color: "transparent",
-    textShadow: effectsEnabled ? `0 0 24px ${rgba(C.glow, 0.12)}` : undefined,
-  };
-
-  const pill = (tone: "info" | "success" | "danger" | "accent") => {
-    const base =
-      tone === "accent"
-        ? C.accent
-        : tone === "info"
-        ? C.info
-        : tone === "success"
-        ? C.success
-        : C.danger;
-
-    return {
-      borderRadius: "999px",
-      border: `1px solid ${rgba(base, 0.35)}`,
-      background: rgba(base, 0.1),
-      color: rgba(base, 0.95),
-    } as React.CSSProperties;
-  };
-
-  const btnOutline: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.border, 0.18)}`,
-    background: rgba(C.surface2, 0.22),
-    color: rgba(C.fg, 0.9),
-    boxShadow: effectsEnabled ? `0 0 20px ${rgba(C.glow, 0.08)}` : undefined,
-  };
-
-  const btnAccent: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 6px)`,
-    border: `1px solid ${rgba(C.accent, 0.3)}`,
-    background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.26)}, ${rgba(
-      C.gradientTo,
-      0.26
-    )})`,
-    color: rgb(C.fg),
-    boxShadow: effectsEnabled ? `0 0 24px ${rgba(C.glow, 0.16)}` : undefined,
-  };
-
-  const rowBase = (hovered: boolean): React.CSSProperties => ({
-    background: hovered ? rgba(C.rowHover, 0.22) : rgba(C.surface2, 0.1),
-    borderBottom: `1px solid ${rgba(C.border, 0.14)}`,
-    transition: "background 160ms ease",
-  });
-
   return (
-    <div className="relative min-h-screen" style={pageStyle}>
-      <AnimatedGrid />
-      <FloatingParticles />
-      <div className="pointer-events-none absolute inset-0" style={gridOverlayStyle} />
-
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Top bar */}
+    <div className="w-full">
+      <div className="space-y-4 lg:space-y-5">
+        {/* Top Section */}
         <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-4 backdrop-blur-md"
-          style={topBarStyle}
+          className={[
+            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
         >
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold" style={pageTitleStyle}>
-              IB Users
-            </h1>
-
-            <div className="relative w-full md:w-96">
-              <input
-                type="text"
-                placeholder="Name / Email"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="w-full pl-10 pr-10 py-2 outline-none"
-                style={inputStyle}
-              />
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: rgba(C.mutedFg, 0.75) }}
-                size={18}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: rgba(C.mutedFg, 0.9) }}
-                  aria-label="Clear search"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Table Card */}
-        <div className="mt-6 overflow-hidden" style={cardStyle}>
-          <div className="overflow-x-auto relative">
-            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <table className="w-full min-w-[980px] whitespace-nowrap">
-                <thead className="sticky top-0 z-10">
-                  <tr style={headerRowStyle}>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      User | Email
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      MT5 Accounts
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Email
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      KYC
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      IB ID
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      IB Balance
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Referral Link
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="py-10">
-                        <div
-                          className="flex justify-center items-center gap-3"
-                          style={{ color: rgba(C.mutedFg, 0.9) }}
-                        >
-                          <span>Loading...</span>
-                          <Loader className="animate-spin" />
-                        </div>
-                      </td>
-                    </tr>
-                  ) : ibUsers?.length ? (
-                    ibUsers.map((item: any) => (
-                      <IbRow
-                        key={item?._id}
-                        item={item}
-                        extractedUrl={extractedUrl}
-                        onLoginAsUser={() => handleLoginAsUser(item)}
-                        onCopy={copyToClipboard}
-                        C={C}
-                        radius={radius}
-                        pill={pill}
-                        rowBase={rowBase}
-                      />
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={8} className="py-12">
-                        <div className="text-center" style={{ color: rgba(C.mutedFg, 0.8) }}>
-                          No IB users found.
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* footer info */}
           <div
-            className="flex items-center justify-between px-4 sm:px-6 py-3"
-            style={{
-              borderTop: `1px solid ${rgba(C.border, 0.14)}`,
-              background: rgba(C.surface2, 0.18),
-            }}
+            className={[
+              "border-b px-4 py-4 sm:px-5 sm:py-5",
+              isDark ? "border-white/10" : "border-orange-100/80",
+            ].join(" ")}
           >
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Total records:{" "}
-              <span style={{ color: rgba(C.fg, 0.95) }}>{pagination?.totalUsers || 0}</span>
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  onClick={() => window.history.back()}
+                  className={[
+                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+
+                <div>
+                  <h1
+                    className={[
+                      "text-xl font-bold sm:text-2xl",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    Referral Users
+                  </h1>
+                  <p
+                    className={[
+                      "mt-1 text-sm leading-6",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    Search and manage all IB users from one place.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                <div className="relative w-full sm:min-w-[280px]">
+                  <Search
+                    size={18}
+                    className={[
+                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+                      isDark ? "text-white/35" : "text-slate-400",
+                    ].join(" ")}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name or email"
+                    value={filters.search}
+                    onChange={(e) => updateFilter("search", e.target.value)}
+                    className={[
+                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
+                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
+                    ].join(" ")}
+                  />
+                </div>
+
+                <button
+                  onClick={resetFilters}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <RotateCcw size={16} />
+                  Reset
+                </button>
+
+                <button
+                  onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? "Collapse" : "Expand"}
+                </button>
+              </div>
             </div>
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-              <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
+          </div>
+
+          {/* Filter Row */}
+          <div
+            className={[
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              isFiltersOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
+          >
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:p-5">
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Total Records
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {pagination?.totalUsers || 0}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Page
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {currentPage} / {totalPages}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Search
+                </p>
+                <p
+                  className={[
+                    "mt-1 truncate text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {debouncedSearch || "None"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Pagination (numbered) */}
-        <div className="mt-6 flex flex-col items-center space-y-3">
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border transition-all"
-              style={{
-                ...btnOutline,
-                opacity: currentPage === 1 ? 0.55 : 1,
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              }}
-            >
-              ← Previous
-            </button>
+        {/* Desktop Table */}
+        <div
+          className={[
+            "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1200px]">
+              <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
+                <tr
+                  className={[
+                    "border-b",
+                    isDark ? "border-white/10" : "border-orange-200",
+                  ].join(" ")}
+                >
+                  {[
+                    "User",
+                    "MT5 Accounts",
+                    "Email",
+                    "KYC",
+                    "IB ID",
+                    "IB Balance",
+                    "Referral Link",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className={[
+                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                        heading === "MT5 Accounts" ||
+                        heading === "Email" ||
+                        heading === "KYC" ||
+                        heading === "IB ID" ||
+                        heading === "IB Balance"
+                          ? "text-center"
+                          : "",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-            <div className="flex items-center gap-2 flex-wrap justify-center">
-              {paginationRange.map((item, idx) =>
-                item === DOTS ? (
-                  <span
-                    key={`dots-${idx}`}
-                    className="px-3 py-2 select-none"
-                    style={{ color: rgba(C.mutedFg, 0.6) }}
-                  >
-                    {DOTS}
-                  </span>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12">
+                      <div
+                        className={[
+                          "flex items-center justify-center gap-3",
+                          isDark ? "text-white/65" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        <LoaderIcon className="animate-spin" />
+                        <span>Loading IB users...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : ibUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12 text-center">
+                      <p
+                        className={[
+                          "text-lg font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        No IB users found
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Try changing your search options.
+                      </p>
+                    </td>
+                  </tr>
                 ) : (
-                  <button
-                    key={`page-${item}`}
-                    onClick={() => goToPage(item as number)}
-                    className="min-w-[40px] px-3 py-2 border transition-all"
-                    style={{
-                      borderRadius: `calc(${radius} + 6px)`,
-                      borderColor:
-                        currentPage === item ? rgba(C.accent, 0.35) : rgba(C.border, 0.18),
-                      background:
-                        currentPage === item
-                          ? `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.26)}, ${rgba(
-                              C.gradientTo,
-                              0.26
-                            )})`
-                          : rgba(C.surface2, 0.22),
-                      color: currentPage === item ? rgba(C.fg, 0.96) : rgba(C.fg, 0.88),
-                      boxShadow:
-                        currentPage === item && effectsEnabled
-                          ? `0 0 22px ${rgba(C.glow, 0.18)}`
-                          : "none",
-                    }}
-                    aria-current={currentPage === item ? "page" : undefined}
-                  >
-                    {item}
-                  </button>
-                )
-              )}
-            </div>
+                  ibUsers.map((item: any) => {
+                    const link = `${extractedUrl}/user/signup/${item?.referralAccount}`;
+                    return (
+                      <tr
+                        key={item?._id}
+                        className={[
+                          "border-b transition",
+                          isDark
+                            ? "border-white/10 hover:bg-white/[0.03]"
+                            : "border-orange-200 hover:bg-orange-50/40",
+                        ].join(" ")}
+                      >
+                        <td className="px-5 py-4">
+                          <div className="flex gap-3 items-start">
+                            <button
+                              onClick={() => handleLoginAsUser(item)}
+                              className={isDark ? "text-blue-300" : "text-blue-600"}
+                              title="Login as user"
+                            >
+                              <RiUserSharedFill size={22} />
+                            </button>
 
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 border transition-all"
-              style={{
-                ...btnOutline,
-                opacity: currentPage === totalPages ? 0.55 : 1,
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-              }}
-            >
-              Next →
-            </button>
+                            <div>
+                              <p
+                                className={[
+                                  "font-semibold",
+                                  isDark ? "text-white" : "text-slate-900",
+                                ].join(" ")}
+                              >
+                                {item?.firstName || "Not found"}
+                              </p>
+
+                              <Link
+                                to={`/admin/user-detail/${item?._id}`}
+                                className={[
+                                  "text-sm hover:underline",
+                                  isDark ? "text-blue-300" : "text-primary-600",
+                                ].join(" ")}
+                              >
+                                {item?.email || "Not found"}
+                              </Link>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4 text-center">
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-sm font-semibold",
+                              isDark
+                                ? "bg-sky-500/10 text-sky-300"
+                                : "bg-sky-50 text-sky-700",
+                            ].join(" ")}
+                          >
+                            {item?.accounts?.length || 0}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4 text-center">
+                          {item?.emailVerified ? (
+                            <span
+                              className={[
+                                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                                isDark
+                                  ? "bg-emerald-500/10 text-emerald-300"
+                                  : "bg-emerald-50 text-emerald-700",
+                              ].join(" ")}
+                            >
+                              <CheckCircle size={16} />
+                              Verified
+                            </span>
+                          ) : (
+                            <span
+                              className={[
+                                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                                isDark
+                                  ? "bg-red-500/10 text-red-300"
+                                  : "bg-red-50 text-red-700",
+                              ].join(" ")}
+                            >
+                              <Ban size={16} />
+                              Not verified
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-5 py-4 text-center">
+                          {item?.kycVerified ? (
+                            <span
+                              className={[
+                                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                                isDark
+                                  ? "bg-emerald-500/10 text-emerald-300"
+                                  : "bg-emerald-50 text-emerald-700",
+                              ].join(" ")}
+                            >
+                              <CheckCircle size={16} />
+                              Verified
+                            </span>
+                          ) : (
+                            <span
+                              className={[
+                                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+                                isDark
+                                  ? "bg-red-500/10 text-red-300"
+                                  : "bg-red-50 text-red-700",
+                              ].join(" ")}
+                            >
+                              <Ban size={16} />
+                              Not verified
+                            </span>
+                          )}
+                        </td>
+
+                        <td
+                          className={[
+                            "px-5 py-4 text-center font-medium",
+                            isDark ? "text-white/80" : "text-slate-700",
+                          ].join(" ")}
+                        >
+                          {item?.referralAccount || "N/A"}
+                        </td>
+
+                        <td
+                          className={[
+                            "px-5 py-4 text-center font-semibold",
+                            isDark ? "text-emerald-300" : "text-emerald-700",
+                          ].join(" ")}
+                        >
+                          {Number(item?.ibBalance || 0).toFixed(4)}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex gap-2 items-center">
+                            <input
+                              readOnly
+                              value={link}
+                              className={[
+                                "w-[320px] rounded-xl border px-3 py-2 text-sm outline-none",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.04] text-white"
+                                  : "border-orange-200 bg-white text-slate-900",
+                              ].join(" ")}
+                            />
+                            <button
+                              onClick={() => copyToClipboard(link)}
+                              className={[
+                                "rounded-xl border p-2 transition",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.04] text-blue-300 hover:bg-white/[0.07]"
+                                  : "border-orange-200 bg-white text-blue-600 hover:bg-orange-50",
+                              ].join(" ")}
+                              title="Copy referral link"
+                            >
+                              <Copy size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          <span className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
-            Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-            <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
-          </span>
+        {/* Mobile Cards */}
+        <div className="grid grid-cols-1 gap-3 lg:hidden">
+          {loading ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex items-center justify-center gap-3",
+                  isDark ? "text-white/65" : "text-slate-600",
+                ].join(" ")}
+              >
+                <LoaderIcon className="animate-spin" />
+                <span>Loading IB users...</span>
+              </div>
+            </div>
+          ) : ibUsers.length === 0 ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 text-center backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <p
+                className={[
+                  "text-lg font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                No IB users found
+              </p>
+              <p
+                className={[
+                  "mt-1 text-sm",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
+                Try changing your search options.
+              </p>
+            </div>
+          ) : (
+            ibUsers.map((item: any) => {
+              const link = `${extractedUrl}/user/signup/${item?.referralAccount}`;
+              return (
+                <div
+                  key={item?._id}
+                  className={[
+                    "rounded-[24px] border p-4 backdrop-blur-xl",
+                    isDark
+                      ? "border-white/10 bg-white/[0.03]"
+                      : "border-orange-100/80 bg-white/65",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className={[
+                          "truncate text-base font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {item?.firstName || "Not found"}
+                      </h3>
+                      <Link
+                        to={`/admin/user-detail/${item?._id}`}
+                        className={[
+                          "block truncate text-sm hover:underline",
+                          isDark ? "text-blue-300" : "text-primary-600",
+                        ].join(" ")}
+                      >
+                        {item?.email || "Not found"}
+                      </Link>
+                    </div>
+
+                    <button
+                      onClick={() => handleLoginAsUser(item)}
+                      className={[
+                        "shrink-0 rounded-xl border p-2",
+                        isDark
+                          ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                          : "border-blue-200 bg-blue-50 text-blue-600",
+                      ].join(" ")}
+                    >
+                      <RiUserSharedFill size={18} />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        MT5 Accounts
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm font-medium",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {item?.accounts?.length || 0}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        IB ID
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm font-medium",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {item?.referralAccount || "N/A"}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Email
+                      </p>
+                      <div className="mt-1">
+                        {item?.emailVerified ? (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 text-sm font-medium",
+                              isDark ? "text-emerald-300" : "text-emerald-700",
+                            ].join(" ")}
+                          >
+                            <CheckCircle size={15} />
+                            Verified
+                          </span>
+                        ) : (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 text-sm font-medium",
+                              isDark ? "text-red-300" : "text-red-700",
+                            ].join(" ")}
+                          >
+                            <Ban size={15} />
+                            Not verified
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        KYC
+                      </p>
+                      <div className="mt-1">
+                        {item?.kycVerified ? (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 text-sm font-medium",
+                              isDark ? "text-emerald-300" : "text-emerald-700",
+                            ].join(" ")}
+                          >
+                            <CheckCircle size={15} />
+                            Verified
+                          </span>
+                        ) : (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 text-sm font-medium",
+                              isDark ? "text-red-300" : "text-red-700",
+                            ].join(" ")}
+                          >
+                            <Ban size={15} />
+                            Not verified
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className={[
+                      "mt-4 border-t pt-4",
+                      isDark ? "border-white/10" : "border-orange-100/80",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      IB Balance
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-semibold",
+                        isDark ? "text-emerald-300" : "text-emerald-700",
+                      ].join(" ")}
+                    >
+                      {Number(item?.ibBalance || 0).toFixed(4)}
+                    </p>
+
+                    <div className="mt-4">
+                      <p
+                        className={[
+                          "mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Referral Link
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          readOnly
+                          value={link}
+                          className={[
+                            "flex-1 rounded-xl border px-3 py-2 text-sm outline-none",
+                            isDark
+                              ? "border-white/10 bg-white/[0.04] text-white"
+                              : "border-orange-200 bg-white text-slate-900",
+                          ].join(" ")}
+                        />
+                        <button
+                          onClick={() => copyToClipboard(link)}
+                          className={[
+                            "rounded-xl border p-2",
+                            isDark
+                              ? "border-white/10 bg-white/[0.04] text-blue-300"
+                              : "border-orange-200 bg-white text-blue-600",
+                          ].join(" ")}
+                        >
+                          <Copy size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Pagination */}
+        <div
+          className={[
+            "rounded-[24px] border p-4 backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p
+              className={[
+                "text-sm",
+                isDark ? "text-white/45" : "text-slate-500",
+              ].join(" ")}
+            >
+              Showing page{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {currentPage}
+              </span>{" "}
+              of{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {totalPages}
+              </span>
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === 1
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                    : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
+                }`}
+              >
+                <ChevronLeft size={16} />
+                Prev
+              </button>
+
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === totalPages
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                    : "bg-orange-500 text-white hover:bg-orange-600"
+                }`}
+              >
+                Next
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -535,133 +928,3 @@ const IbUsers = () => {
 };
 
 export default IbUsers;
-
-/* ==================== Row component ==================== */
-const IbRow = ({
-  item,
-  extractedUrl,
-  onLoginAsUser,
-  onCopy,
-  C,
-  radius,
-  pill,
-  rowBase,
-}: {
-  item: any;
-  extractedUrl: string;
-  onLoginAsUser: () => void;
-  onCopy: (link: string) => void;
-  C: any;
-  radius: string;
-  pill: (tone: "info" | "success" | "danger" | "accent") => React.CSSProperties;
-  rowBase: (hovered: boolean) => React.CSSProperties;
-}) => {
-  const [hovered, setHovered] = useState(false);
-  const link = `${extractedUrl}/user/signup/${item?.referralAccount}`;
-
-  return (
-    <tr
-      style={rowBase(hovered)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <td className="py-3 px-4">
-        <div className="flex gap-3 items-start">
-          <button
-            onClick={onLoginAsUser}
-            className="hover:scale-110 transition-transform"
-            style={{ color: rgba(C.accent, 0.95) }}
-            title="Login as user (opens new tab)"
-          >
-            <RiUserSharedFill size={22} />
-          </button>
-
-          <div>
-            <div className="font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
-              {item?.firstName ? item?.firstName : "Not found!!"}
-            </div>
-
-            <Link to={`/admin/user-detail/${item?._id}`}>
-              <div
-                className="transition-colors text-sm"
-                style={{ color: rgba(C.mutedFg, 0.75) }}
-              >
-                <span className="hover:font-semibold" style={{ color: rgba(C.accent, 0.85) }}>
-                  {item?.email ? item?.email : "Not found!!"}
-                </span>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        <span className="inline-flex px-3 py-1 text-sm" style={pill("info")}>
-          {item?.accounts?.length || 0}
-        </span>
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        {item?.emailVerified ? (
-          <span className="inline-flex items-center gap-1" style={pill("success")}>
-            <CheckCircle className="w-4 h-4" /> Verified
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1" style={pill("danger")}>
-            <Ban className="w-4 h-4" /> Not verified
-          </span>
-        )}
-      </td>
-
-      <td className="py-3 px-4 text-center">
-        {item?.kycVerified ? (
-          <span className="inline-flex items-center gap-1" style={pill("success")}>
-            <CheckCircle className="w-4 h-4" /> Verified
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1" style={pill("danger")}>
-            <Ban className="w-4 h-4" /> Not verified
-          </span>
-        )}
-      </td>
-
-      <td className="py-3 px-4 text-center" style={{ color: rgba(C.fg, 0.9) }}>
-        {item?.referralAccount || "N/A"}
-      </td>
-
-      <td className="py-3 px-4 text-center" style={{ color: rgba(C.success, 0.95), fontWeight: 700 }}>
-        {Number(item?.ibBalance || 0).toFixed(4)}
-      </td>
-
-      <td className="py-3 px-4">
-        <div className="flex gap-2 items-center">
-          <input
-            readOnly
-            value={link}
-            className="outline-none py-1.5 px-3 w-[360px]"
-            style={{
-              borderRadius: `calc(${radius} + 6px)`,
-              background: rgba(C.surface2, 0.18),
-              border: `1px solid ${rgba(C.border, 0.20)}`,
-              color: rgba(C.fg, 0.88),
-            }}
-          />
-          <button
-            onClick={() => onCopy(link)}
-            className="p-2 border transition-all"
-            style={{
-              borderRadius: `calc(${radius} + 6px)`,
-              border: `1px solid ${rgba(C.border, 0.18)}`,
-              background: rgba(C.surface2, 0.22),
-              color: rgba(C.accent, 0.95),
-              boxShadow: `0 0 18px ${rgba(C.glow, 0.10)}`,
-            }}
-            title="Copy referral link"
-          >
-            <Copy size={18} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-};

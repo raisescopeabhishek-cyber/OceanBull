@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
-import { ArrowRight, Check, RefreshCw, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  Check,
+  RefreshCw,
+  X,
+  ShieldCheck,
+  Landmark,
+  WalletCards,
+  FileText,
+  Eye,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import axios from "axios";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -15,7 +23,9 @@ import {
 import { adminApi } from "../../../utils/apiClients";
 
 const UserInfoForm = ({ userData }) => {
-  console.log("userData props--", userData);
+  const mode = useSelector((store) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,31 +37,34 @@ const UserInfoForm = ({ userData }) => {
     zipCode: "",
     country: "",
   });
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [verificationStatuses, setVerificationStatuses] = useState({
-    email: userData?.emailVerified,
-    kyc: userData?.kycVerified,
+    email: false,
+    kyc: false,
   });
 
   useEffect(() => {
-    if (userData) {
-      setFormData({
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        email: userData.email || "",
-        phone: userData.phone || "",
-        address: userData.address || "",
-        city: userData.city || "",
-        state: userData.state || "",
-        zipCode: userData.zipCode || "",
-        country: userData.country || "",
-      });
-      setVerificationStatuses({
-        email: userData.emailVerified || false,
-        kyc: userData.kycVerified || false,
-      });
-    }
+    if (!userData) return;
+
+    setFormData({
+      firstName: userData.firstName || "",
+      lastName: userData.lastName || "",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      address: userData.address || "",
+      city: userData.city || "",
+      state: userData.state || "",
+      zipCode: userData.zipCode || "",
+      country: userData.country || "",
+    });
+
+    setVerificationStatuses({
+      email: !!userData.emailVerified,
+      kyc: !!userData.kycVerified,
+    });
   }, [userData]);
 
   const handleInputChange = (e) => {
@@ -65,435 +78,476 @@ const UserInfoForm = ({ userData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const toastId = toast.loading("Plese pait..");
+
+    const toastId = toast.loading("Updating user...");
+    setSubmitting(true);
 
     try {
-      const updateLoggedUser = await adminApi.put(`/update-user`, {
-        id: userData._id,
+      await adminApi.put(`/update-user`, {
+        id: userData?._id,
         ...formData,
         emailVerified: verificationStatuses.email,
         kycVerified: verificationStatuses.kyc,
       });
-      toast.success("User Updated", { id: toastId });
-      console.log("update logged user--", updateLoggedUser.data.data);
-      // console.log("Form submitted:", { ...formData, ...verificationStatuses });
+
+      toast.success("User updated successfully", { id: toastId });
     } catch (error) {
-      console.log("error in updating user--", error);
-      toast.error("Updateing Failed", { id: toastId });
+      console.error("Error updating user:", error);
+      toast.error("Failed to update user", { id: toastId });
+    } finally {
+      setSubmitting(false);
     }
   };
-  useEffect(() => {
-    userData;
-  }, []);
+
+  const inputClass = useMemo(() => {
+    return [
+      "w-full rounded-2xl border px-4 py-3 text-sm outline-none transition-all duration-300",
+      isDark
+        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/30 focus:bg-white/[0.06]"
+        : "border-orange-100 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white",
+    ].join(" ");
+  }, [isDark]);
+
+  const sectionCardClass = [
+    "rounded-[24px] border p-4 sm:p-5",
+    isDark
+      ? "border-white/10 bg-white/[0.03]"
+      : "border-orange-100 bg-orange-50/40",
+  ].join(" ");
+
+  const detailRow = (label, value) => (
+    <div className="flex flex-col gap-1 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+      style={{
+        borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(251,146,60,0.15)",
+        background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.75)",
+      }}
+    >
+      <span className={isDark ? "text-sm text-white/55" : "text-sm text-slate-500"}>
+        {label}
+      </span>
+      <span className={isDark ? "text-sm font-medium text-white/88 break-all" : "text-sm font-medium text-slate-900 break-all"}>
+        {value || "—"}
+      </span>
+    </div>
+  );
+
+  const renderImageCard = (label, path) => {
+    if (!path) return null;
+
+    const imageUrl = `${import.meta.env.VITE_API_BASE_URL}/${path}`;
+
+    return (
+      <div
+        className={[
+          "overflow-hidden rounded-[22px] border",
+          isDark
+            ? "border-white/10 bg-white/[0.03]"
+            : "border-orange-100 bg-white/85",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "flex items-center justify-between border-b px-4 py-3",
+            isDark
+              ? "border-white/10 bg-white/[0.02]"
+              : "border-orange-100 bg-orange-50/60",
+          ].join(" ")}
+        >
+          <p className={isDark ? "text-sm font-medium text-white/85" : "text-sm font-medium text-slate-800"}>
+            {label}
+          </p>
+
+          <a
+            href={imageUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={isDark ? "inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200" : "inline-flex items-center gap-1 text-xs text-orange-700 hover:text-orange-600"}
+          >
+            <Eye className="h-4 w-4" />
+            View Full
+          </a>
+        </div>
+
+        <div className="p-4">
+          <img
+            src={imageUrl}
+            alt={label}
+            className="mx-auto max-h-[260px] w-auto rounded-2xl object-contain"
+          />
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className=" mx-auto p-5 rounded-lg bg-primary-700 shadow-lg text-white">
-      <h1 className="text-xl font-bold mb-6">Information of User</h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        <div>
-          <label className="block mb-2">First Name *</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Last Name *</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Email *</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Mobile Number *</label>
-          <div className="flex">
-            <select className="p-2 rounded-l bg-primary-600 border border-primary-500">
-              <option>+91</option>
-            </select>
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Field label="First Name *">
             <input
               type="text"
-              name="phone"
-              value={formData.phone}
+              name="firstName"
+              value={formData.firstName}
               onChange={handleInputChange}
-              className="w-full p-2 rounded-r bg-primary-600 border border-l-0 border-primary-500"
+              className={inputClass}
               required
             />
+          </Field>
+
+          <Field label="Last Name *">
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className={inputClass}
+              required
+            />
+          </Field>
+
+          <Field label="Email *">
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={inputClass}
+              required
+            />
+          </Field>
+
+          <Field label="Mobile Number *">
+            <div className="flex gap-2">
+              <select className={[inputClass, "max-w-[100px] appearance-none"].join(" ")}>
+                <option>+91</option>
+              </select>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className={inputClass}
+                required
+              />
+            </div>
+          </Field>
+
+          <div className="md:col-span-2">
+            <Field label="Address">
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                className={inputClass}
+              />
+            </Field>
           </div>
+
+          <Field label="City">
+            <input
+              type="text"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="State">
+            <input
+              type="text"
+              name="state"
+              value={formData.state}
+              onChange={handleInputChange}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Zip / Postal">
+            <input
+              type="text"
+              name="zipCode"
+              value={formData.zipCode}
+              onChange={handleInputChange}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Country">
+            <input
+              type="text"
+              name="country"
+              value={formData.country}
+              onChange={handleInputChange}
+              className={inputClass}
+            />
+          </Field>
         </div>
-        <div className="md:col-span-2">
-          <label className="block mb-2">Address</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <VerificationStatus
+            label="Email Verification"
+            isVerified={verificationStatuses.email}
+            onToggle={() => toggleStatus("email")}
+            isDark={isDark}
+          />
+          <VerificationStatus
+            label="KYC Verification"
+            isVerified={verificationStatuses.kyc}
+            onToggle={() => toggleStatus("kyc")}
+            isDark={isDark}
           />
         </div>
-        <div>
-          <label className="block mb-2">City</label>
-          <input
-            type="text"
-            name="city"
-            value={formData.city}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">State</label>
-          <input
-            type="text"
-            name="state"
-            value={formData.state}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Zip/Postal</label>
-          <input
-            type="text"
-            name="zipCode"
-            value={formData.zipCode}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Country</label>
-          <input
-            type="text"
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-primary-600 border border-primary-500"
-          />
+
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={() => setIsDialogOpen(true)}
+            className={[
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 w-fit",
+              isDark
+                ? "border-white/10 bg-white/[0.05] text-white/80 hover:bg-white/[0.08]"
+                : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+            ].join(" ")}
+          >
+            <FileText className="h-4 w-4" />
+            View Account Details
+          </button>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className={[
+              "inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition-all duration-300",
+              isDark
+                ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900/40"
+                : "bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300",
+            ].join(" ")}
+          >
+            <RefreshCw className={["h-4 w-4", submitting ? "animate-spin" : ""].join(" ")} />
+            {submitting ? "Updating..." : "Update User"}
+          </button>
         </div>
       </form>
-      <div className=" flex justify-end">
-        <button
-          onClick={() => setIsDialogOpen(true)}
-          className=" flex justify-end p-4 text-blue-400 hover:underline hover:text-blue-400/80"
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent
+          className={[
+            "max-h-[88vh] overflow-y-auto rounded-[28px] border p-0",
+            isDark
+              ? "border-white/10 bg-[#0b1118] text-white"
+              : "border-orange-100 bg-[#fffaf7] text-slate-900",
+          ].join(" ")}
         >
-          View Account details
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2  max-w-2xl mx-auto gap-4 mt-8">
-        <VerificationStatus
-          label="Email"
-          isVerified={verificationStatuses.email}
-          onToggle={() => toggleStatus("email")}
-        />
-        <VerificationStatus
-          label="KYC"
-          isVerified={verificationStatuses.kyc}
-          onToggle={() => toggleStatus("kyc")}
-        />
-      </div>
-
-      <button
-        type="submit"
-        onClick={handleSubmit}
-        className="group relative w-full mt-8 p-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-lg  transition-all duration-300 overflow-hidden"
-      >
-        <span className="relative z-10 flex items-center justify-center">
-          <span className="mr-2 group-hover:mr-4 transition-all duration-300">
-            Update
-          </span>
-          <RefreshCw className="w-5 h-5 animate-spin-slow opacity-0 group-hover:opacity-100 transition-all duration-300" />
-        </span>
-        <span className="absolute inset-0 w-full h-0 bg-blue-700 group-hover:h-full transition-all duration-300 ease-out"></span>
-      </button>
-
-      <AlertDialog
-        className=" w-[300px]"
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Account Details</AlertDialogTitle>
-
-            <AlertDialogDescription>
-              <div>
-                {/* KYC details -- */}
-                <div className=" my-4">
-                  <h1 className=" text-lg font-bold border-b my-4">
-                    KYC Details
-                  </h1>
-                  <div>
-                    <p className="">
-                      Purpose -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.kycDetails?.purpose}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Occupation -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.kycDetails?.occupation}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Country of issue -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.kycDetails?.countryOfIssue}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Document Type -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.kycDetails?.documentType}{" "}
-                      </span>{" "}
-                    </p>
-                    {userData?.kycDetails?.frontSideOfDocument ? (
-                      <div className=" border border-1 rounded-md border-gray-500/40 my-4 p-2">
-                        <p>Front Side of Docuent </p>
-                        <img
-                          className=" mx-auto size-[40%]"
-                          src={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.frontSideOfDocument
-                          }
-                          alt=""
-                        />
-                        <a
-                          target="_blank"
-                          className=" flex justify-end px-5 text-blue-500 hover:text-blue-600"
-                          href={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.frontSideOfDocument
-                          }
-                        >
-                          View Full Image
-                        </a>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    {userData?.kycDetails?.backSideOfDocument && (
-                      <div className=" border border-1 rounded-md border-gray-500/40 my-4 p-2">
-                        <p>Back Side of Document </p>
-                        <img
-                          className=" mx-auto size-[40%]"
-                          src={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.backSideOfDocument
-                          }
-                          alt=""
-                        />
-                        <a
-                          target="_blank"
-                          className=" flex justify-end px-5 text-blue-500 hover:text-blue-600"
-                          href={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.backSideOfDocument
-                          }
-                        >
-                          View Full Image
-                        </a>
-                      </div>
-                    )}
-                    {userData?.kycDetails?.selfieWithDocument && (
-                      <div className=" border border-1 rounded-md border-gray-500/40 my-4 p-2">
-                        <p>Selfie With Document </p>
-                        <img
-                          className=" mx-auto size-[40%]"
-                          src={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.selfieWithDocument
-                          }
-                          alt=""
-                        />
-                        <a
-                          target="_blank"
-                          className=" flex justify-end px-5 text-blue-500 hover:text-blue-600"
-                          href={
-                            import.meta.env.VITE_API_BASE_URL +
-                            "/" +
-                            userData?.kycDetails?.selfieWithDocument
-                          }
-                        >
-                          View Full Image
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* Bank details -- */}
-                <div className="my-4">
-                  <h1 className=" text-lg font-bold border-b my-4">
-                    Bank Details
-                  </h1>
-                  <div>
-                    <p className="">
-                      Bank Name -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.bankName}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Holder Name -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.holderName}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Account Number -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.accountNumber}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      IFSC Code -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.ifscCode}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Swift Code -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.swiftCode}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      UPI ID -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.bankDetails?.upiId}{" "}
-                      </span>{" "}
-                    </p>
-                  </div>
-                </div>
-                {/* Wallet details -- */}
-                <div className="my-4">
-                  <h1 className=" text-lg font-bold border-b my-4">
-                    Wallet Details
-                  </h1>
-                  <div>
-                    <p className="">
-                      USDT-Trc20 -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.walletDetails?.tetherAddress}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      USDT-Bep20 -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.walletDetails?.ethAddress}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      Binance ID -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.walletDetails?.accountNumber}{" "}
-                      </span>{" "}
-                    </p>
-                    <p className="">
-                      BTC Address -{" "}
-                      <span className=" font-semibold">
-                        {" "}
-                        {userData?.walletDetails?.trxAddress}{" "}
-                      </span>{" "}
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <AlertDialogHeader
+            className={[
+              "border-b px-6 py-5",
+              isDark
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-orange-100 bg-white/60",
+            ].join(" ")}
+          >
+            <AlertDialogTitle className="text-lg font-semibold">
+              Account Details
+            </AlertDialogTitle>
+            <AlertDialogDescription className={isDark ? "text-white/50" : "text-slate-500"}>
+              Review KYC, bank, and wallet information.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>
+          <div className="space-y-5 p-5 sm:p-6">
+            <div className={sectionCardClass}>
+              <div className="mb-4 flex items-center gap-2">
+                <div
+                  className={[
+                    "grid h-10 w-10 place-items-center rounded-2xl",
+                    isDark ? "bg-blue-500/10 text-blue-300" : "bg-orange-100 text-orange-700",
+                  ].join(" ")}
+                >
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className={isDark ? "font-semibold text-white/90" : "font-semibold text-slate-900"}>
+                    KYC Details
+                  </h3>
+                  <p className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+                    Identity and verification records
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {detailRow("Purpose", userData?.kycDetails?.purpose)}
+                {detailRow("Occupation", userData?.kycDetails?.occupation)}
+                {detailRow("Country of Issue", userData?.kycDetails?.countryOfIssue)}
+                {detailRow("Document Type", userData?.kycDetails?.documentType)}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {renderImageCard("Front Side of Document", userData?.kycDetails?.frontSideOfDocument)}
+                {renderImageCard("Back Side of Document", userData?.kycDetails?.backSideOfDocument)}
+                {renderImageCard("Selfie With Document", userData?.kycDetails?.selfieWithDocument)}
+              </div>
+            </div>
+
+            <div className={sectionCardClass}>
+              <div className="mb-4 flex items-center gap-2">
+                <div
+                  className={[
+                    "grid h-10 w-10 place-items-center rounded-2xl",
+                    isDark ? "bg-emerald-500/10 text-emerald-300" : "bg-emerald-100 text-emerald-700",
+                  ].join(" ")}
+                >
+                  <Landmark className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className={isDark ? "font-semibold text-white/90" : "font-semibold text-slate-900"}>
+                    Bank Details
+                  </h3>
+                  <p className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+                    Linked banking details for payouts
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {detailRow("Bank Name", userData?.bankDetails?.bankName)}
+                {detailRow("Holder Name", userData?.bankDetails?.holderName)}
+                {detailRow("Account Number", userData?.bankDetails?.accountNumber)}
+                {detailRow("IFSC Code", userData?.bankDetails?.ifscCode)}
+                {detailRow("Swift Code", userData?.bankDetails?.swiftCode)}
+                {detailRow("UPI ID", userData?.bankDetails?.upiId)}
+              </div>
+            </div>
+
+            <div className={sectionCardClass}>
+              <div className="mb-4 flex items-center gap-2">
+                <div
+                  className={[
+                    "grid h-10 w-10 place-items-center rounded-2xl",
+                    isDark ? "bg-violet-500/10 text-violet-300" : "bg-amber-100 text-amber-700",
+                  ].join(" ")}
+                >
+                  <WalletCards className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className={isDark ? "font-semibold text-white/90" : "font-semibold text-slate-900"}>
+                    Wallet Details
+                  </h3>
+                  <p className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+                    Crypto and transfer wallet information
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {detailRow("USDT-TRC20", userData?.walletDetails?.tetherAddress)}
+                {detailRow("USDT-BEP20", userData?.walletDetails?.ethAddress)}
+                {detailRow("Binance ID", userData?.walletDetails?.accountNumber)}
+                {detailRow("BTC Address", userData?.walletDetails?.trxAddress)}
+              </div>
+            </div>
+          </div>
+
+          <AlertDialogFooter
+            className={[
+              "border-t px-6 py-4",
+              isDark
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-orange-100 bg-white/60",
+            ].join(" ")}
+          >
+            <AlertDialogCancel
+              className={[
+                "rounded-full px-5",
+                isDark
+                  ? "border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]"
+                  : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50",
+              ].join(" ")}
+              onClick={() => setIsDialogOpen(false)}
+            >
               Close
             </AlertDialogCancel>
-
-            {/* <AlertDialogAction>Confirm</AlertDialogAction> */}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
+  );
+};
+
+const Field = ({ label, children }) => {
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-medium text-inherit opacity-85">
+        {label}
+      </label>
+      {children}
     </div>
   );
 };
 
-const VerificationStatus = ({ label, isVerified, onToggle }) => {
+const VerificationStatus = ({ label, isVerified, onToggle, isDark }) => {
   return (
     <div
-      className={`p-4 rounded-lg shadow-md transition-all duration-300 ${
-        isVerified
-          ? "bg-gradient-to-r from-green-400 to-green-600"
-          : "bg-gradient-to-r from-red-400 to-red-600"
-      } flex items-center justify-between`}
+      className={[
+        "flex items-center justify-between gap-4 rounded-[22px] border p-4 transition-all duration-300",
+        isDark
+          ? "border-white/10 bg-white/[0.04]"
+          : "border-orange-100 bg-white/80",
+      ].join(" ")}
     >
-      <span className="text-white font-semibold text-lg">{label}</span>
-      <div className="flex items-center space-x-3">
-        <span className="text-white font-medium capitalize">
-          {isVerified ? "Verified" : "Disabled"}
-        </span>
+      <div className="flex items-center gap-3">
         <div
-          className={`p-1 rounded-full ${
-            isVerified ? "bg-green-300" : "bg-red-300"
-          }`}
+          className={[
+            "grid h-11 w-11 place-items-center rounded-2xl",
+            isVerified
+              ? isDark
+                ? "bg-emerald-500/12 text-emerald-300"
+                : "bg-emerald-100 text-emerald-700"
+              : isDark
+              ? "bg-rose-500/12 text-rose-300"
+              : "bg-rose-100 text-rose-700",
+          ].join(" ")}
         >
-          {isVerified ? (
-            <Check size={18} className="text-green-700" />
-          ) : (
-            <X size={18} className="text-red-700" />
-          )}
+          {isVerified ? <Check size={18} /> : <X size={18} />}
         </div>
-        <label className="inline-flex items-center cursor-pointer">
-          <div className="relative">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={isVerified}
-              onChange={onToggle}
-            />
-            <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
-          </div>
-        </label>
+
+        <div>
+          <p className={isDark ? "text-sm font-medium text-white/90" : "text-sm font-medium text-slate-900"}>
+            {label}
+          </p>
+          <p className={isDark ? "text-xs text-white/45" : "text-xs text-slate-500"}>
+            {isVerified ? "Verified" : "Disabled"}
+          </p>
+        </div>
       </div>
+
+      <label className="inline-flex cursor-pointer items-center">
+        <input
+          type="checkbox"
+          className="peer sr-only"
+          checked={isVerified}
+          onChange={onToggle}
+        />
+        <div
+          className={[
+            "relative h-7 w-14 rounded-full transition-all duration-300",
+            isVerified
+              ? "bg-emerald-500"
+              : isDark
+              ? "bg-white/15"
+              : "bg-slate-200",
+          ].join(" ")}
+        >
+          <span
+            className={[
+              "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300",
+              isVerified ? "left-[30px]" : "left-0.5",
+            ].join(" ")}
+          />
+        </div>
+      </label>
     </div>
   );
 };

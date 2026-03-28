@@ -1,471 +1,645 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ChevronDown,
   ChevronRight,
-  Menu as MenuIcon,
-  Users,
-  CreditCard,
-  SquareStackIcon,
+  Menu,
   LogOut,
-  LucideBadgeDollarSign,
-  Banknote,
   HandCoins,
-  Home,
+  ShieldCheck,
+  LayoutDashboard,
+  UserRoundCog,
+  BadgeCheck,
+  Wallet,
+  Users2,
+  CircleDollarSign,
 } from "lucide-react";
-
-import resetAdmin from "../../redux/adminSlice";
-import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
 import { backendApi } from "@/utils/apiClients";
+import toast from "react-hot-toast";
+import resetAdmin from "../../redux/adminSlice";
+import sidebarBg from "@/assets/sidebar.png";
 
-/* =============================================================
-   Modules
-   ============================================================= */
 const modules = [
-  { name: "Dashboard", path: "/admin/dashboard", icon: <Home className="w-5 h-5" /> },
-  { name: "Login Logs", path: "/admin/login-logs", icon: <ChevronRight className="w-5 h-5" /> },
   {
-    name: "Manage Users",
-    path: "/admin/manage-users/all-users",
-    icon: <Users className="w-5 h-5" />,
-    children: [
-      { name: "KYC Updates", path: "/admin/kyc-users" },
-      { name: "IB Users", path: "/admin/ib-users" },
-      { name: "Email Verified", path: "/admin/manage-users/email-verified" },
-      { name: "Email Unverified", path: "/admin/manage-users/email-unverified" },
-      { name: "KYC Verified", path: "/admin/manage-users/kyc-verified" },
-      { name: "KYC Unverified", path: "/admin/manage-users/kyc-unverified" },
-      { name: "All Users", path: "/admin/manage-users/all-users" },
-    ],
+    name: "Dashboard",
+    path: "/admin/dashboard",
+    subtitle: "Quick Overview",
+    icon: <LayoutDashboard className="w-5 h-5" />,
   },
   {
-    name: "Deposits",
-    path: "/admin/deposit/all",
-    icon: <LucideBadgeDollarSign className="w-5 h-5" />,
-    children: [
-      { name: "Pending Deposits", path: "/admin/deposit/pending" },
-      { name: "Approved Deposits", path: "/admin/deposit/approved" },
-      { name: "Rejected Deposits", path: "/admin/deposit/rejected" },
-      { name: "All Deposits", path: "/admin/deposit/all" },
-    ],
+    name: "Client",
+    path: "/admin/manage-users",
+    subtitle: "Client Control",
+    icon: <UserRoundCog className="w-5 h-5" />,
   },
   {
-    name: "Withdrawals",
-    path: "/admin/withdrawal/all",
-    icon: <Banknote className="w-5 h-5" />,
-    children: [
-      { name: "Pending Withdrawals", path: "/admin/withdrawal/pending" },
-      { name: "Approved Withdrawals", path: "/admin/withdrawal/approved" },
-      { name: "Rejected Withdrawals", path: "/admin/withdrawal/rejected" },
-      { name: "All Withdrawals", path: "/admin/withdrawal/all" },
-    ],
+    name: "Manage Kyc",
+    path: "/admin/kyc-users",
+    subtitle: "Verify Profiles",
+    icon: <BadgeCheck className="w-5 h-5" />,
   },
   {
-    name: "IB Withdrawals",
-    path: "/admin/ib-withdrawal/all",
+    name: "Funds",
+    path: "/admin/deposit",
+    subtitle: "Deposit Records",
+    icon: <Wallet className="w-5 h-5" />,
+  },
+  {
+    name: "Payout",
+    path: "/admin/withdrawal",
+    subtitle: "Withdraw Requests",
     icon: <HandCoins className="w-5 h-5" />,
+  },
+  {
+    name: "Referral",
+    path: "/admin/manage-users/all-users",
+    subtitle: "Partner Network",
+    icon: <Users2 className="w-5 h-5" />,
     children: [
-      { name: "Pending IB Withdrawals", path: "/admin/ib-withdrawal/pending" },
-      { name: "Approved IB Withdrawals", path: "/admin/ib-withdrawal/approved" },
-      { name: "Rejected IB Withdrawals", path: "/admin/ib-withdrawal/rejected" },
-      { name: "All IB Withdrawals", path: "/admin/ib-withdrawal/all" },
+      {
+        name: "Users",
+        path: "/admin/ib-users",
+        icon: <Users2 className="w-4 h-4" />,
+      },
+      {
+        name: "Payout",
+        path: "/admin/ib-withdrawal",
+        icon: <CircleDollarSign className="w-4 h-4" />,
+      },
     ],
   },
-  { name: "Payment Getaways", path: "/admin/getway/manual", icon: <CreditCard className="w-5 h-5" /> },
-  { name: "IB Zone", path: "/admin/ib-zone", icon: <SquareStackIcon className="w-5 h-5" /> },
-  { name: "Logout", path: "/admin/login", icon: <LogOut className="w-5 h-5" /> },
+  {
+    name: "Logout",
+    path: "/admin/login",
+    icon: <LogOut className="w-5 h-5" />,
+    danger: true,
+  },
 ];
 
-/* ==================== Theme helpers (RGB strings -> CSS) =================== */
-const safeRgbParts = (v) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-
-const rgb = (v) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
-const rgba = (v, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-
-const clampRadius = (r) => {
-  const v = String(r ?? "14px").trim();
-  if (v === "0" || v === "0px") return "0px";
-  return v || "14px";
-};
-
-/* =============================================================
-   Neon Rail
-   ============================================================= */
-const NeonRail = ({ active, theme }) => {
-  if (!active) return <span className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r" />;
-  const a = theme?.accent ?? "59 130 246";
-  const p = theme?.sidebarHover ?? theme?.primary ?? theme?.success ?? "34 197 94";
-  return (
-    <span
-      className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r"
-      style={{
-        background: `linear-gradient(180deg, ${rgba(p, 0.95)}, ${rgba(a, 0.95)}, ${rgba(p, 0.95)})`,
-        boxShadow: `0 0 18px ${rgba(theme?.glow ?? a, 0.55)}`,
-      }}
-    />
-  );
-};
-
-/* =============================================================
-   Sidebar
-   ============================================================= */
-const Sidebar = () => {
+const SidebarContent = ({ close }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [openMenu, setOpenMenu] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const dispatch = useDispatch();
 
-  const themeConfig = useSelector((s) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
+  const mode = useSelector((store) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
-  const radius = clampRadius(theme?.radius);
-  const effectsEnabled = theme?.effectsEnabled !== false;
-  const pattern = theme?.pattern;
+  const [openMenus, setOpenMenus] = useState({
+    Referral:
+      location.pathname.startsWith("/admin/ib-users") ||
+      location.pathname.startsWith("/admin/ib-withdrawal") ||
+      location.pathname.startsWith("/admin/manage-users/all-users"),
+  });
 
-  useEffect(() => {
-    const parent = modules.find(
-      (m) => m.children && m.children.some((c) => location.pathname.startsWith(c.path))
-    );
-    if (parent) setOpenMenu(parent.name);
-    else setOpenMenu(null);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [sidebarGlow, setSidebarGlow] = useState({
+    x: 160,
+    y: 200,
+    visible: false,
+  });
+
+  const isPathActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(path + "/");
+
+  const moduleStates = useMemo(() => {
+    return modules.reduce((acc, mod) => {
+      const active = mod.children
+        ? mod.children.some((child) => isPathActive(child.path)) || isPathActive(mod.path)
+        : mod.path
+        ? isPathActive(mod.path)
+        : false;
+
+      acc[mod.name] = active;
+      return acc;
+    }, {});
   }, [location.pathname]);
 
-  const toggleMenu = (name) => setOpenMenu((prev) => (prev === name ? null : name));
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
-
-  // ---------- Colors ----------
-  const C = {
-    bg: theme?.bg ?? "0 0 0",
-    fg: theme?.fg ?? "255 255 255",
-    mutedFg: theme?.mutedFg ?? "203 213 225",
-    border: theme?.border ?? theme?.inputBorder ?? "255 255 255",
-    card: theme?.card ?? theme?.surface2 ?? "18 18 18",
-    surface1: theme?.surface1 ?? theme?.bg ?? "0 0 0",
-    accent: theme?.accent ?? "59 130 246",
-    ring: theme?.ring ?? theme?.accent ?? "59 130 246",
-    glow: theme?.glow ?? theme?.accent ?? "59 130 246",
-    sidebar: theme?.sidebar ?? theme?.surface2 ?? "18 18 18",
-    sidebarHover: theme?.sidebarHover ?? theme?.rowHover ?? "40 40 40",
-    success: theme?.success ?? theme?.primary ?? "34 197 94",
-    gradientFrom: theme?.gradientFrom ?? theme?.accent ?? "59 130 246",
-    gradientTo: theme?.gradientTo ?? "147 51 234",
-  };
-
-  // ---------- Styles ----------
-  const mobileBtnStyle = {
-    borderRadius: radius,
-    border: `1px solid ${rgba(C.border, 0.22)}`,
-    background: `linear-gradient(135deg, ${rgba(C.sidebar, 0.92)}, ${rgba(C.surface1, 0.72)}, ${rgba(C.sidebar, 0.92)})`,
-    color: rgba(C.fg, 0.92),
-    boxShadow: `0 0 26px ${rgba(C.glow, 0.18)}`,
-  };
-
-  const overlayStyle = {
-    background: `linear-gradient(180deg, ${rgba(C.bg, 0.62)}, ${rgba(C.bg, 0.72)})`,
-  };
-
-  const asideStyle = {
-    color: rgb(C.fg),
-    borderRight: `1px solid ${rgba(C.border, 0.14)}`,
-  };
-
-  const bgLayerStyle = {
-    background: `linear-gradient(135deg, ${rgba(C.sidebar, 0.98)}, ${rgba(C.bg, 0.98)}, ${rgba(C.sidebar, 0.98)})`,
-  };
-
-  const glowLayerStyle = {
-    opacity: effectsEnabled ? 1 : 0,
-    background: `
-      radial-gradient(60% 70% at 12% 0%, ${rgba(C.glow, 0.20)}, transparent 60%),
-      radial-gradient(60% 70% at 90% 100%, ${rgba(C.gradientTo, 0.18)}, transparent 60%),
-      radial-gradient(40% 40% at 50% 50%, ${rgba(C.accent, 0.06)}, transparent 65%)
-    `,
-  };
-
-  const gridOverlayStyle =
-    pattern === "grid"
-      ? {
-          opacity: effectsEnabled ? 0.10 : 0,
-          backgroundImage: `linear-gradient(${rgba(C.accent, 0.22)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(C.accent, 0.22)} 1px, transparent 1px)`,
-          backgroundSize: "46px 46px",
-          maskImage: "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-          WebkitMaskImage: "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-        }
-      : { opacity: 0 };
-
-  const brandGradient = {
-    backgroundImage: `linear-gradient(90deg, ${rgb(C.gradientFrom)}, ${rgb(C.gradientTo)})`,
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    color: "transparent",
-    textShadow: `0 0 24px ${rgba(C.glow, 0.12)}`,
-  };
-
-  const dividerStyle = {
-    background: `linear-gradient(90deg, transparent, ${rgba(C.accent, 0.35)}, transparent)`,
-  };
-
-  const iconChipStyle = (active) => ({
-    borderRadius: "12px",
-    border: `1px solid ${active ? rgba(C.accent, 0.30) : rgba(C.border, 0.10)}`,
-    background: active
-      ? `linear-gradient(135deg, ${rgba(C.accent, 0.14)}, ${rgba(C.success, 0.10)})`
-      : rgba(C.card, 0.18),
-  });
-
-  const parentBtnStyle = (active) => ({
-    borderRadius: radius,
-    background: active ? rgba(C.accent, 0.10) : "transparent",
-    border: `1px solid ${active ? rgba(C.accent, 0.24) : rgba(C.border, 0.08)}`,
-    boxShadow: active ? `0 0 0 1px ${rgba(C.ring, 0.14)} inset` : "none",
-  });
-
-  const labelStyle = (active) => ({
-    color: active ? rgba(C.accent, 0.95) : rgba(C.fg, 0.78),
-  });
-
-  const childBtnStyle = (active) => ({
-    borderRadius: "10px",
-    background: active ? rgba(C.sidebarHover, 0.22) : "transparent",
-    color: active ? rgba(C.accent, 0.95) : rgba(C.fg, 0.72),
-    border: `1px solid ${active ? rgba(C.accent, 0.22) : "transparent"}`,
-  });
-
-  // ✅ NEW: centralized logout handler (await backend call)
   const handleLogout = async () => {
-    const t = toast.loading("Logging out…");
+    if (logoutLoading) return;
+    setLogoutLoading(true);
+
+    const loadingToast = toast.loading("Logging out...");
+
     try {
-      const res = await backendApi.post("/auth/admin/logout"); // ✅ hits POST /api/auth/admin/logout
-         if (res.data.redirectTo) window.location.href = res.data.redirectTo;
-      toast.success("Logged out", { id: t });
-    } catch (e) {
-      // even if request fails, still clear local state
+      const res = await backendApi.post("/auth/admin/logout");
+
+      if (res?.data?.redirectTo) {
+        dispatch(resetAdmin());
+        toast.success(res?.data?.message || "Logged out successfully", {
+          id: loadingToast,
+        });
+        window.location.href = res.data.redirectTo;
+        return;
+      }
+
       dispatch(resetAdmin());
-      toast.success("Logged out", { id: t });
-    } finally {
+      toast.success(res?.data?.message || "Logged out successfully", {
+        id: loadingToast,
+      });
+      close?.();
       navigate("/admin/login", { replace: true });
-      setMobileOpen(false);
-          dispatch(resetAdmin());
+    } catch (err) {
+      dispatch(resetAdmin());
+      toast.success("Logged out", { id: loadingToast });
+      close?.();
+      navigate("/admin/login", { replace: true });
+    } finally {
+      setLogoutLoading(false);
     }
   };
 
-  return (
-    <>
+  const toggleMenu = (name) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  };
 
-      {/* Mobile Toggle Button */}
-      {!mobileOpen && (
-        <motion.button
-          onClick={() => setMobileOpen(true)}
-          whileTap={{ scale: 0.94 }}
-          className="fixed top-4 left-4 z-[60] p-2 transition"
-          style={mobileBtnStyle}
-          aria-label="Open sidebar"
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = `0 0 34px ${rgba(C.glow, 0.24)}`;
-            e.currentTarget.style.borderColor = rgba(C.accent, 0.35);
+  const handlePointerMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    e.currentTarget.style.setProperty("--x", `${x}px`);
+    e.currentTarget.style.setProperty("--y", `${y}px`);
+  };
+
+  const handleSidebarMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setSidebarGlow({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      visible: true,
+    });
+  };
+
+  const handleSidebarLeave = () => {
+    setSidebarGlow((prev) => ({ ...prev, visible: false }));
+  };
+
+  return (
+    <div
+      onMouseMove={handleSidebarMove}
+      onMouseLeave={handleSidebarLeave}
+      className={[
+        "relative h-full overflow-hidden transition-colors duration-300",
+        isDark ? "text-white" : "text-slate-900",
+      ].join(" ")}
+    >
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background: isDark
+            ? "linear-gradient(180deg, #0d1117 0%, #0b0f14 35%, #06080b 100%)"
+            : "linear-gradient(180deg, #fffaf7 0%, #fff7f2 45%, #fff1e8 100%)",
+        }}
+      />
+
+      {!isDark && (
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-center bg-cover bg-no-repeat opacity-90"
+          style={{
+            backgroundImage: `url(${sidebarBg})`,
           }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = `0 0 26px ${rgba(C.glow, 0.18)}`;
-            e.currentTarget.style.borderColor = rgba(C.border, 0.22);
-          }}
-        >
-          <MenuIcon className="w-5 h-5" />
-        </motion.button>
+        />
       )}
 
-      {/* Overlay */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            className="fixed inset-0 z-40 backdrop-blur-sm"
-            style={overlayStyle}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileOpen(false)}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(70% 45% at 50% 0%, rgba(59,130,246,0.18), transparent 60%), radial-gradient(90% 100% at 50% 100%, rgba(0,0,0,0.55), transparent 75%)"
+            : "linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,250,246,0.72) 50%, rgba(255,245,238,0.78) 100%)",
+        }}
+      />
+
+      {isDark && (
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              radial-gradient(rgba(255,255,255,0.13) 1px, transparent 1px),
+              radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)
+            `,
+            backgroundSize: "14px 14px, 14px 14px",
+            backgroundPosition: "0 0, 7px 7px",
+          }}
+        />
+      )}
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[1] transition-opacity duration-200"
+        style={{
+          opacity: sidebarGlow.visible ? 1 : 0,
+          background: isDark
+            ? `radial-gradient(240px circle at ${sidebarGlow.x}px ${sidebarGlow.y}px, rgba(59,130,246,0.16), rgba(96,165,250,0.08) 30%, transparent 68%)`
+            : `radial-gradient(240px circle at ${sidebarGlow.x}px ${sidebarGlow.y}px, rgba(255,255,255,0.30), rgba(251,191,36,0.08) 35%, transparent 72%)`,
+        }}
+      />
+
+      <div
+        className={[
+          "relative z-[2] h-full border-r backdrop-blur-xl transition-colors duration-300",
+          isDark
+            ? "border-white/10 bg-white/[0.03] shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+            : "border-orange-100/80 bg-white/55 shadow-[0_20px_50px_rgba(251,146,60,0.10)]",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "relative px-5 py-5 border-b transition-colors duration-300",
+            isDark ? "border-white/10" : "border-orange-100/80",
+          ].join(" ")}
+        >
+          <div
+            className={[
+              "absolute inset-x-0 bottom-0 h-px",
+              isDark
+                ? "bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                : "bg-gradient-to-r from-transparent via-orange-200/70 to-transparent",
+            ].join(" ")}
           />
-        )}
-      </AnimatePresence>
 
-      {/* Sidebar */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.aside
-            key="admin-themed-sidebar"
-            initial={{ x: -260, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -260, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="fixed left-0 top-0 z-50 h-screen w-64 overflow-hidden shadow-2xl"
-            style={asideStyle}
-          >
-            {/* Background layers */}
-            <div className="absolute inset-0" style={bgLayerStyle} />
-            <div className="absolute inset-0" style={glowLayerStyle} />
-            <div className="absolute inset-0 pointer-events-none" style={gridOverlayStyle} />
+          <div className="flex items-center gap-3">
             <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: `inset 0 0 0 1px ${rgba(C.border, 0.10)}` }}
-            />
+              className={[
+                "grid h-11 w-11 place-items-center rounded-2xl border",
+                isDark
+                  ? "border-white/10 bg-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+                  : "border-orange-100 bg-white/85 shadow-[0_10px_30px_rgba(251,146,60,0.12)]",
+              ].join(" ")}
+            >
+              <ShieldCheck
+                className={
+                  isDark ? "w-5 h-5 text-white/85" : "w-5 h-5 text-orange-600"
+                }
+              />
+            </div>
 
-            {/* Content */}
-            <div className="relative flex h-full flex-col px-3 py-4">
-              {/* Brand Title */}
-              <div className="mb-4 flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold" style={brandGradient}>
-                    Admin Panel
-                  </span>
-                </div>
-                <span className="h-[1px] flex-1 ml-3" style={dividerStyle} />
-              </div>
-
-              {/* Menu */}
-              <div className="user-custom-scrollbar relative flex-1 overflow-y-auto pb-16">
-                {modules.map((mod) => {
-                  const anyChildActive = mod.children?.some((c) => location.pathname.startsWith(c.path));
-                  const active = isActive(mod.path) || anyChildActive;
-                  const open = openMenu === mod.name;
-
-                  return (
-                    <div key={mod.name} className="mb-1">
-                      {/* Parent Item */}
-                      <button
-                        onClick={() => {
-                          if (mod.name === "Logout") {
-                            handleLogout();
-                            return;
-                          }
-
-                          if (mod.children) toggleMenu(mod.name);
-                          else {
-                            navigate(mod.path);
-                            setMobileOpen(false);
-                          }
-                        }}
-                        className="relative block w-full px-3 py-2.5 text-left transition-all"
-                        style={parentBtnStyle(active)}
-                        onMouseEnter={(e) => {
-                          if (!active) {
-                            e.currentTarget.style.background = rgba(C.sidebarHover, 0.18);
-                            e.currentTarget.style.borderColor = rgba(C.border, 0.14);
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!active) {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.borderColor = rgba(C.border, 0.08);
-                          }
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <NeonRail active={active} theme={theme} />
-
-                          <div className="flex h-9 w-9 items-center justify-center" style={iconChipStyle(active)}>
-                            <span style={{ color: active ? rgba(C.accent, 0.95) : rgba(C.fg, 0.72) }}>
-                              {mod.icon}
-                            </span>
-                          </div>
-
-                          <span className="text-[12px] font-semibold tracking-wide" style={labelStyle(active)}>
-                            {mod.name}
-                          </span>
-
-                          {mod.children && (
-                            <span className="ml-auto" style={{ color: rgba(C.mutedFg, 0.6) }}>
-                              {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-
-                      {/* Children */}
-                      {mod.children && (
-                        <AnimatePresence initial={false}>
-                          <motion.div
-                            key={`${mod.name}-collapse`}
-                            initial={false}
-                            animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-                            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                            className="ml-6 mt-2 overflow-hidden"
-                          >
-                            <div className="max-h-60 overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]">
-                              {mod.children.map((child) => {
-                                const childActive = location.pathname === child.path;
-                                return (
-                                  <button
-                                    key={child.name}
-                                    onClick={() => {
-                                      navigate(child.path);
-                                      setMobileOpen(false);
-                                    }}
-                                    className="flex items-center gap-2 px-3 py-2 text-sm w-full text-left transition duration-200 font-medium"
-                                    style={childBtnStyle(childActive)}
-                                    onMouseEnter={(e) => {
-                                      if (!childActive) e.currentTarget.style.background = rgba(C.sidebarHover, 0.16);
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!childActive) e.currentTarget.style.background = "transparent";
-                                    }}
-                                  >
-                                    <span
-                                      className="h-1.5 w-1.5 rounded-full"
-                                      style={{ background: rgba(C.accent, childActive ? 0.95 : 0.60) }}
-                                    />
-                                    {child.name}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        </AnimatePresence>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Footer mini */}
+            <div>
               <div
-                className="mt-2 pt-2 text-[10px]"
-                style={{
-                  borderTop: `1px solid ${rgba(C.border, 0.12)}`,
-                  color: rgba(C.mutedFg, 0.55),
-                }}
+                className={[
+                  "text-[11px] font-semibold tracking-[0.28em]",
+                  isDark ? "text-white/80" : "text-slate-700",
+                ].join(" ")}
               >
-                <div className="flex items-center justify-between px-1">
-                  <span>v1.0</span>
-                  <span className="inline-flex items-center gap-1">
-                    <span
-                      className="h-1.5 w-1.5 animate-pulse rounded-full"
-                      style={{ background: rgba(C.success, 0.9) }}
-                    />
-                    Live
-                  </span>
-                </div>
+                ADMIN
+              </div>
+              <div
+                className={[
+                  "mt-0.5 text-[11px]",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
+                Security World
               </div>
             </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+
+        <div
+          className={[
+            "h-[calc(100%-88px)] overflow-y-auto px-4 py-4 scrollbar-thin",
+            isDark
+              ? "scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20"
+              : "scrollbar-track-transparent scrollbar-thumb-orange-200 hover:scrollbar-thumb-orange-300",
+          ].join(" ")}
+        >
+          <nav className="space-y-3">
+            {modules.map((mod) => {
+              const active = moduleStates[mod.name];
+              const isOpen = mod.children ? openMenus[mod.name] ?? active : false;
+              const isDanger = mod.danger;
+
+              return (
+                <div key={mod.name}>
+                  <button
+                    onMouseMove={handlePointerMove}
+                    onClick={() => {
+                      if (mod.children) {
+                        toggleMenu(mod.name);
+                        return;
+                      }
+
+                      if (mod.name === "Logout") {
+                        handleLogout();
+                        return;
+                      }
+
+                      navigate(mod.path);
+                      close?.();
+                    }}
+                    disabled={mod.name === "Logout" && logoutLoading}
+                    className={[
+                      "group relative w-full overflow-hidden px-3 py-2 text-left transition-all duration-300",
+                      "flex items-center justify-between rounded-xl",
+                      "hover:z-10",
+                      !isDanger &&
+                        (isDark
+                          ? ""
+                          : "hover:bg-white/65 hover:shadow-[0_0_20px_rgba(251,146,60,0.14)]"),
+                      isDanger &&
+                        (isDark
+                          ? ""
+                          : "hover:bg-red-50/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.10)]"),
+                    ].join(" ")}
+                    style={{
+                      "--x": "50%",
+                      "--y": "50%",
+                    }}
+                  >
+                    <div
+                      className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      style={{
+                        background: isDanger
+                          ? isDark
+                            ? "radial-gradient(140px circle at var(--x) var(--y), rgba(248,113,113,0.22), transparent 60%)"
+                            : "radial-gradient(140px circle at var(--x) var(--y), rgba(239,68,68,0.18), transparent 60%)"
+                          : isDark
+                          ? "radial-gradient(140px circle at var(--x) var(--y), rgba(96,165,250,0.22), transparent 60%)"
+                          : "radial-gradient(140px circle at var(--x) var(--y), rgba(251,146,60,0.18), transparent 60%)",
+                      }}
+                    />
+
+                    <div
+                      className="pointer-events-none absolute inset-[1px] rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      style={{
+                        background: isDark
+                          ? "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))"
+                          : "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,247,240,0.25))",
+                      }}
+                    />
+
+                    {active && !isDanger && (
+                      <div
+                        className={[
+                          "absolute inset-y-3 left-0 w-[3px] rounded-r-full",
+                          isDark
+                            ? "bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,0.8)]"
+                            : "bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.45)]",
+                        ].join(" ")}
+                      />
+                    )}
+
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div
+                        className={[
+                          "grid h-10 w-10 place-items-center rounded-xl border transition duration-300",
+                          mod.danger
+                            ? isDark
+                              ? "border-red-400/20 bg-red-500/10 text-red-300"
+                              : "border-red-200 bg-red-50 text-red-600"
+                            : active
+                            ? isDark
+                              ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
+                              : "border-orange-200 bg-orange-50/90 text-orange-700"
+                            : isDark
+                            ? "border-white/10 bg-black/20 text-white/70 group-hover:text-white"
+                            : "border-orange-100 bg-white/85 text-slate-600 group-hover:text-slate-900",
+                        ].join(" ")}
+                      >
+                        {mod.icon}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div
+                          className={[
+                            "truncate text-sm font-medium tracking-[0.03em] transition-colors duration-300",
+                            mod.danger
+                              ? isDark
+                                ? "text-red-200"
+                                : "text-red-700"
+                              : active
+                              ? isDark
+                                ? "text-white"
+                                : "text-slate-900"
+                              : isDark
+                              ? "text-white/80 group-hover:text-white"
+                              : "text-slate-700 group-hover:text-slate-900",
+                          ].join(" ")}
+                        >
+                          {mod.name}
+                        </div>
+
+                        {!mod.children && mod.name !== "Logout" && (
+                          <div
+                            className={[
+                              "mt-0.5 text-[11px] transition-colors duration-300",
+                              isDark
+                                ? "text-white/35 group-hover:text-white/60"
+                                : "text-slate-500 group-hover:text-slate-700",
+                            ].join(" ")}
+                          >
+                            {mod.subtitle}
+                          </div>
+                        )}
+
+                        {mod.children && (
+                          <div
+                            className={[
+                              "mt-0.5 text-[11px] transition-colors duration-300",
+                              isDark
+                                ? "text-white/35 group-hover:text-white/60"
+                                : "text-slate-500 group-hover:text-slate-700",
+                            ].join(" ")}
+                          >
+                            {mod.subtitle}
+                          </div>
+                        )}
+
+                        {mod.name === "Logout" && (
+                          <div
+                            className={[
+                              "mt-0.5 text-[11px] transition-colors duration-300",
+                              isDark
+                                ? "text-red-200/60 group-hover:text-red-200"
+                                : "text-red-500 group-hover:text-red-600",
+                            ].join(" ")}
+                          >
+                            End secure session
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {mod.children && (
+                      <div
+                        className={[
+                          "relative z-10 grid h-8 w-8 place-items-center rounded-lg border transition duration-300",
+                          active
+                            ? isDark
+                              ? "border-blue-400/20 text-blue-200 bg-blue-500/10"
+                              : "border-orange-200 bg-orange-50 text-orange-700"
+                            : isDark
+                            ? "border-white/10 bg-black/20 text-white/55 group-hover:text-white/80"
+                            : "border-orange-100 bg-white/85 text-slate-500 group-hover:text-slate-800",
+                        ].join(" ")}
+                      >
+                        {isOpen ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" />
+                        )}
+                      </div>
+                    )}
+                  </button>
+
+                  {mod.children && (
+                    <div
+                      className={[
+                        "grid transition-all duration-300 ease-out",
+                        isOpen
+                          ? "grid-rows-[1fr] opacity-100 mt-2"
+                          : "grid-rows-[0fr] opacity-0",
+                      ].join(" ")}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="ml-3 space-y-1">
+                          {mod.children.map((child) => {
+                            const childActive = isPathActive(child.path);
+
+                            return (
+                              <button
+                                key={child.name}
+                                onMouseMove={handlePointerMove}
+                                onClick={() => {
+                                  navigate(child.path);
+                                  close?.();
+                                }}
+                                className={[
+                                  "group/child relative flex w-full items-center gap-3 px-3 py-2 text-left transition-all duration-200 overflow-hidden rounded-xl",
+                                  "hover:z-10",
+                                  isDark ? "" : "hover:bg-white/55",
+                                ].join(" ")}
+                                style={{
+                                  "--x": "50%",
+                                  "--y": "50%",
+                                }}
+                              >
+                                <div
+                                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/child:opacity-100"
+                                  style={{
+                                    background: isDark
+                                      ? "radial-gradient(120px circle at var(--x) var(--y), rgba(96,165,250,0.20), transparent 60%)"
+                                      : "radial-gradient(120px circle at var(--x) var(--y), rgba(251,146,60,0.15), transparent 60%)",
+                                  }}
+                                />
+
+                                <div
+                                  className={[
+                                    "relative z-10 h-2.5 w-2.5 rounded-full",
+                                    childActive
+                                      ? isDark
+                                        ? "bg-blue-300 shadow-[0_0_10px_rgba(147,197,253,0.9)]"
+                                        : "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.45)]"
+                                      : isDark
+                                      ? "bg-white/30"
+                                      : "bg-slate-300",
+                                  ].join(" ")}
+                                />
+
+                                <div className="relative z-10 flex-1 min-w-0">
+                                  <div
+                                    className={[
+                                      "truncate text-sm font-medium transition-colors duration-300",
+                                      childActive
+                                        ? isDark
+                                          ? "text-blue-100"
+                                          : "text-orange-800"
+                                        : isDark
+                                        ? "text-white/80 group-hover/child:text-white"
+                                        : "text-slate-700 group-hover/child:text-slate-900",
+                                    ].join(" ")}
+                                  >
+                                    {child.name}
+                                  </div>
+                                </div>
+
+                                {childActive && (
+                                  <div
+                                    className={[
+                                      "relative z-10 h-2 w-2 rounded-full animate-pulse",
+                                      isDark
+                                        ? "bg-blue-300 shadow-[0_0_10px_rgba(147,197,253,0.9)]"
+                                        : "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.45)]",
+                                    ].join(" ")}
+                                  />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Sidebar = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const mode = useSelector((store) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
+
+  return (
+    <>
+      <aside className="hidden md:block fixed left-0 top-0 z-40 h-screen w-72">
+        <SidebarContent />
+      </aside>
+
+      {!mobileOpen && (
+        <div className="md:hidden fixed top-4 left-4 z-[70]">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className={[
+              "grid h-11 w-11 place-items-center rounded-xl border backdrop-blur-md transition",
+              "hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:scale-105 hover:brightness-110",
+              isDark
+                ? "border-white/10 bg-[#111]/90 text-white/85 shadow-[0_12px_30px_rgba(0,0,0,0.45)] hover:bg-white/[0.08]"
+                : "border-orange-100 bg-white/90 text-slate-700 shadow-[0_12px_30px_rgba(251,146,60,0.12)] hover:bg-orange-50/70",
+            ].join(" ")}
+            aria-label="Open sidebar"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      <div
+        className={[
+          "md:hidden fixed inset-0 z-[80] transition-all duration-300",
+          mobileOpen
+            ? "pointer-events-auto bg-black/40 backdrop-blur-[2px]"
+            : "pointer-events-none bg-black/0",
+        ].join(" ")}
+      >
+        <button
+          aria-label="Close sidebar backdrop"
+          className="absolute inset-0"
+          onClick={() => setMobileOpen(false)}
+        />
+
+        <aside
+          className={[
+            "absolute left-0 top-0 h-screen w-72 max-w-[86vw] transition-transform duration-300 ease-out",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+          ].join(" ")}
+        >
+          <SidebarContent close={() => setMobileOpen(false)} />
+        </aside>
+      </div>
     </>
   );
 };

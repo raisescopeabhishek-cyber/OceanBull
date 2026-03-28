@@ -21,8 +21,8 @@ const useSiteConfig = () => {
     const fetchSiteConfigData = async () => {
       try {
         
-        // const res = await backendApi.get(`/site-config`);
-        // dispatch(setSiteConfig(res.data.data));
+        const res = await backendApi.get(`/site-config`);
+        dispatch(setSiteConfig(res.data.data));
 
         await dispatch(fetchCurrentUser());
       } catch (err) {

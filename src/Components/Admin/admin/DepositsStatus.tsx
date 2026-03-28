@@ -1,17 +1,18 @@
-// DepositsStatus.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeftRight,
   CircleCheckBig,
   CircleX,
   Image,
-  Loader,
+  LoaderIcon,
   Search,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
   ArrowLeft,
-  RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,335 +29,107 @@ import {
   CFcalculateTimeSinceJoined,
   CFformatDate,
 } from "../../../utils/CustomFunctions";
-
-// ✨ ambient visuals (shared theme)
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
-
-// ✅ theme redux
 import { useSelector } from "react-redux";
 
-/* ==================== Theme helpers (RGB strings -> CSS) =================== */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-const clampRadius = (r: any) => {
-  const v = String(r ?? "14px").trim();
-  if (v === "0" || v === "0px") return "0px";
-  return v || "14px";
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-const containerVariants = {
-  hidden: { opacity: 1 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-
-type StatCardProps = {
-  icon: JSX.Element;
-  amount: string;
-  label: string;
-  link: string;
-  allLoading: boolean;
-  C: any;
-  radius: string;
-  effectsEnabled: boolean;
-};
-
-// ✅ theme-based stat card
-const StatCard = ({ icon, amount, label, link, allLoading, C, radius, effectsEnabled }: StatCardProps) => (
-  <Link to={`${link}`} className="block">
-    <motion.div
-      variants={cardVariants}
-      className="relative p-4 border overflow-hidden transition-all"
-      style={{
-        borderRadius: `calc(${radius} + 10px)`,
-        border: `1px solid ${rgba(C.border, 0.20)}`,
-        background: `linear-gradient(135deg, ${rgba(C.card, 0.82)}, ${rgba(C.surface2, 0.55)}, ${rgba(C.card, 0.82)})`,
-        boxShadow: effectsEnabled ? `0 18px 55px ${rgba(C.bg, 0.55)}` : undefined,
-      }}
-    >
-      <div
-        className="absolute -inset-px blur-md"
-        style={{
-          opacity: effectsEnabled ? 0.20 : 0,
-          borderRadius: `calc(${radius} + 10px)`,
-          background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.9)}, ${rgba(C.accent, 0.9)}, ${rgba(C.gradientTo, 0.9)})`,
-        }}
-      />
-      <div className="relative flex items-center gap-3">
-        <div
-          className="w-10 h-10 flex items-center justify-center"
-          style={{
-            borderRadius: `calc(${radius} + 6px)`,
-            background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.95)}, ${rgba(C.gradientTo, 0.95)})`,
-            boxShadow: effectsEnabled ? `0 0 22px ${rgba(C.glow, 0.20)}` : undefined,
-          }}
-        >
-          {icon}
-        </div>
-        <div>
-          <p className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>{label}</p>
-          <p className="text-xl font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
-            {allLoading ? "Loading…" : amount}
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  </Link>
-);
+const PAGE_LIMIT = 10;
 
 const DepositsStatus = () => {
-  const { status } = useParams();
-
-  // ✅ theme from redux
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-
-  const radius = clampRadius(theme?.radius);
-  const effectsEnabled = theme?.effectsEnabled !== false;
-  const pattern = theme?.pattern;
-
-  const C = useMemo(() => {
-    const t = theme || {};
-    return {
-      bg: t.bg ?? "0 0 0",
-      fg: t.fg ?? "255 255 255",
-      mutedFg: t.mutedFg ?? "203 213 225",
-      border: t.border ?? t.inputBorder ?? "100 116 139",
-      card: t.card ?? t.surface2 ?? "18 18 18",
-      surface1: t.surface1 ?? t.bg ?? "0 0 0",
-      surface2: t.surface2 ?? t.card ?? "18 18 18",
-      accent: t.accent ?? "59 130 246",
-      ring: t.ring ?? t.accent ?? "59 130 246",
-      glow: t.glow ?? t.accent ?? "59 130 246",
-      gradientFrom: t.gradientFrom ?? t.accent ?? "59 130 246",
-      gradientTo: t.gradientTo ?? "147 51 234",
-      headerRow: t.headerRow ?? "30 41 59",
-      rowHover: t.rowHover ?? "15 23 42",
-      input: t.input ?? t.surface2 ?? "18 18 18",
-      inputBorder: t.inputBorder ?? t.border ?? "100 116 139",
-      success: t.success ?? "34 197 94",
-      warning: t.warning ?? "234 179 8",
-      danger: t.danger ?? "244 63 94",
-      info: t.info ?? "56 189 248",
-    };
-  }, [theme]);
+  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
   const [depositData, setDepositData] = useState<any[]>([]);
+  const [allDepositData, setAllDepositData] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [allLoading, setAllLoading] = useState(true);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "all",
+  });
+
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [selectedDeposit, setSelectedDeposit] = useState<any | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"" | "approve" | "reject">("");
-  const [loading, setLoading] = useState(false);
-  const isAll = status === "all";
-  const [showPreview, setShowPreview] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [allDepositData, setAllDepositData] = useState<any[]>([]);
-  const [allLoading, setAllLoading] = useState(true);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-  const [pagination, setPagination] = useState<any>({});
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [comment, setComment] = useState("");
 
-  // ===== Numbered pagination helpers =====
-  const PAGE_SIZE = 10;
-  const DOTS = "...";
-  const range = (start: number, end: number) =>
-    Array.from({ length: end - start + 1 }, (_, i) => i + start);
+  const totalPages = Math.max(
+    1,
+    Number(pagination?.totalPages) ||
+      Math.ceil((Number(pagination?.totalDeposits) || 0) / PAGE_LIMIT)
+  );
 
-  const totalPages =
-    Math.max(
-      1,
-      Number(pagination?.totalPages) ||
-        Math.ceil((Number(pagination?.totalDeposits) || 0) / PAGE_SIZE)
-    ) || 1;
-
-  const getPaginationRange = (
-    total: number,
-    current: number,
-    siblingCount = 1
-  ): Array<number | string> => {
-    const totalPageNumbers = siblingCount * 2 + 5;
-    if (totalPageNumbers >= total) return range(1, total);
-
-    const leftSiblingIndex = Math.max(current - siblingCount, 1);
-    const rightSiblingIndex = Math.min(current + siblingCount, total);
-
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < total - 1;
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + siblingCount * 2;
-      const leftRange = range(1, leftItemCount);
-      return [...leftRange, DOTS, total];
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + siblingCount * 2;
-      const rightRange = range(total - rightItemCount + 1, total);
-      return [1, DOTS, ...rightRange];
-    }
-
-    const middleRange = range(leftSiblingIndex, rightSiblingIndex);
-    return [1, DOTS, ...middleRange, DOTS, total];
+  const updateFilter = (key: string, value: string) => {
+    setCurrentPage(1);
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const paginationRange = getPaginationRange(totalPages, currentPage, 1);
-
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage) setCurrentPage(page);
-  };
-
-  // theme: layout
-  const pageStyle: React.CSSProperties = {
-    background: `linear-gradient(135deg, ${rgba(C.bg, 1)}, ${rgba(C.surface1, 1)}, ${rgba(C.bg, 1)})`,
-    color: rgb(C.fg),
-  };
-
-  const gridOverlayStyle: React.CSSProperties =
-    pattern === "grid"
-      ? {
-          opacity: effectsEnabled ? 0.1 : 0,
-          backgroundImage: `linear-gradient(${rgba(C.accent, 0.22)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(C.accent, 0.22)} 1px, transparent 1px)`,
-          backgroundSize: "46px 46px",
-          maskImage: "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-          WebkitMaskImage: "radial-gradient(120% 80% at 50% 0%, black 58%, transparent 86%)",
-        }
-      : { opacity: 0 };
-
-  const topBarStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.bg, 0.82)}, transparent)`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-  };
-
-  const titleStyle: React.CSSProperties = {
-    backgroundImage: `linear-gradient(90deg, ${rgb(C.gradientFrom)}, ${rgb(C.gradientTo)})`,
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    color: "transparent",
-    textShadow: effectsEnabled ? `0 0 24px ${rgba(C.glow, 0.12)}` : undefined,
-  };
-
-  const outlineBtn: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 999px)`,
-    border: `1px solid ${rgba(C.border, 0.20)}`,
-    background: rgba(C.surface2, 0.22),
-    color: rgba(C.fg, 0.9),
-  };
-
-  const inputStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 10px)`,
-    background: rgba(C.input, 0.22),
-    border: `1px solid ${rgba(C.inputBorder, 0.35)}`,
-    color: rgb(C.fg),
-    boxShadow: effectsEnabled ? `0 0 0 1px ${rgba(C.ring, 0.08)} inset` : undefined,
-  };
-
-  const tableCardStyle: React.CSSProperties = {
-    borderRadius: `calc(${radius} + 14px)`,
-    border: `1px solid ${rgba(C.border, 0.20)}`,
-    background: `linear-gradient(135deg, ${rgba(C.card, 0.80)}, ${rgba(C.surface2, 0.55)}, ${rgba(C.card, 0.80)})`,
-    boxShadow: effectsEnabled ? `0 18px 55px ${rgba(C.bg, 0.55)}` : undefined,
-  };
-
-  const headerRowStyle: React.CSSProperties = {
-    background: `linear-gradient(180deg, ${rgba(C.headerRow, 0.75)}, ${rgba(C.headerRow, 0.45)})`,
-    borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-  };
-
-  const pillStyle = (tone: "pending" | "approved" | "rejected" | "neutral") => {
-    const base =
-      tone === "pending"
-        ? C.warning
-        : tone === "approved"
-        ? C.success
-        : tone === "rejected"
-        ? C.danger
-        : C.mutedFg;
-
-    return {
-      borderRadius: "999px",
-      border: `1px solid ${rgba(base, 0.35)}`,
-      background: rgba(base, 0.1),
-      color: rgba(base, 0.95),
-      fontWeight: 700,
-    } as React.CSSProperties;
-  };
-
-  const rowStyle = (hovered: boolean): React.CSSProperties => ({
-    background: hovered ? rgba(C.rowHover, 0.22) : rgba(C.surface2, 0.1),
-    borderBottom: `1px solid ${rgba(C.border, 0.14)}`,
-    transition: "background 160ms ease",
-  });
-
-  // helper: status chip
-  const statusLabelTone = (s?: string) => {
-    if (s === "pending") return "pending";
-    if (s === "approved") return "approved";
-    if (s === "rejected") return "rejected";
-    return "neutral";
-  };
-
-  const togglePreview = (item: any) => {
-    setShowPreview(true);
-    setSelectedDeposit(item);
+  const resetFilters = () => {
+    setCurrentPage(1);
+    setFilters({
+      search: "",
+      status: "all",
+    });
+    setDebouncedSearch("");
   };
 
   const fetchApiData = async () => {
     setLoading(true);
     try {
-      let finalRes: any;
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: PAGE_LIMIT.toString(),
+        search: debouncedSearch,
+      });
 
-      const base = `/deposits?page=${currentPage}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
-        debouncedSearch
-      )}`;
+      if (filters.status === "approved") {
+        params.append("status", "approved");
+      } else if (filters.status === "pending") {
+        params.append("status", "pending");
+      } else if (filters.status === "rejected") {
+        params.append("status", "rejected");
+      } else {
+        params.append("status", "");
+      }
 
-      if (status === "all") finalRes = (await adminApi.get(`${base}&status=`)).data;
-      else if (status === "pending") finalRes = (await adminApi.get(`${base}&status=pending`)).data;
-      else if (status === "approved") finalRes = (await adminApi.get(`${base}&status=approved`)).data;
-      else if (status === "rejected") finalRes = (await adminApi.get(`${base}&status=rejected`)).data;
-      else finalRes = (await adminApi.get(base)).data;
+      const res = await adminApi.get(`/deposits?${params.toString()}`);
+      const finalRes = res?.data;
 
-      setDepositData(finalRes.data || []);
-      setPagination(finalRes.pagination || {});
+      setDepositData(finalRes?.data || []);
+      setPagination(finalRes?.pagination || {});
     } catch (error) {
-      toast.error("Something went wrong");
       console.log("Error fetching deposits:", error);
+      toast.error("Something went wrong while fetching deposits");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchAllData = async () => {
+    setAllLoading(true);
     try {
-      const allRes = await adminApi.get(`/deposits`);
-      setAllDepositData(allRes.data.data || []);
-    } catch {
-      console.log("failed to fetch all data");
+      const res = await adminApi.get(`/deposits`);
+      setAllDepositData(res?.data?.data || []);
+    } catch (error) {
+      console.log("Error fetching all deposits:", error);
     } finally {
       setAllLoading(false);
     }
   };
 
-  const handleSearchChange = (e: any) => setSearchQuery(e.target.value);
+  const togglePreview = (item: any) => {
+    setSelectedDeposit(item);
+    setShowPreview(true);
+  };
 
   const handleActionClick = (deposit: any, action: "approve" | "reject") => {
     setSelectedDeposit(deposit);
@@ -365,338 +138,973 @@ const DepositsStatus = () => {
     setIsDialogOpen(true);
   };
 
-const handleConfirmAction = async (selected : any) => {
-  if (isActionLoading) return;
+  const handleConfirmAction = async (selected: any) => {
+    if (isActionLoading || !comment.trim()) return;
 
-  const toastId = toast.loading("Please wait..");
-  setIsActionLoading(true);
+    const toastId = toast.loading("Please wait...");
+    setIsActionLoading(true);
 
-  try {
-    await adminApi.put("/update-deposit", {
-      _id: selected._id,
-      status: actionType,
-      mt5Account: selected.mt5Account,
-      amount: selected.deposit,
-      email: selected.userId.email,
-      selectedDeposit: selected,
-    });
+    try {
+      await adminApi.put("/update-deposit", {
+        _id: selected._id,
+        status: actionType,
+        mt5Account: selected.mt5Account,
+        amount: selected.deposit,
+        email: selected.userId?.email,
+        selectedDeposit: selected,
+        comment,
+      });
 
-    toast.success(
-      actionType === "approve" ? "Deposit Approved" : "Deposit Rejected",
-      { id: toastId }
-    );
+      toast.success(
+        actionType === "approve" ? "Deposit Approved" : "Deposit Rejected",
+        { id: toastId }
+      );
 
-    setIsDialogOpen(false);
-    await fetchApiData();
+      setIsDialogOpen(false);
+      setComment("");
+      await fetchApiData();
+      await fetchAllData();
+    } catch (err) {
+      toast.error("Something went wrong", { id: toastId });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
-  } catch (err) {
-    toast.error("Something went wrong", { id: toastId });
-  } finally {
-    setIsActionLoading(false);
-    setComment("");
-  }
-};
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev: number) => prev - 1);
+  };
 
-  // totals for stats
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev: number) => prev + 1);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  useEffect(() => {
+    fetchApiData();
+  }, [currentPage, debouncedSearch, filters.status]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
   const TotalDeposits = allDepositData
     .reduce((total, item) => total + Number(item.deposit || 0), 0)
     .toFixed(2);
+
   const TotalPendingDeposits = allDepositData
     .filter((i) => i.status === "pending")
     .reduce((t, i) => t + Number(i.deposit || 0), 0)
     .toFixed(2);
-  const TotalSuccessfullDeposits = allDepositData
+
+  const TotalSuccessfulDeposits = allDepositData
     .filter((i) => i.status === "approved")
     .reduce((t, i) => t + Number(i.deposit || 0), 0)
     .toFixed(2);
+
   const TotalRejectedDeposits = allDepositData
     .filter((i) => i.status === "rejected")
     .reduce((t, i) => t + Number(i.deposit || 0), 0)
     .toFixed(2);
 
-  const stats = [
-    { icon: <ArrowLeftRight className="text-white" size={20} />, amount: TotalDeposits, label: "Total Deposits", link: "/admin/deposit/all", allLoading },
-    { icon: <ArrowLeftRight className="text-white" size={20} />, amount: TotalSuccessfullDeposits, label: "Successful Deposits", link: "/admin/deposit/approved", allLoading },
-    { icon: <ArrowLeftRight className="text-white" size={20} />, amount: TotalPendingDeposits, label: "Pending Deposits", link: "/admin/deposit/pending", allLoading },
-    { icon: <ArrowLeftRight className="text-white" size={20} />, amount: TotalRejectedDeposits, label: "Rejected Deposits", link: "/admin/deposit/rejected", allLoading },
-  ];
+  const imgUrl = (p?: string) =>
+    p ? `${import.meta.env.VITE_API_BASE_URL}/${p}` : "";
 
-  const handleNextPage = () => currentPage < totalPages && setCurrentPage((p) => p + 1);
-  const handlePreviousPage = () => currentPage > 1 && setCurrentPage((p) => p - 1);
+  const getStatusBadge = (value: string) => {
+    if (value === "approved") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+            isDark
+              ? "bg-emerald-500/10 text-emerald-300"
+              : "bg-emerald-50 text-emerald-700",
+          ].join(" ")}
+        >
+          <CircleCheckBig size={16} />
+          Approved
+        </span>
+      );
+    }
 
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
+    if (value === "rejected") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+            isDark
+              ? "bg-red-500/10 text-red-300"
+              : "bg-red-50 text-red-700",
+          ].join(" ")}
+        >
+          <CircleX size={16} />
+          Rejected
+        </span>
+      );
+    }
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, status]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 500);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    fetchApiData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, currentPage, debouncedSearch]);
-
-  useEffect(() => {
-    if (status === "all") fetchAllData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
-
-  const imgUrl = (p?: string) => (p ? `${import.meta.env.VITE_API_BASE_URL}/${p}` : "");
+    return (
+      <span
+        className={[
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+          isDark
+            ? "bg-yellow-500/10 text-yellow-300"
+            : "bg-yellow-50 text-yellow-700",
+        ].join(" ")}
+      >
+        <ArrowLeftRight size={16} />
+        Pending
+      </span>
+    );
+  };
 
   return (
-    <div className="relative min-h-screen" style={pageStyle}>
-      {/* ambient */}
-      <AnimatedGrid />
-      <FloatingParticles />
-      <div className="pointer-events-none absolute inset-0" style={gridOverlayStyle} />
-
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Sticky controls */}
+    <div className="w-full">
+      <div className="space-y-4 lg:space-y-5">
+        {/* Top Section */}
         <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md"
-          style={topBarStyle}
+          className={[
+            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.history.back()}
-                className="flex items-center gap-2 px-4 py-2 transition-all"
-                style={outlineBtn}
-              >
-                <ArrowLeft size={18} />
-                Back
-              </button>
+          <div
+            className={[
+              "border-b px-4 py-4 sm:px-5 sm:py-5",
+              isDark ? "border-white/10" : "border-orange-100/80",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  onClick={() => window.history.back()}
+                  className={[
+                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <ArrowLeft size={18} />
+                </button>
 
-              <h1 className="text-2xl md:text-3xl font-bold" style={titleStyle}>
-                {status} Deposits
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-96">
-                <input
-                  type="text"
-                  placeholder="Name / Email / AC No"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="w-full pl-10 pr-9 py-2.5 outline-none"
-                  style={inputStyle}
-                />
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: rgba(C.mutedFg, 0.75) }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-90"
-                    style={{ color: rgba(C.mutedFg, 0.8) }}
+                <div>
+                  <h1
+                    className={[
+                      "text-xl font-bold sm:text-2xl",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
                   >
-                    ×
-                  </button>
-                )}
+                   Funds Management
+                  </h1>
+                  <p
+                    className={[
+                      "mt-1 text-sm leading-6",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    Search, filter and manage all deposit requests from one place.
+                  </p>
+                </div>
               </div>
 
-              <button
-                onClick={fetchApiData}
-                disabled={loading}
-                className="px-4 py-2.5 transition-all flex items-center gap-2"
-                style={{
-                  ...outlineBtn,
-                  opacity: loading ? 0.7 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
+              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                <div className="relative w-full sm:min-w-[280px]">
+                  <Search
+                    size={18}
+                    className={[
+                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+                      isDark ? "text-white/35" : "text-slate-400",
+                    ].join(" ")}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email or account"
+                    value={filters.search}
+                    onChange={(e) => updateFilter("search", e.target.value)}
+                    className={[
+                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
+                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
+                    ].join(" ")}
+                  />
+                </div>
+
+                <button
+                  onClick={resetFilters}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  <RotateCcw size={16} />
+                  Reset
+                </button>
+
+                <button
+                  onClick={() => setIsFiltersOpen((prev) => !prev)}
+                  className={[
+                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                  ].join(" ")}
+                >
+                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? "Collapse" : "Expand"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Row */}
+          <div
+            className={[
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              isFiltersOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
+          >
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
+              <div>
+                <label
+                  className={[
+                    "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Deposit Status
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => updateFilter("status", e.target.value)}
+                  className={[
+                    "h-11 w-full rounded-xl border px-3 text-sm outline-none transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
+                      : "border-orange-200 bg-white/80 text-slate-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
+                  ].join(" ")}
+                >
+                  <option value="all">All Deposits</option>
+                  <option value="approved">Approved Deposits</option>
+                  <option value="pending">Pending Deposits</option>
+                  <option value="rejected">Rejected Deposits</option>
+                </select>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200 bg-white/55",
+                ].join(" ")}
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                {loading ? "Refreshing…" : "Refresh"}
-              </button>
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Total Records
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {pagination?.totalDeposits || 0}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Page
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {currentPage} / {totalPages}
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border px-4 py-3",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-200/80 bg-white/55",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "text-xs font-semibold uppercase tracking-[0.14em]",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Current Filter
+                </p>
+                <p
+                  className={[
+                    "mt-1 text-lg font-bold capitalize",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {filters.status}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stats (only on all) */}
-        {isAll && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-8"
-          >
-            {stats.map((stat, i) => (
-              <StatCard
-                key={i}
-                {...stat}
-                C={C}
-                radius={radius}
-                effectsEnabled={effectsEnabled}
-              />
-            ))}
-          </motion.div>
-        )}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              label: "Total Deposits",
+              amount: TotalDeposits,
+            },
+            {
+              label: "Successful Deposits",
+              amount: TotalSuccessfulDeposits,
+            },
+            {
+              label: "Pending Deposits",
+              amount: TotalPendingDeposits,
+            },
+            {
+              label: "Rejected Deposits",
+              amount: TotalRejectedDeposits,
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className={[
+                "rounded-[24px] border p-4 backdrop-blur-xl transition",
+                isDark
+                  ? "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
+                  : "border-orange-200 bg-white/65 hover:bg-white/80",
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={[
+                    "flex h-11 w-11 items-center justify-center rounded-xl",
+                    isDark
+                      ? "bg-blue-500/10 text-blue-300"
+                      : "bg-orange-100 text-orange-600",
+                  ].join(" ")}
+                >
+                  <ArrowLeftRight size={20} />
+                </div>
+                <div>
+                  <p
+                    className={[
+                      "text-xs font-semibold uppercase tracking-[0.14em]",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    {stat.label}
+                  </p>
+                  <p
+                    className={[
+                      "mt-1 text-xl font-bold",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    {allLoading ? "Loading..." : `$${stat.amount}`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        {/* Table Card */}
-        <div className="overflow-hidden" style={tableCardStyle}>
-          <div className="overflow-x-auto relative">
-            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <table className="w-full min-w-[980px] whitespace-nowrap">
-                <thead className="sticky top-0 z-10">
-                  <tr style={headerRowStyle}>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      User | Email
+        {/* Desktop Table */}
+        <div
+          className={[
+            "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1150px]">
+              <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
+                <tr
+                  className={[
+                    "border-b",
+                    isDark ? "border-white/10" : "border-orange-200",
+                  ].join(" ")}
+                >
+                  {[
+                    "User",
+                    "MT5 Account",
+                    "Account Type",
+                    "Deposit",
+                    "Date",
+                    "Proof",
+                    "Status / Action",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className={[
+                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      {heading}
                     </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      MT5 AC
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      AC Type
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Deposit
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      {status === "rejected" || status === "approved" ? "Updated At" : "Requested At"}
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Proof
-                    </th>
-                    <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                      Action
-                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12">
+                      <div
+                        className={[
+                          "flex items-center justify-center gap-3",
+                          isDark ? "text-white/65" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        <LoaderIcon className="animate-spin" />
+                        <span>Loading deposits...</span>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
+                ) : depositData.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12 text-center">
+                      <p
+                        className={[
+                          "text-lg font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        No deposits found
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Try changing your search or filter options.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  depositData.map((item) => (
+                    <tr
+                      key={item?._id}
+                      className={[
+                        "border-b transition",
+                        isDark
+                          ? "border-white/10 hover:bg-white/[0.03]"
+                          : "border-orange-200 hover:bg-orange-50/40",
+                      ].join(" ")}
+                    >
+                      <td className="px-5 py-4">
+                        <div>
+                          <p
+                            className={[
+                              "font-semibold",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            {item?.userId?.firstName || "Not found"}{" "}
+                            {item?.userId?.lastName || ""}
+                          </p>
+                          <p
+                            className={[
+                              "text-sm",
+                              isDark ? "text-blue-300" : "text-primary-600",
+                            ].join(" ")}
+                          >
+                            {item?.userId?.email || "Not found"}
+                          </p>
+                        </div>
+                      </td>
 
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="py-10">
-                        <div className="flex justify-center items-center gap-3" style={{ color: rgba(C.mutedFg, 0.9) }}>
-                          <span>Loading...</span>
-                          <Loader className="animate-spin" />
-                        </div>
+                      <td
+                        className={[
+                          "px-5 py-4 font-medium",
+                          isDark ? "text-white/80" : "text-slate-700",
+                        ].join(" ")}
+                      >
+                        {item?.mt5Account || "N/A"}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={[
+                            "inline-flex min-w-[44px] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold",
+                            isDark
+                              ? "bg-blue-500/10 text-blue-300"
+                              : "bg-orange-50 text-orange-700",
+                          ].join(" ")}
+                        >
+                          {item?.accountType || "--"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={[
+                            "text-sm font-semibold",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
+                          ${Number(item?.deposit || 0).toFixed(2)}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p
+                          className={[
+                            "font-medium",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
+                          {CFformatDate(
+                            item?.status === "approved" || item?.status === "rejected"
+                              ? item?.updatedAt
+                              : item?.createdAt
+                          )}
+                        </p>
+                        <p
+                          className={[
+                            "text-sm",
+                            isDark ? "text-white/40" : "text-slate-500",
+                          ].join(" ")}
+                        >
+                          {CFcalculateTimeSinceJoined(
+                            item?.status === "approved" || item?.status === "rejected"
+                              ? item?.updatedAt
+                              : item?.createdAt
+                          )}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={() => togglePreview(item)}
+                          className={[
+                            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
+                            isDark
+                              ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                              : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+                          ].join(" ")}
+                        >
+                          <Image size={16} />
+                          View
+                        </button>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        {item?.status === "pending" ? (
+                          isActionLoading ? (
+                            <span
+                              className={isDark ? "text-white/50" : "text-slate-500"}
+                            >
+                              Please wait...
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleActionClick(item, "approve")}
+                                className={[
+                                  "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                                  isDark
+                                    ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
+                                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                                ].join(" ")}
+                              >
+                                <CircleCheckBig size={16} />
+                                Approve
+                              </button>
+
+                              <button
+                                onClick={() => handleActionClick(item, "reject")}
+                                className={[
+                                  "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                                  isDark
+                                    ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                                    : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                                ].join(" ")}
+                              >
+                                <CircleX size={16} />
+                                Reject
+                              </button>
+                            </div>
+                          )
+                        ) : (
+                          getStatusBadge(item?.status)
+                        )}
                       </td>
                     </tr>
-                  ) : depositData?.length ? (
-                    depositData.map((item: any) => (
-                      <DepositRow
-                        key={item._id}
-                        item={item}
-                        status={status}
-                        C={C}
-                        radius={radius}
-                        rowStyle={rowStyle}
-                        pillStyle={pillStyle}
-                        statusLabelTone={statusLabelTone}
-                        isActionLoading={isActionLoading}
-                        onView={() => togglePreview(item)}
-                        onApprove={() => handleActionClick(item, "approve")}
-                        onReject={() => handleActionClick(item, "reject")}
-                      />
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={8} className="py-12">
-                        <div className="text-center" style={{ color: rgba(C.mutedFg, 0.8) }}>
-                          No deposits found.
-                        </div>
-                      </td>
-                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="grid grid-cols-1 gap-3 lg:hidden">
+          {loading ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex items-center justify-center gap-3",
+                  isDark ? "text-white/65" : "text-slate-600",
+                ].join(" ")}
+              >
+                <LoaderIcon className="animate-spin" />
+                <span>Loading deposits...</span>
+              </div>
+            </div>
+          ) : depositData.length === 0 ? (
+            <div
+              className={[
+                "rounded-[24px] border p-8 text-center backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.03]"
+                  : "border-orange-100/80 bg-white/65",
+              ].join(" ")}
+            >
+              <p
+                className={[
+                  "text-lg font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                No deposits found
+              </p>
+              <p
+                className={[
+                  "mt-1 text-sm",
+                  isDark ? "text-white/40" : "text-slate-500",
+                ].join(" ")}
+              >
+                Try changing your search or filter options.
+              </p>
+            </div>
+          ) : (
+            depositData.map((item) => (
+              <div
+                key={item?._id}
+                className={[
+                  "rounded-[24px] border p-4 backdrop-blur-xl",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-100/80 bg-white/65",
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      className={[
+                        "truncate text-base font-semibold",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.userId?.firstName || "Not found"}{" "}
+                      {item?.userId?.lastName || ""}
+                    </h3>
+                    <p
+                      className={[
+                        "block truncate text-sm",
+                        isDark ? "text-blue-300" : "text-primary-600",
+                      ].join(" ")}
+                    >
+                      {item?.userId?.email || "Not found"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => togglePreview(item)}
+                    className={[
+                      "shrink-0 rounded-xl border p-2",
+                      isDark
+                        ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                        : "border-blue-200 bg-blue-50 text-blue-600",
+                    ].join(" ")}
+                  >
+                    <Image size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      MT5 Account
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.mt5Account || "N/A"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Account Type
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      {item?.accountType || "--"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Deposit
+                    </p>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-medium",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      ${Number(item?.deposit || 0).toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div
+                    className={[
+                      "rounded-xl p-3",
+                      isDark ? "bg-white/[0.035]" : "bg-white/55",
+                    ].join(" ")}
+                  >
+                    <p
+                      className={[
+                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Status
+                    </p>
+                    <div className="mt-1">{getStatusBadge(item?.status)}</div>
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    "mt-4 border-t pt-4",
+                    isDark ? "border-white/10" : "border-orange-100/80",
+                  ].join(" ")}
+                >
+                  <p
+                    className={[
+                      "text-sm font-medium",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
+                    {CFformatDate(
+                      item?.status === "approved" || item?.status === "rejected"
+                        ? item?.updatedAt
+                        : item?.createdAt
+                    )}
+                  </p>
+                  <p
+                    className={[
+                      "text-xs",
+                      isDark ? "text-white/40" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    {CFcalculateTimeSinceJoined(
+                      item?.status === "approved" || item?.status === "rejected"
+                        ? item?.updatedAt
+                        : item?.createdAt
+                    )}
+                  </p>
+
+                  {item?.status === "pending" && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <button
+                        onClick={() => handleActionClick(item, "approve")}
+                        className={[
+                          "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                          isDark
+                            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                        ].join(" ")}
+                      >
+                        <CircleCheckBig size={15} />
+                        Approve
+                      </button>
+
+                      <button
+                        onClick={() => handleActionClick(item, "reject")}
+                        className={[
+                          "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                          isDark
+                            ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                            : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                        ].join(" ")}
+                      >
+                        <CircleX size={15} />
+                        Reject
+                      </button>
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* footer */}
-          <div
-            className="flex items-center justify-between px-4 sm:px-6 py-3"
-            style={{
-              borderTop: `1px solid ${rgba(C.border, 0.14)}`,
-              background: rgba(C.surface2, 0.18),
-            }}
-          >
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Total records: <span style={{ color: rgba(C.fg, 0.95) }}>{pagination?.totalDeposits || 0}</span>
-            </div>
-            <div className="text-xs sm:text-sm" style={{ color: rgba(C.mutedFg, 0.85) }}>
-              Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-              <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
-            </div>
-          </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex flex-col items-center space-y-3">
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 transition-all"
-              style={{
-                ...outlineBtn,
-                opacity: currentPage === 1 ? 0.55 : 1,
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
-              }}
+        <div
+          className={[
+            "rounded-[24px] border p-4 backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p
+              className={[
+                "text-sm",
+                isDark ? "text-white/45" : "text-slate-500",
+              ].join(" ")}
             >
-              ← Previous
-            </button>
+              Showing page{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {currentPage}
+              </span>{" "}
+              of{" "}
+              <span
+                className={[
+                  "font-semibold",
+                  isDark ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
+                {totalPages}
+              </span>
+            </p>
 
-            <div className="flex items-center gap-2 flex-wrap justify-center">
-              {paginationRange.map((p, idx) =>
-                p === DOTS ? (
-                  <span key={`dots-${idx}`} className="px-3 py-2 select-none" style={{ color: rgba(C.mutedFg, 0.6) }}>
-                    {DOTS}
-                  </span>
-                ) : (
-                  <button
-                    key={`page-${p}`}
-                    onClick={() => goToPage(p as number)}
-                    className="min-w-[40px] px-3 py-2 transition-all border"
-                    style={{
-                      borderRadius: `calc(${radius} + 6px)`,
-                      borderColor: currentPage === p ? rgba(C.accent, 0.35) : rgba(C.border, 0.18),
-                      background:
-                        currentPage === p
-                          ? `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.26)}, ${rgba(C.gradientTo, 0.26)})`
-                          : rgba(C.surface2, 0.22),
-                      color: currentPage === p ? rgba(C.fg, 0.96) : rgba(C.fg, 0.88),
-                    }}
-                    aria-current={currentPage === p ? "page" : undefined}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === 1
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                    : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
+                }`}
+              >
+                <ChevronLeft size={16} />
+                Prev
+              </button>
+
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
+                  currentPage === totalPages
+                    ? isDark
+                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
+                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
+                    : isDark
+                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                    : "bg-orange-500 text-white hover:bg-orange-600"
+                }`}
+              >
+                Next
+                <ChevronRight size={16} />
+              </button>
             </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 transition-all"
-              style={{
-                ...outlineBtn,
-                opacity: currentPage === totalPages ? 0.55 : 1,
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-              }}
-            >
-              Next →
-            </button>
           </div>
-
-          <span className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
-            Page <span style={{ color: rgba(C.fg, 0.95) }}>{currentPage}</span> of{" "}
-            <span style={{ color: rgba(C.fg, 0.95) }}>{totalPages}</span>
-          </span>
         </div>
       </div>
 
-      {/* Approve/Reject Dialog (keep classes, but inject theme colors) */}
+      {/* Action Dialog */}
       <AlertDialog
         open={isDialogOpen}
         onOpenChange={(open) => {
@@ -705,128 +1113,111 @@ const handleConfirmAction = async (selected : any) => {
         }}
       >
         <AlertDialogContent
-          className="max-w-xl rounded-2xl backdrop-blur-xl"
-          style={{
-            background: rgba(C.bg, 0.88),
-            color: rgb(C.fg),
-            border: `1px solid ${rgba(C.border, 0.25)}`,
-            borderRadius: `calc(${radius} + 10px)`,
-          }}
+          className={[
+            "max-w-xl rounded-2xl backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-[#0b1220] text-white"
+              : "border-orange-200 bg-white text-slate-900",
+          ].join(" ")}
         >
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
+            <AlertDialogTitle className="text-xl font-semibold">
               {actionType === "approve" ? "Approve Deposit" : "Reject Deposit"}
             </AlertDialogTitle>
 
             <AlertDialogDescription asChild>
               {selectedDeposit && (
-                <div className="space-y-4" style={{ color: rgba(C.mutedFg, 0.9) }}>
-                  <div
-                    className="p-4"
-                    style={{
-                      borderRadius: `calc(${radius} + 10px)`,
-                      border: `1px solid ${rgba(C.border, 0.18)}`,
-                      background: rgba(C.surface2, 0.22),
-                    }}
-                  >
-                    <p className="text-lg font-semibold mb-1" style={{ color: rgba(C.fg, 0.95) }}>
-                      User Information
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Name:</span>{" "}
-                      {selectedDeposit.userId?.firstName} {selectedDeposit.userId?.lastName}
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Email:</span> {selectedDeposit.userId?.email}
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Phone:</span> {selectedDeposit.userId?.phone}
-                    </p>
-                  </div>
-
-                  <div
-                    className="p-4"
-                    style={{
-                      borderRadius: `calc(${radius} + 10px)`,
-                      border: `1px solid ${rgba(C.border, 0.18)}`,
-                      background: rgba(C.surface2, 0.22),
-                    }}
-                  >
-                    <p className="text-lg font-semibold mb-1" style={{ color: rgba(C.fg, 0.95) }}>
-                      Deposit Details
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Deposit Amount:</span>{" "}
-                      <span style={{ color: rgba(C.success, 0.95), fontWeight: 700 }}>
-                        ${selectedDeposit.deposit}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>AC Number:</span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedDeposit?.mt5Account}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>AC Type:</span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedDeposit.accountType}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Transaction ID:</span>{" "}
-                      <span style={{ color: rgba(C.fg, 0.95), fontWeight: 700 }}>
-                        {selectedDeposit?.transactionId}
-                      </span>
-                    </p>
-                    <p>
-                      <span style={{ color: rgba(C.mutedFg, 0.75) }}>Date:</span> {CFformatDate(selectedDeposit.updatedAt)}
-                    </p>
-                  </div>
-
-                  <div className="mt-2">
-                    <label
-                      htmlFor="admin-comment"
-                      className="block text-sm mb-1 font-medium"
-                      style={{ color: rgba(C.fg, 0.92) }}
+                <div className={isDark ? "text-white/70" : "text-slate-600"}>
+                  <div className="space-y-4">
+                    <div
+                      className={[
+                        "rounded-xl border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04]"
+                          : "border-orange-100 bg-orange-50/40",
+                      ].join(" ")}
                     >
-                      Admin Comment <span style={{ color: rgba(C.danger, 0.95), fontWeight: 700 }}>*</span>
-                    </label>
-                    <textarea
-                      id="admin-comment"
-                      className="w-full px-3 py-2 text-sm resize-none min-h-[60px] outline-none"
-                      style={{
-                        borderRadius: `calc(${radius} + 6px)`,
-                        background: rgba(C.surface2, 0.22),
-                        color: rgba(C.fg, 0.95),
-                        border: `1px solid ${rgba(C.border, 0.22)}`,
-                      }}
-                      placeholder={actionType === "approve" ? "Add a note for the user" : "Reason for rejection"}
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      maxLength={300}
-                      required
-                    />
-                    <div className="text-xs text-right mt-1" style={{ color: rgba(C.mutedFg, 0.65) }}>
-                      {comment.length}/300
+                      <p
+                        className={[
+                          "mb-2 text-base font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        User Information
+                      </p>
+                      <p>
+                        Name: {selectedDeposit.userId?.firstName}{" "}
+                        {selectedDeposit.userId?.lastName}
+                      </p>
+                      <p>Email: {selectedDeposit.userId?.email}</p>
+                      <p>Phone: {selectedDeposit.userId?.phone}</p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04]"
+                          : "border-orange-100 bg-orange-50/40",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "mb-2 text-base font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        Deposit Details
+                      </p>
+                      <p>Deposit Amount: ${selectedDeposit.deposit}</p>
+                      <p>AC Number: {selectedDeposit?.mt5Account}</p>
+                      <p>AC Type: {selectedDeposit.accountType}</p>
+                      <p>Transaction ID: {selectedDeposit?.transactionId}</p>
+                      <p>
+                        Date:{" "}
+                        {CFformatDate(
+                          selectedDeposit?.updatedAt || selectedDeposit?.createdAt
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="admin-comment"
+                        className={[
+                          "mb-2 block text-sm font-medium",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        Admin Comment *
+                      </label>
+                      <textarea
+                        id="admin-comment"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        maxLength={300}
+                        placeholder={
+                          actionType === "approve"
+                            ? "Add a note for the user"
+                            : "Reason for rejection"
+                        }
+                        className={[
+                          "min-h-[90px] w-full resize-none rounded-xl border px-3 py-2 text-sm outline-none transition",
+                          isDark
+                            ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40"
+                            : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
+                        ].join(" ")}
+                      />
+                      <div
+                        className={[
+                          "mt-1 text-right text-xs",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        {comment.length}/300
+                      </div>
                     </div>
                   </div>
-
-                  <p className="mt-2 text-sm">
-                    Are you sure you want to{" "}
-                    <span
-                      style={{
-                        color:
-                          actionType === "approve"
-                            ? rgba(C.success, 0.95)
-                            : rgba(C.danger, 0.95),
-                        fontWeight: 800,
-                      }}
-                    >
-                      {actionType === "approve" ? "approve" : "reject"}
-                    </span>{" "}
-                    this deposit?
-                  </p>
                 </div>
               )}
             </AlertDialogDescription>
@@ -834,13 +1225,12 @@ const handleConfirmAction = async (selected : any) => {
 
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="px-4 py-2 transition-all"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                border: `1px solid ${rgba(C.border, 0.20)}`,
-                background: rgba(C.surface2, 0.18),
-                color: rgba(C.fg, 0.9),
-              }}
+              className={[
+                "rounded-xl border px-4 py-2",
+                isDark
+                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                  : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
+              ].join(" ")}
               onClick={() => {
                 setIsDialogOpen(false);
                 setComment("");
@@ -851,73 +1241,67 @@ const handleConfirmAction = async (selected : any) => {
 
             <AlertDialogAction
               disabled={isActionLoading || !comment.trim()}
-              onClick={() => selectedDeposit && handleConfirmAction(selectedDeposit)}
-              className="px-4 py-2 transition-all disabled:opacity-60"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                border: `1px solid ${rgba(C.accent, 0.28)}`,
-                background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.9)}, ${rgba(C.gradientTo, 0.9)})`,
-                color: "white",
-                boxShadow: effectsEnabled ? `0 0 24px ${rgba(C.glow, 0.18)}` : undefined,
-              }}
+              onClick={() =>
+                selectedDeposit && handleConfirmAction(selectedDeposit)
+              }
+              className={[
+                "rounded-xl border px-4 py-2 text-white disabled:opacity-60",
+                actionType === "approve"
+                  ? "border-emerald-500 bg-emerald-600 hover:bg-emerald-700"
+                  : "border-red-500 bg-red-600 hover:bg-red-700",
+              ].join(" ")}
             >
-              {isActionLoading ? "Processing..." : `Confirm ${actionType === "approve" ? "Approval" : "Rejection"}`}
+              {isActionLoading
+                ? "Processing..."
+                : `Confirm ${actionType === "approve" ? "Approval" : "Rejection"}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Proof Image Dialog */}
+      {/* Proof Preview Dialog */}
       <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
         <AlertDialogContent
-          className="max-w-3xl rounded-2xl backdrop-blur-xl"
-          style={{
-            background: rgba(C.bg, 0.88),
-            color: rgb(C.fg),
-            border: `1px solid ${rgba(C.border, 0.25)}`,
-            borderRadius: `calc(${radius} + 10px)`,
-          }}
+          className={[
+            "max-w-3xl rounded-2xl backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-[#0b1220] text-white"
+              : "border-orange-200 bg-white text-slate-900",
+          ].join(" ")}
         >
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
+            <AlertDialogTitle className="text-xl font-semibold">
               Proof Of Deposit
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <img
-                src={imgUrl(selectedDeposit?.depositSS)}
-                alt="Proof of Deposit"
-                className="my-6 w-full h-auto border"
-                style={{
-                  borderRadius: `calc(${radius} + 10px)`,
-                  borderColor: rgba(C.border, 0.22),
-                }}
-              />
+            <AlertDialogDescription asChild>
+              <div>
+                <img
+                  src={imgUrl(selectedDeposit?.depositSS)}
+                  alt="Proof of Deposit"
+                  className="my-6 h-auto w-full rounded-xl border object-contain"
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="px-4 py-2 transition-all"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                border: `1px solid ${rgba(C.border, 0.20)}`,
-                background: rgba(C.surface2, 0.18),
-                color: rgba(C.fg, 0.9),
-              }}
+              className={[
+                "rounded-xl border px-4 py-2",
+                isDark
+                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                  : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
+              ].join(" ")}
             >
               Close
             </AlertDialogCancel>
 
-            <AlertDialogAction
-              className="px-4 py-2 transition-all"
-              style={{
-                borderRadius: `calc(${radius} + 6px)`,
-                border: `1px solid ${rgba(C.accent, 0.28)}`,
-                background: `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.9)}, ${rgba(C.gradientTo, 0.9)})`,
-                color: "white",
-              }}
-            >
-              <a target="_blank" rel="noreferrer" href={imgUrl(selectedDeposit?.depositSS)}>
+            <AlertDialogAction className="rounded-xl border border-blue-500 bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={imgUrl(selectedDeposit?.depositSS)}
+              >
                 View Full Image
               </a>
             </AlertDialogAction>
@@ -929,118 +1313,3 @@ const handleConfirmAction = async (selected : any) => {
 };
 
 export default DepositsStatus;
-
-/* ==================== Row component ==================== */
-const DepositRow = ({
-  item,
-  status,
-  C,
-  radius,
-  rowStyle,
-  pillStyle,
-  statusLabelTone,
-  isActionLoading,
-  onView,
-  onApprove,
-  onReject,
-}: any) => {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <tr
-      style={rowStyle(hovered)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <td className="py-3 px-4">
-        <div className="font-semibold" style={{ color: rgba(C.fg, 0.95) }}>
-          {item?.userId?.firstName || "Not found"} {item?.userId?.lastName || ""}
-        </div>
-        <div className="text-sm" style={{ color: rgba(C.mutedFg, 0.75) }}>
-          {item?.userId?.email || "Not found"}
-        </div>
-      </td>
-
-      <td className="py-3 px-4" style={{ color: rgba(C.fg, 0.9) }}>
-        {item?.mt5Account || "N/A"}
-      </td>
-
-      <td className="py-3 px-4">
-        <span className="inline-flex px-3 py-1 text-sm" style={pillStyle("neutral")}>
-          {item?.accountType || "--"}
-        </span>
-      </td>
-
-      <td className="py-3 px-4">
-        <span style={{ color: rgba(C.fg, 0.92), fontWeight: 700 }}>
-          ${Number(item?.deposit || 0).toFixed(2)}
-        </span>
-      </td>
-
-      <td className="py-3 whitespace-nowrap px-4">
-        {status === "rejected" || status === "approved" ? (
-          <>
-            <div style={{ color: rgba(C.fg, 0.9) }}>{CFformatDate(item?.updatedAt)}</div>
-            <div className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
-              {CFcalculateTimeSinceJoined(item?.updatedAt)}
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{ color: rgba(C.fg, 0.9) }}>{CFformatDate(item?.createdAt)}</div>
-            <div className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
-              {CFcalculateTimeSinceJoined(item?.createdAt)}
-            </div>
-          </>
-        )}
-      </td>
-
-      <td className="py-2 px-4">
-        <button
-          className="inline-flex items-center gap-2 transition-all"
-          style={{ color: rgba(C.accent, 0.9) }}
-          onClick={onView}
-        >
-          <Image className="w-4 h-4" /> View
-        </button>
-      </td>
-
-      <td className="py-2 px-4">
-        {item.status === "pending" ? (
-          isActionLoading ? (
-            <span style={{ color: rgba(C.mutedFg, 0.75) }}>Please wait…</span>
-          ) : (
-            <div className="flex items-center gap-5">
-              <button
-                className="transition-all"
-                style={{ color: rgba(C.success, 0.95) }}
-                onClick={onApprove}
-                title="Approve"
-              >
-                <CircleCheckBig />
-              </button>
-              <button
-                className="transition-all"
-                style={{ color: rgba(C.danger, 0.95) }}
-                onClick={onReject}
-                title="Reject"
-              >
-                <CircleX />
-              </button>
-            </div>
-          )
-        ) : (
-          <span
-            className="inline-flex px-3 py-1 text-sm"
-            style={{
-              ...pillStyle(statusLabelTone(item.status)),
-              borderRadius: `calc(${radius} + 999px)`,
-            }}
-          >
-            {item.status}
-          </span>
-        )}
-      </td>
-    </tr>
-  );
-};

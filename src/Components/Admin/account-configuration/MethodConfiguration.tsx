@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import {
   Trash2,
   Plus,
@@ -16,45 +15,29 @@ import {
   DollarSign,
   Activity,
   Image as ImageIcon,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
 import { Switch } from "../ui/Switch";
 import ModernHeading from "../../lib/ModernHeading";
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
-
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0")
-    .trim()
-    .replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
+import { useSelector } from "react-redux";
 
 export default function MethodConfiguration() {
-  // Theme from Redux
-  const themeConfig = useSelector((state: any) => state.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
+  const mode = useSelector((state: any) => state.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
 
   const [arrayData, setArrayData] = useState<any[]>([]);
   const [bankData, setBankData] = useState<any[]>([]);
+  const [showImagePopup, setShowImagePopup] = useState(false);
+  const [popupImageUrl, setPopupImageUrl] = useState("");
+  const [activeTab, setActiveTab] = useState<"payment-methods" | "bank-transfer">(
+    "payment-methods"
+  );
+  const [isTopSectionOpen, setIsTopSectionOpen] = useState(false);
+
   const [newField, setNewField] = useState<{
     name: string;
     details: string;
@@ -77,13 +60,6 @@ export default function MethodConfiguration() {
     name: "Bank Transfer",
   });
 
-  const [showImagePopup, setShowImagePopup] = useState(false);
-  const [popupImageUrl, setPopupImageUrl] = useState("");
-  const [activeTab, setActiveTab] = useState<"payment-methods" | "bank-transfer">(
-    "payment-methods"
-  );
-
-  /* ------------------------------- API Calls ------------------------------ */
   const addField = async () => {
     const toastId = toast.loading("Processing...");
     if (!newField.name || !newField.details) {
@@ -116,7 +92,9 @@ export default function MethodConfiguration() {
         toast.success("Method added successfully", { id: toastId });
         setNewField({ name: "", details: "", image: null, status: "active" });
       } else {
-        toast.error(res.data.msg || "Failed to add payment method", { id: toastId });
+        toast.error(res.data.msg || "Failed to add payment method", {
+          id: toastId,
+        });
       }
     } catch (error: any) {
       const code = error?.response?.data?.error?.code;
@@ -142,9 +120,14 @@ export default function MethodConfiguration() {
     const toastId = toast.loading("Updating status...");
     const newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
-      const res = await adminApi.put(`/update-payment-method`, { id, status: newStatus });
+      const res = await adminApi.put(`/update-payment-method`, {
+        id,
+        status: newStatus,
+      });
       if (res.data.status) {
-        setArrayData((prev) => prev.map((p) => (p._id === id ? { ...p, status: newStatus } : p)));
+        setArrayData((prev) =>
+          prev.map((p) => (p._id === id ? { ...p, status: newStatus } : p))
+        );
         toast.success("Status updated", { id: toastId });
       } else {
         toast.error(res.data.msg || "Failed to update status", { id: toastId });
@@ -174,14 +157,15 @@ export default function MethodConfiguration() {
   const getAllPlatforms = async () => {
     try {
       const res = await adminApi.get(`/get-payment-methods`);
-      const filterNotBankData = (res.data.data || []).filter((v: any) => v.name !== "Bank Transfer");
+      const filterNotBankData = (res.data.data || []).filter(
+        (v: any) => v.name !== "Bank Transfer"
+      );
       setArrayData(filterNotBankData);
     } catch (error) {
       console.log("error in getAllPlatform", error);
     }
   };
 
-  // Always open the modal; if no image url, show a placeholder inside the modal
   const handleViewImage = (imageUrl?: string) => {
     setPopupImageUrl(imageUrl || "");
     setShowImagePopup(true);
@@ -214,7 +198,9 @@ export default function MethodConfiguration() {
           name: "Bank Transfer",
         });
       } else {
-        toast.error(res.data.msg || "Failed to add bank details", { id: toastId });
+        toast.error(res.data.msg || "Failed to add bank details", {
+          id: toastId,
+        });
       }
     } catch (error) {
       toast.error("Something went wrong", { id: toastId });
@@ -222,16 +208,26 @@ export default function MethodConfiguration() {
     }
   };
 
-  const toggleBankActive = async (id: string, currentStatus: "active" | "inactive") => {
+  const toggleBankActive = async (
+    id: string,
+    currentStatus: "active" | "inactive"
+  ) => {
     const toastId = toast.loading("Updating status...");
     const newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
-      const res = await adminApi.put(`/update-payment-method`, { id, status: newStatus });
+      const res = await adminApi.put(`/update-payment-method`, {
+        id,
+        status: newStatus,
+      });
       if (res.data.status) {
-        setBankData((prev) => prev.map((b) => (b._id === id ? { ...b, status: newStatus } : b)));
+        setBankData((prev) =>
+          prev.map((b) => (b._id === id ? { ...b, status: newStatus } : b))
+        );
         toast.success("Status updated", { id: toastId });
       } else {
-        toast.error(res.data.msg || "Failed to update bank status", { id: toastId });
+        toast.error(res.data.msg || "Failed to update bank status", {
+          id: toastId,
+        });
       }
     } catch (error) {
       console.error("Error in bank toggleActive:", error);
@@ -258,7 +254,9 @@ export default function MethodConfiguration() {
   const getAllBankDetails = async () => {
     try {
       const res = await adminApi.get(`/get-payment-methods`);
-      const filterBankData = (res.data.data || []).filter((v: any) => v.name === "Bank Transfer");
+      const filterBankData = (res.data.data || []).filter(
+        (v: any) => v.name === "Bank Transfer"
+      );
       setBankData(filterBankData);
     } catch (error) {
       console.log("error in getAllBankDetails", error);
@@ -270,7 +268,6 @@ export default function MethodConfiguration() {
     getAllBankDetails();
   }, []);
 
-  /* ------------------------------- UI helpers ------------------------------ */
   const isAddButtonDisabled = !newField.name || !newField.details;
   const isBankAddButtonDisabled =
     !newBankField.bankName ||
@@ -285,253 +282,292 @@ export default function MethodConfiguration() {
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
-  };
-
-  // theme-driven styles
-  const pageBgStyle = {
-    minHeight: "100vh",
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(
-      theme?.glow || theme?.accent,
-      0.16
-    )}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(
-                   theme?.gradientTo || theme?.accent,
-                   0.12
-                 )}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(
-      theme?.surface1 || theme?.bg || "0 0 0"
-    )}, ${rgb(theme?.bg || "0 0 0")})`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
-
-  const cardShell = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: `linear-gradient(135deg, ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)}, ${rgba(
-      theme?.surface1 || theme?.bg || "0 0 0",
-      0.86
-    )})`,
-    boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-    backdropFilter: "blur(14px)",
-  } as React.CSSProperties;
-
-  const softPanel = {
-    borderRadius: `calc(${radius} + 8px)`,
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.35),
-  } as React.CSSProperties;
-
-  const inputStyle = {
-    borderRadius: radius,
-    background: rgba(theme?.input || theme?.surface2 || "18 18 18", 0.35),
-    border: `1px solid ${rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18)}`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
-
-  const pill = (kind: "info" | "warning" | "success" | "danger") => {
-    const map: any = {
-      info: theme?.info || theme?.accent || "59 130 246",
-      warning: theme?.warning || "234 179 8",
-      success: theme?.success || theme?.primary || "34 197 94",
-      danger: theme?.danger || "244 63 94",
-    };
-    const c = map[kind];
-    return {
-      borderRadius: "999px",
-      background: rgba(c, 0.12),
-      border: `1px solid ${rgba(c, 0.28)}`,
-      color: rgba(c, 0.92),
-    } as React.CSSProperties;
-  };
-
-  const gradientA = theme?.gradientFrom || theme?.accent || "59 130 246";
-  const gradientB = theme?.gradientTo || "147 51 234";
-
-  const tabWrapStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.35),
-    backdropFilter: "blur(14px)",
-  } as React.CSSProperties;
-
-  const tabBtnBase = {
-    borderRadius: "18px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7),
-    background: "transparent",
-  } as React.CSSProperties;
-
-  const tabBtnActive = {
-    color: rgba(theme?.accentFg || "255 255 255", 0.98),
-    borderColor: rgba(theme?.ring || theme?.accent || "59 130 246", 0.35),
-    background: `linear-gradient(90deg, ${rgba(gradientA, 0.95)}, ${rgba(gradientB, 0.95)})`,
-    boxShadow: `0 14px 40px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
-  } as React.CSSProperties;
-
-  const statIconBg = (kind: "info" | "success" | "danger") => {
-    const map: any = {
-      info: gradientA,
-      success: theme?.success || theme?.primary || "34 197 94",
-      danger: gradientB,
-    };
-    const c = map[kind];
-    return {
-      borderRadius: "18px",
-      background: `linear-gradient(90deg, ${rgba(c, 0.95)}, ${rgba(theme?.glow || c, 0.9)})`,
-      boxShadow: `0 12px 30px ${rgba(c, 0.22)}`,
-    } as React.CSSProperties;
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 100 },
+    },
   };
 
   return (
-    <div className="relative p-4 md:p-8" style={pageBgStyle}>
-      <AnimatedGrid />
-      <FloatingParticles />
-
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-4 relative"
+    <div className="w-full">
+      <div className="space-y-4 lg:space-y-5">
+        {/* Header / Top Section */}
+        <div
+          className={[
+            "rounded-[24px] border backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
         >
-          <ModernHeading text="Payment Configuration" />
-        </motion.div>
-
-        <p
-          className="text-lg text-center mb-8"
-          style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.7) }}
-        >
-          Manage your payment methods and bank transfers
-        </p>
-
-        {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative"
-        >
-          <div style={cardShell} className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3" style={statIconBg("info")}>
-                <CreditCard className="w-6 h-6" style={{ color: rgba(theme?.accentFg || "255 255 255", 1) }} />
-              </div>
-              <TrendingUp className="w-5 h-5" style={{ color: rgba(theme?.info || theme?.accent, 0.9) }} />
-            </div>
-            <h3 style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.7) }} className="text-sm mb-1">
-              Payment Methods
-            </h3>
-            <p style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }} className="text-3xl font-bold">
-              {arrayData.length}
-            </p>
-            <p className="text-xs mt-2 flex items-center gap-1" style={{ color: rgba(theme?.success || "34 197 94", 0.92) }}>
-              <Activity className="w-3 h-3" />
-              {arrayData.filter((p) => p.status === "active").length} Active
-            </p>
-          </div>
-
-          <div style={cardShell} className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3" style={statIconBg("success")}>
-                <Landmark className="w-6 h-6" style={{ color: rgba(theme?.successFg || "0 0 0", 1) }} />
-              </div>
-              <Shield className="w-5 h-5" style={{ color: rgba(theme?.success || "34 197 94", 0.9) }} />
-            </div>
-            <h3 style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.7) }} className="text-sm mb-1">
-              Bank Accounts
-            </h3>
-            <p style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }} className="text-3xl font-bold">
-              {bankData.length}
-            </p>
-            <p className="text-xs mt-2 flex items-center gap-1" style={{ color: rgba(theme?.success || "34 197 94", 0.92) }}>
-              <CheckCircle2 className="w-3 h-3" />
-              {bankData.filter((b) => b.status === "active").length} Verified
-            </p>
-          </div>
-
-          <div style={cardShell} className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3" style={statIconBg("danger")}>
-                <Wallet className="w-6 h-6" style={{ color: rgba(theme?.accentFg || "255 255 255", 1) }} />
-              </div>
-              <Zap className="w-5 h-5" style={{ color: rgba(theme?.gradientTo || theme?.accent, 0.9) }} />
-            </div>
-            <h3 style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.7) }} className="text-sm mb-1">
-              Total Active
-            </h3>
-            <p style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }} className="text-3xl font-bold">
-              {arrayData.filter((p) => p.status === "active").length +
-                bankData.filter((b) => b.status === "active").length}
-            </p>
-            <p className="text-xs mt-2 flex items-center gap-1" style={{ color: rgba(theme?.info || theme?.accent, 0.92) }}>
-              <DollarSign className="w-3 h-3" />
-              Ready to process
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Tab Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="p-2 inline-flex gap-2 mb-8 relative"
-          style={tabWrapStyle}
-        >
-          <button
-            onClick={() => setActiveTab("payment-methods")}
-            className="px-6 py-3 font-semibold transition-all duration-300 flex items-center gap-2"
-            style={activeTab === "payment-methods" ? { ...tabBtnBase, ...tabBtnActive } : tabBtnBase}
-            onMouseEnter={(e) => {
-              if (activeTab !== "payment-methods") {
-                (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.surface3 || theme?.rowHover || "30 30 30", 0.25);
-                (e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.fg || "255 255 255", 0.88);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== "payment-methods") {
-                (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                (e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7);
-              }
-            }}
+          <div
+            className={[
+              "border-b px-4 py-5 sm:px-5",
+              isDark ? "border-white/10" : "border-orange-100/80",
+            ].join(" ")}
           >
-            <CreditCard className="w-5 h-5" />
-            Payment Methods
-            {activeTab === "payment-methods" && (
-              <span style={pill("info")} className="px-2 py-0.5 text-xs">
-                {arrayData.length}
-              </span>
-            )}
-          </button>
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                {/* <ModernHeading text="Payment Configuration" /> */}
+                <div className="text-xl">Payment Configuration</div>
+                <p
+                  className={[
+                    "mt-2 text-sm leading-6",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Manage your payment methods and bank transfers.
+                </p>
+              </div>
 
-          <button
-            onClick={() => setActiveTab("bank-transfer")}
-            className="px-6 py-3 font-semibold transition-all duration-300 flex items-center gap-2"
-            style={activeTab === "bank-transfer" ? { ...tabBtnBase, ...tabBtnActive } : tabBtnBase}
-            onMouseEnter={(e) => {
-              if (activeTab !== "bank-transfer") {
-                (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.surface3 || theme?.rowHover || "30 30 30", 0.25);
-                (e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.fg || "255 255 255", 0.88);
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== "bank-transfer") {
-                (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                (e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7);
-              }
-            }}
+              <button
+                onClick={() => setIsTopSectionOpen((prev) => !prev)}
+                className={[
+                  "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                    : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+                ].join(" ")}
+              >
+                {isTopSectionOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {isTopSectionOpen ? "Collapse" : "Expand"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className={[
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              isTopSectionOpen ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
           >
-            <Landmark className="w-5 h-5" />
-            Bank Transfers
-            {activeTab === "bank-transfer" && (
-              <span style={pill("success")} className="px-2 py-0.5 text-xs">
-                {bankData.length}
-              </span>
-            )}
-          </button>
-        </motion.div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3 sm:p-5">
+              <div
+                className={[
+                  "rounded-[24px] border p-4",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-200 bg-white/70",
+                ].join(" ")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className={[
+                      "flex h-11 w-11 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-blue-500/10 text-blue-300"
+                        : "bg-orange-100 text-orange-600",
+                    ].join(" ")}
+                  >
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <TrendingUp
+                    className={isDark ? "text-sky-300" : "text-sky-600"}
+                    size={18}
+                  />
+                </div>
+                <h3
+                  className={[
+                    "text-sm",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Payment Methods
+                </h3>
+                <p
+                  className={[
+                    "mt-1 text-3xl font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {arrayData.length}
+                </p>
+                <p
+                  className={[
+                    "mt-2 flex items-center gap-1 text-xs",
+                    isDark ? "text-emerald-300" : "text-emerald-700",
+                  ].join(" ")}
+                >
+                  <Activity className="w-3 h-3" />
+                  {arrayData.filter((p) => p.status === "active").length} Active
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-[24px] border p-4",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-200 bg-white/70",
+                ].join(" ")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className={[
+                      "flex h-11 w-11 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-emerald-500/10 text-emerald-300"
+                        : "bg-emerald-100 text-emerald-700",
+                    ].join(" ")}
+                  >
+                    <Landmark className="w-6 h-6" />
+                  </div>
+                  <Shield
+                    className={isDark ? "text-emerald-300" : "text-emerald-700"}
+                    size={18}
+                  />
+                </div>
+                <h3
+                  className={[
+                    "text-sm",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Bank Accounts
+                </h3>
+                <p
+                  className={[
+                    "mt-1 text-3xl font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {bankData.length}
+                </p>
+                <p
+                  className={[
+                    "mt-2 flex items-center gap-1 text-xs",
+                    isDark ? "text-emerald-300" : "text-emerald-700",
+                  ].join(" ")}
+                >
+                  <CheckCircle2 className="w-3 h-3" />
+                  {bankData.filter((b) => b.status === "active").length} Verified
+                </p>
+              </div>
+
+              <div
+                className={[
+                  "rounded-[24px] border p-4",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-200 bg-white/70",
+                ].join(" ")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className={[
+                      "flex h-11 w-11 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-violet-500/10 text-violet-300"
+                        : "bg-violet-100 text-violet-700",
+                    ].join(" ")}
+                  >
+                    <Wallet className="w-6 h-6" />
+                  </div>
+                  <Zap
+                    className={isDark ? "text-violet-300" : "text-violet-700"}
+                    size={18}
+                  />
+                </div>
+                <h3
+                  className={[
+                    "text-sm",
+                    isDark ? "text-white/45" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  Total Active
+                </h3>
+                <p
+                  className={[
+                    "mt-1 text-3xl font-bold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  {arrayData.filter((p) => p.status === "active").length +
+                    bankData.filter((b) => b.status === "active").length}
+                </p>
+                <p
+                  className={[
+                    "mt-2 flex items-center gap-1 text-xs",
+                    isDark ? "text-sky-300" : "text-sky-700",
+                  ].join(" ")}
+                >
+                  <DollarSign className="w-3 h-3" />
+                  Ready to process
+                </p>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="px-4 pb-5 sm:px-5">
+              <div
+                className={[
+                  "inline-flex gap-2 rounded-[24px] border p-2",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-orange-200 bg-white/70",
+                ].join(" ")}
+              >
+                <button
+                  onClick={() => setActiveTab("payment-methods")}
+                  className={`flex items-center gap-2 rounded-[18px] px-6 py-3 font-semibold transition-all duration-300 ${
+                    activeTab === "payment-methods"
+                      ? isDark
+                        ? "border border-blue-400/30 bg-blue-500 text-white shadow-[0_14px_40px_rgba(59,130,246,0.18)]"
+                        : "border border-orange-300 bg-orange-500 text-white"
+                      : isDark
+                      ? "border border-white/10 bg-transparent text-white/70 hover:bg-white/[0.04] hover:text-white"
+                      : "border border-orange-200 bg-transparent text-slate-600 hover:bg-orange-50 hover:text-slate-900"
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  Payment Methods
+                  {activeTab === "payment-methods" && (
+                    <span
+                      className={[
+                        "rounded-full px-2 py-0.5 text-xs",
+                        isDark
+                          ? "bg-white/15 text-white"
+                          : "bg-white/20 text-white",
+                      ].join(" ")}
+                    >
+                      {arrayData.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("bank-transfer")}
+                  className={`flex items-center gap-2 rounded-[18px] px-6 py-3 font-semibold transition-all duration-300 ${
+                    activeTab === "bank-transfer"
+                      ? isDark
+                        ? "border border-emerald-400/30 bg-emerald-500 text-white shadow-[0_14px_40px_rgba(34,197,94,0.18)]"
+                        : "border border-emerald-300 bg-emerald-500 text-white"
+                      : isDark
+                      ? "border border-white/10 bg-transparent text-white/70 hover:bg-white/[0.04] hover:text-white"
+                      : "border border-orange-200 bg-transparent text-slate-600 hover:bg-orange-50 hover:text-slate-900"
+                  }`}
+                >
+                  <Landmark className="w-5 h-5" />
+                  Bank Transfers
+                  {activeTab === "bank-transfer" && (
+                    <span
+                      className={[
+                        "rounded-full px-2 py-0.5 text-xs",
+                        isDark
+                          ? "bg-white/15 text-white"
+                          : "bg-white/20 text-white",
+                      ].join(" ")}
+                    >
+                      {bankData.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <AnimatePresence mode="wait">
           {/* Payment Methods Tab */}
@@ -542,15 +578,35 @@ export default function MethodConfiguration() {
               animate="visible"
               exit={{ opacity: 0, y: -20 }}
               variants={containerVariants}
-              className="space-y-6 relative"
+              className="space-y-6"
             >
               {/* Add Payment Method Form */}
-              <motion.div variants={itemVariants} className="p-8 shadow-xl" style={cardShell}>
+              <motion.div
+                variants={itemVariants}
+                className={[
+                  "rounded-[24px] border p-8",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+                    : "border-orange-200 bg-white/80 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+                ].join(" ")}
+              >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3" style={statIconBg("info")}>
-                    <Zap className="w-6 h-6" style={{ color: rgba(theme?.accentFg || "255 255 255", 1) }} />
+                  <div
+                    className={[
+                      "flex h-12 w-12 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-blue-500/10 text-blue-300"
+                        : "bg-orange-100 text-orange-600",
+                    ].join(" ")}
+                  >
+                    <Zap className="w-6 h-6" />
                   </div>
-                  <h2 className="text-2xl font-bold" style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }}>
+                  <h2
+                    className={[
+                      "text-2xl font-bold",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
                     Add Payment Method
                   </h2>
                 </div>
@@ -560,44 +616,30 @@ export default function MethodConfiguration() {
                     type="text"
                     placeholder="Method Name"
                     value={newField.name}
-                    onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-                    className="px-4 py-3 focus:outline-none transition-all placeholder:text-[color:var(--ph)]"
-                    style={
-                      {
-                        ...inputStyle,
-                        ["--ph" as any]: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.55),
-                      } as React.CSSProperties
+                    onChange={(e) =>
+                      setNewField({ ...newField, name: e.target.value })
                     }
-                    onFocus={(e) => {
-                      (e.currentTarget as HTMLInputElement).style.boxShadow = `0 0 0 3px ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.25)}`;
-                      (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.ring || theme?.accent || "59 130 246", 0.45);
-                    }}
-                    onBlur={(e) => {
-                      (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
-                      (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18);
-                    }}
+                    className={[
+                      "rounded-xl border px-4 py-3 outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40"
+                        : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
+                    ].join(" ")}
                   />
 
                   <input
                     type="text"
                     placeholder="Payment Details"
                     value={newField.details}
-                    onChange={(e) => setNewField({ ...newField, details: e.target.value })}
-                    className="px-4 py-3 focus:outline-none transition-all placeholder:text-[color:var(--ph)]"
-                    style={
-                      {
-                        ...inputStyle,
-                        ["--ph" as any]: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.55),
-                      } as React.CSSProperties
+                    onChange={(e) =>
+                      setNewField({ ...newField, details: e.target.value })
                     }
-                    onFocus={(e) => {
-                      (e.currentTarget as HTMLInputElement).style.boxShadow = `0 0 0 3px ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.25)}`;
-                      (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.ring || theme?.accent || "59 130 246", 0.45);
-                    }}
-                    onBlur={(e) => {
-                      (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
-                      (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18);
-                    }}
+                    className={[
+                      "rounded-xl border px-4 py-3 outline-none transition",
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40"
+                        : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
+                    ].join(" ")}
                   />
                 </div>
 
@@ -612,20 +654,18 @@ export default function MethodConfiguration() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="flex items-center justify-center gap-2 px-4 py-3 cursor-pointer transition-all"
-                      style={softPanel}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLLabelElement).style.borderColor = rgba(theme?.ring || theme?.accent || "59 130 246", 0.35);
-                        (e.currentTarget as HTMLLabelElement).style.color = rgba(theme?.fg || "255 255 255", 0.9);
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLLabelElement).style.borderColor = rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14);
-                        (e.currentTarget as HTMLLabelElement).style.color = rgba(theme?.mutedFg || theme?.fg, 0.7);
-                      }}
+                      className={[
+                        "flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 transition-all",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04] text-white/75 hover:border-blue-400/30 hover:text-white"
+                          : "border-orange-200 bg-white text-slate-600 hover:border-orange-300 hover:text-slate-900",
+                      ].join(" ")}
                     >
                       <Upload className="w-5 h-5" />
-                      <span style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.75) }}>
-                        {newField.image ? "Image Selected ✓" : "Upload Image (Optional)"}
+                      <span>
+                        {newField.image
+                          ? "Image Selected ✓"
+                          : "Upload Image (Optional)"}
                       </span>
                     </label>
                   </div>
@@ -633,36 +673,15 @@ export default function MethodConfiguration() {
                   <button
                     onClick={addField}
                     disabled={isAddButtonDisabled}
-                    className="px-6 py-3 font-semibold flex items-center justify-center gap-2 transition-all duration-300"
-                    style={
+                    className={`flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
                       isAddButtonDisabled
-                        ? {
-                            borderRadius: radius,
-                            border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
-                            background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2),
-                            color: rgba(theme?.mutedFg || theme?.fg, 0.45),
-                            cursor: "not-allowed",
-                          }
-                        : {
-                            borderRadius: radius,
-                            border: `1px solid ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.25)}`,
-                            background: `linear-gradient(90deg, ${rgba(gradientA, 0.98)}, ${rgba(gradientB, 0.98)})`,
-                            color: rgba(theme?.accentFg || "255 255 255", 0.98),
-                            boxShadow: `0 14px 40px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
-                          }
-                    }
-                    onMouseEnter={(e) => {
-                      if (!isAddButtonDisabled) {
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.24)}`;
-                        (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isAddButtonDisabled) {
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 14px 40px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`;
-                        (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0px)";
-                      }
-                    }}
+                        ? isDark
+                          ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/35"
+                          : "cursor-not-allowed border border-orange-200 bg-orange-100 text-slate-400"
+                        : isDark
+                        ? "border border-blue-400/30 bg-blue-500 text-white shadow-[0_14px_40px_rgba(59,130,246,0.18)] hover:bg-blue-600"
+                        : "border border-orange-300 bg-orange-500 text-white hover:bg-orange-600"
+                    }`}
                   >
                     <Plus className="w-5 h-5" />
                     Add Method
@@ -671,99 +690,113 @@ export default function MethodConfiguration() {
               </motion.div>
 
               {/* Payment Methods Grid */}
-              <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <motion.div
+                variants={containerVariants}
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+              >
                 {arrayData?.map((platform: any, index: number) => {
                   const rawPath = platform?.image as string | undefined;
-                  const normalizedPath = rawPath ? rawPath.replace(/\\/g, "/") : undefined;
+                  const normalizedPath = rawPath
+                    ? rawPath.replace(/\\/g, "/")
+                    : undefined;
                   const base = import.meta.env.VITE_API_BASE_URL;
-                  const imgUrl = normalizedPath && base ? `${base}/${normalizedPath}` : undefined;
+                  const imgUrl =
+                    normalizedPath && base ? `${base}/${normalizedPath}` : undefined;
 
                   return (
                     <motion.div
                       key={platform?._id || index}
                       variants={itemVariants}
                       whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                      className="p-6 transition-all"
-                      style={cardShell}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 22px 70px ${rgba(theme?.shadowColor || "0 0 0", 0.55)}`;
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`;
-                      }}
+                      className={[
+                        "rounded-[24px] border p-6 transition-all",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+                          : "border-orange-200 bg-white/80 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+                      ].join(" ")}
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
-                            style={{
-                              background: `linear-gradient(135deg, ${rgba(gradientA, 0.95)}, ${rgba(gradientB, 0.95)})`,
-                              color: rgba(theme?.accentFg || "255 255 255", 1),
-                              boxShadow: `0 12px 30px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
-                            }}
+                            className={`flex h-12 w-12 items-center justify-center rounded-xl font-bold text-lg ${
+                              isDark
+                                ? "bg-blue-500 text-white"
+                                : "bg-orange-500 text-white"
+                            }`}
                           >
                             {index + 1}
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold" style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }}>
+                            <h3
+                              className={[
+                                "text-xl font-bold",
+                                isDark ? "text-white" : "text-slate-900",
+                              ].join(" ")}
+                            >
                               {platform?.name}
                             </h3>
 
                             <div className="flex items-center gap-2 mt-1">
                               <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  background:
-                                    platform?.status === "active"
-                                      ? rgba(theme?.success || "34 197 94", 0.95)
-                                      : rgba(theme?.danger || "244 63 94", 0.95),
-                                  boxShadow:
-                                    platform?.status === "active"
-                                      ? `0 0 16px ${rgba(theme?.success || "34 197 94", 0.35)}`
-                                      : `0 0 16px ${rgba(theme?.danger || "244 63 94", 0.35)}`,
-                                }}
+                                className={`h-2 w-2 rounded-full ${
+                                  platform?.status === "active"
+                                    ? "bg-emerald-500"
+                                    : "bg-red-500"
+                                }`}
                               />
                               <span
-                                className="text-xs font-semibold"
-                                style={{
-                                  color:
-                                    platform?.status === "active"
-                                      ? rgba(theme?.success || "34 197 94", 0.92)
-                                      : rgba(theme?.danger || "244 63 94", 0.92),
-                                }}
+                                className={`text-xs font-semibold ${
+                                  platform?.status === "active"
+                                    ? isDark
+                                      ? "text-emerald-300"
+                                      : "text-emerald-700"
+                                    : isDark
+                                    ? "text-red-300"
+                                    : "text-red-700"
+                                }`}
                               >
-                                {platform?.status === "active" ? "ACTIVE" : "INACTIVE"}
+                                {platform?.status === "active"
+                                  ? "ACTIVE"
+                                  : "INACTIVE"}
                               </span>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="rounded-xl p-4 mb-4" style={softPanel}>
-                        <p style={{ color: rgba(theme?.fg || "255 255 255", 0.78) }} className="text-sm">
+                      <div
+                        className={[
+                          "mb-4 rounded-xl p-4",
+                          isDark ? "bg-white/[0.04]" : "bg-orange-50/50",
+                        ].join(" ")}
+                      >
+                        <p
+                          className={[
+                            "text-sm",
+                            isDark ? "text-white/80" : "text-slate-700",
+                          ].join(" ")}
+                        >
                           {platform?.details}
                         </p>
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <Switch checked={platform?.status === "active"} onCheckedChange={() => toggleActive(platform?._id, platform?.status)} />
+                        <Switch
+                          checked={platform?.status === "active"}
+                          onCheckedChange={() =>
+                            toggleActive(platform?._id, platform?.status)
+                          }
+                        />
 
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleViewImage(imgUrl)}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
-                            style={{
-                              borderRadius: radius,
-                              border: `1px solid ${rgba(theme?.info || theme?.accent || "59 130 246", 0.28)}`,
-                              color: rgba(theme?.info || theme?.accent || "59 130 246", 0.9),
-                              background: rgba(theme?.info || theme?.accent || "59 130 246", 0.08),
-                            }}
-                            onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.info || theme?.accent || "59 130 246", 0.12);
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.info || theme?.accent || "59 130 246", 0.08);
-                            }}
+                            className={[
+                              "inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-all",
+                              isDark
+                                ? "border border-blue-400/25 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                                : "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
+                            ].join(" ")}
                             title="View image"
                           >
                             <Eye size={16} />
@@ -772,20 +805,12 @@ export default function MethodConfiguration() {
 
                           <button
                             onClick={() => deletePlatform(platform?._id)}
-                            className="p-2 rounded-lg transition-all"
-                            style={{
-                              background: rgba(theme?.danger || "244 63 94", 0.16),
-                              color: rgba(theme?.danger || "244 63 94", 0.92),
-                              border: `1px solid ${rgba(theme?.danger || "244 63 94", 0.22)}`,
-                            }}
-                            onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.07)";
-                              (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.danger || "244 63 94", 0.22);
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-                              (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.danger || "244 63 94", 0.16);
-                            }}
+                            className={[
+                              "rounded-lg border p-2 transition-all",
+                              isDark
+                                ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                                : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                            ].join(" ")}
                             title="Delete method"
                           >
                             <Trash2 size={18} />
@@ -807,15 +832,35 @@ export default function MethodConfiguration() {
               animate="visible"
               exit={{ opacity: 0, y: -20 }}
               variants={containerVariants}
-              className="space-y-6 relative"
+              className="space-y-6"
             >
               {/* Add Bank Form */}
-              <motion.div variants={itemVariants} className="p-8 shadow-xl" style={cardShell}>
+              <motion.div
+                variants={itemVariants}
+                className={[
+                  "rounded-[24px] border p-8",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+                    : "border-orange-200 bg-white/80 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+                ].join(" ")}
+              >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3" style={statIconBg("success")}>
-                    <Landmark className="w-6 h-6" style={{ color: rgba(theme?.successFg || "0 0 0", 1) }} />
+                  <div
+                    className={[
+                      "flex h-12 w-12 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-emerald-500/10 text-emerald-300"
+                        : "bg-emerald-100 text-emerald-700",
+                    ].join(" ")}
+                  >
+                    <Landmark className="w-6 h-6" />
                   </div>
-                  <h2 className="text-2xl font-bold" style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }}>
+                  <h2
+                    className={[
+                      "text-2xl font-bold",
+                      isDark ? "text-white" : "text-slate-900",
+                    ].join(" ")}
+                  >
                     Add Bank Account
                   </h2>
                 </div>
@@ -825,27 +870,35 @@ export default function MethodConfiguration() {
                     {
                       placeholder: "Bank Name *",
                       value: newBankField.bankName,
-                      onChange: (v: string) => setNewBankField({ ...newBankField, bankName: v }),
+                      onChange: (v: string) =>
+                        setNewBankField({ ...newBankField, bankName: v }),
                     },
                     {
                       placeholder: "Account Number *",
                       value: newBankField.accountNumber,
-                      onChange: (v: string) => setNewBankField({ ...newBankField, accountNumber: v }),
+                      onChange: (v: string) =>
+                        setNewBankField({ ...newBankField, accountNumber: v }),
                     },
                     {
                       placeholder: "Account Holder Name *",
                       value: newBankField.accountHolderName,
-                      onChange: (v: string) => setNewBankField({ ...newBankField, accountHolderName: v }),
+                      onChange: (v: string) =>
+                        setNewBankField({
+                          ...newBankField,
+                          accountHolderName: v,
+                        }),
                     },
                     {
                       placeholder: "IFSC Code *",
                       value: newBankField.ifscCode,
-                      onChange: (v: string) => setNewBankField({ ...newBankField, ifscCode: v }),
+                      onChange: (v: string) =>
+                        setNewBankField({ ...newBankField, ifscCode: v }),
                     },
                     {
                       placeholder: "Branch Name (Optional)",
                       value: newBankField.branchName,
-                      onChange: (v: string) => setNewBankField({ ...newBankField, branchName: v }),
+                      onChange: (v: string) =>
+                        setNewBankField({ ...newBankField, branchName: v }),
                     },
                   ].map((f, i) => (
                     <input
@@ -854,60 +907,27 @@ export default function MethodConfiguration() {
                       placeholder={f.placeholder}
                       value={f.value}
                       onChange={(e) => f.onChange(e.target.value)}
-                      className="px-4 py-3 focus:outline-none transition-all placeholder:text-[color:var(--ph)]"
-                      style={
-                        {
-                          ...inputStyle,
-                          ["--ph" as any]: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.55),
-                        } as React.CSSProperties
-                      }
-                      onFocus={(e) => {
-                        (e.currentTarget as HTMLInputElement).style.boxShadow = `0 0 0 3px ${rgba(theme?.success || theme?.primary || "34 197 94", 0.22)}`;
-                        (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.success || theme?.primary || "34 197 94", 0.4);
-                      }}
-                      onBlur={(e) => {
-                        (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
-                        (e.currentTarget as HTMLInputElement).style.borderColor = rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18);
-                      }}
+                      className={[
+                        "rounded-xl border px-4 py-3 outline-none transition",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-emerald-400/40"
+                          : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
+                      ].join(" ")}
                     />
                   ))}
 
                   <button
                     onClick={addBankDetails}
                     disabled={isBankAddButtonDisabled}
-                    className="px-6 py-3 font-semibold flex items-center justify-center gap-2 transition-all duration-300"
-                    style={
+                    className={`flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
                       isBankAddButtonDisabled
-                        ? {
-                            borderRadius: radius,
-                            border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
-                            background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.2),
-                            color: rgba(theme?.mutedFg || theme?.fg, 0.45),
-                            cursor: "not-allowed",
-                          }
-                        : {
-                            borderRadius: radius,
-                            border: `1px solid ${rgba(theme?.success || theme?.primary || "34 197 94", 0.25)}`,
-                            background: `linear-gradient(90deg, ${rgba(theme?.success || theme?.primary || "34 197 94", 0.98)}, ${rgba(
-                              theme?.success || theme?.primary || "34 197 94",
-                              0.82
-                            )})`,
-                            color: rgba(theme?.successFg || "0 0 0", 0.98),
-                            boxShadow: `0 14px 40px ${rgba(theme?.success || theme?.primary || "34 197 94", 0.18)}`,
-                          }
-                    }
-                    onMouseEnter={(e) => {
-                      if (!isBankAddButtonDisabled) {
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(theme?.success || theme?.primary || "34 197 94", 0.22)}`;
-                        (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isBankAddButtonDisabled) {
-                        (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 14px 40px ${rgba(theme?.success || theme?.primary || "34 197 94", 0.18)}`;
-                        (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0px)";
-                      }
-                    }}
+                        ? isDark
+                          ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/35"
+                          : "cursor-not-allowed border border-orange-200 bg-orange-100 text-slate-400"
+                        : isDark
+                        ? "border border-emerald-400/30 bg-emerald-500 text-white shadow-[0_14px_40px_rgba(34,197,94,0.18)] hover:bg-emerald-600"
+                        : "border border-emerald-300 bg-emerald-500 text-white hover:bg-emerald-600"
+                    }`}
                   >
                     <Plus className="w-5 h-5" />
                     Add Account
@@ -916,58 +936,65 @@ export default function MethodConfiguration() {
               </motion.div>
 
               {/* Bank Accounts List */}
-              <motion.div variants={containerVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <motion.div
+                variants={containerVariants}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              >
                 {bankData?.map((bank: any) => (
                   <motion.div
                     key={bank?._id}
                     variants={itemVariants}
                     whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                    className="p-6 transition-all"
-                    style={cardShell}
+                    className={[
+                      "rounded-[24px] border p-6 transition-all",
+                      isDark
+                        ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+                        : "border-orange-200 bg-white/80 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
+                    ].join(" ")}
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center"
-                          style={{
-                            background: `linear-gradient(135deg, ${rgba(theme?.success || theme?.primary || "34 197 94", 0.95)}, ${rgba(
-                              theme?.success || theme?.primary || "34 197 94",
-                              0.78
-                            )})`,
-                            boxShadow: `0 12px 30px ${rgba(theme?.success || theme?.primary || "34 197 94", 0.18)}`,
-                          }}
+                          className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                            isDark
+                              ? "bg-emerald-500 text-white"
+                              : "bg-emerald-500 text-white"
+                          }`}
                         >
-                          <Landmark className="w-6 h-6" style={{ color: rgba(theme?.successFg || "0 0 0", 1) }} />
+                          <Landmark className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold" style={{ color: rgba(theme?.fg || "255 255 255", 0.98) }}>
+                          <h3
+                            className={[
+                              "text-xl font-bold",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
                             {bank?.bankTransfer?.bankName}
                           </h3>
 
                           <div className="flex items-center gap-2 mt-1">
                             <div
-                              className="w-2 h-2 rounded-full"
-                              style={{
-                                background:
-                                  bank?.status === "active"
-                                    ? rgba(theme?.success || "34 197 94", 0.95)
-                                    : rgba(theme?.danger || "244 63 94", 0.95),
-                                boxShadow:
-                                  bank?.status === "active"
-                                    ? `0 0 16px ${rgba(theme?.success || "34 197 94", 0.35)}`
-                                    : `0 0 16px ${rgba(theme?.danger || "244 63 94", 0.35)}`,
-                              }}
+                              className={`h-2 w-2 rounded-full ${
+                                bank?.status === "active"
+                                  ? "bg-emerald-500"
+                                  : "bg-red-500"
+                              }`}
                             />
                             <span
-                              className="text-xs font-semibold"
-                              style={{
-                                color:
-                                  bank?.status === "active"
-                                    ? rgba(theme?.success || "34 197 94", 0.92)
-                                    : rgba(theme?.danger || "244 63 94", 0.92),
-                              }}
+                              className={`text-xs font-semibold ${
+                                bank?.status === "active"
+                                  ? isDark
+                                    ? "text-emerald-300"
+                                    : "text-emerald-700"
+                                  : isDark
+                                  ? "text-red-300"
+                                  : "text-red-700"
+                              }`}
                             >
-                              {bank?.status === "active" ? "VERIFIED" : "INACTIVE"}
+                              {bank?.status === "active"
+                                ? "VERIFIED"
+                                : "INACTIVE"}
                             </span>
                           </div>
                         </div>
@@ -975,41 +1002,101 @@ export default function MethodConfiguration() {
                     </div>
 
                     <div className="space-y-3 mb-4">
-                      <div className="rounded-xl p-3" style={softPanel}>
-                        <div className="text-xs mb-1" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                      <div
+                        className={[
+                          "rounded-xl p-3",
+                          isDark ? "bg-white/[0.04]" : "bg-orange-50/50",
+                        ].join(" ")}
+                      >
+                        <div
+                          className={[
+                            "mb-1 text-xs",
+                            isDark ? "text-white/45" : "text-slate-500",
+                          ].join(" ")}
+                        >
                           Account Number
                         </div>
-                        <div className="font-mono" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+                        <div
+                          className={[
+                            "font-mono",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
                           {bank?.bankTransfer?.accountNumber}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl p-3" style={softPanel}>
-                          <div className="text-xs mb-1" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                        <div
+                          className={[
+                            "rounded-xl p-3",
+                            isDark ? "bg-white/[0.04]" : "bg-orange-50/50",
+                          ].join(" ")}
+                        >
+                          <div
+                            className={[
+                              "mb-1 text-xs",
+                              isDark ? "text-white/45" : "text-slate-500",
+                            ].join(" ")}
+                          >
                             IFSC Code
                           </div>
-                          <div className="font-mono text-sm" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+                          <div
+                            className={[
+                              "font-mono text-sm",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
                             {bank?.bankTransfer?.ifscCode}
                           </div>
                         </div>
 
-                        <div className="rounded-xl p-3" style={softPanel}>
-                          <div className="text-xs mb-1" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                        <div
+                          className={[
+                            "rounded-xl p-3",
+                            isDark ? "bg-white/[0.04]" : "bg-orange-50/50",
+                          ].join(" ")}
+                        >
+                          <div
+                            className={[
+                              "mb-1 text-xs",
+                              isDark ? "text-white/45" : "text-slate-500",
+                            ].join(" ")}
+                          >
                             Account Holder
                           </div>
-                          <div className="text-sm truncate" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+                          <div
+                            className={[
+                              "truncate text-sm",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
                             {bank?.bankTransfer?.accountHolderName}
                           </div>
                         </div>
                       </div>
 
                       {bank?.bankTransfer?.branchName && (
-                        <div className="rounded-xl p-3" style={softPanel}>
-                          <div className="text-xs mb-1" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
+                        <div
+                          className={[
+                            "rounded-xl p-3",
+                            isDark ? "bg-white/[0.04]" : "bg-orange-50/50",
+                          ].join(" ")}
+                        >
+                          <div
+                            className={[
+                              "mb-1 text-xs",
+                              isDark ? "text-white/45" : "text-slate-500",
+                            ].join(" ")}
+                          >
                             Branch
                           </div>
-                          <div className="text-sm" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
+                          <div
+                            className={[
+                              "text-sm",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
                             {bank?.bankTransfer?.branchName}
                           </div>
                         </div>
@@ -1017,21 +1104,27 @@ export default function MethodConfiguration() {
                     </div>
 
                     <div
-                      className="flex justify-between items-center pt-4"
-                      style={{ borderTop: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}` }}
+                      className={[
+                        "flex justify-between items-center pt-4 border-t",
+                        isDark ? "border-white/10" : "border-orange-100",
+                      ].join(" ")}
                     >
-                      <Switch checked={bank?.status === "active"} onCheckedChange={() => toggleBankActive(bank?._id, bank?.status)} />
+                      <Switch
+                        checked={bank?.status === "active"}
+                        onCheckedChange={() =>
+                          toggleBankActive(bank?._id, bank?.status)
+                        }
+                      />
 
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewImage(undefined)}
-                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
-                          style={{
-                            borderRadius: radius,
-                            border: `1px solid ${rgba(theme?.info || theme?.accent || "59 130 246", 0.28)}`,
-                            color: rgba(theme?.info || theme?.accent || "59 130 246", 0.9),
-                            background: rgba(theme?.info || theme?.accent || "59 130 246", 0.08),
-                          }}
+                          className={[
+                            "inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-all",
+                            isDark
+                              ? "border border-blue-400/25 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                              : "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
+                          ].join(" ")}
                           title="View image"
                         >
                           <Eye size={16} />
@@ -1040,20 +1133,12 @@ export default function MethodConfiguration() {
 
                         <button
                           onClick={() => deleteBank(bank?._id)}
-                          className="p-2 rounded-lg transition-all"
-                          style={{
-                            background: rgba(theme?.danger || "244 63 94", 0.16),
-                            color: rgba(theme?.danger || "244 63 94", 0.92),
-                            border: `1px solid ${rgba(theme?.danger || "244 63 94", 0.22)}`,
-                          }}
-                          onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.07)";
-                            (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.danger || "244 63 94", 0.22);
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-                            (e.currentTarget as HTMLButtonElement).style.background = rgba(theme?.danger || "244 63 94", 0.16);
-                          }}
+                          className={[
+                            "rounded-lg border p-2 transition-all",
+                            isDark
+                              ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                              : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                          ].join(" ")}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -1073,31 +1158,24 @@ export default function MethodConfiguration() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 flex items-center justify-center z-50"
-              style={{ background: rgba(theme?.bg || "0 0 0", 0.8), backdropFilter: "blur(6px)" }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
               onClick={() => setShowImagePopup(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative p-6 max-w-3xl w-full mx-4"
-                style={cardShell}
+                className={[
+                  "relative mx-4 w-full max-w-3xl rounded-[24px] border p-6",
+                  isDark
+                    ? "border-white/10 bg-[#0b1220] text-white"
+                    : "border-orange-200 bg-white text-slate-900",
+                ].join(" ")}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => setShowImagePopup(false)}
-                  className="absolute -top-4 -right-4 p-2 rounded-full transition-all duration-300 shadow-lg"
-                  style={{
-                    background: rgba(theme?.danger || "244 63 94", 0.95),
-                    color: rgba(theme?.dangerFg || "255 255 255", 1),
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08) rotate(10deg)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.transform = "scale(1) rotate(0deg)";
-                  }}
+                  className="absolute -top-4 -right-4 rounded-full bg-red-500 p-2 text-white shadow-lg transition-all hover:scale-105"
                 >
                   <XCircle size={24} />
                 </button>
@@ -1107,29 +1185,30 @@ export default function MethodConfiguration() {
                     <img
                       src={popupImageUrl}
                       alt="Payment Method"
-                      className="max-w-full max-h-[80vh] object-contain shadow-2xl"
-                      style={{
-                        borderRadius: `calc(${radius} + 10px)`,
-                        border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-                      }}
+                      className="max-h-[80vh] max-w-full rounded-xl border object-contain"
                     />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-4 py-16">
                     <div
-                      className="w-24 h-24 flex items-center justify-center shadow-inner"
-                      style={{
-                        borderRadius: `calc(${radius} + 10px)`,
-                        background: `linear-gradient(135deg, ${rgba(theme?.surface2 || "18 18 18", 0.65)}, ${rgba(
-                          theme?.surface1 || theme?.bg || "0 0 0",
-                          0.85
-                        )})`,
-                        border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-                      }}
+                      className={[
+                        "flex h-24 w-24 items-center justify-center rounded-[24px] border",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04]"
+                          : "border-orange-200 bg-orange-50",
+                      ].join(" ")}
                     >
-                      <ImageIcon className="w-12 h-12" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }} />
+                      <ImageIcon
+                        className={isDark ? "text-white/50" : "text-slate-400"}
+                        size={48}
+                      />
                     </div>
-                    <p style={{ color: rgba(theme?.fg || "255 255 255", 0.78) }} className="text-center">
+                    <p
+                      className={[
+                        "text-center",
+                        isDark ? "text-white/80" : "text-slate-700",
+                      ].join(" ")}
+                    >
                       No image uploaded for this item.
                     </p>
                   </div>

@@ -144,7 +144,7 @@ const SuperAdminLayout = () => {
             >
               <div
                 className={[
-                  "relative px-2 py-2 sm:px-6 sm:py-6",
+                  "relative px-2 py-5 sm:px-6 sm:py-6",
                   isDark
                     ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
                     : "bg-[linear-gradient(135deg,rgba(255,255,255,0.85),rgba(255,247,240,0.80))]",

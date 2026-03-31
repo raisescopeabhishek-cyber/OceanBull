@@ -122,11 +122,12 @@ const UserLayout = () => {
 
       <UserSidebar />
 
-      <div className="relative z-[2] md:ml-72 min-h-screen flex flex-col">
+      <div className="relative z-[2] min-h-screen md:ml-72 flex flex-col">
         <UserHeader />
 
         <main className="flex-1 px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
           <div className="mx-auto w-full max-w-[1480px]">
+            {/* Top Welcome Section */}
             <div
               className={[
                 "mb-6 overflow-hidden rounded-[30px] border backdrop-blur-xl transition-all duration-300",
@@ -137,7 +138,7 @@ const UserLayout = () => {
             >
               <div
                 className={[
-                  "relative px-2 py-5 sm:px-6 sm:py-6",
+                  "relative px-4 py-5 sm:px-6 sm:py-6",
                   isDark
                     ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
                     : "bg-[linear-gradient(135deg,rgba(255,255,255,0.85),rgba(255,247,240,0.80))]",
@@ -168,7 +169,7 @@ const UserLayout = () => {
                       ].join(" ")}
                     >
                       Unified user workspace for accounts, deposits, transfers,
-                      trades, referrals, and platform access.
+                      trades, referrals, support, and platform access.
                     </p>
                   </div>
 
@@ -285,6 +286,7 @@ const UserLayout = () => {
               </div>
             </div>
 
+            {/* Main Content Shell */}
             <div
               className={[
                 "relative overflow-hidden rounded-[30px] border backdrop-blur-xl transition-all duration-300",
@@ -302,50 +304,11 @@ const UserLayout = () => {
                 ].join(" ")}
               />
 
-              <div
-                className={[
-                  "flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-orange-100/80 bg-white/40",
-                ].join(" ")}
-              >
-                <div>
-                  <h2
-                    className={[
-                      "text-sm font-semibold uppercase tracking-[0.18em]",
-                      isDark ? "text-white/85" : "text-slate-800",
-                    ].join(" ")}
-                  >
-                    User Workspace
-                  </h2>
-                  <p
-                    className={[
-                      "mt-1 text-xs",
-                      isDark ? "text-white/40" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    Manage accounts, records, transfers, deposits, and activities
-                  </p>
-                </div>
 
+              <div className="relative p-3 sm:p-4 md:p-0">
                 <div
                   className={[
-                    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] w-fit",
-                    isDark
-                      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                      : "border-emerald-200 bg-emerald-50 text-emerald-700",
-                  ].join(" ")}
-                >
-                  <span className="h-2 w-2 rounded-full bg-current opacity-90" />
-                  Secure Environment
-                </div>
-              </div>
-
-              <div className="relative p-3 sm:p-4 md:p-5">
-                <div
-                  className={[
-                    "min-h-[calc(100vh-250px)] rounded-[24px] border p-3 sm:p-5 transition-all duration-300",
+                    "min-h-[calc(100vh-250px)] rounded-[24px] border p-3 sm:p-0 transition-all duration-300",
                     isDark
                       ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))]"
                       : "border-orange-100/70 bg-white/45",

@@ -51,7 +51,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
   return (
     <div className="space-y-6">
       {/* Details block */}
-      <div className="p-6 backdrop-blur-xl" style={panelStyle(0.86)}>
+      <div className="p-6 backdrop-blur-xl" style={panelStyle}>
         <div className="flex items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
             <div
@@ -244,7 +244,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
       {/* Upload + Txn */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Upload */}
-        <div className="p-6 backdrop-blur-xl rounded-2xl" style={panelStyle(0.86)}>
+        <div className="p-6 backdrop-blur-xl rounded-2xl" style={panelStyle}>
           <h4 className="text-lg font-semibold mb-4" style={{ color: rgba(C.fg, 0.95) }}>
             Upload Proof
           </h4>
@@ -289,7 +289,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
         </div>
 
         {/* Txn ID */}
-        <div className="p-6 backdrop-blur-xl rounded-2xl" style={panelStyle(0.86)}>
+        <div className="p-6 backdrop-blur-xl rounded-2xl" style={panelStyle}>
           <h4 className="text-lg font-semibold mb-4" style={{ color: rgba(C.fg, 0.95) }}>
             Transaction ID
           </h4>

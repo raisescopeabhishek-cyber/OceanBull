@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
 import {
   BadgeDollarSign,
   Loader2,
@@ -13,125 +14,18 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import ModernHeading from "../lib/ModernHeading";
-import { AnimatedGrid } from "../../utils/AnimatedGrid";
-import { FloatingParticles } from "../../utils/FloatingParticles";
-import { FloatingOrbs } from "../../utils/FloatingOrbs";
-import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+
 import { userApi } from "../../utils/apiClients";
 import { withdrawRequestMail } from "./emails/WithdrwalsMails";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-
-const MANAGER_INDEX = import.meta.env.VITE_MANAGER_INDEX;
-
-const ModernWithdraw = () => {
+const UserWithdraw = () => {
+  const mode = useSelector((store: any) => store.userTheme?.mode || "light");
   const loggedUser = useSelector((store: any) => store.user.loggedUser);
   const siteConfig = useSelector((state: any) => state.user.siteConfig);
 
-  // ✅ Theme from redux (same structure as your other pages)
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-
-  const C = useMemo(
-    () => ({
-      bg: theme?.bg || "0 0 0",
-      fg: theme?.fg || "255 255 255",
-      mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
-      border: theme?.border || theme?.inputBorder || "255 255 255",
-      card: theme?.card || "18 18 18",
-      surface1: theme?.surface1 || theme?.bg || "0 0 0",
-      surface2: theme?.surface2 || theme?.card || "18 18 18",
-      surface3: theme?.surface3 || theme?.card || "18 18 18",
-      accent: theme?.accent || "59 130 246",
-      accentFg: theme?.accentFg || theme?.fg || "255 255 255",
-      primary: theme?.primary || theme?.accent || "147 51 234",
-      primaryFg: theme?.primaryFg || "0 0 0",
-      success: theme?.success || "34 197 94",
-      warning: theme?.warning || "234 179 8",
-      danger: theme?.danger || "244 63 94",
-      ring: theme?.ring || theme?.accent || "59 130 246",
-      glow: theme?.glow || theme?.accent || "59 130 246",
-      gradientFrom: theme?.gradientFrom || theme?.accent || "59 130 246",
-      gradientTo: theme?.gradientTo || theme?.primary || "147 51 234",
-      radius: theme?.radius || "22px",
-      pattern: theme?.pattern || "grid",
-      effectsEnabled: theme?.effectsEnabled ?? true,
-    }),
-    [theme]
-  );
-
-  const pageStyle: React.CSSProperties = useMemo(
-    () => ({
-      minHeight: "100vh",
-      background: `radial-gradient(1100px 560px at 18% 0%, ${rgba(
-        C.glow,
-        0.16
-      )}, transparent 60%),
-                   radial-gradient(860px 480px at 82% 12%, ${rgba(
-                     C.gradientTo,
-                     0.12
-                   )}, transparent 55%),
-                   linear-gradient(135deg, ${rgb(C.bg)}, ${rgb(
-        C.surface1
-      )}, ${rgb(C.bg)})`,
-      color: rgb(C.fg),
-    }),
-    [C]
-  );
-
-  const cardStyle: React.CSSProperties = useMemo(
-    () => ({
-      background: `linear-gradient(135deg, ${rgba(
-        C.surface1,
-        0.86
-      )}, ${rgba(C.bg, 0.92)}, ${rgba(C.surface1, 0.86)})`,
-      border: `1px solid ${rgba(C.border, 0.16)}`,
-      borderRadius: "24px",
-      boxShadow: `0 0 90px ${rgba(C.glow, 0.12)}, inset 0 0 60px ${rgba(
-        "0 0 0",
-        0.28
-      )}`,
-    }),
-    [C]
-  );
-
-  const sideCardStyle: React.CSSProperties = useMemo(
-    () => ({
-      background: rgba(C.surface2, 0.12),
-      border: `1px solid ${rgba(C.border, 0.14)}`,
-      borderRadius: "24px",
-      boxShadow: `0 18px 60px ${rgba("0 0 0", 0.22)}`,
-    }),
-    [C]
-  );
-
-  const inputStyle = useMemo(
-    () => ({
-      background: rgba(C.surface2, 0.18),
-      border: `1px solid ${rgba(C.border, 0.16)}`,
-      color: rgba(C.fg, 0.92),
-    }),
-    [C]
-  );
+  const isDark = mode === "dark";
 
   const dollarRate = siteConfig?.dollarWithdrawalRate || 0;
   const inrUiEnabled = siteConfig?.inrUi !== false;
@@ -154,40 +48,32 @@ const ModernWithdraw = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFormValid, setIsFormValid] = useState(false);
 
-  // INR equivalent
   const inrAmount = useMemo(() => {
     if (!amount || !dollarRate) return "0";
     return (parseFloat(amount) * Number(dollarRate)).toFixed(2);
   }, [amount, dollarRate]);
 
-  // form validation
   useEffect(() => {
-    const isValid = account && selectedGateway && amount && parseFloat(amount) > 0;
+    const isValid =
+      account && selectedGateway && amount && parseFloat(amount) > 0;
     setIsFormValid(Boolean(isValid));
   }, [account, selectedGateway, amount]);
 
-  // Fetch MT5 / account info
   const fetchAccountInfo = useCallback(async () => {
     if (!account) return;
 
     setBalanceLoading(true);
     try {
       setAccountBalance("");
-      const res = await userApi.get(
-        `/server-logger-info?account=${account}`
-      );
+      const res = await userApi.get(`/server-logger-info?account=${account}`);
 
-      if(res.status !== 200 ){
-        console.log("res is not 200 server logger info.. error");
-      }
-
-      if (res?.data?.data?.Equity !== undefined && res.data.data.Equity !== null) {
+      if (res?.data?.data?.Equity !== undefined && res?.data?.data?.Equity !== null) {
         setAccountBalance(res.data.data.Equity);
       } else {
         setAccountBalance("");
       }
     } catch {
-      // keep silent (UI already shows balance missing)
+      setAccountBalance("");
     } finally {
       setBalanceLoading(false);
     }
@@ -209,7 +95,7 @@ const ModernWithdraw = () => {
     }
 
     if (parseFloat(amount) > Number(accountBalance || 0)) {
-      setError("Insufficient balance for withdrawal!");
+      setError("Insufficient balance for withdrawal.");
       return;
     }
 
@@ -228,7 +114,7 @@ const ModernWithdraw = () => {
         email: loggedUser.email,
       });
 
-      if (sendOtpRes.data?.otp) {
+      if (sendOtpRes?.data?.otp) {
         toast.success("OTP sent to your email", { id: toastId });
         setShowOtpInput(true);
         setCurrentStep(3);
@@ -267,15 +153,17 @@ const ModernWithdraw = () => {
         otp,
       });
 
-      // double-check balance
       if (parseFloat(amount) > Number(accountBalance || 0)) {
-        setError("You don't have balance for withdrawal !!");
+        setError("You do not have enough balance for withdrawal.");
         toast.error("Insufficient balance for withdrawal", { id: toastId });
         return;
       }
 
       await userApi.post(`/withdrawal`, {
-        method: selectedGateway === "Bank Transfer" ? selectedGateway : selectWallet,
+        method:
+          selectedGateway === "Bank Transfer"
+            ? selectedGateway
+            : selectWallet,
         accountType,
         amount,
         mt5Account: account,
@@ -296,7 +184,7 @@ const ModernWithdraw = () => {
         subject: "Withdrawal requested",
       });
 
-      toast.success("Withdrawal Requested.", { id: toastId });
+      toast.success("Withdrawal requested.", { id: toastId });
       setCurrentStep(4);
       setShowOtpInput(false);
       setOtp("");
@@ -310,14 +198,15 @@ const ModernWithdraw = () => {
         setSelectWallet("USDT(Trc20)");
       }, 3000);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Withdrawal failed", { id: toastId });
+      toast.error(err?.response?.data?.message || "Withdrawal failed", {
+        id: toastId,
+      });
     } finally {
       setApiLoader(false);
       setIsWithdrawing(false);
     }
   };
 
-  // ✅ Only USDT wallets
   const walletOptions = [
     { value: "USDT(Trc20)", label: "USDT (TRC-20)", icon: "₮" },
     { value: "USDT(Bep20)", label: "USDT (BEP-20)", icon: "₮" },
@@ -333,501 +222,842 @@ const ModernWithdraw = () => {
 
   const numericBalance = accountBalance ? Number(accountBalance) : 0;
 
+  const stepItems = [
+    { step: 1, title: "Details", icon: CreditCard },
+    { step: 2, title: "Processing", icon: Loader2 },
+    { step: 3, title: "Verify", icon: Shield },
+    { step: 4, title: "Complete", icon: CheckCircle2 },
+  ];
+
   return (
-    <div className="p-4 md:p-8 relative overflow-hidden" style={pageStyle}>
-      {/* Background FX */}
-      {C.effectsEnabled && (
-        <>
-          {C.pattern === "grid" ? <AnimatedGrid /> : null}
-          {C.pattern === "dots" ? <FloatingParticles /> : null}
-          <FloatingOrbs />
-        </>
-      )}
-
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Header */}
-        <motion.div className="text-center mb-4">
-          <ModernHeading text="Withdraw Funds" />
-        </motion.div>
-        <p className="text-lg text-center" style={{ color: rgba(C.mutedFg, 0.65) }}>
-          Secure and instant withdrawals to your preferred method
-        </p>
-
-        {/* Progress Steps */}
-        <div className="mb-8 mt-7">
-          <div className="flex justify-center items-center space-x-4 mb-6">
-            {[
-              { step: 1, title: "Details", icon: CreditCard },
-              { step: 2, title: "Processing", icon: Loader2 },
-              { step: 3, title: "Verify", icon: Shield },
-              { step: 4, title: "Complete", icon: CheckCircle2 },
-            ].map(({ step, title, icon: Icon }) => (
-              <div key={step} className="flex items-center">
+    <div className="min-h-[calc(100vh-260px)] p-1 sm:p-2 md:p-4">
+      <div className="mx-auto max-w-7xl">
+        {/* Page Header */}
+        <div
+          className={[
+            "mb-6 overflow-hidden rounded-[28px] border backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.045] shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
+              : "border-orange-100/80 bg-white/70 shadow-[0_18px_50px_rgba(251,146,60,0.10)]",
+          ].join(" ")}
+        >
+          <div
+            className={[
+              "relative px-4 py-5 sm:px-6 sm:py-6",
+              isDark
+                ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]"
+                : "bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(255,247,240,0.80))]",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
                 <div
-                  className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-500 ${
-                    currentStep >= step ? "text-white" : ""
-                  } ${currentStep === step ? "scale-110" : ""}`}
-                  style={{
-                    background:
-                      currentStep >= step
-                        ? `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.95)}, ${rgba(
-                            C.gradientTo,
-                            0.95
-                          )})`
-                        : "transparent",
-                    borderColor:
-                      currentStep >= step ? "transparent" : rgba(C.border, 0.22),
-                    boxShadow:
-                      currentStep === step ? `0 10px 30px ${rgba(C.glow, 0.22)}` : "none",
-                  }}
+                  className={[
+                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                    isDark
+                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
+                      : "border-orange-200 bg-orange-50 text-orange-700",
+                  ].join(" ")}
                 >
-                  <Icon className={`w-5 h-5 ${currentStep === 2 && step === 2 ? "animate-spin" : ""}`} />
+                  <Wallet size={14} />
+                  Funds Withdrawal
                 </div>
-                <span className="ml-2 text-sm" style={{ color: rgba(C.mutedFg, 0.65) }}>
-                  {title}
-                </span>
-                {step < 4 && (
-                  <ArrowRight className="w-4 h-4 ml-4" style={{ color: rgba(C.border, 0.35) }} />
+
+                <h1 className="text-2xl font-bold sm:text-3xl">
+                  Withdraw Funds
+                </h1>
+
+                <p
+                  className={[
+                    "mt-2 max-w-2xl text-sm sm:text-[15px]",
+                    isDark ? "text-white/55" : "text-slate-600",
+                  ].join(" ")}
+                >
+                  Secure withdrawal flow with trading account balance check, OTP
+                  verification, and wallet destination details.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div
+                  className={[
+                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04]"
+                      : "border-orange-100 bg-white/70",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={[
+                        "flex h-10 w-10 items-center justify-center rounded-xl",
+                        isDark
+                          ? "bg-emerald-500/10 text-emerald-300"
+                          : "bg-emerald-50 text-emerald-700",
+                      ].join(" ")}
+                    >
+                      <Shield size={18} />
+                    </div>
+                    <div>
+                      <p
+                        className={[
+                          "text-[11px] uppercase tracking-[0.16em]",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Security
+                      </p>
+                      <p className="text-sm font-semibold">OTP Protected</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04]"
+                      : "border-orange-100 bg-white/70",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={[
+                        "flex h-10 w-10 items-center justify-center rounded-xl",
+                        isDark
+                          ? "bg-blue-500/10 text-blue-300"
+                          : "bg-orange-50 text-orange-700",
+                      ].join(" ")}
+                    >
+                      <TrendingUp size={18} />
+                    </div>
+                    <div>
+                      <p
+                        className={[
+                          "text-[11px] uppercase tracking-[0.16em]",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Balance
+                      </p>
+                      <p className="text-sm font-semibold">
+                        Live Equity Check
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04]"
+                      : "border-orange-100 bg-white/70",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={[
+                        "flex h-10 w-10 items-center justify-center rounded-xl",
+                        isDark
+                          ? "bg-cyan-500/10 text-cyan-300"
+                          : "bg-amber-50 text-amber-700",
+                      ].join(" ")}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse" />
+                    </div>
+                    <div>
+                      <p
+                        className={[
+                          "text-[11px] uppercase tracking-[0.16em]",
+                          isDark ? "text-white/40" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Status
+                      </p>
+                      <p className="text-sm font-semibold">Active Flow</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={[
+                "pointer-events-none absolute inset-x-0 top-0 h-px",
+                isDark
+                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
+                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent",
+              ].join(" ")}
+            />
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div
+          className={[
+            "mb-6 rounded-[28px] border p-4 sm:p-5 backdrop-blur-xl",
+            isDark
+              ? "border-white/10 bg-white/[0.035]"
+              : "border-orange-100/80 bg-white/60",
+          ].join(" ")}
+        >
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            {stepItems.map(({ step, title, icon: Icon }, index) => (
+              <div key={step} className="flex items-center gap-3">
+                <div
+                  className={[
+                    "flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300",
+                    currentStep >= step
+                      ? isDark
+                        ? "border-blue-400/30 bg-blue-500/15 text-blue-200"
+                        : "border-orange-200 bg-orange-50 text-orange-700"
+                      : isDark
+                      ? "border-white/10 bg-white/[0.03] text-white/45"
+                      : "border-slate-200 bg-white text-slate-400",
+                  ].join(" ")}
+                >
+                  <Icon
+                    className={step === 2 && currentStep === 2 ? "animate-spin" : ""}
+                    size={18}
+                  />
+                </div>
+
+                <div>
+                  <p
+                    className={[
+                      "text-xs uppercase tracking-[0.15em]",
+                      isDark ? "text-white/35" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    Step {step}
+                  </p>
+                  <p className="text-sm font-semibold">{title}</p>
+                </div>
+
+                {index < stepItems.length - 1 && (
+                  <ArrowRight
+                    size={16}
+                    className={isDark ? "text-white/20" : "text-slate-300"}
+                  />
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
-          {/* Form */}
-          <div className="lg:col-span-2">
-            <div className="p-4 shadow-2xl" style={cardStyle}>
-              {/* Step 1 */}
-              {currentStep === 1 && (
-                <form onSubmit={withdrawalHandler} className="space-y-8">
-                  {/* Account */}
-                  <div className="group">
-                    <label className="flex items-center justify-between text-sm font-semibold mb-3" style={{ color: rgba(C.fg, 0.9) }}>
-                      <span className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" style={{ color: rgba(C.accent, 0.9) }} />
-                        Trading Account
-                      </span>
+        {/* Main grid */}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          {/* Left */}
+          <div className="xl:col-span-2">
+            <div
+              className={[
+                "rounded-[28px] border backdrop-blur-xl",
+                isDark
+                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_70px_rgba(0,0,0,0.40)]"
+                  : "border-orange-100/80 bg-white/65 shadow-[0_16px_50px_rgba(251,146,60,0.10)]",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "h-px",
+                  isDark
+                    ? "bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    : "bg-gradient-to-r from-transparent via-orange-200 to-transparent",
+                ].join(" ")}
+              />
 
-                      {balanceLoading ? (
-                        <RotateCw className="w-5 h-5 animate-spin" style={{ color: rgba(C.accent, 0.9) }} />
-                      ) : numericBalance ? (
-                        <div
-                          className="rounded-full px-4 py-1"
-                          style={{
-                            background: `linear-gradient(90deg, ${rgba(C.success, 0.12)}, ${rgba(C.success, 0.06)})`,
-                            border: `1px solid ${rgba(C.success, 0.22)}`,
-                          }}
-                        >
-                          <span className="font-bold" style={{ color: rgba(C.success, 0.95) }}>
-                            ${numericBalance.toLocaleString()}
-                          </span>
-                        </div>
-                      ) : null}
-                    </label>
-
-                    <select
-                      value={account}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        selectAccount(v);
-                        const selectedAcc = loggedUser?.accounts?.find(
-                          (acc: any) => String(acc.accountNumber) === String(v)
-                        );
-                        setAccountType(selectedAcc?.accountType || "");
-                      }}
-                      className="w-full rounded-2xl p-2 focus:outline-none focus:ring-2 transition-all duration-300"
-                      style={{
-                        ...inputStyle,
-                        outline: "none",
-                        boxShadow: "none",
-                      }}
+              <div className="p-4 sm:p-6">
+                {currentStep === 1 && (
+                  <form onSubmit={withdrawalHandler} className="space-y-6">
+                    {/* Account */}
+                    <div
+                      className={[
+                        "rounded-[24px] border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100/70 bg-white/70",
+                      ].join(" ")}
                     >
-                      <option value="" disabled style={{ background: rgb(C.surface1), color: rgba(C.fg, 0.85) }}>
-                        Select Trading Account
-                      </option>
-                      {loggedUser?.accounts?.map((acc: any, index: number) => (
-                        <option
-                          key={index}
-                          value={acc.accountNumber}
-                          style={{ background: rgb(C.surface1), color: rgba(C.fg, 0.9) }}
-                        >
-                          {acc.accountNumber} ({acc.accountType})
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                        <label className="flex items-center gap-2 text-sm font-semibold">
+                          <TrendingUp
+                            size={16}
+                            className={
+                              isDark ? "text-blue-300" : "text-orange-600"
+                            }
+                          />
+                          Trading Account
+                        </label>
+
+                        {balanceLoading ? (
+                          <RotateCw
+                            size={18}
+                            className={`animate-spin ${
+                              isDark ? "text-blue-300" : "text-orange-600"
+                            }`}
+                          />
+                        ) : numericBalance ? (
+                          <div
+                            className={[
+                              "rounded-full border px-4 py-1 text-sm font-semibold",
+                              isDark
+                                ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                            ].join(" ")}
+                          >
+                            ${numericBalance.toLocaleString()}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <select
+                        value={account}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          selectAccount(v);
+                          const selectedAcc = loggedUser?.accounts?.find(
+                            (acc: any) =>
+                              String(acc.accountNumber) === String(v)
+                          );
+                          setAccountType(selectedAcc?.accountType || "");
+                        }}
+                        className={[
+                          "w-full rounded-2xl border px-4 py-3 text-sm outline-none transition",
+                          isDark
+                            ? "border-white/10 bg-white/[0.04] text-white"
+                            : "border-orange-100 bg-white text-slate-800",
+                        ].join(" ")}
+                      >
+                        <option value="" disabled>
+                          Select Trading Account
                         </option>
-                      ))}
-                    </select>
-                  </div>
+                        {loggedUser?.accounts?.map((acc: any, index: number) => (
+                          <option key={index} value={acc.accountNumber}>
+                            {acc.accountNumber} ({acc.accountType})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* Method */}
-                  <div className="space-y-4">
-                    <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: rgba(C.fg, 0.9) }}>
-                      <Zap className="w-4 h-4" style={{ color: rgba(C.primary, 0.9) }} />
-                      Withdrawal Method
-                    </label>
+                    {/* Method */}
+                    <div
+                      className={[
+                        "rounded-[24px] border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100/70 bg-white/70",
+                      ].join(" ")}
+                    >
+                      <label className="mb-4 flex items-center gap-2 text-sm font-semibold">
+                        <Zap
+                          size={16}
+                          className={isDark ? "text-blue-300" : "text-orange-600"}
+                        />
+                        Withdrawal Method
+                      </label>
 
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Wallet ONLY */}
                       <div
                         onClick={() => setSelectedGateway("Wallet Transfer")}
-                        className="relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:scale-[1.02]"
-                        style={{
-                          background:
-                            selectedGateway === "Wallet Transfer"
-                              ? `linear-gradient(135deg, ${rgba(C.primary, 0.16)}, ${rgba(
-                                  C.gradientTo,
-                                  0.10
-                                )})`
-                              : rgba(C.surface2, 0.10),
-                          borderColor:
-                            selectedGateway === "Wallet Transfer"
-                              ? rgba(C.primary, 0.35)
-                              : rgba(C.border, 0.16),
-                        }}
+                        className={[
+                          "relative cursor-pointer rounded-2xl border p-4 transition-all",
+                          selectedGateway === "Wallet Transfer"
+                            ? isDark
+                              ? "border-blue-400/30 bg-blue-500/10"
+                              : "border-orange-200 bg-orange-50"
+                            : isDark
+                            ? "border-white/10 bg-white/[0.03]"
+                            : "border-slate-200 bg-white",
+                        ].join(" ")}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="p-3 rounded-xl"
-                            style={{
-                              background: `linear-gradient(90deg, ${rgba(C.primary, 0.95)}, ${rgba(
-                                C.gradientTo,
-                                0.95
-                              )})`,
-                            }}
+                            className={[
+                              "flex h-12 w-12 items-center justify-center rounded-xl",
+                              isDark
+                                ? "bg-blue-500/15 text-blue-300"
+                                : "bg-orange-100 text-orange-700",
+                            ].join(" ")}
                           >
-                            <Wallet className="w-6 h-6 text-white" />
+                            <Wallet size={22} />
                           </div>
+
                           <div>
-                            <h3 className="font-semibold" style={{ color: rgba(C.fg, 0.92) }}>
-                              Crypto Wallet
-                            </h3>
-                            <p className="text-sm" style={{ color: rgba(C.mutedFg, 0.6) }}>
-                              To digital wallet
+                            <h3 className="font-semibold">Crypto Wallet</h3>
+                            <p
+                              className={[
+                                "text-sm",
+                                isDark ? "text-white/55" : "text-slate-500",
+                              ].join(" ")}
+                            >
+                              Withdraw directly to your wallet
                             </p>
                           </div>
                         </div>
 
                         {selectedGateway === "Wallet Transfer" && (
                           <CheckCircle2
-                            className="absolute top-4 right-4 w-6 h-6"
-                            style={{ color: rgba(C.success, 0.95) }}
+                            size={22}
+                            className={`absolute right-4 top-4 ${
+                              isDark ? "text-emerald-300" : "text-emerald-600"
+                            }`}
                           />
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Wallet type */}
-                  {selectedGateway === "Wallet Transfer" && (
-                    <div className="space-y-4">
-                      <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: rgba(C.fg, 0.9) }}>
-                        <Wallet className="w-4 h-4" style={{ color: rgba(C.gradientTo, 0.9) }} />
-                        Choose Wallet Type
-                      </label>
+                    {/* Wallet type */}
+                    {selectedGateway === "Wallet Transfer" && (
+                      <div
+                        className={[
+                          "rounded-[24px] border p-4",
+                          isDark
+                            ? "border-white/10 bg-white/[0.03]"
+                            : "border-orange-100/70 bg-white/70",
+                        ].join(" ")}
+                      >
+                        <label className="mb-4 flex items-center gap-2 text-sm font-semibold">
+                          <Wallet
+                            size={16}
+                            className={
+                              isDark ? "text-cyan-300" : "text-orange-600"
+                            }
+                          />
+                          Choose Wallet Type
+                        </label>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        {walletOptions.map((option) => (
-                          <div
-                            key={option.value}
-                            onClick={() => setSelectWallet(option.value)}
-                            className="p-4 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02]"
-                            style={{
-                              background:
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {walletOptions.map((option) => (
+                            <div
+                              key={option.value}
+                              onClick={() => setSelectWallet(option.value)}
+                              className={[
+                                "cursor-pointer rounded-2xl border p-4 transition-all",
                                 selectWallet === option.value
-                                  ? `linear-gradient(90deg, ${rgba(C.gradientTo, 0.14)}, ${rgba(
-                                      C.primary,
-                                      0.14
-                                    )})`
-                                  : rgba(C.surface2, 0.10),
-                              borderColor:
-                                selectWallet === option.value
-                                  ? rgba(C.gradientTo, 0.35)
-                                  : rgba(C.border, 0.16),
-                            }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{option.icon}</span>
-                              <span className="text-sm font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                                {option.label}
-                              </span>
+                                  ? isDark
+                                    ? "border-blue-400/30 bg-blue-500/10"
+                                    : "border-orange-200 bg-orange-50"
+                                  : isDark
+                                  ? "border-white/10 bg-white/[0.03]"
+                                  : "border-slate-200 bg-white",
+                              ].join(" ")}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{option.icon}</span>
+                                <span className="text-sm font-medium">
+                                  {option.label}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Amount */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 text-sm font-semibold" style={{ color: rgba(C.fg, 0.9) }}>
-                        <BadgeDollarSign className="w-4 h-4" style={{ color: rgba(C.success, 0.95) }} />
-                        Withdrawal Amount
-                      </label>
-
-                      {inrUiEnabled && amount && (
-                        <div
-                          className="rounded-full px-3 py-1"
-                          style={{
-                            background: `linear-gradient(90deg, ${rgba(C.warning, 0.14)}, ${rgba(
-                              C.danger,
-                              0.10
-                            )})`,
-                            border: `1px solid ${rgba(C.warning, 0.22)}`,
-                          }}
-                        >
-                          <span className="text-sm font-semibold" style={{ color: rgba(C.warning, 0.95) }}>
-                            ₹ {inrAmount}
-                          </span>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Banknote className="h-6 w-6" style={{ color: rgba(C.mutedFg, 0.45) }} />
+                    {/* Amount */}
+                    <div
+                      className={[
+                        "rounded-[24px] border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100/70 bg-white/70",
+                      ].join(" ")}
+                    >
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <label className="flex items-center gap-2 text-sm font-semibold">
+                          <BadgeDollarSign
+                            size={16}
+                            className={
+                              isDark ? "text-emerald-300" : "text-emerald-600"
+                            }
+                          />
+                          Withdrawal Amount
+                        </label>
+
+                        {inrUiEnabled && amount && (
+                          <div
+                            className={[
+                              "rounded-full border px-3 py-1 text-sm font-semibold",
+                              isDark
+                                ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
+                                : "border-amber-200 bg-amber-50 text-amber-700",
+                            ].join(" ")}
+                          >
+                            ₹ {inrAmount}
+                          </div>
+                        )}
                       </div>
 
-                      <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 text-lg font-semibold"
-                        style={{
-                          ...inputStyle,
-                          boxShadow: "none",
-                        }}
-                        placeholder="0.00"
-                      />
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <Banknote
+                            size={20}
+                            className={isDark ? "text-white/35" : "text-slate-400"}
+                          />
+                        </div>
 
-                      {amount && numericBalance && parseFloat(amount) > numericBalance && (
-                        <AlertCircle
-                          className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                          style={{ color: rgba(C.danger, 0.95) }}
+                        <input
+                          type="number"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="0.00"
+                          className={[
+                            "w-full rounded-2xl border py-4 pl-12 pr-4 text-lg font-semibold outline-none transition",
+                            isDark
+                              ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30"
+                              : "border-orange-100 bg-white text-slate-800 placeholder:text-slate-400",
+                          ].join(" ")}
                         />
-                      )}
+
+                        {amount &&
+                          numericBalance &&
+                          parseFloat(amount) > numericBalance && (
+                            <AlertCircle
+                              size={20}
+                              className={`absolute right-4 top-1/2 -translate-y-1/2 ${
+                                isDark ? "text-rose-300" : "text-rose-600"
+                              }`}
+                            />
+                          )}
+                      </div>
+
+                      {amount &&
+                        numericBalance &&
+                        parseFloat(amount) > numericBalance && (
+                          <p
+                            className={[
+                              "mt-3 flex items-center gap-2 text-sm",
+                              isDark ? "text-rose-300" : "text-rose-600",
+                            ].join(" ")}
+                          >
+                            <AlertCircle size={16} />
+                            Insufficient balance
+                          </p>
+                        )}
                     </div>
 
-                    {amount && numericBalance && parseFloat(amount) > numericBalance && (
-                      <p className="text-sm flex items-center gap-2" style={{ color: rgba(C.danger, 0.95) }}>
-                        <AlertCircle className="w-4 h-4" />
-                        Insufficient balance
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Submit */}
-                  <button
-                    type="submit"
-                    disabled={!isFormValid || isWithdrawing}
-                    className="w-full py-4 rounded-2xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-3"
-                    style={{
-                      background:
-                        isFormValid && !isWithdrawing
-                          ? `linear-gradient(90deg, ${rgba(C.gradientFrom, 0.95)}, ${rgba(
-                              C.gradientTo,
-                              0.95
-                            )})`
-                          : rgba(C.border, 0.10),
-                      color:
-                        isFormValid && !isWithdrawing
-                          ? rgba(C.accentFg, 0.95)
-                          : rgba(C.mutedFg, 0.55),
-                      cursor:
-                        isFormValid && !isWithdrawing ? "pointer" : "not-allowed",
-                      boxShadow:
-                        isFormValid && !isWithdrawing
-                          ? `0 18px 46px ${rgba(C.glow, 0.20)}`
-                          : "none",
-                      transform: isFormValid && !isWithdrawing ? "translateZ(0)" : undefined,
-                    }}
-                  >
-                    {isWithdrawing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Processing Request...
-                      </>
-                    ) : (
-                      <>
-                        Request Withdrawal
-                        <ArrowRight className="w-5 h-5" />
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-
-              {/* Step 3: OTP */}
-              {currentStep === 3 && showOtpInput && (
-                <div className="text-center space-y-6">
-                  <div className="mb-6">
-                    <Shield className="w-16 h-16 mx-auto mb-4" style={{ color: rgba(C.accent, 0.9) }} />
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: rgba(C.fg, 0.92) }}>
-                      Verify Your Identity
-                    </h3>
-                    <p style={{ color: rgba(C.mutedFg, 0.65) }}>
-                      Enter the OTP sent to your email
-                    </p>
-                  </div>
-
-                  <div className="max-w-xs mx-auto space-y-4">
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl text-center text-2xl font-mono focus:outline-none focus:ring-2 tracking-widest"
-                      style={{
-                        ...inputStyle,
-                        border: `1px solid ${rgba(C.border, 0.18)}`,
-                      }}
-                      placeholder="000000"
-                      maxLength={6}
-                    />
-
+                    {/* Submit */}
                     <button
-                      type="button"
-                      onClick={verifyOtpHandler}
-                      disabled={!otp || apiLoader}
-                      className="w-full py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      style={{
-                        background: `linear-gradient(90deg, ${rgba(C.success, 0.95)}, ${rgba(
-                          C.gradientFrom,
-                          0.85
-                        )})`,
-                        color: rgba(C.accentFg, 0.95),
-                        boxShadow: `0 14px 36px ${rgba(C.success, 0.18)}`,
-                      }}
+                      type="submit"
+                      disabled={!isFormValid || isWithdrawing}
+                      className={[
+                        "flex w-full items-center justify-center gap-3 rounded-2xl px-4 py-4 text-lg font-semibold transition-all",
+                        isFormValid && !isWithdrawing
+                          ? isDark
+                            ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                            : "bg-orange-500 text-white hover:bg-orange-600"
+                          : isDark
+                          ? "cursor-not-allowed bg-white/[0.06] text-white/35"
+                          : "cursor-not-allowed bg-slate-100 text-slate-400",
+                      ].join(" ")}
                     >
-                      {apiLoader ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                      {isWithdrawing ? (
+                        <>
+                          <Loader2 size={20} className="animate-spin" />
+                          Processing Request...
+                        </>
                       ) : (
                         <>
-                          Verify & Withdraw
-                          <CheckCircle2 className="w-5 h-5" />
+                          Request Withdrawal
+                          <ArrowRight size={20} />
                         </>
                       )}
                     </button>
-                  </div>
-                </div>
-              )}
+                  </form>
+                )}
 
-              {/* Step 4: Success */}
-              {currentStep === 4 && (
-                <div className="text-center space-y-6">
-                  <div className="animate-bounce">
-                    <CheckCircle2 className="w-20 h-20 mx-auto mb-4" style={{ color: rgba(C.success, 0.95) }} />
-                  </div>
-                  <h3 className="text-3xl font-bold mb-2" style={{ color: rgba(C.success, 0.95) }}>
-                    Withdrawal Successful!
-                  </h3>
-                  <p style={{ color: rgba(C.mutedFg, 0.65) }}>
-                    Your withdrawal request has been processed successfully
-                  </p>
-
-                  <div
-                    className="rounded-2xl p-6 max-w-sm mx-auto"
-                    style={{
-                      background: rgba(C.success, 0.10),
-                      border: `1px solid ${rgba(C.success, 0.18)}`,
-                    }}
+                {currentStep === 3 && showOtpInput && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mx-auto max-w-md text-center"
                   >
-                    <p className="font-semibold" style={{ color: rgba(C.success, 0.95) }}>
-                      Amount: ${amount}
-                    </p>
-                    {inrUiEnabled && (
-                      <p className="font-medium mt-1 text-sm" style={{ color: rgba(C.success, 0.8) }}>
-                        (~ ₹ {inrAmount})
-                      </p>
-                    )}
-                    <p className="text-sm mt-2" style={{ color: rgba(C.mutedFg, 0.6) }}>
-                      Processing time: 1-3 business days
-                    </p>
-                  </div>
-                </div>
-              )}
+                    <div
+                      className={[
+                        "rounded-[24px] border p-6",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100/70 bg-white/75",
+                      ].join(" ")}
+                    >
+                      <div
+                        className={[
+                          "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl",
+                          isDark
+                            ? "bg-blue-500/10 text-blue-300"
+                            : "bg-orange-100 text-orange-700",
+                        ].join(" ")}
+                      >
+                        <Shield size={30} />
+                      </div>
 
-              {/* Error */}
-              {error && (
-                <div
-                  className="mt-4 p-4 rounded-xl flex items-center gap-3"
-                  style={{
-                    background: rgba(C.danger, 0.10),
-                    border: `1px solid ${rgba(C.danger, 0.18)}`,
-                  }}
-                >
-                  <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: rgba(C.danger, 0.95) }} />
-                  <p className="text-sm" style={{ color: rgba(C.danger, 0.95) }}>
-                    {error}
-                  </p>
-                </div>
-              )}
+                      <h3 className="text-2xl font-bold">Verify Your Identity</h3>
+                      <p
+                        className={[
+                          "mt-2 text-sm",
+                          isDark ? "text-white/55" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        Enter the OTP sent to your email
+                      </p>
+
+                      <input
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        maxLength={6}
+                        placeholder="000000"
+                        className={[
+                          "mt-5 w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none",
+                          isDark
+                            ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/25"
+                            : "border-orange-100 bg-white text-slate-800 placeholder:text-slate-400",
+                        ].join(" ")}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={verifyOtpHandler}
+                        disabled={!otp || apiLoader}
+                        className={[
+                          "mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition-all",
+                          !otp || apiLoader
+                            ? isDark
+                              ? "cursor-not-allowed bg-white/[0.06] text-white/35"
+                              : "cursor-not-allowed bg-slate-100 text-slate-400"
+                            : isDark
+                            ? "bg-emerald-500/90 text-white hover:bg-emerald-500"
+                            : "bg-emerald-500 text-white hover:bg-emerald-600",
+                        ].join(" ")}
+                      >
+                        {apiLoader ? (
+                          <Loader2 size={20} className="animate-spin" />
+                        ) : (
+                          <>
+                            Verify & Withdraw
+                            <CheckCircle2 size={20} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 4 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mx-auto max-w-md text-center"
+                  >
+                    <div
+                      className={[
+                        "rounded-[24px] border p-6",
+                        isDark
+                          ? "border-emerald-400/15 bg-emerald-500/5"
+                          : "border-emerald-200 bg-emerald-50/80",
+                      ].join(" ")}
+                    >
+                      <div className="mb-4 flex justify-center">
+                        <div
+                          className={[
+                            "flex h-20 w-20 items-center justify-center rounded-full",
+                            isDark
+                              ? "bg-emerald-500/10 text-emerald-300"
+                              : "bg-emerald-100 text-emerald-700",
+                          ].join(" ")}
+                        >
+                          <CheckCircle2 size={44} />
+                        </div>
+                      </div>
+
+                      <h3
+                        className={[
+                          "text-3xl font-bold",
+                          isDark ? "text-emerald-300" : "text-emerald-700",
+                        ].join(" ")}
+                      >
+                        Withdrawal Successful!
+                      </h3>
+
+                      <p
+                        className={[
+                          "mt-2 text-sm",
+                          isDark ? "text-white/55" : "text-slate-600",
+                        ].join(" ")}
+                      >
+                        Your withdrawal request has been submitted successfully.
+                      </p>
+
+                      <div
+                        className={[
+                          "mt-5 rounded-2xl border p-4",
+                          isDark
+                            ? "border-emerald-400/15 bg-white/[0.03]"
+                            : "border-emerald-200 bg-white/70",
+                        ].join(" ")}
+                      >
+                        <p className="font-semibold">Amount: ${amount}</p>
+                        {inrUiEnabled && (
+                          <p
+                            className={[
+                              "mt-1 text-sm",
+                              isDark ? "text-white/55" : "text-slate-600",
+                            ].join(" ")}
+                          >
+                            (~ ₹ {inrAmount})
+                          </p>
+                        )}
+                        <p
+                          className={[
+                            "mt-2 text-sm",
+                            isDark ? "text-white/45" : "text-slate-500",
+                          ].join(" ")}
+                        >
+                          Processing time: 1–3 business days
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {error && (
+                  <div
+                    className={[
+                      "mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm",
+                      isDark
+                        ? "border-rose-400/15 bg-rose-500/10 text-rose-300"
+                        : "border-rose-200 bg-rose-50 text-rose-700",
+                    ].join(" ")}
+                  >
+                    <AlertCircle size={18} className="flex-shrink-0" />
+                    <p>{error}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Summary */}
+          {/* Right */}
           <div className="space-y-6">
             {selectedGateway && (
-              <div className="p-6 shadow-xl" style={sideCardStyle}>
-                <div className="flex items-center gap-3 mb-4">
-                  <CreditCard className="w-6 h-6" style={{ color: rgba(C.accent, 0.9) }} />
-                  <h3 className="text-xl font-bold" style={{ color: rgba(C.fg, 0.92) }}>
-                    Destination Details
-                  </h3>
+              <div
+                className={[
+                  "rounded-[28px] border p-5 backdrop-blur-xl",
+                  isDark
+                    ? "border-white/10 bg-white/[0.035]"
+                    : "border-orange-100/80 bg-white/65",
+                ].join(" ")}
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <div
+                    className={[
+                      "flex h-11 w-11 items-center justify-center rounded-xl",
+                      isDark
+                        ? "bg-blue-500/10 text-blue-300"
+                        : "bg-orange-100 text-orange-700",
+                    ].join(" ")}
+                  >
+                    <CreditCard size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Destination Details</h3>
+                    <p
+                      className={[
+                        "text-sm",
+                        isDark ? "text-white/50" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Selected withdrawal target
+                    </p>
+                  </div>
                 </div>
 
                 {selectedGateway === "Wallet Transfer" && (
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2" style={{ borderBottom: `1px solid ${rgba(C.border, 0.12)}` }}>
-                      <span className="text-sm" style={{ color: rgba(C.mutedFg, 0.65) }}>
+                    <div
+                      className={[
+                        "flex items-center justify-between rounded-2xl border px-4 py-3",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100 bg-white/70",
+                      ].join(" ")}
+                    >
+                      <span
+                        className={isDark ? "text-white/55" : "text-slate-500"}
+                      >
                         Wallet Type
                       </span>
-                      <span className="font-medium" style={{ color: rgba(C.fg, 0.9) }}>
-                        {selectWallet}
-                      </span>
+                      <span className="font-medium">{selectWallet}</span>
                     </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm" style={{ color: rgba(C.mutedFg, 0.65) }}>
+
+                    <div
+                      className={[
+                        "rounded-2xl border px-4 py-3",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100 bg-white/70",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "mb-2 text-sm",
+                          isDark ? "text-white/55" : "text-slate-500",
+                        ].join(" ")}
+                      >
                         Address
-                      </span>
-                      <span
-                        className="font-medium font-mono text-xs px-2 py-1 rounded"
-                        style={{
-                          background: rgba(C.surface3, 0.14),
-                          border: `1px solid ${rgba(C.border, 0.12)}`,
-                          color: rgba(C.fg, 0.9),
-                          maxWidth: "62%",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                        title={getWalletAddress(selectWallet)}
+                      </p>
+                      <p
+                        className={[
+                          "break-all rounded-xl px-3 py-2 text-xs font-medium",
+                          isDark
+                            ? "bg-white/[0.04] text-white/85"
+                            : "bg-slate-50 text-slate-700",
+                        ].join(" ")}
                       >
                         {getWalletAddress(selectWallet)}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Security */}
             <div
-              className="rounded-3xl p-6 text-center"
-              style={{
-                background: `linear-gradient(135deg, ${rgba(C.success, 0.10)}, ${rgba(
-                  C.success,
-                  0.04
-                )})`,
-                border: `1px solid ${rgba(C.success, 0.16)}`,
-                borderRadius: "24px",
-              }}
+              className={[
+                "rounded-[28px] border p-5 text-center backdrop-blur-xl",
+                isDark
+                  ? "border-emerald-400/15 bg-emerald-500/5"
+                  : "border-emerald-200 bg-emerald-50/80",
+              ].join(" ")}
             >
-              <Shield className="w-12 h-12 mx-auto mb-3" style={{ color: rgba(C.success, 0.95) }} />
-              <h3 className="text-lg font-bold mb-2" style={{ color: rgba(C.success, 0.95) }}>
+              <div
+                className={[
+                  "mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl",
+                  isDark
+                    ? "bg-emerald-500/10 text-emerald-300"
+                    : "bg-emerald-100 text-emerald-700",
+                ].join(" ")}
+              >
+                <Shield size={24} />
+              </div>
+
+              <h3
+                className={[
+                  "text-lg font-bold",
+                  isDark ? "text-emerald-300" : "text-emerald-700",
+                ].join(" ")}
+              >
                 Secure Transaction
               </h3>
-              <p className="text-sm" style={{ color: rgba(C.mutedFg, 0.65) }}>
-                Your withdrawal is protected by bank-level security
+
+              <p
+                className={[
+                  "mt-2 text-sm",
+                  isDark ? "text-white/55" : "text-slate-600",
+                ].join(" ")}
+              >
+                Your withdrawal flow is protected with account validation and OTP
+                verification.
               </p>
             </div>
           </div>
@@ -837,4 +1067,4 @@ const ModernWithdraw = () => {
   );
 };
 
-export default ModernWithdraw;
+export default UserWithdraw;

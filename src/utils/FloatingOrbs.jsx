@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export const FloatingOrbs = () => (
-  <div className="absolute inset-0 pointer-events-none">
+  <div className="pointer-events-none absolute inset-0 overflow-hidden">
     {Array.from({ length: 10 }).map((_, i) => (
       <motion.div
         key={i}
@@ -33,4 +33,3 @@ export const FloatingOrbs = () => (
     ))}
   </div>
 );
-

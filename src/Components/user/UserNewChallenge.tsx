@@ -7,26 +7,18 @@ import {
   Cpu,
   ShieldCheck,
   Zap,
+  CheckCircle2,
 } from "lucide-react";
-
-import {
-  setLoggedUser,
-} from "../../redux/user/userSlice";
-
-
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import { setLoggedUser } from "../../redux/user/userSlice";
 import { userApi } from "../../utils/apiClients";
-import ModernHeading from "../lib/ModernHeading";
 import UserNewChallengeHook from "../../hooks/user/UseNewChallengeHook";
 import UseUserHook from "../../hooks/user/UseUserHook";
-import { FloatingParticles } from "../../utils/FloatingParticles";
-import { FloatingOrbs } from "../../utils/FloatingOrbs";
-import { AnimatedGrid } from "../../utils/AnimatedGrid";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
+/* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
   const s = String(v ?? "0 0 0")
     .trim()
@@ -48,72 +40,104 @@ const rgba = (v: any, a = 1) => {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-/* ========================== DECOR / THEME ========================== */
-
-function GlassCard({
-  className = "",
+function SectionCard({
   children,
   theme,
+  isDark,
+  className = "",
 }: {
-  className?: string;
-  children: any;
+  children: React.ReactNode;
   theme: any;
+  isDark: boolean;
+  className?: string;
 }) {
-  const cardStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(
-      theme?.border || theme?.inputBorder || "255 255 255",
-      0.14
-    )}`,
-    background: `linear-gradient(135deg,
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)},
-      ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.78)},
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)}
-    )`,
-    boxShadow: `0 18px 70px ${rgba(theme?.shadowColor || "0 0 0", 0.55)}`,
-    backdropFilter: "blur(18px)",
-  } as React.CSSProperties;
-
-  const innerGlow = {
-    position: "absolute" as const,
-    inset: "1px",
-    borderRadius: "calc(24px - 1px)",
-    background: `linear-gradient(135deg,
-      ${rgba(theme?.gradientFrom || theme?.accent || "59 130 246", 0.08)},
-      ${rgba(theme?.accent || "59 130 246", 0.05)},
-      ${rgba(theme?.gradientTo || "147 51 234", 0.08)}
-    )`,
-    pointerEvents: "none" as const,
-  };
-
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 250, damping: 20 }}
-      className={`relative ${className}`}
-      style={cardStyle}
+    <div
+      className={[
+        "rounded-[24px] border transition-all duration-300",
+        className,
+      ].join(" ")}
+      style={{
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.1)
+          : "rgba(251,146,60,0.14)",
+        background: isDark
+          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
+        boxShadow: isDark
+          ? "0 18px 50px rgba(0,0,0,0.28)"
+          : "0 14px 40px rgba(251,146,60,0.10)",
+        backdropFilter: "blur(10px)",
+      }}
     >
-      <div style={innerGlow} />
-      <div className="relative">{children}</div>
-    </motion.div>
+      {children}
+    </div>
   );
 }
 
-/* ========================== COMPONENT ========================== */
+function SummaryRow({
+  label,
+  value,
+  theme,
+  isDark,
+}: {
+  label: string;
+  value: string;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <div
+      className="flex items-center justify-between rounded-2xl border px-4 py-3"
+      style={{
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.1)
+          : "rgba(251,146,60,0.14)",
+        background: isDark
+          ? "rgba(255,255,255,0.025)"
+          : "rgba(255,255,255,0.78)",
+      }}
+    >
+      <span
+        className="text-sm"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.58)
+            : "rgba(100,116,139,0.95)",
+        }}
+      >
+        {label}
+      </span>
+
+      <span
+        className="text-sm font-semibold"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.92)
+            : "rgba(30,41,59,0.96)",
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
 
 export default function UserNewChallenge() {
   const navigate = useNavigate();
-  const loggedUser = useSelector((store: any) => store.user.loggedUser);
-  const siteConfig = useSelector((state: any) => state.user.siteConfig);
-const dispatch = useDispatch();
-  // ✅ dynamic theme (same as LoginLogs)
-  const themeConfig = useSelector((state: any) => state.user.themeConfig);
+  const dispatch = useDispatch();
+
+  const loggedUser = useSelector((store: any) => store.user?.loggedUser);
+  const siteConfig = useSelector((state: any) => state.user?.siteConfig);
+  const platformData = useSelector((store: any) => store.user?.platforms);
+  const mode = useSelector((state: any) => state.userTheme?.mode || "light");
+  const themeConfig = useSelector((state: any) => state.user?.themeConfig);
+
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
+  const isDark = mode === "dark";
 
   const { getPlatforms, getPaymentMethod } = UserNewChallengeHook();
   const { getUpdateLoggedUser } = UseUserHook();
-  const platformData = useSelector((store: any) => store.user.platforms);
 
   const [accountConfigurations, setAccountConfigurations] = useState<any[]>([]);
   const [creatingLoading, setCreatingLoading] = useState(false);
@@ -133,15 +157,14 @@ const dispatch = useDispatch();
   const selectedConfig = useMemo(
     () =>
       accountConfigurations?.find(
-        (v) => v.accountType === formData.accountType
+        (item) => item.accountType === formData.accountType
       ),
     [accountConfigurations, formData.accountType]
   );
 
-  /* --------------------------- Fetch configs --------------------------- */
   const fetchAccountConfigurations = async () => {
     try {
-      const res = await userApi.get(`/get-account-types`);
+      const res = await userApi.get("/get-account-types");
       setAccountConfigurations(
         Array.isArray(res?.data?.data) ? res.data.data : []
       );
@@ -162,10 +185,10 @@ const dispatch = useDispatch();
       setFormData((prev) => ({
         ...prev,
         leverage: selectedConfig.leverage[0]?.value || "",
-        apiGroup: selectedConfig.apiGroup || prev.apiGroup,
+        apiGroup: selectedConfig.apiGroup || "",
       }));
     }
-  }, [selectedConfig?.leverage, selectedConfig?.apiGroup]);
+  }, [selectedConfig]);
 
   useEffect(() => {
     if (filteredPlatformData?.length === 1) {
@@ -176,34 +199,34 @@ const dispatch = useDispatch();
     }
   }, [filteredPlatformData]);
 
-  /* --------------------------- Handlers --------------------------- */
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
 
     if (name === "accountType") {
       const cfg = accountConfigurations?.find((c) => c.accountType === value);
+
       setFormData((prev) => ({
         ...prev,
         accountType: value,
         apiGroup: cfg?.apiGroup || "",
         leverage: cfg?.leverage?.[0]?.value || "",
       }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
     }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const createAccountHandler = async () => {
     if (creatingLoading) return;
 
-    if (!loggedUser?._id)
-      return toast.error("Please sign in to create an account.");
+    if (!loggedUser?._id) return toast.error("Please sign in first.");
     if (!formData.accountType) return toast.error("Select an account type.");
     if (!formData.leverage) return toast.error("Select leverage.");
     if (!formData.platform) return toast.error("Choose a platform.");
 
     setCreatingLoading(true);
-    const toastID = toast.loading("Creating your account...");
+    const toastId = toast.loading("Creating your account...");
 
     try {
       const response = await userApi.post(
@@ -221,509 +244,357 @@ const dispatch = useDispatch();
       );
 
       if (response?.data?.message === "MT5 account created successfully") {
-        toast.success("Account created successfully!", { id: toastID });
-          dispatch(setLoggedUser(response.data.user));
+        toast.success("Account created successfully!", { id: toastId });
+        dispatch(setLoggedUser(response.data.user));
+        getUpdateLoggedUser?.();
         navigate("/user/challenges");
       } else {
         toast.error(response?.data?.message || "Failed to create account", {
-          id: toastID,
+          id: toastId,
         });
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
       toast.error("Something went wrong while creating the account.", {
-        id: toastID,
+        id: toastId,
       });
     } finally {
       setCreatingLoading(false);
     }
   };
 
-  /* --------------------------- Anim --------------------------- */
-  const container = {
-    hidden: { opacity: 0, y: 30, scale: 0.98, rotateX: 6 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      rotateX: 0,
-      transition: {
-        duration: 0.8,
-        when: "beforeChildren",
-        staggerChildren: 0.06,
-      },
-    },
-  };
-
-  /* --------------------------- Theme styles --------------------------- */
-  const pageBgStyle = {
-    minHeight: "100vh",
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(
-      theme?.glow || theme?.accent,
-      0.16
-    )}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(
-                   theme?.gradientTo || theme?.accent,
-                   0.12
-                 )}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(
-      theme?.surface1 || theme?.bg || "0 0 0"
-    )}, ${rgb(theme?.bg || "0 0 0")})`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
-
-  const mutedText = {
-    color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7),
-  };
-  const eyebrowText = {
-    color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.68),
-  };
-
   const iconAccent = {
-    color: rgba(theme?.accent || theme?.gradientFrom || "59 130 246", 0.95),
+    color: isDark
+      ? rgba(theme?.accent || "96 165 250", 0.95)
+      : "rgba(249,115,22,0.95)",
   };
 
-  // add near your theme styles
-  const dropdownBg = rgb(
-    theme?.surface3 || theme?.surface2 || theme?.card || theme?.bg || "18 18 18"
-  );
-  const dropdownBorder = rgba(
-    theme?.inputBorder || theme?.border || "255 255 255",
-    0.18
-  );
+  const mutedTextColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.62)
+    : "rgba(100,116,139,0.96)";
 
-  const selectStyle = {
+  const titleColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.96)
+    : "rgba(15,23,42,0.98)";
+
+  const selectStyle: React.CSSProperties = {
     width: "100%",
-    borderRadius: radius,
-    backgroundColor: dropdownBg, // ✅ solid background (not translucent)
-    border: `1px solid ${dropdownBorder}`,
-    color: rgb(theme?.fg || "255 255 255"),
-    padding: "12px 42px 12px 12px",
+    borderRadius: "16px",
+    padding: "13px 42px 13px 14px",
     outline: "none",
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    colorScheme: "dark", // ✅ helps dropdown render dark in many browsers
-  } as React.CSSProperties;
+    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
+    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(30,41,59,0.96)",
+    border: isDark
+      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+      : "1px solid rgba(251,146,60,0.16)",
+  };
 
-  const optionStyle = {
-    backgroundColor: dropdownBg, // ✅ dropdown items bg
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
+  const optionStyle: React.CSSProperties = {
+    background: isDark ? "#111827" : "#ffffff",
+    color: isDark ? "#ffffff" : "#0f172a",
+  };
 
-  const selectStyle1 = {
-    borderRadius: radius,
-    background: rgba(theme?.input || theme?.surface1 || "18 18 18", 0.35),
-    border: `1px solid ${rgba(
-      theme?.inputBorder || theme?.border || "255 255 255",
-      0.18
-    )}`,
-    color: rgb(theme?.fg || "255 255 255"),
-    padding: "12px 42px 12px 12px",
-    outline: "none",
-  } as React.CSSProperties;
-
-  const ctaStyle = {
+  const primaryButtonStyle: React.CSSProperties = {
     borderRadius: "999px",
-    color: rgb(theme?.primaryFg || "0 0 0"),
-    background: `linear-gradient(90deg, ${rgb(
-      theme?.gradientFrom || theme?.accent || "59 130 246"
-    )}, ${rgb(theme?.accent || theme?.primary || "34 197 94")}, ${rgb(
-      theme?.gradientTo || "147 51 234"
-    )})`,
-    boxShadow: `0 14px 36px ${rgba(
-      theme?.glow || theme?.accent || "59 130 246",
-      0.26
-    )}`,
-  } as React.CSSProperties;
-
-  const platformBtnBase = {
-    borderRadius: "18px",
-    border: `1px solid ${rgba(
-      theme?.border || theme?.inputBorder || "255 255 255",
-      0.14
-    )}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-    color: rgba(theme?.fg || "255 255 255", 0.9),
-  } as React.CSSProperties;
-
-  const platformBtnActive = {
-    border: `1px solid ${rgba(
-      theme?.ring || theme?.accent || "59 130 246",
-      0.35
-    )}`,
-    background: rgba(theme?.accent || "59 130 246", 0.14),
-    boxShadow: `0 0 28px ${rgba(
-      theme?.glow || theme?.accent || "59 130 246",
-      0.18
-    )}`,
-    color: rgba(theme?.fg || "255 255 255", 0.95),
-  } as React.CSSProperties;
+    color: "#fff",
+    background: isDark
+      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
+      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+    boxShadow: isDark
+      ? "0 14px 34px rgba(59,130,246,0.22)"
+      : "0 14px 34px rgba(249,115,22,0.18)",
+  };
 
   return (
     <motion.div
-      variants={container}
-      initial="hidden"
-      animate="visible"
-      className="relative overflow-hidden"
-      style={pageBgStyle}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="w-full"
     >
-      <AnimatedGrid />
-      <FloatingOrbs />
-      <FloatingParticles />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-10 md:px-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={18} style={iconAccent} />
+      <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+        <div
+          className="border-b px-5 py-4 sm:px-6"
+          style={{
+            borderColor: isDark
+              ? rgba(theme?.border || "255 255 255", 0.1)
+              : "rgba(251,146,60,0.12)",
+            background: isDark
+              ? "rgba(255,255,255,0.02)"
+              : "rgba(255,255,255,0.38)",
+          }}
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4" style={iconAccent} />
             <span
-              className="uppercase tracking-[0.25em] text-xs font-semibold"
-              style={eyebrowText}
+              className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: mutedTextColor }}
             >
               accounts · mt5 · setup
             </span>
           </div>
 
-          <ModernHeading text="Open MT5 Account" />
+         <h1
+  className="text-3xl font-bold sm:text-4xl"
+  style={{
+    color: titleColor,
+    fontFamily: "'Poppins', sans-serif",
+  }}
+>
+  Open MT5 Account
+</h1>
 
-          <p className="mt-1" style={mutedText}>
-            Pick your account type, dial the leverage, choose your platform —
-            you’re live in minutes.
+          <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
+            Pick your account type, leverage, and platform to create a new
+            trading account.
           </p>
         </div>
 
-        {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left: Form */}
-          <GlassCard theme={theme} className="lg:col-span-7 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account Type */}
-              <div>
-                <label
-                  className="block mb-2 font-semibold flex items-center gap-2"
-                  style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-                >
-                  <Coins className="w-4 h-4" style={iconAccent} />
-                  1. Choose Account Type
-                </label>
+        <div className="p-4 sm:p-5 md:p-6">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div>
+                    <label
+                      className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                      style={{ color: titleColor }}
+                    >
+                      <Coins className="h-4 w-4" style={iconAccent} />
+                      1. Choose Account Type
+                    </label>
 
-                <div className="relative">
-                  <select
-                    name="accountType"
-                    value={formData.accountType}
-                    onChange={handleInputChange}
-                    style={selectStyle}
-                    onFocus={(e) => {
-                      (
-                        e.currentTarget as HTMLSelectElement
-                      ).style.boxShadow = `0 0 0 3px ${rgba(
-                        theme?.ring || theme?.accent || "59 130 246",
-                        0.25
-                      )}`;
-                      (e.currentTarget as HTMLSelectElement).style.borderColor =
-                        rgba(
-                          theme?.ring || theme?.accent || "59 130 246",
-                          0.45
-                        );
-                    }}
-                    onBlur={(e) => {
-                      (e.currentTarget as HTMLSelectElement).style.boxShadow =
-                        "none";
-                      (e.currentTarget as HTMLSelectElement).style.borderColor =
-                        rgba(
-                          theme?.inputBorder || theme?.border || "255 255 255",
-                          0.18
-                        );
-                    }}
-                  >
-                    <option value="" disabled style={optionStyle}>
-                      Select Account Type
-                    </option>
-
-                    {accountConfigurations?.map((opt) => (
-                      <option
-                        key={opt.accountType}
-                        value={opt.accountType}
-                        style={optionStyle}
+                    <div className="relative">
+                      <select
+                        name="accountType"
+                        value={formData.accountType}
+                        onChange={handleInputChange}
+                        style={selectStyle}
                       >
-                        {opt.accountType}
-                      </option>
-                    ))}
-                  </select>
+                        <option value="" disabled style={optionStyle}>
+                          Select Account Type
+                        </option>
 
-                  <ChevronDown
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}
-                  />
-                </div>
-              </div>
+                        {accountConfigurations?.map((opt) => (
+                          <option
+                            key={opt.accountType}
+                            value={opt.accountType}
+                            style={optionStyle}
+                          >
+                            {opt.accountType}
+                          </option>
+                        ))}
+                      </select>
 
-              {/* Leverage */}
-              <div>
-                <label
-                  className="block mb-2 font-semibold flex items-center gap-2"
-                  style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-                >
-                  <ShieldCheck className="w-4 h-4" style={iconAccent} />
-                  2. Choose Leverage
-                </label>
+                      <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                        style={{ color: mutedTextColor }}
+                      />
+                    </div>
+                  </div>
 
-                <div className="relative">
-                  <select
-                    name="leverage"
-                    value={formData.leverage}
-                    onChange={handleInputChange}
-                    disabled={!selectedConfig?.leverage?.length}
-                    style={{
-                      ...selectStyle,
-                      opacity: !selectedConfig?.leverage?.length ? 0.55 : 1,
-                      cursor: !selectedConfig?.leverage?.length
-                        ? "not-allowed"
-                        : "pointer",
-                    }}
-                    onFocus={(e) => {
-                      (
-                        e.currentTarget as HTMLSelectElement
-                      ).style.boxShadow = `0 0 0 3px ${rgba(
-                        theme?.ring || theme?.accent || "59 130 246",
-                        0.25
-                      )}`;
-                      (e.currentTarget as HTMLSelectElement).style.borderColor =
-                        rgba(
-                          theme?.ring || theme?.accent || "59 130 246",
-                          0.45
-                        );
-                    }}
-                    onBlur={(e) => {
-                      (e.currentTarget as HTMLSelectElement).style.boxShadow =
-                        "none";
-                      (e.currentTarget as HTMLSelectElement).style.borderColor =
-                        rgba(
-                          theme?.inputBorder || theme?.border || "255 255 255",
-                          0.18
-                        );
-                    }}
-                  >
-                    <option value="" disabled>
-                      {selectedConfig?.leverage?.length
-                        ? "Select Leverage"
-                        : "Select account type first"}
-                    </option>
-                    {selectedConfig?.leverage?.map((l: any) => (
-                      <option key={l.value} value={l.value}>
-                        {l.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label
+                      className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                      style={{ color: titleColor }}
+                    >
+                      <ShieldCheck className="h-4 w-4" style={iconAccent} />
+                      2. Choose Leverage
+                    </label>
 
-                  <ChevronDown
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Platform */}
-            <div className="mt-8">
-              <label
-                className="block mb-4 font-semibold flex items-center gap-2"
-                style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-              >
-                <Cpu className="w-4 h-4" style={iconAccent} />
-                3. Choose your Platform
-              </label>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <AnimatePresence initial={false}>
-                  {filteredPlatformData?.map((plt: any, i: number) => {
-                    const active = formData.platform === plt.name;
-
-                    return (
-                      <motion.button
-                        key={plt.name}
-                        onClick={() =>
-                          setFormData((p) => ({ ...p, platform: plt.name }))
-                        }
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex items-center justify-center gap-2 p-4"
+                    <div className="relative">
+                      <select
+                        name="leverage"
+                        value={formData.leverage}
+                        onChange={handleInputChange}
+                        disabled={!selectedConfig?.leverage?.length}
                         style={{
-                          ...platformBtnBase,
-                          ...(active ? platformBtnActive : {}),
+                          ...selectStyle,
+                          opacity: !selectedConfig?.leverage?.length ? 0.6 : 1,
+                          cursor: !selectedConfig?.leverage?.length
+                            ? "not-allowed"
+                            : "pointer",
                         }}
                       >
-                        <span className="text-2xl">{plt.logo ?? "🧭"}</span>
-                        <span
-                          className="font-semibold"
-                          style={{
-                            color: active
-                              ? rgba(theme?.accent || "59 130 246", 0.95)
-                              : rgba(theme?.fg || "255 255 255", 0.9),
-                          }}
-                        >
-                          {plt.name}
-                        </span>
-                      </motion.button>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
+                        <option value="" disabled style={optionStyle}>
+                          {selectedConfig?.leverage?.length
+                            ? "Select Leverage"
+                            : "Select account type first"}
+                        </option>
+
+                        {selectedConfig?.leverage?.map((item: any) => (
+                          <option
+                            key={item.value}
+                            value={item.value}
+                            style={optionStyle}
+                          >
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                        style={{ color: mutedTextColor }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-7">
+                  <label
+                    className="mb-3 flex items-center gap-2 text-sm font-semibold"
+                    style={{ color: titleColor }}
+                  >
+                    <Cpu className="h-4 w-4" style={iconAccent} />
+                    3. Choose Your Platform
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <AnimatePresence initial={false}>
+                      {filteredPlatformData?.map((platform: any, index: number) => {
+                        const active = formData.platform === platform.name;
+
+                        return (
+                          <motion.button
+                            key={platform.name}
+                            type="button"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04 }}
+                            whileHover={{ y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                platform: platform.name,
+                              }))
+                            }
+                            className="rounded-2xl border px-4 py-4 transition-all duration-300"
+                            style={{
+                              borderColor: active
+                                ? isDark
+                                  ? "rgba(96,165,250,0.35)"
+                                  : "rgba(249,115,22,0.28)"
+                                : isDark
+                                ? rgba(theme?.border || "255 255 255", 0.1)
+                                : "rgba(251,146,60,0.14)",
+                              background: active
+                                ? isDark
+                                  ? "rgba(59,130,246,0.10)"
+                                  : "rgba(255,237,213,0.72)"
+                                : isDark
+                                ? "rgba(255,255,255,0.02)"
+                                : "rgba(255,255,255,0.82)",
+                              boxShadow: active
+                                ? isDark
+                                  ? "0 0 0 1px rgba(96,165,250,0.18)"
+                                  : "0 0 0 1px rgba(249,115,22,0.14)"
+                                : "none",
+                            }}
+                          >
+                            <div className="flex flex-col items-center justify-center gap-2 text-center">
+                              <span className="text-2xl">{platform.logo ?? "🧭"}</span>
+                              <span
+                                className="text-sm font-semibold"
+                                style={{
+                                  color: active
+                                    ? isDark
+                                      ? "rgba(191,219,254,0.96)"
+                                      : "rgba(194,65,12,0.96)"
+                                    : titleColor,
+                                }}
+                              >
+                                {platform.name}
+                              </span>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex justify-center sm:justify-start">
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: creatingLoading ? 1 : 1.02 }}
+                    whileTap={{ scale: creatingLoading ? 1 : 0.98 }}
+                    onClick={createAccountHandler}
+                    disabled={creatingLoading}
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
+                    style={{
+                      ...primaryButtonStyle,
+                      opacity: creatingLoading ? 0.65 : 1,
+                      cursor: creatingLoading ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <Zap className="h-4 w-4" />
+                    {creatingLoading ? "Creating..." : "Create Account"}
+                  </motion.button>
+                </div>
+              </SectionCard>
             </div>
 
-            {/* CTA */}
-            <div className="flex justify-center mt-10">
-              <motion.button
-                whileHover={{ scale: creatingLoading ? 1 : 1.03 }}
-                whileTap={{ scale: creatingLoading ? 1 : 0.98 }}
-                onClick={createAccountHandler}
-                disabled={creatingLoading}
-                className="relative inline-flex items-center justify-center gap-2 px-8 py-3 font-bold"
-                style={{
-                  ...ctaStyle,
-                  opacity: creatingLoading ? 0.6 : 1,
-                  cursor: creatingLoading ? "not-allowed" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!creatingLoading) {
-                    (
-                      e.currentTarget as HTMLButtonElement
-                    ).style.boxShadow = `0 18px 44px ${rgba(
-                      theme?.glow || theme?.accent || "59 130 246",
-                      0.34
-                    )}`;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                    ctaStyle.boxShadow as string;
-                }}
-              >
-                <Zap className="w-5 h-5" />
-                {creatingLoading ? "Creating..." : "Create Account"}
+            <div className="lg:col-span-5">
+              <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" style={iconAccent} />
+                  <h3 className="text-lg font-semibold" style={{ color: titleColor }}>
+                    Review & Summary
+                  </h3>
+                </div>
 
-                <motion.span
-                  className="absolute inset-0 rounded-full opacity-0"
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+                <div className="space-y-3">
+                  <SummaryRow
+                    label="Account Type"
+                    value={formData.accountType || "—"}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                  <SummaryRow
+                    label="Leverage"
+                    value={formData.leverage || "—"}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                  <SummaryRow
+                    label="Platform"
+                    value={formData.platform || "—"}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                  <SummaryRow
+                    label="Server Name"
+                    value={siteConfig?.serverName || "—"}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                </div>
+
+                <div
+                  className="mt-5 rounded-2xl border px-4 py-3 text-xs leading-5"
                   style={{
-                    background: `radial-gradient(120% 120% at 50% 10%, ${rgba(
-                      theme?.fg || "255 255 255",
-                      0.28
-                    )}, transparent 40%)`,
+                    borderColor: isDark
+                      ? rgba(theme?.border || "255 255 255", 0.1)
+                      : "rgba(251,146,60,0.14)",
+                    background: isDark
+                      ? "rgba(255,255,255,0.02)"
+                      : "rgba(255,255,255,0.72)",
+                    color: mutedTextColor,
                   }}
-                />
-              </motion.button>
+                >
+                  By creating an account, you agree to the trading terms and
+                  risk disclosure.
+                </div>
+              </SectionCard>
             </div>
-          </GlassCard>
-
-          {/* Right: Review */}
-          <GlassCard theme={theme} className="lg:col-span-5 p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" style={iconAccent} />
-              <h3
-                className="text-lg font-semibold"
-                style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}
-              >
-                Review & Summary
-              </h3>
-            </div>
-
-            <div
-              className="space-y-3"
-              style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-            >
-              <Row
-                theme={theme}
-                label="Account Type"
-                value={formData.accountType || "—"}
-                radius={radius}
-              />
-              <Row
-                theme={theme}
-                label="Leverage"
-                value={formData.leverage || "—"}
-                radius={radius}
-              />
-              <Row
-                theme={theme}
-                label="Platform"
-                value={formData.platform || "—"}
-                radius={radius}
-              />
-               <Row
-                theme={theme}
-                label="Server Name"
-                value={siteConfig.serverName || "—"}
-                radius={radius}
-              />
-            </div>
-
-            <div
-              className="mt-6 text-xs"
-              style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}
-            >
-              By creating an account you agree to our trading terms & risk
-              disclosure.
-            </div>
-          </GlassCard>
+          </div>
         </div>
-
-        {/* Footer note */}
-        <div
-          className="text-center mt-8 text-sm"
-          style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.55) }}
-        >
-          Fully encrypted. Lightning-fast provisioning ⚡
-        </div>
-      </div>
+      </SectionCard>
     </motion.div>
-  );
-}
-
-/* --------------------------- Small bits --------------------------- */
-
-function Row({
-  label,
-  value,
-  theme,
-  radius,
-}: {
-  label: string;
-  value: string;
-  theme: any;
-  radius: string;
-}) {
-  return (
-    <div
-      className="flex items-center justify-between px-4 py-3 border"
-      style={{
-        borderRadius: radius,
-        borderColor: rgba(
-          theme?.border || theme?.inputBorder || "255 255 255",
-          0.14
-        ),
-        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-      }}
-    >
-      <span
-        style={{
-          color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.62),
-        }}
-      >
-        {label}
-      </span>
-      <span
-        className="font-semibold"
-        style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-      >
-        {value}
-      </span>
-    </div>
   );
 }

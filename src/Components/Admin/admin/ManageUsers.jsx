@@ -71,11 +71,31 @@ const ManageUsers = () => {
     });
   };
 
-  const userRedirectHandler = (user) => {
+  // const userRedirectHandler = (user) => {
+  //   getReset();
+  //   dispatch(setLoggedUser(user));
+  //   window.open("/user/dashboard", "_blank");
+  // };
+
+
+  const userRedirectHandler = async (user) => {
+  try {
     getReset();
-    dispatch(setLoggedUser(user));
+
+    const res = await adminApi.post("/impersonate", { userId: user._id });
+
+    if (!res.data.impersonated)  window.open(res.data?.redirectTo, "_blank", "noopener,noreferrer");;
+    
+          toast.success(`Welcome 👋🏽 ${res.data.userName}`);
+
     window.open("/user/dashboard", "_blank");
-  };
+  } catch (e) {
+    toast.error("Impersonation failed");
+    console.error(e);
+  }
+};
+
+
 
   const fetchUsersData = async () => {
     setLoading(true);

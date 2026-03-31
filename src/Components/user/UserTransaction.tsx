@@ -3,21 +3,21 @@ import { useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   RefreshCcw,
-  Sparkles,
   ArrowDownToLine,
   ArrowUpToLine,
   Repeat2,
   Search,
   ArrowRightLeft,
+  Wallet,
+  CircleDollarSign,
+  Gauge,
+  TrendingUp,
+  Activity,
 } from "lucide-react";
-import ModernHeading from "../lib/ModernHeading";
 import DynamicLoder from "../Loader/DynamicLoder";
 import { userApi } from "../../utils/apiClients";
-import { FloatingParticles } from "../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../utils/AnimatedGrid";
-import { FloatingOrbs } from "../../utils/FloatingOrbs";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
+/* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
   const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
   const parts = s.split(/\s+/).map((x) => Number(x));
@@ -27,31 +27,29 @@ const safeRgbParts = (v: any) => {
   return { r, g, b };
 };
 
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
 const rgba = (v: any, a = 1) => {
   const { r, g, b } = safeRgbParts(v);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-/* ------------------------------ Helpers ---------------------------- */
+/* -------------------- helpers -------------------- */
 function formatDate(iso: any) {
   if (!iso) return "N/A";
   const d = new Date(iso);
+
   const date = d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
+
   const time = d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hour12: true,
   });
+
   return `${date}, ${time}`;
 }
 
@@ -64,151 +62,236 @@ function money(n: any) {
 
 function statusTone(status: any) {
   const s = String(status || "").toLowerCase();
+
   if (s === "approved" || s === "completed") return "approved";
   if (s === "pending" || s === "processing") return "pending";
   if (s === "rejected" || s === "failed" || s === "reversed") return "rejected";
+
   return "unknown";
 }
 
-/* ----------------------------- UI Bits ----------------------------- */
-const EmptyState = ({
-  title = "No data",
-  subtitle = "Try another tab or date range.",
+/* -------------------- shared cards -------------------- */
+function SectionCard({
+  children,
   theme,
-}: any) => (
-  <div className="text-center py-10">
+  isDark,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: any;
+  isDark: boolean;
+  className?: string;
+}) {
+  return (
     <div
-      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+      className={["rounded-[24px] border transition-all duration-300", className].join(
+        " "
+      )}
       style={{
-        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-        border: `1px solid ${rgba(
-          theme?.border || theme?.inputBorder || "255 255 255",
-          0.14
-        )}`,
-        color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.75),
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.1)
+          : "rgba(251,146,60,0.14)",
+        background: isDark
+          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
+        boxShadow: isDark
+          ? "0 18px 50px rgba(0,0,0,0.28)"
+          : "0 14px 40px rgba(251,146,60,0.10)",
+        backdropFilter: "blur(10px)",
       }}
     >
-      ⚪
+      {children}
     </div>
-    <p
-      style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}
-      className="font-semibold"
-    >
-      {title}
-    </p>
-    <p
-      style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.6) }}
-      className="text-sm"
-    >
-      {subtitle}
-    </p>
-  </div>
-);
+  );
+}
 
-const StatTile = ({ label, value, prefix = "", hint, theme, tone }: any) => {
-  const col =
-    tone === "pos"
-      ? theme?.success || "34 197 94"
-      : tone === "warn"
-      ? theme?.warning || "234 179 8"
-      : tone === "neg"
-      ? theme?.danger || "244 63 94"
-      : theme?.accent || theme?.primary || "59 130 246";
+function EmptyState({
+  title = "No data found",
+  subtitle = "Try another tab or refresh the records.",
+  theme,
+  isDark,
+}: any) {
+  return (
+    <div className="py-12 text-center">
+      <div
+        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border"
+        style={{
+          borderColor: isDark
+            ? rgba(theme?.border || "255 255 255", 0.12)
+            : "rgba(251,146,60,0.14)",
+          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.78)",
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.7)
+            : "rgba(100,116,139,0.9)",
+        }}
+      >
+        ⚪
+      </div>
+
+      <p
+        className="font-semibold"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.92)
+            : "rgba(15,23,42,0.96)",
+        }}
+      >
+        {title}
+      </p>
+
+      <p
+        className="mt-1 text-sm"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.58)
+            : "rgba(100,116,139,0.95)",
+        }}
+      >
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  prefix = "",
+  tone = "default",
+  theme,
+  isDark,
+}: any) {
+  const toneStyles =
+    tone === "success"
+      ? {
+          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+          iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+        }
+      : tone === "danger"
+      ? {
+          iconBg: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+          iconColor: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+          border: isDark ? "rgba(239,68,68,0.18)" : "rgba(239,68,68,0.16)",
+        }
+      : tone === "info"
+      ? {
+          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
+          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
+          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+        }
+      : tone === "warning"
+      ? {
+          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
+          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.16)",
+        }
+      : {
+          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
+          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
+          border: isDark
+            ? rgba(theme?.border || "255 255 255", 0.12)
+            : "rgba(251,146,60,0.14)",
+        };
 
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      className="p-4"
+    <SectionCard theme={theme} isDark={isDark} className="p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          style={{
+            background: toneStyles.iconBg,
+            color: toneStyles.iconColor,
+            borderColor: toneStyles.border,
+          }}
+        >
+          {icon}
+        </div>
+
+        <div>
+          <div
+            className="text-xs"
+            style={{
+              color: isDark
+                ? rgba(theme?.fg || "255 255 255", 0.58)
+                : "rgba(100,116,139,0.96)",
+            }}
+          >
+            {label}
+          </div>
+
+          <div
+            className="text-lg font-bold"
+            style={{
+              color: isDark
+                ? rgba(theme?.fg || "255 255 255", 0.94)
+                : "rgba(15,23,42,0.98)",
+            }}
+          >
+            {prefix}
+            {value}
+          </div>
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function SkeletonTable({
+  cols,
+  rows = 6,
+  theme,
+  isDark,
+}: {
+  cols: number;
+  rows?: number;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <div
+      className="overflow-x-auto rounded-[20px] border"
       style={{
-        borderRadius: theme?.radius || "18px",
-        border: `1px solid ${rgba(
-          theme?.border || theme?.inputBorder || "255 255 255",
-          0.14
-        )}`,
-        background: `linear-gradient(135deg, ${rgba(col, 0.12)}, ${rgba(
-          theme?.surface2 || theme?.card || "18 18 18",
-          0.22
-        )})`,
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.12)
+          : "rgba(251,146,60,0.14)",
       }}
     >
-      <div
-        className="text-xs"
-        style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.62) }}
-      >
-        {label}
-      </div>
-      <div
-        className="text-xl font-extrabold mt-0.5"
-        style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}
-      >
-        {prefix}
-        {value}
-      </div>
-      {hint ? (
-        <div
-          className="text-[11px] mt-1"
-          style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.5) }}
-        >
-          {hint}
-        </div>
-      ) : null}
-    </motion.div>
+      <table className="w-full text-sm">
+        <tbody>
+          {Array.from({ length: rows }).map((_, i) => (
+            <tr
+              key={i}
+              style={{
+                borderBottom: `1px solid ${
+                  isDark
+                    ? rgba(theme?.border || "255 255 255", 0.08)
+                    : "rgba(251,146,60,0.10)"
+                }`,
+              }}
+            >
+              {Array.from({ length: cols }).map((__, j) => (
+                <td key={j} className="p-3">
+                  <div
+                    className="h-4 w-full animate-pulse rounded"
+                    style={{
+                      background: isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : "rgba(255,255,255,0.9)",
+                    }}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
-};
+}
 
-const SkeletonRow = ({ cols = 8, theme }: any) => (
-  <tr
-    style={{
-      borderBottom: `1px solid ${rgba(
-        theme?.border || theme?.inputBorder || "255 255 255",
-        0.1
-      )}`,
-    }}
-  >
-    {Array.from({ length: cols }).map((_, i) => (
-      <td key={i} className="p-3">
-        <div
-          className="h-4 w-full rounded animate-pulse"
-          style={{
-            background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.24),
-          }}
-        />
-      </td>
-    ))}
-  </tr>
-);
-
-/* -------------------------- Anim Variants -------------------------- */
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { duration: 0.8, when: "beforeChildren", staggerChildren: 0.1 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 50, rotateX: -15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: { type: "spring", stiffness: 100, damping: 15, duration: 0.8 },
-  },
-  hover: { y: -5, rotateX: 5, transition: { duration: 0.3 } },
-};
-
-const tabVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: "spring", stiffness: 220, damping: 20 },
-  },
-  tap: { scale: 0.96 },
-};
-
-/* ----------------------------- Component --------------------------- */
+/* -------------------- component -------------------- */
 export default function UserTransaction() {
   const [activeTab, setActiveTab] = useState<"deposit" | "withdrawal" | "account">(
     "deposit"
@@ -217,60 +300,13 @@ export default function UserTransaction() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const loggedUser = useSelector((s: any) => s?.user?.loggedUser);
-
-  // ✅ theme from redux
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
+  const mode = useSelector((s: any) => s.userTheme?.mode || "light");
+  const themeConfig = useSelector((s: any) => s.user?.themeConfig);
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
+  const isDark = mode === "dark";
 
-  // palette shortcuts
-  const C = useMemo(
-    () => ({
-      bg: theme?.bg || "0 0 0",
-      fg: theme?.fg || "255 255 255",
-      mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
-      border: theme?.border || theme?.inputBorder || "255 255 255",
-      card: theme?.card || "18 18 18",
-      surface1: theme?.surface1 || theme?.bg || "0 0 0",
-      surface2: theme?.surface2 || theme?.card || "18 18 18",
-      surface3: theme?.surface3 || theme?.card || "18 18 18",
-      accent: theme?.accent || "59 130 246",
-      accentFg: theme?.accentFg || theme?.fg || "255 255 255",
-      primary: theme?.primary || theme?.accent || "147 51 234",
-      primaryFg: theme?.primaryFg || "0 0 0",
-      success: theme?.success || "34 197 94",
-      warning: theme?.warning || "234 179 8",
-      danger: theme?.danger || "244 63 94",
-      info: theme?.info || theme?.accent || "59 130 246",
-      ring: theme?.ring || theme?.accent || "59 130 246",
-      glow: theme?.glow || theme?.accent || "59 130 246",
-      shadow: theme?.shadowColor || "0 0 0",
-      radius: theme?.radius || "18px",
-    }),
-    [theme]
-  );
-
-  const statusStyle = (status: any) => {
-    const t = statusTone(status);
-    const col =
-      t === "approved"
-        ? C.success
-        : t === "pending"
-        ? C.warning
-        : t === "rejected"
-        ? C.danger
-        : C.accent;
-
-    return {
-      background: rgba(col, 0.14),
-      border: `1px solid ${rgba(col, 0.28)}`,
-      color: rgba(col, 0.92),
-    } as React.CSSProperties;
-  };
-
-  // ✅ REAL API CALL
   async function fetchTransactionData(tradeType: typeof activeTab, signal?: AbortSignal) {
     setLoading(true);
     setError(null);
@@ -289,11 +325,12 @@ export default function UserTransaction() {
           `/withdrawals/${loggedUser._id}`,
           signal ? { signal } : undefined
         );
+
         const payload = res?.data?.data;
 
         if (!Array.isArray(payload) || payload.length === 0) {
           setTransactionData([]);
-          setError(`No withdrawal data available.`);
+          setError("No withdrawal data available.");
           return;
         }
 
@@ -317,11 +354,12 @@ export default function UserTransaction() {
           `/deposit/${loggedUser._id}`,
           signal ? { signal } : undefined
         );
+
         const payload = res?.data?.data;
 
         if (!Array.isArray(payload) || payload.length === 0) {
           setTransactionData([]);
-          setError(`No deposit data available.`);
+          setError("No deposit data available.");
           return;
         }
 
@@ -340,28 +378,26 @@ export default function UserTransaction() {
         return;
       }
 
-      // ✅ Account Txn (DB) — NO META
-      res = await userApi.get(`/account-txn`, signal ? { signal } : undefined);
+      res = await userApi.get("/account-txn", signal ? { signal } : undefined);
       const payload = res?.data?.data;
 
       if (!Array.isArray(payload) || payload.length === 0) {
         setTransactionData([]);
-        setError(`No account txn data available.`);
+        setError("No account transaction data available.");
         return;
       }
 
-      // normalize DB transfers
-      const normalized = payload.map((t: any) => ({
-        _id: t._id,
-        direction: t.direction || "unknown", // sent | received
-        fromAccountNumber: t.fromAccountNumber || "—",
-        toAccountNumber: t.toAccountNumber || "—",
-        amount: Number(t.amount || 0),
-        status: t.status || "unknown", // completed/processing/failed/reversed
-        note: t.note || "",
-        failureReason: t.failureReason || null,
-        createdAt: t.createdAt || null,
-        updatedAt: t.updatedAt || null,
+      const normalized = payload.map((item: any) => ({
+        _id: item._id,
+        direction: item.direction || "unknown",
+        fromAccountNumber: item.fromAccountNumber || "—",
+        toAccountNumber: item.toAccountNumber || "—",
+        amount: Number(item.amount || 0),
+        status: item.status || "unknown",
+        note: item.note || "",
+        failureReason: item.failureReason || null,
+        createdAt: item.createdAt || null,
+        updatedAt: item.updatedAt || null,
       }));
 
       setTransactionData(normalized);
@@ -375,18 +411,17 @@ export default function UserTransaction() {
     }
   }
 
-  // auto-fetch when tab or user changes
   useEffect(() => {
     const controller = new AbortController();
     fetchTransactionData(activeTab, controller.signal);
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, loggedUser?._id]);
 
-  /* ------------------------------ Derived --------------------------- */
   const filtered = useMemo(() => {
     if (!q.trim()) return transactionData;
+
     const term = q.trim().toLowerCase();
+
     return transactionData.filter((row) =>
       Object.values(row).some((v) =>
         String(v ?? "").toLowerCase().includes(term)
@@ -396,632 +431,641 @@ export default function UserTransaction() {
 
   const stats = useMemo(() => {
     if (activeTab === "deposit") {
-      const total = filtered.reduce((s, x: any) => s + (Number(x.deposit) || 0), 0);
+      const total = filtered.reduce((sum, item: any) => sum + (Number(item.deposit) || 0), 0);
       const approved = filtered.filter(
-        (x: any) => String(x.status).toLowerCase() === "approved"
+        (item: any) => String(item.status).toLowerCase() === "approved"
       ).length;
       const pending = filtered.filter(
-        (x: any) => String(x.status).toLowerCase() === "pending"
+        (item: any) => String(item.status).toLowerCase() === "pending"
       ).length;
-      return { total, a: approved, b: pending, title: "Deposits", aLabel: "Approved", bLabel: "Pending" };
+
+      return {
+        total,
+        a: approved,
+        b: pending,
+        title: "Deposits",
+        aLabel: "Approved",
+        bLabel: "Pending",
+      };
     }
 
     if (activeTab === "withdrawal") {
-      const total = filtered.reduce((s, x: any) => s + (Number(x.amount) || 0), 0);
+      const total = filtered.reduce((sum, item: any) => sum + (Number(item.amount) || 0), 0);
       const approved = filtered.filter(
-        (x: any) => String(x.status).toLowerCase() === "approved"
+        (item: any) => String(item.status).toLowerCase() === "approved"
       ).length;
       const pending = filtered.filter(
-        (x: any) => String(x.status).toLowerCase() === "pending"
+        (item: any) => String(item.status).toLowerCase() === "pending"
       ).length;
-      return { total, a: approved, b: pending, title: "Withdrawals", aLabel: "Approved", bLabel: "Pending" };
+
+      return {
+        total,
+        a: approved,
+        b: pending,
+        title: "Withdrawals",
+        aLabel: "Approved",
+        bLabel: "Pending",
+      };
     }
 
-    // account (DB transfers)
-    const totalAmount = filtered.reduce((s, x: any) => s + (Number(x.amount) || 0), 0);
-    const sentCount = filtered.filter((x: any) => String(x.direction).toLowerCase() === "sent").length;
-    const receivedCount = filtered.filter((x: any) => String(x.direction).toLowerCase() === "received").length;
-    return { total: totalAmount, a: sentCount, b: receivedCount, title: "Account Txn", aLabel: "Sent", bLabel: "Received" };
+    const totalAmount = filtered.reduce(
+      (sum, item: any) => sum + (Number(item.amount) || 0),
+      0
+    );
+    const sentCount = filtered.filter(
+      (item: any) => String(item.direction).toLowerCase() === "sent"
+    ).length;
+    const receivedCount = filtered.filter(
+      (item: any) => String(item.direction).toLowerCase() === "received"
+    ).length;
+
+    return {
+      total: totalAmount,
+      a: sentCount,
+      b: receivedCount,
+      title: "Account Transfers",
+      aLabel: "Sent",
+      bLabel: "Received",
+    };
   }, [filtered, activeTab]);
 
-  const pageBgStyle = useMemo(
-    () =>
-      ({
-        minHeight: "100vh",
-        background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(C.glow, 0.16)}, transparent 60%),
-                     radial-gradient(900px 480px at 82% 12%, ${rgba(C.primary, 0.12)}, transparent 55%),
-                     linear-gradient(135deg, ${rgb(C.bg)}, ${rgb(C.surface1)}, ${rgb(C.bg)})`,
-        color: rgb(C.fg),
-      } as React.CSSProperties),
-    [C]
-  );
+  const titleColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.96)
+    : "rgba(15,23,42,0.98)";
 
-  const headerGlowStyle = useMemo(
-    () =>
-      ({
-        borderRadius: C.radius,
-        border: `1px solid ${rgba(C.border, 0.14)}`,
-        background: `linear-gradient(90deg, ${rgba(C.surface2, 0.3)}, ${rgba(
-          C.surface1,
-          0.6
-        )}, ${rgba(C.surface2, 0.3)})`,
-        boxShadow: `0 0 44px ${rgba(C.glow, 0.22)}`,
-      } as React.CSSProperties),
-    [C]
-  );
+  const mutedTextColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.62)
+    : "rgba(100,116,139,0.96)";
 
-  const cardShellStyle = useMemo(
-    () =>
-      ({
-        borderRadius: "28px",
-        border: `1px solid ${rgba(C.border, 0.18)}`,
-        background: `linear-gradient(135deg, ${rgba(C.surface1, 0.86)}, ${rgba(
-          C.bg,
-          0.92
-        )}, ${rgba(C.surface1, 0.86)})`,
-        boxShadow: `0 0 110px ${rgba(C.glow, 0.14)}, inset 0 0 90px ${rgba(
-          "0 0 0",
-          0.35
-        )}`,
-      } as React.CSSProperties),
-    [C]
-  );
+  const accentColor = isDark
+    ? "rgba(96,165,250,0.95)"
+    : "rgba(249,115,22,0.95)";
 
-  const stickyBarStyle = useMemo(
-    () =>
-      ({
-        borderBottom: `1px solid ${rgba(C.border, 0.14)}`,
-        background: `linear-gradient(90deg, transparent, ${rgba(
-          C.accent,
-          0.05
-        )}, transparent)`,
-        backdropFilter: "blur(12px)",
-      } as React.CSSProperties),
-    [C]
-  );
+  const tabs = [
+    { key: "deposit", label: "Deposits", icon: <ArrowDownToLine className="h-4 w-4" /> },
+    { key: "withdrawal", label: "Withdrawals", icon: <ArrowUpToLine className="h-4 w-4" /> },
+    { key: "account", label: "Account Txn", icon: <Repeat2 className="h-4 w-4" /> },
+  ];
 
-  const tabs = useMemo(
-    () => [
-      { key: "deposit", label: "Deposits", Icon: ArrowDownToLine },
-      { key: "withdrawal", label: "Withdrawals", Icon: ArrowUpToLine },
-      { key: "account", label: "Account Txn", Icon: Repeat2 }, // DB transfers
-    ],
-    []
-  );
+  const statusStyle = (status: any) => {
+    const tone = statusTone(status);
 
-  const tabButtonStyle = (isActive: boolean) => {
-    if (isActive) {
+    if (tone === "approved") {
       return {
-        border: `1px solid ${rgba(C.success, 0.35)}`,
-        background: `linear-gradient(90deg, ${rgba(C.success, 0.92)}, ${rgba(
-          C.accent,
-          0.92
-        )})`,
-        color: rgb(C.primaryFg || "0 0 0"),
-        boxShadow: `0 14px 36px ${rgba(C.success, 0.22)}`,
-      } as React.CSSProperties;
+        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(16,185,129,0.18)",
+        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+      };
     }
+
+    if (tone === "pending") {
+      return {
+        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
+        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.18)",
+        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+      };
+    }
+
+    if (tone === "rejected") {
+      return {
+        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.18)",
+        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+      };
+    }
+
     return {
-      border: `1px solid ${rgba(C.border, 0.18)}`,
-      background: rgba(C.surface2, 0.14),
-      color: rgba(C.accentFg || C.fg, 0.82),
-    } as React.CSSProperties;
+      background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
+      border: isDark
+        ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+        : "1px solid rgba(251,146,60,0.14)",
+      color: titleColor,
+    };
   };
 
-  const inputStyle = useMemo(
-    () =>
-      ({
-        borderRadius: C.radius,
-        border: `1px solid ${rgba(C.border, isSearchFocused ? 0.3 : 0.18)}`,
-        background: rgba(theme?.input || C.surface2, 0.18),
-        color: rgba(C.fg, 0.92),
-        boxShadow: isSearchFocused ? `0 0 0 3px ${rgba(C.ring, 0.22)}` : "none",
-      } as React.CSSProperties),
-    [C, theme?.input, isSearchFocused]
-  );
-
-  const refreshBtnStyle = useMemo(
-    () =>
-      ({
-        borderRadius: C.radius,
-        border: `1px solid ${rgba(C.border, 0.2)}`,
-        background: rgba(C.surface2, 0.14),
-        color: rgba(C.accentFg || C.fg, 0.84),
-      } as React.CSSProperties),
-    [C]
-  );
-
-  const tableHeadStyle = useMemo(
-    () =>
-      ({
-        background: `linear-gradient(90deg, ${rgba(C.accent, 0.12)}, ${rgba(
-          C.primary,
-          0.1
-        )})`,
-        borderBottom: `1px solid ${rgba(C.border, 0.18)}`,
-      } as React.CSSProperties),
-    [C]
-  );
-
-  const thStyle = useMemo(
-    () =>
-      ({
-        color: rgba(C.accentFg || C.fg, 0.78),
-        letterSpacing: "0.08em",
-      } as React.CSSProperties),
-    [C]
-  );
-
-  /* ------------------------------- Render --------------------------- */
   return (
     <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="relative overflow-hidden"
-      style={pageBgStyle}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="w-full"
     >
-      <AnimatedGrid />
-      <FloatingOrbs />
-      <FloatingParticles />
-
-      <div className="relative z-10 p-6 lg:p-10">
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          whileHover="hover"
-          className="max-w-7xl mx-auto"
+      <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+        <div
+          className="border-b px-5 py-4 sm:px-6"
+          style={{
+            borderColor: isDark
+              ? rgba(theme?.border || "255 255 255", 0.1)
+              : "rgba(251,146,60,0.12)",
+            background: isDark
+              ? "rgba(255,255,255,0.02)"
+              : "rgba(255,255,255,0.38)",
+          }}
         >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <motion.div style={headerGlowStyle} className="inline-block px-5 py-4">
-              <div
-                className="flex items-center justify-center gap-2 mb-1"
-                style={{ color: rgba(C.accent, 0.92) }}
-              >
-                <Sparkles size={16} />
-                <span className="uppercase tracking-[0.25em] text-xs">
-                  trading · activity
-                </span>
-              </div>
-              <ModernHeading text="⚡ TRANSACTIONS ⚡" />
-            </motion.div>
+          <div className="mb-3 flex items-center gap-2">
+            <Activity className="h-4 w-4" style={{ color: accentColor }} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: mutedTextColor }}
+            >
+              trading · activity · records
+            </span>
           </div>
 
-          {/* Card */}
-          <motion.div variants={cardVariants} className="overflow-hidden" style={cardShellStyle}>
-            {/* Tabs + search + stats */}
-            <div className="sticky top-0 z-10 p-4 md:p-6" style={stickyBarStyle}>
-              <div className="flex flex-wrap items-center gap-3 justify-between">
-                <div className="flex flex-wrap gap-3">
-                  {tabs.map(({ key, label, Icon }) => {
-                    const isActive = activeTab === (key as any);
-                    return (
-                      <motion.button
-                        key={key}
-                        variants={tabVariants}
-                        initial="hidden"
-                        animate="visible"
-                        whileTap="tap"
-                        onClick={() => setActiveTab(key as any)}
-                        className="relative px-4 py-2 text-sm font-bold transition-all"
-                        style={{ borderRadius: C.radius, ...tabButtonStyle(isActive) }}
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <Icon size={16} />
-                          {label}
-                        </span>
-                        {isActive && (
-                          <motion.span
-                            layoutId="tab-underline"
-                            className="absolute -bottom-1 left-3 right-3 h-[3px] rounded-full"
-                            style={{ background: rgba("0 0 0", 0.35) }}
-                          />
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
+          <h1
+            className="text-3xl font-bold tracking-tight sm:text-4xl"
+            style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
+          >
+            Transactions
+          </h1>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <div className="relative flex-1 md:flex-none">
-                    <Search
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
-                      style={{ color: rgba(C.accent, 0.7) }}
-                    />
-                    <input
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      onFocus={() => setIsSearchFocused(true)}
-                      onBlur={() => setIsSearchFocused(false)}
-                      placeholder="Quick filter…"
-                      className="w-full md:w-64 pl-9 pr-3 py-2 outline-none transition"
-                      style={inputStyle}
-                    />
-                  </div>
+          <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
+            Review deposit, withdrawal, and account transfer activity in one
+            place.
+          </p>
+        </div>
 
+        <div className="p-4 sm:p-5 md:p-6">
+          <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-wrap gap-3">
+              {tabs.map((tab) => {
+                const active = activeTab === tab.key;
+
+                return (
                   <button
-                    onClick={() => fetchTransactionData(activeTab)}
-                    className="inline-flex items-center gap-2 px-3 py-2 transition"
-                    style={refreshBtnStyle}
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key as any)}
+                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300"
+                    style={{
+                      borderColor: active
+                        ? isDark
+                          ? "rgba(96,165,250,0.28)"
+                          : "rgba(249,115,22,0.24)"
+                        : isDark
+                        ? rgba(theme?.border || "255 255 255", 0.12)
+                        : "rgba(251,146,60,0.14)",
+                      background: active
+                        ? isDark
+                          ? "rgba(59,130,246,0.12)"
+                          : "rgba(255,237,213,0.72)"
+                        : isDark
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(255,255,255,0.84)",
+                      color: active
+                        ? accentColor
+                        : titleColor,
+                    }}
                   >
-                    <RefreshCcw size={16} />
-                    Refresh
+                    {tab.icon}
+                    {tab.label}
                   </button>
-                </div>
-              </div>
-
-              {/* Stats row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                <StatTile
-                  theme={theme}
-                  label={`${stats.title} Total`}
-                  value={`$${money(stats.total)}`}
-                  hint={activeTab === "account" ? "Sum of transfer amounts (DB)" : "Sum of amounts"}
-                  tone="pos"
-                />
-                <StatTile theme={theme} label={stats.aLabel} value={stats.a} tone="pos" />
-                <StatTile
-                  theme={theme}
-                  label={stats.bLabel}
-                  value={stats.b}
-                  tone={activeTab === "account" ? "warn" : "warn"}
-                />
-                <StatTile theme={theme} label="Rows" value={filtered.length} tone="neutral" />
-              </div>
+                );
+              })}
             </div>
 
-            {/* Content */}
-            <div className="p-4 md:p-6">
+            <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+              <div className="relative min-w-0 sm:flex-1 xl:w-72">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                  style={{ color: mutedTextColor }}
+                />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Quick filter..."
+                  className="w-full rounded-2xl border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                  style={{
+                    borderColor: isDark
+                      ? rgba(theme?.border || "255 255 255", 0.12)
+                      : "rgba(251,146,60,0.16)",
+                    background: isDark
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(255,255,255,0.9)",
+                    color: titleColor,
+                  }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fetchTransactionData(activeTab)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                style={{
+                  borderColor: isDark
+                    ? rgba(theme?.border || "255 255 255", 0.12)
+                    : "rgba(251,146,60,0.16)",
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.9)",
+                  color: titleColor,
+                }}
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<Wallet className="h-5 w-5" />}
+              label={`${stats.title} Total`}
+              value={money(stats.total)}
+              prefix="$"
+              tone="info"
+            />
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<CircleDollarSign className="h-5 w-5" />}
+              label={stats.aLabel}
+              value={stats.a}
+              tone="success"
+            />
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<Gauge className="h-5 w-5" />}
+              label={stats.bLabel}
+              value={stats.b}
+              tone="warning"
+            />
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<TrendingUp className="h-5 w-5" />}
+              label="Rows"
+              value={filtered.length}
+              tone="default"
+            />
+          </div>
+
+          <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+            <div className="overflow-x-auto">
               <AnimatePresence mode="wait">
-                {loading && (
+                {loading ? (
                   <motion.div
                     key="loading"
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.02 }}
-                    className="text-center py-12"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-5"
                   >
-                    <DynamicLoder />
-                    <motion.p
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="mt-4 font-mono tracking-widest"
-                      style={{ color: rgba(C.accent, 0.9) }}
-                    >
-                      FETCHING DATA…
-                    </motion.p>
+                    <div className="py-8 text-center">
+                      <DynamicLoder />
+                      <p
+                        className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]"
+                        style={{ color: mutedTextColor }}
+                      >
+                        Fetching data...
+                      </p>
+                    </div>
 
-                    <div
-                      className="mt-6 overflow-x-auto"
-                      style={{
-                        borderRadius: "20px",
-                        border: `1px solid ${rgba(C.border, 0.16)}`,
-                      }}
-                    >
+                    <SkeletonTable
+                      cols={activeTab === "account" ? 7 : 8}
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                  </motion.div>
+                ) : error ? (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="p-6"
+                  >
+                    <EmptyState
+                      title={error}
+                      subtitle="Please refresh or try another transaction tab."
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                  </motion.div>
+                ) : filtered.length === 0 ? (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-6"
+                  >
+                    <EmptyState
+                      title={`No ${activeTab} data available`}
+                      subtitle="Your records will appear here once available."
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="table"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                  >
+                    {activeTab === "account" ? (
                       <table className="w-full text-sm">
+                        <thead
+                          style={{
+                            background: isDark
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(255,255,255,0.75)",
+                            borderBottom: isDark
+                              ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
+                              : "1px solid rgba(251,146,60,0.12)",
+                          }}
+                        >
+                          <tr>
+                            {[
+                              "Direction",
+                              "From",
+                              "To",
+                              "Amount",
+                              "Note",
+                              "Status",
+                              "Time",
+                            ].map((head) => (
+                              <th
+                                key={head}
+                                className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em]"
+                                style={{ color: mutedTextColor }}
+                              >
+                                {head}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+
                         <tbody>
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <SkeletonRow
-                              key={i}
-                              cols={activeTab === "account" ? 7 : 9}
-                              theme={theme}
-                            />
+                          {filtered.map((item: any, i: number) => {
+                            const dir = String(item?.direction || "").toLowerCase();
+                            const dirColor =
+                              dir === "sent"
+                                ? isDark
+                                  ? "rgba(251,191,36,0.95)"
+                                  : "rgba(217,119,6,0.95)"
+                                : dir === "received"
+                                ? isDark
+                                  ? "rgba(52,211,153,0.95)"
+                                  : "rgba(5,150,105,0.95)"
+                                : accentColor;
+
+                            return (
+                              <tr
+                                key={item?._id || i}
+                                style={{
+                                  borderBottom: isDark
+                                    ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
+                                    : "1px solid rgba(251,146,60,0.10)",
+                                }}
+                              >
+                                <td className="px-4 py-3 text-center">
+                                  <span
+                                    className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold"
+                                    style={{
+                                      background: isDark
+                                        ? "rgba(255,255,255,0.03)"
+                                        : "rgba(255,255,255,0.82)",
+                                      borderColor: isDark
+                                        ? rgba(theme?.border || "255 255 255", 0.12)
+                                        : "rgba(251,146,60,0.14)",
+                                      color: dirColor,
+                                    }}
+                                  >
+                                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                                    {(dir || "unknown").toUpperCase()}
+                                  </span>
+                                </td>
+
+                                <td
+                                  className="px-4 py-3 text-center font-mono text-sm"
+                                  style={{ color: titleColor }}
+                                >
+                                  #{item?.fromAccountNumber || "—"}
+                                </td>
+
+                                <td
+                                  className="px-4 py-3 text-center font-mono text-sm"
+                                  style={{ color: titleColor }}
+                                >
+                                  #{item?.toAccountNumber || "—"}
+                                </td>
+
+                                <td
+                                  className="px-4 py-3 text-center font-semibold"
+                                  style={{ color: titleColor }}
+                                >
+                                  ${money(item?.amount)}
+                                </td>
+
+                                <td
+                                  className="px-4 py-3 text-center text-xs"
+                                  style={{ color: mutedTextColor }}
+                                >
+                                  {item?.note ? String(item.note).slice(0, 40) : "—"}
+                                  {item?.failureReason ? (
+                                    <div
+                                      className="mt-1"
+                                      style={{
+                                        color: isDark
+                                          ? "rgba(248,113,113,0.95)"
+                                          : "rgba(220,38,38,0.95)",
+                                      }}
+                                    >
+                                      {String(item.failureReason).slice(0, 60)}
+                                    </div>
+                                  ) : null}
+                                </td>
+
+                                <td className="px-4 py-3 text-center">
+                                  <span
+                                    className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
+                                    style={statusStyle(item?.status)}
+                                  >
+                                    {(item?.status || "UNKNOWN").toString().toUpperCase()}
+                                  </span>
+                                </td>
+
+                                <td
+                                  className="px-4 py-3 text-center text-xs"
+                                  style={{ color: mutedTextColor }}
+                                >
+                                  {formatDate(item?.createdAt)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <table className="w-full text-sm">
+                        <thead
+                          style={{
+                            background: isDark
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(255,255,255,0.75)",
+                            borderBottom: isDark
+                              ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
+                              : "1px solid rgba(251,146,60,0.12)",
+                          }}
+                        >
+                          <tr>
+                            {[
+                              "Account",
+                              "Type",
+                              activeTab === "withdrawal" ? "Amount" : "Deposit",
+                              "Method",
+                              "Requested",
+                              "Updated",
+                              activeTab === "deposit" ? "Proof" : "Balance",
+                              "Status",
+                            ].map((head) => (
+                              <th
+                                key={head}
+                                className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em]"
+                                style={{ color: mutedTextColor }}
+                              >
+                                {head}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {filtered.map((item: any, i: number) => (
+                            <tr
+                              key={`${item.mt5Account}-${i}`}
+                              style={{
+                                borderBottom: isDark
+                                  ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
+                                  : "1px solid rgba(251,146,60,0.10)",
+                              }}
+                            >
+                              <td
+                                className="px-4 py-3 text-center font-mono text-sm"
+                                style={{ color: titleColor }}
+                              >
+                                #{item?.mt5Account || "N/A"}
+                              </td>
+
+                              <td className="px-4 py-3 text-center">
+                                <span
+                                  className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
+                                  style={{
+                                    background: isDark
+                                      ? "rgba(59,130,246,0.10)"
+                                      : "rgba(255,237,213,0.72)",
+                                    borderColor: isDark
+                                      ? "rgba(59,130,246,0.18)"
+                                      : "rgba(251,146,60,0.16)",
+                                    color: accentColor,
+                                  }}
+                                >
+                                  {(item?.accountType || "N/A").toUpperCase()}
+                                </span>
+                              </td>
+
+                              <td
+                                className="px-4 py-3 text-center font-semibold"
+                                style={{ color: titleColor }}
+                              >
+                                $
+                                {money(
+                                  activeTab === "withdrawal"
+                                    ? item?.amount
+                                    : item?.deposit
+                                )}
+                              </td>
+
+                              <td className="px-4 py-3 text-center">
+                                <span
+                                  className="inline-flex rounded-lg border px-2 py-1 text-[11px] font-semibold"
+                                  style={{
+                                    background: isDark
+                                      ? "rgba(255,255,255,0.03)"
+                                      : "rgba(255,255,255,0.82)",
+                                    borderColor: isDark
+                                      ? rgba(theme?.border || "255 255 255", 0.12)
+                                      : "rgba(251,146,60,0.14)",
+                                    color: titleColor,
+                                  }}
+                                >
+                                  {(item?.method || "N/A").toString().toUpperCase()}
+                                </span>
+                              </td>
+
+                              <td
+                                className="px-4 py-3 text-center text-xs"
+                                style={{ color: mutedTextColor }}
+                              >
+                                {formatDate(item?.createdAt)}
+                              </td>
+
+                              <td
+                                className="px-4 py-3 text-center text-xs"
+                                style={{ color: mutedTextColor }}
+                              >
+                                {formatDate(item?.updatedAt)}
+                              </td>
+
+                              {activeTab === "deposit" ? (
+                                <td className="px-4 py-3 text-center">
+                                  {item?.depositSS ? (
+                                    <a
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      href={
+                                        String(item.depositSS).startsWith("http")
+                                          ? item.depositSS
+                                          : `${import.meta.env.VITE_BACKEND_BASE_URL}/${item.depositSS}`
+                                      }
+                                      className="text-xs font-semibold underline"
+                                      style={{ color: accentColor }}
+                                    >
+                                      View Proof
+                                    </a>
+                                  ) : (
+                                    <span
+                                      className="text-xs"
+                                      style={{ color: mutedTextColor }}
+                                    >
+                                      —
+                                    </span>
+                                  )}
+                                </td>
+                              ) : (
+                                <td
+                                  className="px-4 py-3 text-center font-semibold"
+                                  style={{ color: titleColor }}
+                                >
+                                  ${money(item?.lastBalance)}
+                                </td>
+                              )}
+
+                              <td className="px-4 py-3 text-center">
+                                <span
+                                  className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
+                                  style={statusStyle(item?.status)}
+                                >
+                                  {(item?.status || "UNKNOWN").toString().toUpperCase()}
+                                </span>
+                              </td>
+                            </tr>
                           ))}
                         </tbody>
                       </table>
-                    </div>
-                  </motion.div>
-                )}
-
-                {error && !loading && (
-                  <motion.div
-                    key="error"
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -14 }}
-                    className="text-center py-12"
-                  >
-                    <div
-                      className="rounded-2xl p-8 max-w-md mx-auto"
-                      style={{
-                        background: rgba(C.danger, 0.1),
-                        border: `1px solid ${rgba(C.danger, 0.28)}`,
-                      }}
-                    >
-                      <div className="text-6xl mb-4">⚠️</div>
-                      <p className="font-mono" style={{ color: rgba(C.danger, 0.92) }}>
-                        {error}
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {!loading && !error && filtered.length === 0 && (
-                  <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <EmptyState title={`No ${activeTab} data available.`} theme={theme} />
-                  </motion.div>
-                )}
-
-                {!loading && !error && filtered.length > 0 && (
-                  <motion.div
-                    key="data"
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -16 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    {/* Account Txn (DB Transfers) */}
-                    {activeTab === "account" ? (
-                      <div
-                        className="overflow-x-auto"
-                        style={{
-                          borderRadius: "20px",
-                          border: `1px solid ${rgba(C.border, 0.16)}`,
-                        }}
-                      >
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr style={tableHeadStyle}>
-                              {[
-                                "↔️ DIRECTION",
-                                "⬅️ FROM",
-                                "➡️ TO",
-                                "💰 AMOUNT",
-                                "📝 NOTE",
-                                "⚡ STATUS",
-                                "📅 TIME",
-                              ].map((h) => (
-                                <th
-                                  key={h}
-                                  className="text-center py-3 px-4 font-mono font-bold"
-                                  style={thStyle}
-                                >
-                                  {h}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filtered.map((item: any, i: number) => {
-                              const dir = String(item?.direction || "").toLowerCase();
-                              const dirCol = dir === "sent" ? C.warning : dir === "received" ? C.success : C.accent;
-
-                              return (
-                                <motion.tr
-                                  key={item?._id || i}
-                                  initial={{ opacity: 0, x: -40 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: i * 0.02 }}
-                                  whileHover={{
-                                    backgroundColor: rgba(C.accent, 0.06),
-                                    scale: 1.005,
-                                    transition: { duration: 0.15 },
-                                  }}
-                                  style={{
-                                    borderBottom: `1px solid ${rgba(C.border, 0.1)}`,
-                                  }}
-                                >
-                                  <td className="py-3 px-4 text-center">
-                                    <span
-                                      className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border"
-                                      style={{
-                                        background: rgba(dirCol, 0.14),
-                                        borderColor: rgba(dirCol, 0.28),
-                                        color: rgba(dirCol, 0.92),
-                                      }}
-                                    >
-                                      <ArrowRightLeft size={14} />
-                                      {(dir || "unknown").toUpperCase()}
-                                    </span>
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center font-mono" style={{ color: rgba(C.accent, 0.9) }}>
-                                    #{item?.fromAccountNumber || "—"}
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center font-mono" style={{ color: rgba(C.info, 0.92) }}>
-                                    #{item?.toAccountNumber || "—"}
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center font-mono font-extrabold" style={{ color: rgba(C.fg, 0.9) }}>
-                                    ${money(item?.amount)}
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center text-xs" style={{ color: rgba(C.mutedFg, 0.65) }}>
-                                    {item?.note ? String(item.note).slice(0, 40) : "—"}
-                                    {item?.failureReason ? (
-                                      <div style={{ color: rgba(C.danger, 0.85) }} className="mt-1">
-                                        {String(item.failureReason).slice(0, 60)}
-                                      </div>
-                                    ) : null}
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center">
-                                    <div
-                                      className="inline-flex items-center px-3 py-1.5 rounded-full font-bold text-[11px] font-mono tracking-wider"
-                                      style={statusStyle(item?.status)}
-                                    >
-                                      <span className="mr-1">
-                                        {statusTone(item?.status) === "pending"
-                                          ? "⏳"
-                                          : statusTone(item?.status) === "approved"
-                                          ? "✅"
-                                          : statusTone(item?.status) === "rejected"
-                                          ? "❌"
-                                          : "❓"}
-                                      </span>
-                                      {(item?.status || "UNKNOWN").toString().toUpperCase()}
-                                    </div>
-                                  </td>
-
-                                  <td className="py-3 px-4 text-center text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.55) }}>
-                                    {formatDate(item?.createdAt)}
-                                  </td>
-                                </motion.tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      /* Deposit / Withdrawal tables (same as before) */
-                      <div
-                        className="overflow-x-auto"
-                        style={{
-                          borderRadius: "20px",
-                          border: `1px solid ${rgba(C.border, 0.16)}`,
-                        }}
-                      >
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr style={tableHeadStyle}>
-                              {[
-                                "🔢 ACCOUNT",
-                                "🎯 TYPE",
-                                ...(activeTab === "withdrawal" ? ["💰 AMOUNT"] : []),
-                                ...(activeTab === "deposit" ? ["💳 DEPOSIT"] : []),
-                                "🔄 METHOD",
-                                "📅 REQUESTED",
-                                "🔁 UPDATED",
-                                ...(activeTab === "deposit" ? ["📎 PROOF"] : ["💼 BALANCE"]),
-                                "⚡ STATUS",
-                              ].map((h) => (
-                                <th
-                                  key={h}
-                                  className="text-center py-3 px-4 font-mono font-bold"
-                                  style={thStyle}
-                                >
-                                  {h}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            {filtered.map((item: any, i: number) => (
-                              <motion.tr
-                                key={`${item.mt5Account}-${i}`}
-                                initial={{ opacity: 0, x: -40 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.02 }}
-                                whileHover={{
-                                  backgroundColor: rgba(C.accent, 0.06),
-                                  scale: 1.005,
-                                  transition: { duration: 0.15 },
-                                }}
-                                style={{
-                                  borderBottom: `1px solid ${rgba(C.border, 0.1)}`,
-                                }}
-                              >
-                                <td className="py-3 px-4 text-center font-mono" style={{ color: rgba(C.accent, 0.9) }}>
-                                  #{item?.mt5Account || "N/A"}
-                                </td>
-
-                                <td className="py-3 px-4 text-center">
-                                  <span
-                                    className="px-3 py-1 rounded-full text-xs font-bold border"
-                                    style={{
-                                      background: rgba(C.primary, 0.14),
-                                      borderColor: rgba(C.primary, 0.28),
-                                      color: rgba(C.primary, 0.92),
-                                    }}
-                                  >
-                                    {(item?.accountType || "N/A").toUpperCase()}
-                                  </span>
-                                </td>
-
-                                {activeTab === "withdrawal" && (
-                                  <td className="py-3 px-4 text-center font-mono font-bold" style={{ color: rgba(C.success, 0.92) }}>
-                                    ${money(item?.amount)}
-                                  </td>
-                                )}
-
-                                {activeTab === "deposit" && (
-                                  <td className="py-3 px-4 text-center font-mono font-bold" style={{ color: rgba(C.success, 0.92) }}>
-                                    ${money(item?.deposit)}
-                                  </td>
-                                )}
-
-                                <td className="py-3 px-4 text-center">
-                                  <span
-                                    className="font-mono text-xs px-2 py-1 rounded"
-                                    style={{
-                                      background: rgba(C.surface2, 0.22),
-                                      border: `1px solid ${rgba(C.border, 0.12)}`,
-                                      color: rgba(C.info, 0.92),
-                                    }}
-                                  >
-                                    {(item?.method || "N/A").toString().toUpperCase()}
-                                  </span>
-                                </td>
-
-                                <td className="py-3 px-4 text-center text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.55) }}>
-                                  {formatDate(item?.createdAt)}
-                                </td>
-
-                                <td className="py-3 px-4 text-center text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.55) }}>
-                                  {formatDate(item?.updatedAt)}
-                                </td>
-
-                                {activeTab === "deposit" ? (
-                                  <td className="py-3 px-4 text-center">
-                                    {item?.depositSS ? (
-                                      <a
-                                        className="font-mono underline hover:opacity-90"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        style={{ color: rgba(C.info, 0.92) }}
-                                        href={
-                                          String(item.depositSS).startsWith("http")
-                                            ? item.depositSS
-                                            : `${import.meta.env.VITE_BACKEND_BASE_URL}/${item.depositSS}`
-                                        }
-                                      >
-                                        VIEW 📄
-                                      </a>
-                                    ) : (
-                                      <span style={{ color: rgba(C.mutedFg, 0.45) }}>—</span>
-                                    )}
-                                  </td>
-                                ) : (
-                                  <td className="py-3 px-4 text-center font-mono font-bold" style={{ color: rgba(C.warning, 0.92) }}>
-                                    ${money(item?.lastBalance)}
-                                  </td>
-                                )}
-
-                                <td className="py-3 px-4 text-center">
-                                  <div
-                                    className="inline-flex items-center px-3 py-1.5 rounded-full font-bold text-[11px] font-mono tracking-wider"
-                                    style={statusStyle(item?.status)}
-                                  >
-                                    <span className="mr-1">
-                                      {statusTone(item?.status) === "pending"
-                                        ? "⏳"
-                                        : statusTone(item?.status) === "approved"
-                                        ? "✅"
-                                        : statusTone(item?.status) === "rejected"
-                                        ? "❌"
-                                        : "❓"}
-                                    </span>
-                                    {(item?.status || "UNKNOWN").toString().toUpperCase()}
-                                  </div>
-                                </td>
-                              </motion.tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-          </motion.div>
-        </motion.div>
-      </div>
+          </SectionCard>
+        </div>
+      </SectionCard>
     </motion.div>
   );
 }

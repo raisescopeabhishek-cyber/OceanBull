@@ -40,7 +40,6 @@ const UserRoutes = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
 
         <Route path="dashboard" element={<UserDashboard />} />
-        <Route path="new-challenge" element={<UserNewChallenge />} />
         <Route path="challenges" element={<UserChallenges />} />
         <Route path="transaction" element={<UserTransaction />} />
         <Route path="trade-history" element={<UserTradeHistory />} />

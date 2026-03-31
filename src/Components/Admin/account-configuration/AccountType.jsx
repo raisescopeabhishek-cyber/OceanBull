@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { backendApi } from "../../../utils/apiClients";
+import { superAdminApi } from "../../../utils/apiClients";
 
 const AccountTypes = () => {
   const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
@@ -29,7 +29,7 @@ const AccountTypes = () => {
   const fetchAccountTypes = async () => {
     setIsFetching(true);
     try {
-      const res = await backendApi.get(`/get-custom-groups`);
+      const res = await superAdminApi.get(`/get-custom-groups`);
       setAccountTypes(res.data.data || []);
     } catch (error) {
       console.log("Error fetching account types", error);
@@ -42,7 +42,7 @@ const AccountTypes = () => {
   const fetchExistingData = async () => {
     setIsFetching(true);
     try {
-      const res = await backendApi.get(`/get-account-types`);
+      const res = await superAdminApi.get(`/get-account-types`);
       setExistingData(res.data.data || []);
     } catch (error) {
       console.log("Error fetching existing account types data", error);
@@ -104,7 +104,7 @@ const AccountTypes = () => {
     setIsLoading(true);
 
     try {
-      const res = await backendApi.post(`/add-account-type`, {
+      const res = await superAdminApi.post(`/add-account-type`, {
         apiGroup: newAccountType.apiGroup,
         accountType: newAccountType.accountType,
         leverage: newAccountType.leverage,
@@ -138,7 +138,7 @@ const AccountTypes = () => {
 
     setIsLoading(true);
     try {
-      await backendApi.delete(`/delete-account-type?id=${id}`);
+      await superAdminApi.delete(`/delete-account-type?id=${id}`);
       toast.success("Account type deleted successfully!");
       fetchExistingData();
     } catch (error) {

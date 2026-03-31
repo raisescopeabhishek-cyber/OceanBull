@@ -41,11 +41,6 @@ const modules = [
     icon: <ShieldEllipsis className="w-5 h-5" />,
     children: [
       {
-        name: "New Challenge",
-        path: "/user/new-challenge",
-        icon: <CircleFadingPlus className="w-4 h-4" />,
-      },
-      {
         name: "My Challenges",
         path: "/user/challenges",
         icon: <ShieldCheck className="w-4 h-4" />,
@@ -95,28 +90,28 @@ const modules = [
   },
 
 
-      {
-    name: "Referral",
-    path: "/user/platform",
-    subtitle: "Access Tools",
-    icon: <Users2 className="w-5 h-5" />,
-  },
+  //     {
+  //   name: "Referral",
+  //   path: "/user/platform",
+  //   subtitle: "Access Tools",
+  //   icon: <Users2 className="w-5 h-5" />,
+  // },
 
 
-       {
-    name: "Copy Trading",
-    path: "/user/platform",
-    subtitle: "Access Tools",
-    icon: <Copy className="w-5 h-5" />,
-  },
+  //      {
+  //   name: "Copy Trading",
+  //   path: "/user/platform",
+  //   subtitle: "Access Tools",
+  //   icon: <Copy className="w-5 h-5" />,
+  // },
 
 
-   {
-    name: "Support",
-    path: "/user/platform",
-    subtitle: "Access Tools",
-    icon: <LifeBuoy className="w-5 h-5" />,
-  },
+  //  {
+  //   name: "Support",
+  //   path: "/user/platform",
+  //   subtitle: "Access Tools",
+  //   icon: <LifeBuoy className="w-5 h-5" />,
+  // },
 
 
   // {

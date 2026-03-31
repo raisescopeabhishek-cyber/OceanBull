@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronDown,
-  Sparkles,
   Coins,
-  Cpu,
   ShieldCheck,
+  Cpu,
   Zap,
-  CheckCircle2,
+  Check,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { setLoggedUser } from "../../redux/user/userSlice";
+import {
+  closeNewChallengeModal,
+  setLoggedUser,
+} from "../../redux/user/userSlice";
 import { userApi } from "../../utils/apiClients";
 import UserNewChallengeHook from "../../hooks/user/UseNewChallengeHook";
 import UseUserHook from "../../hooks/user/UseUserHook";
@@ -30,94 +32,95 @@ const safeRgbParts = (v: any) => {
   return { r, g, b };
 };
 
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
 const rgba = (v: any, a = 1) => {
   const { r, g, b } = safeRgbParts(v);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-function SectionCard({
-  children,
-  theme,
+function SmallChip({
+  label,
+  active,
+  onClick,
   isDark,
-  className = "",
+  theme,
 }: {
-  children: React.ReactNode;
-  theme: any;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
   isDark: boolean;
-  className?: string;
+  theme: any;
 }) {
   return (
-    <div
-      className={[
-        "rounded-[24px] border transition-all duration-300",
-        className,
-      ].join(" ")}
+    <motion.button
+      type="button"
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="rounded-full border px-3 py-2 text-[11px] font-medium transition-all duration-200"
       style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
-        background: isDark
-          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
-        boxShadow: isDark
-          ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(251,146,60,0.10)",
-        backdropFilter: "blur(10px)",
+        borderColor: active
+          ? isDark
+            ? "rgba(96,165,250,0.30)"
+            : "rgba(249,115,22,0.24)"
+          : isDark
+          ? rgba(theme?.border || "255 255 255", 0.08)
+          : "rgba(251,146,60,0.12)",
+        background: active
+          ? isDark
+            ? "rgba(59,130,246,0.12)"
+            : "rgba(249,115,22,0.10)"
+          : isDark
+          ? "rgba(255,255,255,0.02)"
+          : "rgba(255,255,255,0.86)",
+        color: active
+          ? isDark
+            ? "rgba(224,242,254,0.98)"
+            : "rgba(194,65,12,0.96)"
+          : isDark
+          ? rgba(theme?.fg || "255 255 255", 0.88)
+          : "rgba(30,41,59,0.96)",
       }}
     >
-      {children}
-    </div>
+      {label}
+    </motion.button>
   );
 }
 
-function SummaryRow({
-  label,
-  value,
-  theme,
+function SectionLabel({
+  icon,
+  title,
   isDark,
+  theme,
 }: {
-  label: string;
-  value: string;
-  theme: any;
+  icon: React.ReactNode;
+  title: string;
   isDark: boolean;
+  theme: any;
 }) {
   return (
-    <div
-      className="flex items-center justify-between rounded-2xl border px-4 py-3"
-      style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
-        background: isDark
-          ? "rgba(255,255,255,0.025)"
-          : "rgba(255,255,255,0.78)",
-      }}
-    >
+    <div className="mb-2 flex items-center gap-2">
+      <div
+        className="flex h-7 w-7 items-center justify-center rounded-xl"
+        style={{
+          background: isDark
+            ? "rgba(255,255,255,0.04)"
+            : "rgba(249,115,22,0.08)",
+          color: isDark
+            ? rgba(theme?.accent || "96 165 250", 0.95)
+            : "rgba(249,115,22,0.95)",
+        }}
+      >
+        {icon}
+      </div>
+
       <span
-        className="text-sm"
+        className="text-[11px] font-semibold uppercase tracking-[0.18em]"
         style={{
           color: isDark
             ? rgba(theme?.fg || "255 255 255", 0.58)
             : "rgba(100,116,139,0.95)",
         }}
       >
-        {label}
-      </span>
-
-      <span
-        className="text-sm font-semibold"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.92)
-            : "rgba(30,41,59,0.96)",
-        }}
-      >
-        {value}
+        {title}
       </span>
     </div>
   );
@@ -130,6 +133,9 @@ export default function UserNewChallenge() {
   const loggedUser = useSelector((store: any) => store.user?.loggedUser);
   const siteConfig = useSelector((state: any) => state.user?.siteConfig);
   const platformData = useSelector((store: any) => store.user?.platforms);
+  const isOpen = useSelector(
+    (state: any) => state.user?.isNewChallengeModalOpen
+  );
   const mode = useSelector((state: any) => state.userTheme?.mode || "light");
   const themeConfig = useSelector((state: any) => state.user?.themeConfig);
 
@@ -175,10 +181,11 @@ export default function UserNewChallenge() {
   };
 
   useEffect(() => {
+    if (!isOpen) return;
     getPlatforms();
     getPaymentMethod();
     fetchAccountConfigurations();
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (selectedConfig?.leverage?.length) {
@@ -199,22 +206,9 @@ export default function UserNewChallenge() {
     }
   }, [filteredPlatformData]);
 
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-
-    if (name === "accountType") {
-      const cfg = accountConfigurations?.find((c) => c.accountType === value);
-
-      setFormData((prev) => ({
-        ...prev,
-        accountType: value,
-        apiGroup: cfg?.apiGroup || "",
-        leverage: cfg?.leverage?.[0]?.value || "",
-      }));
-      return;
-    }
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleClose = () => {
+    if (creatingLoading) return;
+    dispatch(closeNewChallengeModal());
   };
 
   const createAccountHandler = async () => {
@@ -247,6 +241,7 @@ export default function UserNewChallenge() {
         toast.success("Account created successfully!", { id: toastId });
         dispatch(setLoggedUser(response.data.user));
         getUpdateLoggedUser?.();
+        dispatch(closeNewChallengeModal());
         navigate("/user/challenges");
       } else {
         toast.error(response?.data?.message || "Failed to create account", {
@@ -263,338 +258,314 @@ export default function UserNewChallenge() {
     }
   };
 
-  const iconAccent = {
-    color: isDark
-      ? rgba(theme?.accent || "96 165 250", 0.95)
-      : "rgba(249,115,22,0.95)",
-  };
-
-  const mutedTextColor = isDark
-    ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
-
   const titleColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.96)
     : "rgba(15,23,42,0.98)";
 
-  const selectStyle: React.CSSProperties = {
-    width: "100%",
-    borderRadius: "16px",
-    padding: "13px 42px 13px 14px",
-    outline: "none",
-    appearance: "none",
-    WebkitAppearance: "none",
-    MozAppearance: "none",
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(30,41,59,0.96)",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.16)",
-  };
-
-  const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#ffffff",
-    color: isDark ? "#ffffff" : "#0f172a",
-  };
-
-  const primaryButtonStyle: React.CSSProperties = {
-    borderRadius: "999px",
-    color: "#fff",
-    background: isDark
-      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
-      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
-    boxShadow: isDark
-      ? "0 14px 34px rgba(59,130,246,0.22)"
-      : "0 14px 34px rgba(249,115,22,0.18)",
-  };
+  const mutedText = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.58)
+    : "rgba(100,116,139,0.95)";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full"
-    >
-      <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
-        <div
-          className="border-b px-5 py-4 sm:px-6"
+    <AnimatePresence>
+      {isOpen ? (
+        <motion.div
+          key="new-challenge-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5"
           style={{
-            borderColor: isDark
-              ? rgba(theme?.border || "255 255 255", 0.1)
-              : "rgba(251,146,60,0.12)",
-            background: isDark
-              ? "rgba(255,255,255,0.02)"
-              : "rgba(255,255,255,0.38)",
+            background: "rgba(37, 99, 235, 0.28)",
+            backdropFilter: "blur(8px)",
           }}
+          onClick={handleClose}
         >
-          <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-4 w-4" style={iconAccent} />
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-              style={{ color: mutedTextColor }}
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 14, scale: 0.98 }}
+            transition={{ duration: 0.22 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-4xl rounded-[26px] border"
+            style={{
+              borderColor: isDark
+                ? rgba(theme?.border || "255 255 255", 0.08)
+                : "rgba(251,146,60,0.14)",
+              background: isDark
+                ? "linear-gradient(180deg, rgba(15,23,42,0.97), rgba(2,6,23,0.98))"
+                : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,248,243,0.97))",
+              boxShadow: isDark
+                ? "0 24px 60px rgba(0,0,0,0.35)"
+                : "0 24px 60px rgba(37,99,235,0.16)",
+            }}
+          >
+            {/* header */}
+            <div
+              className="flex items-start justify-between gap-3 border-b px-4 py-3 sm:px-5"
+              style={{
+                borderColor: isDark
+                  ? rgba(theme?.border || "255 255 255", 0.08)
+                  : "rgba(251,146,60,0.10)",
+              }}
             >
-              accounts · mt5 · setup
-            </span>
-          </div>
+              <div>
+                <h2
+                  className="text-sm font-semibold sm:text-[15px]"
+                  style={{
+                    color: titleColor,
+                    fontFamily: "'Poppins', sans-serif",
+                  }}
+                >
+                  Open MT5 Account
+                </h2>
+                <p className="mt-1 text-[10px] sm:text-[11px]" style={{ color: mutedText }}>
+                  Select details and create your account.
+                </p>
+              </div>
 
-         <h1
-  className="text-3xl font-bold sm:text-4xl"
-  style={{
-    color: titleColor,
-    fontFamily: "'Poppins', sans-serif",
-  }}
->
-  Open MT5 Account
-</h1>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex h-8 w-8 items-center justify-center rounded-xl border transition-all"
+                style={{
+                  borderColor: isDark
+                    ? rgba(theme?.border || "255 255 255", 0.08)
+                    : "rgba(251,146,60,0.12)",
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.85)",
+                  color: mutedText,
+                }}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-          <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
-            Pick your account type, leverage, and platform to create a new
-            trading account.
-          </p>
-        </div>
-
-        <div className="p-4 sm:p-5 md:p-6">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-            <div className="lg:col-span-7">
-              <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {/* body */}
+            <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_0.9fr]">
+                <div className="space-y-4">
                   <div>
-                    <label
-                      className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                      style={{ color: titleColor }}
-                    >
-                      <Coins className="h-4 w-4" style={iconAccent} />
-                      1. Choose Account Type
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        name="accountType"
-                        value={formData.accountType}
-                        onChange={handleInputChange}
-                        style={selectStyle}
-                      >
-                        <option value="" disabled style={optionStyle}>
-                          Select Account Type
-                        </option>
-
-                        {accountConfigurations?.map((opt) => (
-                          <option
-                            key={opt.accountType}
-                            value={opt.accountType}
-                            style={optionStyle}
-                          >
-                            {opt.accountType}
-                          </option>
-                        ))}
-                      </select>
-
-                      <ChevronDown
-                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                        style={{ color: mutedTextColor }}
-                      />
+                    <SectionLabel
+                      icon={<Coins className="h-3.5 w-3.5" />}
+                      title="Account Type"
+                      isDark={isDark}
+                      theme={theme}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {accountConfigurations?.map((item: any) => (
+                        <SmallChip
+                          key={item.accountType}
+                          label={item.accountType}
+                          active={formData.accountType === item.accountType}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              accountType: item.accountType,
+                              apiGroup: item.apiGroup || "",
+                              leverage: item?.leverage?.[0]?.value || "",
+                            }))
+                          }
+                          isDark={isDark}
+                          theme={theme}
+                        />
+                      ))}
                     </div>
                   </div>
 
                   <div>
-                    <label
-                      className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                      style={{ color: titleColor }}
-                    >
-                      <ShieldCheck className="h-4 w-4" style={iconAccent} />
-                      2. Choose Leverage
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        name="leverage"
-                        value={formData.leverage}
-                        onChange={handleInputChange}
-                        disabled={!selectedConfig?.leverage?.length}
-                        style={{
-                          ...selectStyle,
-                          opacity: !selectedConfig?.leverage?.length ? 0.6 : 1,
-                          cursor: !selectedConfig?.leverage?.length
-                            ? "not-allowed"
-                            : "pointer",
-                        }}
-                      >
-                        <option value="" disabled style={optionStyle}>
-                          {selectedConfig?.leverage?.length
-                            ? "Select Leverage"
-                            : "Select account type first"}
-                        </option>
-
-                        {selectedConfig?.leverage?.map((item: any) => (
-                          <option
+                    <SectionLabel
+                      icon={<ShieldCheck className="h-3.5 w-3.5" />}
+                      title="Leverage"
+                      isDark={isDark}
+                      theme={theme}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {selectedConfig?.leverage?.length ? (
+                        selectedConfig.leverage.map((item: any) => (
+                          <SmallChip
                             key={item.value}
-                            value={item.value}
-                            style={optionStyle}
-                          >
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <ChevronDown
-                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                        style={{ color: mutedTextColor }}
-                      />
+                            label={item.label}
+                            active={formData.leverage === item.value}
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                leverage: item.value,
+                              }))
+                            }
+                            isDark={isDark}
+                            theme={theme}
+                          />
+                        ))
+                      ) : (
+                        <div
+                          className="rounded-full border px-3 py-2 text-[11px]"
+                          style={{
+                            borderColor: isDark
+                              ? rgba(theme?.border || "255 255 255", 0.08)
+                              : "rgba(251,146,60,0.12)",
+                            background: isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(255,255,255,0.84)",
+                            color: mutedText,
+                          }}
+                        >
+                          Select account type first
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-7">
-                  <label
-                    className="mb-3 flex items-center gap-2 text-sm font-semibold"
-                    style={{ color: titleColor }}
-                  >
-                    <Cpu className="h-4 w-4" style={iconAccent} />
-                    3. Choose Your Platform
-                  </label>
+                <div>
+                  <SectionLabel
+                    icon={<Cpu className="h-3.5 w-3.5" />}
+                    title="Platform"
+                    isDark={isDark}
+                    theme={theme}
+                  />
 
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <AnimatePresence initial={false}>
-                      {filteredPlatformData?.map((platform: any, index: number) => {
-                        const active = formData.platform === platform.name;
+                  <div className="space-y-2">
+                    {filteredPlatformData?.map((platform: any) => {
+                      const active = formData.platform === platform.name;
 
-                        return (
-                          <motion.button
-                            key={platform.name}
-                            type="button"
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.04 }}
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                platform: platform.name,
-                              }))
-                            }
-                            className="rounded-2xl border px-4 py-4 transition-all duration-300"
-                            style={{
-                              borderColor: active
-                                ? isDark
-                                  ? "rgba(96,165,250,0.35)"
-                                  : "rgba(249,115,22,0.28)"
-                                : isDark
-                                ? rgba(theme?.border || "255 255 255", 0.1)
-                                : "rgba(251,146,60,0.14)",
-                              background: active
-                                ? isDark
-                                  ? "rgba(59,130,246,0.10)"
-                                  : "rgba(255,237,213,0.72)"
-                                : isDark
-                                ? "rgba(255,255,255,0.02)"
-                                : "rgba(255,255,255,0.82)",
-                              boxShadow: active
-                                ? isDark
-                                  ? "0 0 0 1px rgba(96,165,250,0.18)"
-                                  : "0 0 0 1px rgba(249,115,22,0.14)"
-                                : "none",
-                            }}
-                          >
-                            <div className="flex flex-col items-center justify-center gap-2 text-center">
-                              <span className="text-2xl">{platform.logo ?? "🧭"}</span>
-                              <span
-                                className="text-sm font-semibold"
+                      return (
+                        <motion.button
+                          key={platform.name}
+                          type="button"
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              platform: platform.name,
+                            }))
+                          }
+                          className="flex w-full items-center justify-between rounded-[16px] border px-3 py-3 text-left transition-all duration-200"
+                          style={{
+                            borderColor: active
+                              ? isDark
+                                ? "rgba(96,165,250,0.28)"
+                                : "rgba(249,115,22,0.22)"
+                              : isDark
+                              ? rgba(theme?.border || "255 255 255", 0.08)
+                              : "rgba(251,146,60,0.12)",
+                            background: active
+                              ? isDark
+                                ? "rgba(59,130,246,0.10)"
+                                : "rgba(249,115,22,0.08)"
+                              : isDark
+                              ? "rgba(255,255,255,0.02)"
+                              : "rgba(255,255,255,0.86)",
+                          }}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className="flex h-9 w-9 items-center justify-center rounded-xl text-sm"
+                              style={{
+                                background: isDark
+                                  ? "rgba(255,255,255,0.05)"
+                                  : "rgba(249,115,22,0.06)",
+                              }}
+                            >
+                              {platform.logo ?? "🧭"}
+                            </div>
+
+                            <div>
+                              <div
+                                className="text-xs font-semibold"
                                 style={{
                                   color: active
                                     ? isDark
-                                      ? "rgba(191,219,254,0.96)"
+                                      ? "rgba(224,242,254,0.96)"
                                       : "rgba(194,65,12,0.96)"
                                     : titleColor,
                                 }}
                               >
                                 {platform.name}
-                              </span>
+                              </div>
+                              <div className="text-[10px]" style={{ color: mutedText }}>
+                                Platform
+                              </div>
                             </div>
-                          </motion.button>
-                        );
-                      })}
-                    </AnimatePresence>
+                          </div>
+
+                          {active ? (
+                            <Check
+                              className="h-4 w-4"
+                              style={{
+                                color: isDark
+                                  ? "rgba(125,211,252,0.96)"
+                                  : "rgba(249,115,22,0.95)",
+                              }}
+                            />
+                          ) : null}
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-8 flex justify-center sm:justify-start">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: creatingLoading ? 1 : 1.02 }}
-                    whileTap={{ scale: creatingLoading ? 1 : 0.98 }}
-                    onClick={createAccountHandler}
-                    disabled={creatingLoading}
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
-                    style={{
-                      ...primaryButtonStyle,
-                      opacity: creatingLoading ? 0.65 : 1,
-                      cursor: creatingLoading ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    <Zap className="h-4 w-4" />
-                    {creatingLoading ? "Creating..." : "Create Account"}
-                  </motion.button>
-                </div>
-              </SectionCard>
-            </div>
+              <div
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[18px] border px-3 py-3"
+                style={{
+                  borderColor: isDark
+                    ? rgba(theme?.border || "255 255 255", 0.08)
+                    : "rgba(251,146,60,0.12)",
+                  background: isDark
+                    ? "rgba(255,255,255,0.02)"
+                    : "rgba(255,255,255,0.78)",
+                }}
+              >
+                <span className="text-[10px] font-medium" style={{ color: mutedText }}>
+                  Type: <span style={{ color: titleColor }}>{formData.accountType || "—"}</span>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: mutedText }}>
+                  Leverage: <span style={{ color: titleColor }}>{formData.leverage || "—"}</span>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: mutedText }}>
+                  Platform: <span style={{ color: titleColor }}>{formData.platform || "—"}</span>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: mutedText }}>
+                  Server: <span style={{ color: titleColor }}>{siteConfig?.serverName || "—"}</span>
+                </span>
+              </div>
 
-            <div className="lg:col-span-5">
-              <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" style={iconAccent} />
-                  <h3 className="text-lg font-semibold" style={{ color: titleColor }}>
-                    Review & Summary
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  <SummaryRow
-                    label="Account Type"
-                    value={formData.accountType || "—"}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <SummaryRow
-                    label="Leverage"
-                    value={formData.leverage || "—"}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <SummaryRow
-                    label="Platform"
-                    value={formData.platform || "—"}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <SummaryRow
-                    label="Server Name"
-                    value={siteConfig?.serverName || "—"}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                </div>
-
-                <div
-                  className="mt-5 rounded-2xl border px-4 py-3 text-xs leading-5"
+              <div>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: creatingLoading ? 1 : 1.01 }}
+                  whileTap={{ scale: creatingLoading ? 1 : 0.985 }}
+                  onClick={createAccountHandler}
+                  disabled={creatingLoading}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-semibold text-white"
                   style={{
-                    borderColor: isDark
-                      ? rgba(theme?.border || "255 255 255", 0.1)
-                      : "rgba(251,146,60,0.14)",
                     background: isDark
-                      ? "rgba(255,255,255,0.02)"
-                      : "rgba(255,255,255,0.72)",
-                    color: mutedTextColor,
+                      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
+                      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+                    boxShadow: isDark
+                      ? "0 12px 28px rgba(59,130,246,0.18)"
+                      : "0 12px 28px rgba(249,115,22,0.14)",
+                    opacity: creatingLoading ? 0.65 : 1,
+                    cursor: creatingLoading ? "not-allowed" : "pointer",
                   }}
                 >
-                  By creating an account, you agree to the trading terms and
-                  risk disclosure.
-                </div>
-              </SectionCard>
+                  <Zap className="h-3.5 w-3.5" />
+                  {creatingLoading ? "Creating..." : "Create Account"}
+                </motion.button>
+
+                <p
+                  className="mt-2 text-center text-[10px] leading-4"
+                  style={{ color: mutedText }}
+                >
+                  By creating an account, you agree to the trading terms and risk disclosure.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </SectionCard>
-    </motion.div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }

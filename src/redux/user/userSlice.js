@@ -3,6 +3,7 @@ import { fetchCurrentUser } from "../AsyncThunk/fetchCurrentUser";
 
 const initialState = {
   isSidebarOpen: false,
+  isNewChallengeModalOpen: false,
   openTrades: [],
   loggedUser: "",
   platforms: [],
@@ -23,9 +24,19 @@ export const userSlice = createSlice({
     handleToggleSidebar: (state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
     },
+
+    openNewChallengeModal: (state) => {
+      state.isNewChallengeModalOpen = true;
+    },
+
+    closeNewChallengeModal: (state) => {
+      state.isNewChallengeModalOpen = false;
+    },
+
     setOpenTrades: (state, action) => {
       state.openTrades = action.payload;
     },
+
     setLoggedUser: (state, action) => {
       const payload = action.payload;
       console.log(payload);
@@ -38,7 +49,6 @@ export const userSlice = createSlice({
       if (isPlainObject) {
         state.loggedUser = payload;
       }
-      // else: ignore (array/other types state me nahi jayenge)
     },
 
     setPlatforms: (state, action) => {
@@ -65,7 +75,6 @@ export const userSlice = createSlice({
     setIbAccountsData: (state, action) => {
       state.ibAccountsData = action.payload;
     },
-
     setNotification: (state, action) => {
       state.notification = action.payload;
     },
@@ -83,19 +92,17 @@ export const userSlice = createSlice({
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
-         const payload = action.payload;
-      console.log(payload);
+        const payload = action.payload;
+        console.log(payload);
 
-      const isPlainObject =
-        payload !== null &&
-        typeof payload === "object" &&
-        !Array.isArray(payload);
+        const isPlainObject =
+          payload !== null &&
+          typeof payload === "object" &&
+          !Array.isArray(payload);
 
-      if (isPlainObject) {
-        state.loggedUser = payload;
-      }
-
-      
+        if (isPlainObject) {
+          state.loggedUser = payload;
+        }
       })
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.loading = false;
@@ -119,6 +126,8 @@ export const {
   setAccountStats,
   setIbAccountsData,
   resetTheme,
+  openNewChallengeModal,
+  closeNewChallengeModal,
 } = userSlice.actions;
 
 export default userSlice.reducer;

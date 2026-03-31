@@ -6,6 +6,7 @@ import { ShieldCheck, Sparkles, Lock } from "lucide-react";
 import sidebarBg from "@/assets/sidebar.png";
 import UserHeader from "@/Components/user/Header/UserHeader";
 import UserSidebar from "@/Components/user/UserSidebar";
+import UserNewChallenge from "@/Components/user/UserNewChallenge";
 
 const UserLayout = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
@@ -331,7 +332,9 @@ const UserLayout = () => {
             </div>
           </div>
         </main>
+
       </div>
+      <UserNewChallenge />
     </div>
   );
 };

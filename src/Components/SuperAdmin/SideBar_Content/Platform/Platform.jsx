@@ -68,7 +68,7 @@ export default function Platform() {
   const deletePlatform = async (id) => {
     const toastId = toast.loading("Please wait...");
     try {
-      const res = await superAdminApi.delete(`/delete-platform/?id=${id}`);
+      const res = await superAdminApi.delete(`/delete-platform?id=${id}`);
 
       if (res.data.status) {
         setPlatformData((prev) =>

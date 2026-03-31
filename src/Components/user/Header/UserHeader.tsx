@@ -13,6 +13,10 @@ import {
   Copy,
   LifeBuoy,
 } from "lucide-react";
+
+import { openNewChallengeModal } from "../../../redux/user/userSlice";
+
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
@@ -386,9 +390,9 @@ const UserHeader = () => {
         <div className="relative flex items-center gap-2 md:gap-3">
           <p
             className="hidden cursor-pointer whitespace-nowrap text-sm font-semibold sm:block"
-            onClick={() => navigate("/user/referrals")}
+           onClick={() => dispatch(openNewChallengeModal())}
           >
-            Network
+            Challenge
           </p>
 
           <button

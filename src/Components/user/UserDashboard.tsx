@@ -162,21 +162,20 @@ export default function UserDashboard() {
                  )}, ${rgb(theme?.surface1 || theme?.bg || "0 0 0")}, ${rgb(
       theme?.bg || "0 0 0"
     )})`,
-    color: rgb(theme?.fg || "255 255 255"),
+    color: "",
   } as React.CSSProperties;
 
   return (
     <motion.div
       className="p-4 md:p-6 pb-10 relative overflow-hidden"
-      style={pageBgStyle}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <FloatingParticles />
+      This Feature is Comming Soon.. please visit other sections
+      {/* <FloatingParticles />
       <AnimatedGrid />
 
-      {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -187,7 +186,6 @@ export default function UserDashboard() {
           <Ticker items={[...trendingCoins, ...trendingCoins]} theme={theme} />
         </div>
 
-        {/* Balance Cards */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -196,7 +194,6 @@ export default function UserDashboard() {
           <UserDashboardBalanceCards />
         </motion.div>
 
-        {/* Content Grid */}
         <motion.div
           className="grid md:grid-cols-2 grid-cols-1 gap-6 mt-6 mb-20"
           initial={{ opacity: 0, y: 18 }}
@@ -206,7 +203,7 @@ export default function UserDashboard() {
           <UserDashboardTransaction />
           <UserDashboardTradeHistory />
         </motion.div>
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   );
 }

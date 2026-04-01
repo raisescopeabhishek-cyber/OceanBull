@@ -1,63 +1,525 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
-import {
-  BadgeDollarSign,
-  Loader2,
-  RotateCw,
-  CreditCard,
-  Wallet,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Banknote,
-  TrendingUp,
-  Shield,
-  Zap,
-} from "lucide-react";
 import toast from "react-hot-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Wallet,
+  TrendingUp,
+  Landmark,
+  CheckCircle2,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  ReceiptText,
+  LayoutDashboard,
+  History,
+  Search,
+  RefreshCcw,
+  X,
+  Activity,
+  CircleDollarSign,
+  Gauge,
+  Shield,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  CreditCard,
+  Banknote,
+  Zap,
+  BadgeDollarSign,
+  Eye,
+} from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
 import { withdrawRequestMail } from "./emails/WithdrwalsMails";
 
-const UserWithdraw = () => {
+/* -------------------- theme helpers -------------------- */
+const safeRgbParts = (v: any) => {
+  const s = String(v ?? "0 0 0")
+    .trim()
+    .replace(/,/g, " ");
+  const parts = s.split(/\s+/).map((x) => Number(x));
+  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
+    Number.isFinite(n) ? n : 0
+  );
+  return { r, g, b };
+};
+
+const rgb = (v: any) => {
+  const { r, g, b } = safeRgbParts(v);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+const rgba = (v: any, a = 1) => {
+  const { r, g, b } = safeRgbParts(v);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
+/* -------------------- helpers -------------------- */
+function formatDate(iso: any) {
+  if (!iso) return "N/A";
+  const d = new Date(iso);
+
+  const date = d.toLocaleDateString("en-GB", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return `${date}, ${time}`;
+}
+
+function money(n: any) {
+  const num = Number(n ?? 0);
+  return Number.isFinite(num)
+    ? num.toLocaleString(undefined, { maximumFractionDigits: 2 })
+    : "0";
+}
+
+function statusTone(status: any) {
+  const s = String(status || "").toLowerCase();
+
+  if (s === "approved" || s === "completed") return "approved";
+  if (s === "pending" || s === "processing") return "pending";
+  if (s === "rejected" || s === "failed" || s === "reversed") return "rejected";
+
+  return "unknown";
+}
+
+/* -------------------- shared ui -------------------- */
+function SectionCard({
+  children,
+  theme,
+  isDark,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: any;
+  isDark: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={[
+        "rounded-[24px] border transition-all duration-300",
+        className,
+      ].join(" ")}
+      style={{
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.1)
+          : "rgba(251,146,60,0.14)",
+        background: isDark
+          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
+        boxShadow: isDark
+          ? "0 18px 50px rgba(0,0,0,0.28)"
+          : "0 14px 40px rgba(251,146,60,0.10)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+  theme,
+  isDark,
+  tone = "default",
+}: any) {
+  const toneStyles =
+    tone === "success"
+      ? {
+          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+          iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+        }
+      : tone === "info"
+      ? {
+          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
+          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
+          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+        }
+      : tone === "warning"
+      ? {
+          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
+          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.16)",
+        }
+      : tone === "danger"
+      ? {
+          iconBg: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+          iconColor: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+          border: isDark ? "rgba(239,68,68,0.18)" : "rgba(239,68,68,0.16)",
+        }
+      : {
+          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
+          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
+          border: isDark
+            ? rgba(theme?.border || "255 255 255", 0.12)
+            : "rgba(251,146,60,0.14)",
+        };
+
+  return (
+    <SectionCard theme={theme} isDark={isDark} className="p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          style={{
+            background: toneStyles.iconBg,
+            color: toneStyles.iconColor,
+            borderColor: toneStyles.border,
+          }}
+        >
+          {icon}
+        </div>
+
+        <div>
+          <div
+            className="text-xs"
+            style={{
+              color: isDark
+                ? rgba(theme?.fg || "255 255 255", 0.58)
+                : "rgba(100,116,139,0.96)",
+            }}
+          >
+            {label}
+          </div>
+
+          <div
+            className="text-lg font-bold"
+            style={{
+              color: isDark
+                ? rgba(theme?.fg || "255 255 255", 0.94)
+                : "rgba(15,23,42,0.98)",
+            }}
+          >
+            {value}
+          </div>
+
+          {hint ? (
+            <div
+              className="mt-1 text-[11px]"
+              style={{
+                color: isDark
+                  ? rgba(theme?.fg || "255 255 255", 0.48)
+                  : "rgba(100,116,139,0.88)",
+              }}
+            >
+              {hint}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function LoaderIcon({ color }: { color: string }) {
+  return (
+    <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color }}>
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+}
+
+function EmptyState({
+  title = "No data found",
+  subtitle = "Try another filter or refresh the records.",
+  theme,
+  isDark,
+}: any) {
+  return (
+    <div className="py-12 text-center">
+      <div
+        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border"
+        style={{
+          borderColor: isDark
+            ? rgba(theme?.border || "255 255 255", 0.12)
+            : "rgba(251,146,60,0.14)",
+          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.78)",
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.7)
+            : "rgba(100,116,139,0.9)",
+        }}
+      >
+        ⚪
+      </div>
+
+      <p
+        className="font-semibold"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.92)
+            : "rgba(15,23,42,0.96)",
+        }}
+      >
+        {title}
+      </p>
+
+      <p
+        className="mt-1 text-sm"
+        style={{
+          color: isDark
+            ? rgba(theme?.fg || "255 255 255", 0.58)
+            : "rgba(100,116,139,0.95)",
+        }}
+      >
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
+function SkeletonTable({
+  cols,
+  rows = 6,
+  theme,
+  isDark,
+}: {
+  cols: number;
+  rows?: number;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <div
+      className="overflow-x-auto rounded-[20px] border"
+      style={{
+        borderColor: isDark
+          ? rgba(theme?.border || "255 255 255", 0.12)
+          : "rgba(251,146,60,0.14)",
+      }}
+    >
+      <table className="w-full text-sm">
+        <tbody>
+          {Array.from({ length: rows }).map((_, i) => (
+            <tr
+              key={i}
+              style={{
+                borderBottom: `1px solid ${
+                  isDark
+                    ? rgba(theme?.border || "255 255 255", 0.08)
+                    : "rgba(251,146,60,0.10)"
+                }`,
+              }}
+            >
+              {Array.from({ length: cols }).map((__, j) => (
+                <td key={j} className="p-3">
+                  <div
+                    className="h-4 w-full animate-pulse rounded"
+                    style={{
+                      background: isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : "rgba(255,255,255,0.9)",
+                    }}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function UserWithdraw() {
+  const loggedUser = useSelector((store: any) => store.user?.loggedUser);
+  const siteConfig = useSelector((state: any) => state.user?.siteConfig);
+  const themeConfig = useSelector((s: any) => s.user?.themeConfig);
   const mode = useSelector((store: any) => store.userTheme?.mode || "light");
-  const loggedUser = useSelector((store: any) => store.user.loggedUser);
-  const siteConfig = useSelector((state: any) => state.user.siteConfig);
 
   const isDark = mode === "dark";
-
-  const dollarRate = siteConfig?.dollarWithdrawalRate || 0;
-  const inrUiEnabled = siteConfig?.inrUi !== false;
+  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
 
   const [selectedGateway, setSelectedGateway] = useState("");
   const [selectWallet, setSelectWallet] = useState("USDT(Trc20)");
-  const [account, selectAccount] = useState("");
+  const [account, setAccount] = useState("");
   const [amount, setAmount] = useState("");
+  const [accountType, setAccountType] = useState("");
 
   const [apiLoader, setApiLoader] = useState(false);
   const [error, setError] = useState("");
 
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [accountBalance, setAccountBalance] = useState<string | number>("");
-  const [accountType, setAccountType] = useState("");
 
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [showStatsOverview, setShowStatsOverview] = useState(true);
+
+  /* history modal */
+  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [txnLoading, setTxnLoading] = useState(false);
+  const [txnError, setTxnError] = useState<string | null>(null);
+  const [txnQ, setTxnQ] = useState("");
+  const [withdrawTransactions, setWithdrawTransactions] = useState<any[]>([]);
+
+  const dollarRate = siteConfig?.dollarWithdrawalRate || 0;
+  const inrUiEnabled = siteConfig?.inrUi !== false;
+
+  const titleColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.96)
+    : "rgba(15,23,42,0.98)";
+
+  const mutedTextColor = isDark
+    ? rgba(theme?.fg || "255 255 255", 0.62)
+    : "rgba(100,116,139,0.96)";
+
+  const accentColor = isDark
+    ? "rgba(96,165,250,0.95)"
+    : "rgba(249,115,22,0.95)";
+
+  const selectStyle: React.CSSProperties = {
+    width: "100%",
+    borderRadius: "16px",
+    padding: "13px 42px 13px 14px",
+    outline: "none",
+    appearance: "none",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
+    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(30,41,59,0.96)",
+    border: isDark
+      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+      : "1px solid rgba(251,146,60,0.16)",
+  };
+
+  const inputStyle: React.CSSProperties = {
+    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
+    color: titleColor,
+    border: isDark
+      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+      : "1px solid rgba(251,146,60,0.16)",
+    borderRadius: "16px",
+    outline: "none",
+  };
+
+  const optionStyle: React.CSSProperties = {
+    background: isDark ? "#111827" : "#ffffff",
+    color: isDark ? "#ffffff" : "#0f172a",
+  };
+
+  const subtleCard = (): React.CSSProperties => ({
+    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.82)",
+    border: isDark
+      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+      : "1px solid rgba(251,146,60,0.14)",
+    borderRadius: "14px",
+  });
+
+  const primaryButtonStyle: React.CSSProperties = {
+    borderRadius: "999px",
+    color: "#fff",
+    background: isDark
+      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
+      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+    boxShadow: isDark
+      ? "0 14px 34px rgba(59,130,246,0.22)"
+      : "0 14px 34px rgba(249,115,22,0.18)",
+  };
+
+  const walletOptions = [
+    { value: "USDT(Trc20)", label: "USDT (TRC-20)", icon: "₮" },
+    { value: "USDT(Bep20)", label: "USDT (BEP-20)", icon: "₮" },
+  ];
+
+  const gatewayOptions = [
+    {
+      name: "Wallet Transfer",
+      icon: <Wallet className="h-5 w-5" />,
+      desc: "Withdraw directly to your crypto wallet",
+    },
+  ];
+
+  const getWalletAddress = useCallback(
+    (walletType: string) => {
+      const mapping: Record<string, any> = {
+        "USDT(Trc20)": loggedUser?.walletDetails?.tetherAddress,
+        "USDT(Bep20)": loggedUser?.walletDetails?.ethAddress,
+      };
+      return mapping[walletType] || "Not configured";
+    },
+    [loggedUser?.walletDetails]
+  );
 
   const inrAmount = useMemo(() => {
     if (!amount || !dollarRate) return "0";
     return (parseFloat(amount) * Number(dollarRate)).toFixed(2);
   }, [amount, dollarRate]);
 
+  const numericBalance = useMemo(
+    () => (accountBalance ? Number(accountBalance) : 0),
+    [accountBalance]
+  );
+
+  const statusStyle = (status: any) => {
+    const tone = statusTone(status);
+
+    if (tone === "approved") {
+      return {
+        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(16,185,129,0.18)",
+        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+      };
+    }
+
+    if (tone === "pending") {
+      return {
+        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
+        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.18)",
+        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+      };
+    }
+
+    if (tone === "rejected") {
+      return {
+        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.18)",
+        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+      };
+    }
+
+    return {
+      background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
+      border: isDark
+        ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+        : "1px solid rgba(251,146,60,0.14)",
+      color: titleColor,
+    };
+  };
+
   useEffect(() => {
     const isValid =
-      account && selectedGateway && amount && parseFloat(amount) > 0;
+      account &&
+      selectedGateway &&
+      amount &&
+      parseFloat(amount) > 0 &&
+      parseFloat(amount) <= Number(accountBalance || 0);
+
     setIsFormValid(Boolean(isValid));
-  }, [account, selectedGateway, amount]);
+  }, [account, selectedGateway, amount, accountBalance]);
 
   const fetchAccountInfo = useCallback(async () => {
     if (!account) return;
@@ -82,6 +544,113 @@ const UserWithdraw = () => {
   useEffect(() => {
     if (account) fetchAccountInfo();
   }, [account, fetchAccountInfo]);
+
+  const fetchWithdrawTransactions = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        setTxnLoading(true);
+        setTxnError(null);
+
+        if (!loggedUser?._id) {
+          setWithdrawTransactions([]);
+          setTxnError("Please sign in to view withdrawal transactions.");
+          return;
+        }
+
+        const res = await userApi.get(
+          `/withdrawals/${loggedUser._id}`,
+          signal ? { signal } : undefined
+        );
+
+        const payload = res?.data?.data;
+
+        if (!Array.isArray(payload) || payload.length === 0) {
+          setWithdrawTransactions([]);
+          setTxnError("No withdrawal transaction data available.");
+          return;
+        }
+
+        const normalized = payload.map((item: any) => ({
+          _id: item._id,
+          mt5Account: item.mt5Account || item.accountNumber || item.account || "N/A",
+          accountType: item.accountType || item.type || "N/A",
+          amount: item.amount ?? item.withdrawal ?? item.withdrawAmount ?? 0,
+          method: (item.method || "N/A").toString(),
+          walletAddress:
+            item.walletAddress ||
+            item.address ||
+            item.destinationAddress ||
+            "—",
+          createdAt: item.createdAt || item.created_at || item.created || null,
+          updatedAt: item.updatedAt || item.updated_at || item.updated || null,
+          status: item.status || "unknown",
+        }));
+
+        setWithdrawTransactions(normalized);
+      } catch (err: any) {
+        if (err?.name === "CanceledError" || err?.message === "canceled") return;
+        setWithdrawTransactions([]);
+        setTxnError("Failed to fetch withdrawal transactions. Please try again.");
+      } finally {
+        setTxnLoading(false);
+      }
+    },
+    [loggedUser?._id]
+  );
+
+  useEffect(() => {
+    if (!showTxnModal) return;
+
+    const controller = new AbortController();
+    fetchWithdrawTransactions(controller.signal);
+
+    return () => controller.abort();
+  }, [showTxnModal, fetchWithdrawTransactions]);
+
+  useEffect(() => {
+    if (!showTxnModal) return;
+
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [showTxnModal]);
+
+  const filteredWithdrawTransactions = useMemo(() => {
+    if (!txnQ.trim()) return withdrawTransactions;
+
+    const term = txnQ.trim().toLowerCase();
+
+    return withdrawTransactions.filter((row) =>
+      Object.values(row).some((v) =>
+        String(v ?? "").toLowerCase().includes(term)
+      )
+    );
+  }, [txnQ, withdrawTransactions]);
+
+  const txnStats = useMemo(() => {
+    const total = filteredWithdrawTransactions.reduce(
+      (sum, item: any) => sum + (Number(item.amount) || 0),
+      0
+    );
+
+    const approved = filteredWithdrawTransactions.filter(
+      (item: any) => String(item.status).toLowerCase() === "approved"
+    ).length;
+
+    const pending = filteredWithdrawTransactions.filter(
+      (item: any) => String(item.status).toLowerCase() === "pending"
+    ).length;
+
+    return {
+      total,
+      approved,
+      pending,
+      rows: filteredWithdrawTransactions.length,
+    };
+  }, [filteredWithdrawTransactions]);
 
   const withdrawalHandler = async (e: any) => {
     e.preventDefault();
@@ -114,7 +683,7 @@ const UserWithdraw = () => {
         email: loggedUser.email,
       });
 
-      if (sendOtpRes?.data?.otp) {
+      if (sendOtpRes?.data?.message === "OTP sent successfully") {
         toast.success("OTP sent to your email", { id: toastId });
         setShowOtpInput(true);
         setCurrentStep(3);
@@ -161,9 +730,7 @@ const UserWithdraw = () => {
 
       await userApi.post(`/withdrawal`, {
         method:
-          selectedGateway === "Bank Transfer"
-            ? selectedGateway
-            : selectWallet,
+          selectedGateway === "Bank Transfer" ? selectedGateway : selectWallet,
         accountType,
         amount,
         mt5Account: account,
@@ -193,7 +760,7 @@ const UserWithdraw = () => {
       window.setTimeout(() => {
         setCurrentStep(1);
         setAmount("");
-        selectAccount("");
+        setAccount("");
         setSelectedGateway("");
         setSelectWallet("USDT(Trc20)");
       }, 3000);
@@ -207,21 +774,6 @@ const UserWithdraw = () => {
     }
   };
 
-  const walletOptions = [
-    { value: "USDT(Trc20)", label: "USDT (TRC-20)", icon: "₮" },
-    { value: "USDT(Bep20)", label: "USDT (BEP-20)", icon: "₮" },
-  ];
-
-  const getWalletAddress = (walletType: string) => {
-    const mapping: Record<string, any> = {
-      "USDT(Trc20)": loggedUser?.walletDetails?.tetherAddress,
-      "USDT(Bep20)": loggedUser?.walletDetails?.ethAddress,
-    };
-    return mapping[walletType] || "Not configured";
-  };
-
-  const numericBalance = accountBalance ? Number(accountBalance) : 0;
-
   const stepItems = [
     { step: 1, title: "Details", icon: CreditCard },
     { step: 2, title: "Processing", icon: Loader2 },
@@ -229,842 +781,1298 @@ const UserWithdraw = () => {
     { step: 4, title: "Complete", icon: CheckCircle2 },
   ];
 
-  return (
-    <div className="min-h-[calc(100vh-260px)] p-1 sm:p-2 md:p-4">
-      <div className="mx-auto max-w-7xl">
-        {/* Page Header */}
-        <div
-          className={[
-            "mb-6 overflow-hidden rounded-[28px] border backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.045] shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
-              : "border-orange-100/80 bg-white/70 shadow-[0_18px_50px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "relative px-4 py-5 sm:px-6 sm:py-6",
-              isDark
-                ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]"
-                : "bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(255,247,240,0.80))]",
-            ].join(" ")}
-          >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div
-                  className={[
-                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                      : "border-orange-200 bg-orange-50 text-orange-700",
-                  ].join(" ")}
+  const ctaEnabled = isFormValid && !isWithdrawing && !apiLoader;
+
+  const txnModal =
+    typeof document !== "undefined"
+      ? createPortal(
+          <AnimatePresence>
+            {showTxnModal && (
+              <motion.div
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5"
+                style={{
+                  background: "rgba(2,6,23,0.72)",
+                  backdropFilter: "blur(8px)",
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowTxnModal(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-[28px] border"
+                  style={{
+                    borderColor: isDark
+                      ? rgba(theme?.border || "255 255 255", 0.12)
+                      : "rgba(251,146,60,0.16)",
+                    background: isDark
+                      ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
+                      : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
+                    boxShadow: isDark
+                      ? "0 30px 80px rgba(0,0,0,0.45)"
+                      : "0 30px 80px rgba(249,115,22,0.16)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Wallet size={14} />
-                  Funds Withdrawal
+                  <div
+                    className="border-b px-4 py-4 sm:px-6"
+                    style={{
+                      borderColor: isDark
+                        ? rgba(theme?.border || "255 255 255", 0.1)
+                        : "rgba(251,146,60,0.12)",
+                      background: isDark
+                        ? "rgba(255,255,255,0.02)"
+                        : "rgba(255,255,255,0.45)",
+                    }}
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="mb-3 flex items-center gap-2">
+                          <Activity className="h-4 w-4" style={{ color: accentColor }} />
+                          <span
+                            className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+                            style={{ color: mutedTextColor }}
+                          >
+                            withdrawal · transaction · records
+                          </span>
+                        </div>
+
+                        <h2
+                          className="text-2xl font-bold sm:text-3xl"
+                          style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
+                        >
+                          Withdrawal Transactions
+                        </h2>
+
+                        <p
+                          className="mt-2 text-sm sm:text-[15px]"
+                          style={{ color: mutedTextColor }}
+                        >
+                          Yahan aapke saare withdrawal requests aur unka status dikhega.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => fetchWithdrawTransactions()}
+                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          style={{
+                            borderColor: isDark
+                              ? rgba(theme?.border || "255 255 255", 0.12)
+                              : "rgba(251,146,60,0.16)",
+                            background: isDark
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(255,255,255,0.9)",
+                            color: titleColor,
+                          }}
+                        >
+                          <RefreshCcw className="h-4 w-4" />
+                          Refresh
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowTxnModal(false)}
+                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          style={{
+                            borderColor: isDark
+                              ? "rgba(239,68,68,0.24)"
+                              : "rgba(239,68,68,0.18)",
+                            background: isDark
+                              ? "rgba(239,68,68,0.08)"
+                              : "rgba(254,242,242,0.92)",
+                            color: isDark
+                              ? "rgba(248,113,113,0.95)"
+                              : "rgba(220,38,38,0.95)",
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-auto p-4 sm:p-5 md:p-6">
+                    <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<Wallet className="h-5 w-5" />}
+                        label="Withdraw Total"
+                        value={`$${money(txnStats.total)}`}
+                        tone="info"
+                      />
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<CircleDollarSign className="h-5 w-5" />}
+                        label="Approved"
+                        value={txnStats.approved}
+                        tone="success"
+                      />
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<Gauge className="h-5 w-5" />}
+                        label="Pending"
+                        value={txnStats.pending}
+                        tone="warning"
+                      />
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<TrendingUp className="h-5 w-5" />}
+                        label="Rows"
+                        value={txnStats.rows}
+                        tone="default"
+                      />
+                    </div>
+
+                    <div className="mb-5">
+                      <div className="relative max-w-md">
+                        <Search
+                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                          style={{ color: mutedTextColor }}
+                        />
+                        <input
+                          value={txnQ}
+                          onChange={(e) => setTxnQ(e.target.value)}
+                          placeholder="Search by account, method, wallet, status..."
+                          className="w-full rounded-2xl border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                          style={{
+                            borderColor: isDark
+                              ? rgba(theme?.border || "255 255 255", 0.12)
+                              : "rgba(251,146,60,0.16)",
+                            background: isDark
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(255,255,255,0.9)",
+                            color: titleColor,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <AnimatePresence mode="wait">
+                          {txnLoading ? (
+                            <motion.div
+                              key="txn-loading"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="p-5"
+                            >
+                              <div className="py-8 text-center">
+                                <LoaderIcon color={accentColor} />
+                                <p
+                                  className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]"
+                                  style={{ color: mutedTextColor }}
+                                >
+                                  Fetching withdrawals...
+                                </p>
+                              </div>
+
+                              <SkeletonTable cols={7} theme={theme} isDark={isDark} />
+                            </motion.div>
+                          ) : txnError ? (
+                            <motion.div
+                              key="txn-error"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="p-6"
+                            >
+                              <EmptyState
+                                title={txnError}
+                                subtitle="Please refresh to reload withdrawal transactions."
+                                theme={theme}
+                                isDark={isDark}
+                              />
+                            </motion.div>
+                          ) : filteredWithdrawTransactions.length === 0 ? (
+                            <motion.div
+                              key="txn-empty"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="p-6"
+                            >
+                              <EmptyState
+                                title="No withdrawal transactions found"
+                                subtitle="Your withdrawal history will appear here once available."
+                                theme={theme}
+                                isDark={isDark}
+                              />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="txn-table"
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -12 }}
+                            >
+                              <table className="w-full text-sm">
+                                <thead
+                                  style={{
+                                    background: isDark
+                                      ? "rgba(255,255,255,0.03)"
+                                      : "rgba(255,255,255,0.75)",
+                                    borderBottom: isDark
+                                      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
+                                      : "1px solid rgba(251,146,60,0.12)",
+                                  }}
+                                >
+                                  <tr>
+                                    {[
+                                      "Account",
+                                      "Type",
+                                      "Amount",
+                                      "Method",
+                                      "Wallet / Address",
+                                      "Requested",
+                                      "Status",
+                                    ].map((head) => (
+                                      <th
+                                        key={head}
+                                        className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em]"
+                                        style={{ color: mutedTextColor }}
+                                      >
+                                        {head}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  {filteredWithdrawTransactions.map((item: any, i: number) => (
+                                    <tr
+                                      key={item?._id || `${item.mt5Account}-${i}`}
+                                      style={{
+                                        borderBottom: isDark
+                                          ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
+                                          : "1px solid rgba(251,146,60,0.10)",
+                                      }}
+                                    >
+                                      <td
+                                        className="px-4 py-3 text-center font-mono text-sm"
+                                        style={{ color: titleColor }}
+                                      >
+                                        #{item?.mt5Account || "N/A"}
+                                      </td>
+
+                                      <td className="px-4 py-3 text-center">
+                                        <span
+                                          className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
+                                          style={{
+                                            background: isDark
+                                              ? "rgba(59,130,246,0.10)"
+                                              : "rgba(255,237,213,0.72)",
+                                            borderColor: isDark
+                                              ? "rgba(59,130,246,0.18)"
+                                              : "rgba(251,146,60,0.16)",
+                                            color: accentColor,
+                                          }}
+                                        >
+                                          {(item?.accountType || "N/A").toUpperCase()}
+                                        </span>
+                                      </td>
+
+                                      <td
+                                        className="px-4 py-3 text-center font-semibold"
+                                        style={{ color: titleColor }}
+                                      >
+                                        ${money(item?.amount)}
+                                      </td>
+
+                                      <td className="px-4 py-3 text-center">
+                                        <span
+                                          className="inline-flex rounded-lg border px-2 py-1 text-[11px] font-semibold"
+                                          style={{
+                                            background: isDark
+                                              ? "rgba(255,255,255,0.03)"
+                                              : "rgba(255,255,255,0.82)",
+                                            borderColor: isDark
+                                              ? rgba(theme?.border || "255 255 255", 0.12)
+                                              : "rgba(251,146,60,0.14)",
+                                            color: titleColor,
+                                          }}
+                                        >
+                                          {(item?.method || "N/A").toString().toUpperCase()}
+                                        </span>
+                                      </td>
+
+                                      <td
+                                        className="px-4 py-3 text-center text-xs"
+                                        style={{ color: mutedTextColor }}
+                                      >
+                                        <span className="inline-block max-w-[180px] truncate align-middle">
+                                          {item?.walletAddress || "—"}
+                                        </span>
+                                      </td>
+
+                                      <td
+                                        className="px-4 py-3 text-center text-xs"
+                                        style={{ color: mutedTextColor }}
+                                      >
+                                        {formatDate(item?.createdAt)}
+                                      </td>
+
+                                      <td className="px-4 py-3 text-center">
+                                        <span
+                                          className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
+                                          style={statusStyle(item?.status)}
+                                        >
+                                          {(item?.status || "UNKNOWN").toString().toUpperCase()}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </SectionCard>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full"
+      >
+        <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+          <div
+            className="border-b px-5 py-4 sm:px-6"
+            style={{
+              borderColor: isDark
+                ? rgba(theme?.border || "255 255 255", 0.1)
+                : "rgba(251,146,60,0.12)",
+              background: isDark
+                ? "rgba(255,255,255,0.02)"
+                : "rgba(255,255,255,0.38)",
+            }}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" style={{ color: accentColor }} />
+                  <span
+                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+                    style={{ color: mutedTextColor }}
+                  >
+                    withdrawal · payout · account
+                  </span>
                 </div>
 
-                <h1 className="text-2xl font-bold sm:text-3xl">
+                <h1
+                  className="text-3xl font-bold sm:text-4xl"
+                  style={{
+                    color: titleColor,
+                    fontFamily: "'Poppins', sans-serif",
+                  }}
+                >
                   Withdraw Funds
                 </h1>
 
-                <p
-                  className={[
-                    "mt-2 max-w-2xl text-sm sm:text-[15px]",
-                    isDark ? "text-white/55" : "text-slate-600",
-                  ].join(" ")}
-                >
-                  Secure withdrawal flow with trading account balance check, OTP
-                  verification, and wallet destination details.
+                <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
+                  Choose trading account, enter amount, verify with OTP, and submit your
+                  withdrawal request securely.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
+              <div className="flex items-center justify-start sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowTxnModal(true)}
+                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                  style={{
+                    borderColor: isDark
+                      ? "rgba(96,165,250,0.28)"
+                      : "rgba(249,115,22,0.24)",
+                    background: isDark
+                      ? "rgba(59,130,246,0.10)"
+                      : "rgba(255,237,213,0.72)",
+                    color: accentColor,
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-emerald-500/10 text-emerald-300"
-                          : "bg-emerald-50 text-emerald-700",
-                      ].join(" ")}
-                    >
-                      <Shield size={18} />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Security
-                      </p>
-                      <p className="text-sm font-semibold">OTP Protected</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-blue-500/10 text-blue-300"
-                          : "bg-orange-50 text-orange-700",
-                      ].join(" ")}
-                    >
-                      <TrendingUp size={18} />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Balance
-                      </p>
-                      <p className="text-sm font-semibold">
-                        Live Equity Check
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-cyan-500/10 text-cyan-300"
-                          : "bg-amber-50 text-amber-700",
-                      ].join(" ")}
-                    >
-                      <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse" />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Status
-                      </p>
-                      <p className="text-sm font-semibold">Active Flow</p>
-                    </div>
-                  </div>
-                </div>
+                  <History className="h-4 w-4" />
+                  Withdraw Txn
+                </button>
               </div>
             </div>
-
-            <div
-              className={[
-                "pointer-events-none absolute inset-x-0 top-0 h-px",
-                isDark
-                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent",
-              ].join(" ")}
-            />
           </div>
-        </div>
 
-        {/* Steps */}
-        <div
-          className={[
-            "mb-6 rounded-[28px] border p-4 sm:p-5 backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-orange-100/80 bg-white/60",
-          ].join(" ")}
-        >
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            {stepItems.map(({ step, title, icon: Icon }, index) => (
-              <div key={step} className="flex items-center gap-3">
-                <div
-                  className={[
-                    "flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300",
-                    currentStep >= step
-                      ? isDark
-                        ? "border-blue-400/30 bg-blue-500/15 text-blue-200"
-                        : "border-orange-200 bg-orange-50 text-orange-700"
-                      : isDark
-                      ? "border-white/10 bg-white/[0.03] text-white/45"
-                      : "border-slate-200 bg-white text-slate-400",
-                  ].join(" ")}
-                >
-                  <Icon
-                    className={step === 2 && currentStep === 2 ? "animate-spin" : ""}
-                    size={18}
-                  />
-                </div>
-
-                <div>
-                  <p
-                    className={[
-                      "text-xs uppercase tracking-[0.15em]",
-                      isDark ? "text-white/35" : "text-slate-500",
-                    ].join(" ")}
+          <div className="p-4 sm:p-5 md:p-6">
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => setShowStatsOverview((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition-all duration-300"
+                style={{
+                  borderColor: isDark
+                    ? rgba(theme?.border || "255 255 255", 0.1)
+                    : "rgba(251,146,60,0.14)",
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.84)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl border"
+                    style={{
+                      borderColor: isDark
+                        ? rgba(theme?.border || "255 255 255", 0.12)
+                        : "rgba(251,146,60,0.14)",
+                      background: isDark
+                        ? "rgba(59,130,246,0.10)"
+                        : "rgba(255,237,213,0.65)",
+                      color: accentColor,
+                    }}
                   >
-                    Step {step}
-                  </p>
-                  <p className="text-sm font-semibold">{title}</p>
+                    <LayoutDashboard className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <div
+                      className="text-sm font-semibold"
+                      style={{ color: titleColor }}
+                    >
+                      Account Overview
+                    </div>
+                    <div
+                      className="text-xs"
+                      style={{ color: mutedTextColor }}
+                    >
+                      Selected account, balance and INR conversion
+                    </div>
+                  </div>
                 </div>
 
-                {index < stepItems.length - 1 && (
-                  <ArrowRight
-                    size={16}
-                    className={isDark ? "text-white/20" : "text-slate-300"}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-xs font-semibold uppercase tracking-[0.18em]"
+                    style={{ color: mutedTextColor }}
+                  >
+                    {showStatsOverview ? "Collapse" : "Expand"}
+                  </span>
 
-        {/* Main grid */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          {/* Left */}
-          <div className="xl:col-span-2">
-            <div
-              className={[
-                "rounded-[28px] border backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_70px_rgba(0,0,0,0.40)]"
-                  : "border-orange-100/80 bg-white/65 shadow-[0_16px_50px_rgba(251,146,60,0.10)]",
-              ].join(" ")}
-            >
-              <div
-                className={[
-                  "h-px",
-                  isDark
-                    ? "bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                    : "bg-gradient-to-r from-transparent via-orange-200 to-transparent",
-                ].join(" ")}
-              />
-
-              <div className="p-4 sm:p-6">
-                {currentStep === 1 && (
-                  <form onSubmit={withdrawalHandler} className="space-y-6">
-                    {/* Account */}
-                    <div
-                      className={[
-                        "rounded-[24px] border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100/70 bg-white/70",
-                      ].join(" ")}
-                    >
-                      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold">
-                          <TrendingUp
-                            size={16}
-                            className={
-                              isDark ? "text-blue-300" : "text-orange-600"
-                            }
-                          />
-                          Trading Account
-                        </label>
-
-                        {balanceLoading ? (
-                          <RotateCw
-                            size={18}
-                            className={`animate-spin ${
-                              isDark ? "text-blue-300" : "text-orange-600"
-                            }`}
-                          />
-                        ) : numericBalance ? (
-                          <div
-                            className={[
-                              "rounded-full border px-4 py-1 text-sm font-semibold",
-                              isDark
-                                ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                                : "border-emerald-200 bg-emerald-50 text-emerald-700",
-                            ].join(" ")}
-                          >
-                            ${numericBalance.toLocaleString()}
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <select
-                        value={account}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          selectAccount(v);
-                          const selectedAcc = loggedUser?.accounts?.find(
-                            (acc: any) =>
-                              String(acc.accountNumber) === String(v)
-                          );
-                          setAccountType(selectedAcc?.accountType || "");
-                        }}
-                        className={[
-                          "w-full rounded-2xl border px-4 py-3 text-sm outline-none transition",
-                          isDark
-                            ? "border-white/10 bg-white/[0.04] text-white"
-                            : "border-orange-100 bg-white text-slate-800",
-                        ].join(" ")}
-                      >
-                        <option value="" disabled>
-                          Select Trading Account
-                        </option>
-                        {loggedUser?.accounts?.map((acc: any, index: number) => (
-                          <option key={index} value={acc.accountNumber}>
-                            {acc.accountNumber} ({acc.accountType})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Method */}
-                    <div
-                      className={[
-                        "rounded-[24px] border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100/70 bg-white/70",
-                      ].join(" ")}
-                    >
-                      <label className="mb-4 flex items-center gap-2 text-sm font-semibold">
-                        <Zap
-                          size={16}
-                          className={isDark ? "text-blue-300" : "text-orange-600"}
-                        />
-                        Withdrawal Method
-                      </label>
-
-                      <div
-                        onClick={() => setSelectedGateway("Wallet Transfer")}
-                        className={[
-                          "relative cursor-pointer rounded-2xl border p-4 transition-all",
-                          selectedGateway === "Wallet Transfer"
-                            ? isDark
-                              ? "border-blue-400/30 bg-blue-500/10"
-                              : "border-orange-200 bg-orange-50"
-                            : isDark
-                            ? "border-white/10 bg-white/[0.03]"
-                            : "border-slate-200 bg-white",
-                        ].join(" ")}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={[
-                              "flex h-12 w-12 items-center justify-center rounded-xl",
-                              isDark
-                                ? "bg-blue-500/15 text-blue-300"
-                                : "bg-orange-100 text-orange-700",
-                            ].join(" ")}
-                          >
-                            <Wallet size={22} />
-                          </div>
-
-                          <div>
-                            <h3 className="font-semibold">Crypto Wallet</h3>
-                            <p
-                              className={[
-                                "text-sm",
-                                isDark ? "text-white/55" : "text-slate-500",
-                              ].join(" ")}
-                            >
-                              Withdraw directly to your wallet
-                            </p>
-                          </div>
-                        </div>
-
-                        {selectedGateway === "Wallet Transfer" && (
-                          <CheckCircle2
-                            size={22}
-                            className={`absolute right-4 top-4 ${
-                              isDark ? "text-emerald-300" : "text-emerald-600"
-                            }`}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Wallet type */}
-                    {selectedGateway === "Wallet Transfer" && (
-                      <div
-                        className={[
-                          "rounded-[24px] border p-4",
-                          isDark
-                            ? "border-white/10 bg-white/[0.03]"
-                            : "border-orange-100/70 bg-white/70",
-                        ].join(" ")}
-                      >
-                        <label className="mb-4 flex items-center gap-2 text-sm font-semibold">
-                          <Wallet
-                            size={16}
-                            className={
-                              isDark ? "text-cyan-300" : "text-orange-600"
-                            }
-                          />
-                          Choose Wallet Type
-                        </label>
-
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                          {walletOptions.map((option) => (
-                            <div
-                              key={option.value}
-                              onClick={() => setSelectWallet(option.value)}
-                              className={[
-                                "cursor-pointer rounded-2xl border p-4 transition-all",
-                                selectWallet === option.value
-                                  ? isDark
-                                    ? "border-blue-400/30 bg-blue-500/10"
-                                    : "border-orange-200 bg-orange-50"
-                                  : isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-200 bg-white",
-                              ].join(" ")}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg">{option.icon}</span>
-                                <span className="text-sm font-medium">
-                                  {option.label}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Amount */}
-                    <div
-                      className={[
-                        "rounded-[24px] border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100/70 bg-white/70",
-                      ].join(" ")}
-                    >
-                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold">
-                          <BadgeDollarSign
-                            size={16}
-                            className={
-                              isDark ? "text-emerald-300" : "text-emerald-600"
-                            }
-                          />
-                          Withdrawal Amount
-                        </label>
-
-                        {inrUiEnabled && amount && (
-                          <div
-                            className={[
-                              "rounded-full border px-3 py-1 text-sm font-semibold",
-                              isDark
-                                ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
-                                : "border-amber-200 bg-amber-50 text-amber-700",
-                            ].join(" ")}
-                          >
-                            ₹ {inrAmount}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="relative">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                          <Banknote
-                            size={20}
-                            className={isDark ? "text-white/35" : "text-slate-400"}
-                          />
-                        </div>
-
-                        <input
-                          type="number"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          placeholder="0.00"
-                          className={[
-                            "w-full rounded-2xl border py-4 pl-12 pr-4 text-lg font-semibold outline-none transition",
-                            isDark
-                              ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30"
-                              : "border-orange-100 bg-white text-slate-800 placeholder:text-slate-400",
-                          ].join(" ")}
-                        />
-
-                        {amount &&
-                          numericBalance &&
-                          parseFloat(amount) > numericBalance && (
-                            <AlertCircle
-                              size={20}
-                              className={`absolute right-4 top-1/2 -translate-y-1/2 ${
-                                isDark ? "text-rose-300" : "text-rose-600"
-                              }`}
-                            />
-                          )}
-                      </div>
-
-                      {amount &&
-                        numericBalance &&
-                        parseFloat(amount) > numericBalance && (
-                          <p
-                            className={[
-                              "mt-3 flex items-center gap-2 text-sm",
-                              isDark ? "text-rose-300" : "text-rose-600",
-                            ].join(" ")}
-                          >
-                            <AlertCircle size={16} />
-                            Insufficient balance
-                          </p>
-                        )}
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                      type="submit"
-                      disabled={!isFormValid || isWithdrawing}
-                      className={[
-                        "flex w-full items-center justify-center gap-3 rounded-2xl px-4 py-4 text-lg font-semibold transition-all",
-                        isFormValid && !isWithdrawing
-                          ? isDark
-                            ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                            : "bg-orange-500 text-white hover:bg-orange-600"
-                          : isDark
-                          ? "cursor-not-allowed bg-white/[0.06] text-white/35"
-                          : "cursor-not-allowed bg-slate-100 text-slate-400",
-                      ].join(" ")}
-                    >
-                      {isWithdrawing ? (
-                        <>
-                          <Loader2 size={20} className="animate-spin" />
-                          Processing Request...
-                        </>
-                      ) : (
-                        <>
-                          Request Withdrawal
-                          <ArrowRight size={20} />
-                        </>
-                      )}
-                    </button>
-                  </form>
-                )}
-
-                {currentStep === 3 && showOtpInput && (
                   <motion.div
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mx-auto max-w-md text-center"
+                    animate={{ rotate: showStatsOverview ? 0 : -180 }}
+                    transition={{ duration: 0.25 }}
                   >
-                    <div
-                      className={[
-                        "rounded-[24px] border p-6",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100/70 bg-white/75",
-                      ].join(" ")}
-                    >
-                      <div
-                        className={[
-                          "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl",
-                          isDark
-                            ? "bg-blue-500/10 text-blue-300"
-                            : "bg-orange-100 text-orange-700",
-                        ].join(" ")}
-                      >
-                        <Shield size={30} />
-                      </div>
+                    {showStatsOverview ? (
+                      <ChevronUp className="h-5 w-5" style={{ color: accentColor }} />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" style={{ color: accentColor }} />
+                    )}
+                  </motion.div>
+                </div>
+              </button>
 
-                      <h3 className="text-2xl font-bold">Verify Your Identity</h3>
-                      <p
-                        className={[
-                          "mt-2 text-sm",
-                          isDark ? "text-white/55" : "text-slate-600",
-                        ].join(" ")}
-                      >
-                        Enter the OTP sent to your email
-                      </p>
-
-                      <input
-                        type="text"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        maxLength={6}
-                        placeholder="000000"
-                        className={[
-                          "mt-5 w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none",
-                          isDark
-                            ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/25"
-                            : "border-orange-100 bg-white text-slate-800 placeholder:text-slate-400",
-                        ].join(" ")}
+              <AnimatePresence initial={false}>
+                {showStatsOverview && (
+                  <motion.div
+                    key="stats-overview"
+                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                    animate={{ height: "auto", opacity: 1, marginTop: 16 }}
+                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<Wallet className="h-5 w-5" />}
+                        label="Selected Account"
+                        value={account || "—"}
+                        hint={accountType || "Choose an account to continue"}
+                        tone="default"
                       />
 
-                      <button
-                        type="button"
-                        onClick={verifyOtpHandler}
-                        disabled={!otp || apiLoader}
-                        className={[
-                          "mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition-all",
-                          !otp || apiLoader
-                            ? isDark
-                              ? "cursor-not-allowed bg-white/[0.06] text-white/35"
-                              : "cursor-not-allowed bg-slate-100 text-slate-400"
-                            : isDark
-                            ? "bg-emerald-500/90 text-white hover:bg-emerald-500"
-                            : "bg-emerald-500 text-white hover:bg-emerald-600",
-                        ].join(" ")}
-                      >
-                        {apiLoader ? (
-                          <Loader2 size={20} className="animate-spin" />
-                        ) : (
-                          <>
-                            Verify & Withdraw
-                            <CheckCircle2 size={20} />
-                          </>
-                        )}
-                      </button>
+                      <StatCard
+                        theme={theme}
+                        isDark={isDark}
+                        icon={<DollarSign className="h-5 w-5" />}
+                        label="Current Balance"
+                        value={
+                          balanceLoading ? (
+                            <span className="inline-flex items-center gap-2">
+                              <LoaderIcon color={accentColor} />
+                            </span>
+                          ) : (
+                            `$${accountBalance || 0}`
+                          )
+                        }
+                        hint="Live equity balance"
+                        tone="success"
+                      />
+
+                      {inrUiEnabled ? (
+                        <StatCard
+                          theme={theme}
+                          isDark={isDark}
+                          icon={<Landmark className="h-5 w-5" />}
+                          label="INR Amount"
+                          value={`₹ ${inrAmount || 0}`}
+                          hint={`Rate: ₹${siteConfig?.dollarWithdrawalRate || 0}`}
+                          tone="info"
+                        />
+                      ) : null}
                     </div>
                   </motion.div>
                 )}
+              </AnimatePresence>
+            </div>
 
-                {currentStep === 4 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="mx-auto max-w-md text-center"
-                  >
-                    <div
-                      className={[
-                        "rounded-[24px] border p-6",
-                        isDark
-                          ? "border-emerald-400/15 bg-emerald-500/5"
-                          : "border-emerald-200 bg-emerald-50/80",
-                      ].join(" ")}
-                    >
-                      <div className="mb-4 flex justify-center">
-                        <div
-                          className={[
-                            "flex h-20 w-20 items-center justify-center rounded-full",
-                            isDark
-                              ? "bg-emerald-500/10 text-emerald-300"
-                              : "bg-emerald-100 text-emerald-700",
-                          ].join(" ")}
+            {/* steps */}
+            <div className="mb-6">
+              <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                  {stepItems.map(({ step, title, icon: Icon }, index) => (
+                    <div key={step} className="flex items-center gap-3">
+                      <div
+                        className="flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300"
+                        style={{
+                          borderColor:
+                            currentStep >= step
+                              ? isDark
+                                ? "rgba(96,165,250,0.30)"
+                                : "rgba(249,115,22,0.24)"
+                              : isDark
+                              ? rgba(theme?.border || "255 255 255", 0.10)
+                              : "rgba(226,232,240,1)",
+                          background:
+                            currentStep >= step
+                              ? isDark
+                                ? "rgba(59,130,246,0.15)"
+                                : "rgba(255,237,213,0.72)"
+                              : isDark
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(255,255,255,0.9)",
+                          color:
+                            currentStep >= step
+                              ? accentColor
+                              : isDark
+                              ? "rgba(255,255,255,0.45)"
+                              : "rgba(148,163,184,1)",
+                        }}
+                      >
+                        <Icon
+                          className={step === 2 && currentStep === 2 ? "animate-spin" : ""}
+                          size={18}
+                        />
+                      </div>
+
+                      <div>
+                        <p
+                          className="text-xs uppercase tracking-[0.15em]"
+                          style={{ color: mutedTextColor }}
                         >
-                          <CheckCircle2 size={44} />
+                          Step {step}
+                        </p>
+                        <p className="text-sm font-semibold" style={{ color: titleColor }}>
+                          {title}
+                        </p>
+                      </div>
+
+                      {index < stepItems.length - 1 && (
+                        <ArrowRight
+                          size={16}
+                          style={{ color: mutedTextColor }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+              {/* left */}
+              <div className="lg:col-span-7">
+                <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
+                  {currentStep === 1 && (
+                    <form onSubmit={withdrawalHandler}>
+                      <div className="grid grid-cols-1 gap-5">
+                        {/* account */}
+                        <div>
+                          <label
+                            className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            <Wallet className="h-4 w-4" style={{ color: accentColor }} />
+                            1. Choose Trading Account
+                          </label>
+
+                          <div className="relative">
+                            <select
+                              value={account}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setAccount(v);
+                                const selectedAcc = loggedUser?.accounts?.find(
+                                  (acc: any) => String(acc.accountNumber) === String(v)
+                                );
+                                setAccountType(selectedAcc?.accountType || "");
+                              }}
+                              style={selectStyle}
+                            >
+                              <option value="" style={optionStyle}>
+                                Select Account
+                              </option>
+
+                              {loggedUser?.accounts?.map((acc: any, index: number) => (
+                                <option
+                                  key={index}
+                                  value={acc.accountNumber}
+                                  style={optionStyle}
+                                >
+                                  {acc.accountNumber} ({acc.accountType})
+                                </option>
+                              ))}
+                            </select>
+
+                            <ChevronDown
+                              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                              style={{ color: mutedTextColor }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* gateway */}
+                        <div>
+                          <label
+                            className="mb-3 flex items-center gap-2 text-sm font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            <CreditCard className="h-4 w-4" style={{ color: accentColor }} />
+                            2. Choose Withdrawal Method
+                          </label>
+
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {gatewayOptions.map((method, index) => {
+                              const active = selectedGateway === method.name;
+
+                              return (
+                                <motion.button
+                                  key={`${method.name}-${index}`}
+                                  type="button"
+                                  initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.04 }}
+                                  whileHover={{ y: -2 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => setSelectedGateway(method.name)}
+                                  className="rounded-2xl border px-4 py-4 text-left transition-all duration-300"
+                                  style={{
+                                    borderColor: active
+                                      ? isDark
+                                        ? "rgba(96,165,250,0.35)"
+                                        : "rgba(249,115,22,0.28)"
+                                      : isDark
+                                      ? rgba(theme?.border || "255 255 255", 0.1)
+                                      : "rgba(251,146,60,0.14)",
+                                    background: active
+                                      ? isDark
+                                        ? "rgba(59,130,246,0.10)"
+                                        : "rgba(255,237,213,0.72)"
+                                      : isDark
+                                      ? "rgba(255,255,255,0.02)"
+                                      : "rgba(255,255,255,0.82)",
+                                    boxShadow: active
+                                      ? isDark
+                                        ? "0 0 0 1px rgba(96,165,250,0.18)"
+                                        : "0 0 0 1px rgba(249,115,22,0.14)"
+                                      : "none",
+                                  }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div
+                                      className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                                      style={{
+                                        borderColor: active
+                                          ? isDark
+                                            ? "rgba(96,165,250,0.28)"
+                                            : "rgba(249,115,22,0.20)"
+                                          : isDark
+                                          ? rgba(theme?.border || "255 255 255", 0.1)
+                                          : "rgba(251,146,60,0.14)",
+                                        background: active
+                                          ? isDark
+                                            ? "rgba(59,130,246,0.10)"
+                                            : "rgba(255,237,213,0.72)"
+                                          : isDark
+                                          ? "rgba(255,255,255,0.03)"
+                                          : "rgba(255,255,255,0.9)",
+                                        color: active ? accentColor : titleColor,
+                                      }}
+                                    >
+                                      {method.icon}
+                                    </div>
+
+                                    <div className="flex-1">
+                                      <div
+                                        className="text-sm font-semibold"
+                                        style={{ color: active ? accentColor : titleColor }}
+                                      >
+                                        {method.name}
+                                      </div>
+                                      <div
+                                        className="mt-1 text-xs"
+                                        style={{ color: mutedTextColor }}
+                                      >
+                                        {method.desc}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* wallet type */}
+                        {selectedGateway === "Wallet Transfer" && (
+                          <div>
+                            <label
+                              className="mb-3 flex items-center gap-2 text-sm font-semibold"
+                              style={{ color: titleColor }}
+                            >
+                              <Zap className="h-4 w-4" style={{ color: accentColor }} />
+                              3. Choose Wallet Type
+                            </label>
+
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              {walletOptions.map((option) => {
+                                const active = selectWallet === option.value;
+
+                                return (
+                                  <motion.button
+                                    key={option.value}
+                                    type="button"
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => setSelectWallet(option.value)}
+                                    className="rounded-2xl border px-4 py-4 text-left transition-all duration-300"
+                                    style={{
+                                      borderColor: active
+                                        ? isDark
+                                          ? "rgba(96,165,250,0.35)"
+                                          : "rgba(249,115,22,0.28)"
+                                        : isDark
+                                        ? rgba(theme?.border || "255 255 255", 0.1)
+                                        : "rgba(251,146,60,0.14)",
+                                      background: active
+                                        ? isDark
+                                          ? "rgba(59,130,246,0.10)"
+                                          : "rgba(255,237,213,0.72)"
+                                        : isDark
+                                        ? "rgba(255,255,255,0.02)"
+                                        : "rgba(255,255,255,0.82)",
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-xl">{option.icon}</span>
+                                      <div>
+                                        <div
+                                          className="text-sm font-semibold"
+                                          style={{ color: active ? accentColor : titleColor }}
+                                        >
+                                          {option.label}
+                                        </div>
+                                        <div
+                                          className="text-xs"
+                                          style={{ color: mutedTextColor }}
+                                        >
+                                          Wallet destination option
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </motion.button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* amount */}
+                        <div>
+                          <label
+                            className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            <BadgeDollarSign className="h-4 w-4" style={{ color: accentColor }} />
+                            4. Enter Withdrawal Amount
+                          </label>
+
+                          <div className="relative">
+                            <Banknote
+                              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                              style={{ color: mutedTextColor }}
+                            />
+                            <input
+                              type="number"
+                              placeholder="Enter amount"
+                              value={amount}
+                              onChange={(e) => setAmount(e.target.value)}
+                              className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold"
+                              style={inputStyle}
+                            />
+
+                            {amount &&
+                              numericBalance &&
+                              parseFloat(amount) > numericBalance && (
+                                <AlertCircle
+                                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                                  style={{
+                                    color: isDark
+                                      ? "rgba(248,113,113,0.95)"
+                                      : "rgba(220,38,38,0.95)",
+                                  }}
+                                />
+                              )}
+                          </div>
+
+                          {amount &&
+                            numericBalance &&
+                            parseFloat(amount) > numericBalance && (
+                              <p
+                                className="mt-2 flex items-center gap-2 text-sm"
+                                style={{
+                                  color: isDark
+                                    ? "rgba(248,113,113,0.95)"
+                                    : "rgba(220,38,38,0.95)",
+                                }}
+                              >
+                                <AlertCircle className="h-4 w-4" />
+                                Insufficient balance
+                              </p>
+                            )}
                         </div>
                       </div>
 
-                      <h3
-                        className={[
-                          "text-3xl font-bold",
-                          isDark ? "text-emerald-300" : "text-emerald-700",
-                        ].join(" ")}
-                      >
-                        Withdrawal Successful!
-                      </h3>
+                      <div className="mt-5">
+                        <div
+                          className="rounded-2xl border px-4 py-4"
+                          style={{
+                            borderColor: isDark
+                              ? "rgba(16,185,129,0.18)"
+                              : "rgba(16,185,129,0.16)",
+                            background: isDark
+                              ? "rgba(16,185,129,0.08)"
+                              : "rgba(240,253,244,0.8)",
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <span
+                              className="text-sm font-medium"
+                              style={{
+                                color: isDark
+                                  ? "rgba(52,211,153,0.95)"
+                                  : "rgba(5,150,105,0.95)",
+                              }}
+                            >
+                              Current Balance
+                            </span>
 
-                      <p
-                        className={[
-                          "mt-2 text-sm",
-                          isDark ? "text-white/55" : "text-slate-600",
-                        ].join(" ")}
+                            {balanceLoading ? (
+                              <LoaderIcon color={accentColor} />
+                            ) : (
+                              <span
+                                className="text-xl font-bold"
+                                style={{ color: titleColor }}
+                              >
+                                ${accountBalance || 0}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedGateway === "Wallet Transfer" && (
+                        <div className="mt-7">
+                          <label
+                            className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            <ReceiptText className="h-4 w-4" style={{ color: accentColor }} />
+                            5. Destination Details
+                          </label>
+
+                          <div
+                            className="rounded-2xl border p-4"
+                            style={subtleCard()}
+                          >
+                            <div className="grid grid-cols-1 gap-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-sm" style={{ color: mutedTextColor }}>
+                                  Wallet Type
+                                </span>
+                                <span className="text-sm font-semibold" style={{ color: titleColor }}>
+                                  {selectWallet}
+                                </span>
+                              </div>
+
+                              <div>
+                                <p className="mb-2 text-sm" style={{ color: mutedTextColor }}>
+                                  Address
+                                </p>
+                                <p
+                                  className="break-all rounded-xl px-3 py-2 text-xs font-medium"
+                                  style={{
+                                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(248,250,252,1)",
+                                    color: titleColor,
+                                  }}
+                                >
+                                  {getWalletAddress(selectWallet)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-8 flex justify-center sm:justify-start">
+                        <motion.button
+                          type="submit"
+                          whileHover={{ scale: ctaEnabled ? 1.02 : 1 }}
+                          whileTap={{ scale: ctaEnabled ? 0.98 : 1 }}
+                          disabled={!ctaEnabled}
+                          className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
+                          style={{
+                            ...primaryButtonStyle,
+                            opacity: ctaEnabled ? 1 : 0.65,
+                            cursor: ctaEnabled ? "pointer" : "not-allowed",
+                          }}
+                        >
+                          {isWithdrawing ? (
+                            <LoaderIcon color="#ffffff" />
+                          ) : (
+                            <ArrowRight className="h-4 w-4" />
+                          )}
+
+                          <span>Request Withdrawal</span>
+                        </motion.button>
+                      </div>
+                    </form>
+                  )}
+
+                  {currentStep === 3 && showOtpInput && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mx-auto max-w-md text-center"
+                    >
+                      <div
+                        className="rounded-[24px] border p-6"
+                        style={subtleCard()}
                       >
-                        Your withdrawal request has been submitted successfully.
+                        <div
+                          className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+                          style={{
+                            background: isDark
+                              ? "rgba(59,130,246,0.10)"
+                              : "rgba(255,237,213,0.72)",
+                            color: accentColor,
+                          }}
+                        >
+                          <Shield size={30} />
+                        </div>
+
+                        <h3 className="text-2xl font-bold" style={{ color: titleColor }}>
+                          Verify Your Identity
+                        </h3>
+                        <p
+                          className="mt-2 text-sm"
+                          style={{ color: mutedTextColor }}
+                        >
+                          Enter the OTP sent to your email
+                        </p>
+
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          maxLength={6}
+                          placeholder="000000"
+                          className="mt-5 w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none"
+                          style={inputStyle}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={verifyOtpHandler}
+                          disabled={!otp || apiLoader}
+                          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition-all"
+                          style={{
+                            background:
+                              !otp || apiLoader
+                                ? isDark
+                                  ? "rgba(255,255,255,0.06)"
+                                  : "rgba(241,245,249,1)"
+                                : isDark
+                                ? "rgba(16,185,129,0.90)"
+                                : "rgba(16,185,129,1)",
+                            color:
+                              !otp || apiLoader
+                                ? isDark
+                                  ? "rgba(255,255,255,0.35)"
+                                  : "rgba(148,163,184,1)"
+                                : "#fff",
+                            cursor: !otp || apiLoader ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {apiLoader ? (
+                            <Loader2 size={20} className="animate-spin" />
+                          ) : (
+                            <>
+                              Verify & Withdraw
+                              <CheckCircle2 size={20} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 4 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="mx-auto max-w-md text-center"
+                    >
+                      <div
+                        className="rounded-[24px] border p-6"
+                        style={{
+                          borderColor: isDark
+                            ? "rgba(16,185,129,0.18)"
+                            : "rgba(16,185,129,0.16)",
+                          background: isDark
+                            ? "rgba(16,185,129,0.06)"
+                            : "rgba(240,253,244,0.85)",
+                        }}
+                      >
+                        <div className="mb-4 flex justify-center">
+                          <div
+                            className="flex h-20 w-20 items-center justify-center rounded-full"
+                            style={{
+                              background: isDark
+                                ? "rgba(16,185,129,0.10)"
+                                : "rgba(209,250,229,1)",
+                              color: isDark
+                                ? "rgba(52,211,153,0.95)"
+                                : "rgba(5,150,105,0.95)",
+                            }}
+                          >
+                            <CheckCircle2 size={44} />
+                          </div>
+                        </div>
+
+                        <h3
+                          className="text-3xl font-bold"
+                          style={{
+                            color: isDark
+                              ? "rgba(52,211,153,0.95)"
+                              : "rgba(5,150,105,0.95)",
+                          }}
+                        >
+                          Withdrawal Successful!
+                        </h3>
+
+                        <p
+                          className="mt-2 text-sm"
+                          style={{ color: mutedTextColor }}
+                        >
+                          Your withdrawal request has been submitted successfully.
+                        </p>
+
+                        <div
+                          className="mt-5 rounded-2xl border p-4"
+                          style={subtleCard()}
+                        >
+                          <p className="font-semibold" style={{ color: titleColor }}>
+                            Amount: ${amount}
+                          </p>
+                          {inrUiEnabled && (
+                            <p
+                              className="mt-1 text-sm"
+                              style={{ color: mutedTextColor }}
+                            >
+                              (~ ₹ {inrAmount})
+                            </p>
+                          )}
+                          <p
+                            className="mt-2 text-sm"
+                            style={{ color: mutedTextColor }}
+                          >
+                            Processing time: 1–3 business days
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {error && (
+                    <div
+                      className="mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm"
+                      style={{
+                        borderColor: isDark
+                          ? "rgba(239,68,68,0.18)"
+                          : "rgba(239,68,68,0.16)",
+                        background: isDark
+                          ? "rgba(239,68,68,0.08)"
+                          : "rgba(254,242,242,0.92)",
+                        color: isDark
+                          ? "rgba(248,113,113,0.95)"
+                          : "rgba(220,38,38,0.95)",
+                      }}
+                    >
+                      <AlertCircle size={18} className="flex-shrink-0" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+                </SectionCard>
+              </div>
+
+              {/* right */}
+              <div className="lg:col-span-5 space-y-5">
+                <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div
+                      className="flex h-11 w-11 items-center justify-center rounded-xl"
+                      style={{
+                        background: isDark
+                          ? "rgba(59,130,246,0.10)"
+                          : "rgba(255,237,213,0.72)",
+                        color: accentColor,
+                      }}
+                    >
+                      <CreditCard size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold" style={{ color: titleColor }}>
+                        Destination Details
+                      </h3>
+                      <p
+                        className="text-sm"
+                        style={{ color: mutedTextColor }}
+                      >
+                        Selected withdrawal target
                       </p>
+                    </div>
+                  </div>
+
+                  {selectedGateway ? (
+                    <div className="space-y-3">
+                      <div
+                        className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                        style={subtleCard()}
+                      >
+                        <span style={{ color: mutedTextColor }}>Method</span>
+                        <span className="font-medium" style={{ color: titleColor }}>
+                          {selectedGateway}
+                        </span>
+                      </div>
 
                       <div
-                        className={[
-                          "mt-5 rounded-2xl border p-4",
-                          isDark
-                            ? "border-emerald-400/15 bg-white/[0.03]"
-                            : "border-emerald-200 bg-white/70",
-                        ].join(" ")}
+                        className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                        style={subtleCard()}
                       >
-                        <p className="font-semibold">Amount: ${amount}</p>
-                        {inrUiEnabled && (
-                          <p
-                            className={[
-                              "mt-1 text-sm",
-                              isDark ? "text-white/55" : "text-slate-600",
-                            ].join(" ")}
-                          >
-                            (~ ₹ {inrAmount})
-                          </p>
-                        )}
+                        <span style={{ color: mutedTextColor }}>Wallet Type</span>
+                        <span className="font-medium" style={{ color: titleColor }}>
+                          {selectWallet}
+                        </span>
+                      </div>
+
+                      <div
+                        className="rounded-2xl border px-4 py-3"
+                        style={subtleCard()}
+                      >
+                        <p className="mb-2 text-sm" style={{ color: mutedTextColor }}>
+                          Address
+                        </p>
                         <p
-                          className={[
-                            "mt-2 text-sm",
-                            isDark ? "text-white/45" : "text-slate-500",
-                          ].join(" ")}
+                          className="break-all rounded-xl px-3 py-2 text-xs font-medium"
+                          style={{
+                            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(248,250,252,1)",
+                            color: titleColor,
+                          }}
                         >
-                          Processing time: 1–3 business days
+                          {getWalletAddress(selectWallet)}
                         </p>
                       </div>
                     </div>
-                  </motion.div>
-                )}
+                  ) : (
+                    <EmptyState
+                      title="No destination selected"
+                      subtitle="Choose a withdrawal method to see destination details."
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                  )}
+                </SectionCard>
 
-                {error && (
+                <SectionCard theme={theme} isDark={isDark} className="p-5 text-center">
                   <div
-                    className={[
-                      "mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm",
-                      isDark
-                        ? "border-rose-400/15 bg-rose-500/10 text-rose-300"
-                        : "border-rose-200 bg-rose-50 text-rose-700",
-                    ].join(" ")}
+                    className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl"
+                    style={{
+                      background: isDark
+                        ? "rgba(16,185,129,0.10)"
+                        : "rgba(209,250,229,1)",
+                      color: isDark
+                        ? "rgba(52,211,153,0.95)"
+                        : "rgba(5,150,105,0.95)",
+                    }}
                   >
-                    <AlertCircle size={18} className="flex-shrink-0" />
-                    <p>{error}</p>
+                    <Shield size={24} />
                   </div>
-                )}
+
+                  <h3
+                    className="text-lg font-bold"
+                    style={{
+                      color: isDark
+                        ? "rgba(52,211,153,0.95)"
+                        : "rgba(5,150,105,0.95)",
+                    }}
+                  >
+                    Secure Transaction
+                  </h3>
+
+                  <p
+                    className="mt-2 text-sm"
+                    style={{ color: mutedTextColor }}
+                  >
+                    Your withdrawal flow is protected with account validation and OTP
+                    verification.
+                  </p>
+                </SectionCard>
               </div>
             </div>
           </div>
+        </SectionCard>
+      </motion.div>
 
-          {/* Right */}
-          <div className="space-y-6">
-            {selectedGateway && (
-              <div
-                className={[
-                  "rounded-[28px] border p-5 backdrop-blur-xl",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035]"
-                    : "border-orange-100/80 bg-white/65",
-                ].join(" ")}
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <div
-                    className={[
-                      "flex h-11 w-11 items-center justify-center rounded-xl",
-                      isDark
-                        ? "bg-blue-500/10 text-blue-300"
-                        : "bg-orange-100 text-orange-700",
-                    ].join(" ")}
-                  >
-                    <CreditCard size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Destination Details</h3>
-                    <p
-                      className={[
-                        "text-sm",
-                        isDark ? "text-white/50" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      Selected withdrawal target
-                    </p>
-                  </div>
-                </div>
-
-                {selectedGateway === "Wallet Transfer" && (
-                  <div className="space-y-3">
-                    <div
-                      className={[
-                        "flex items-center justify-between rounded-2xl border px-4 py-3",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100 bg-white/70",
-                      ].join(" ")}
-                    >
-                      <span
-                        className={isDark ? "text-white/55" : "text-slate-500"}
-                      >
-                        Wallet Type
-                      </span>
-                      <span className="font-medium">{selectWallet}</span>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-2xl border px-4 py-3",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100 bg-white/70",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "mb-2 text-sm",
-                          isDark ? "text-white/55" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Address
-                      </p>
-                      <p
-                        className={[
-                          "break-all rounded-xl px-3 py-2 text-xs font-medium",
-                          isDark
-                            ? "bg-white/[0.04] text-white/85"
-                            : "bg-slate-50 text-slate-700",
-                        ].join(" ")}
-                      >
-                        {getWalletAddress(selectWallet)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div
-              className={[
-                "rounded-[28px] border p-5 text-center backdrop-blur-xl",
-                isDark
-                  ? "border-emerald-400/15 bg-emerald-500/5"
-                  : "border-emerald-200 bg-emerald-50/80",
-              ].join(" ")}
-            >
-              <div
-                className={[
-                  "mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl",
-                  isDark
-                    ? "bg-emerald-500/10 text-emerald-300"
-                    : "bg-emerald-100 text-emerald-700",
-                ].join(" ")}
-              >
-                <Shield size={24} />
-              </div>
-
-              <h3
-                className={[
-                  "text-lg font-bold",
-                  isDark ? "text-emerald-300" : "text-emerald-700",
-                ].join(" ")}
-              >
-                Secure Transaction
-              </h3>
-
-              <p
-                className={[
-                  "mt-2 text-sm",
-                  isDark ? "text-white/55" : "text-slate-600",
-                ].join(" ")}
-              >
-                Your withdrawal flow is protected with account validation and OTP
-                verification.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      {txnModal}
+    </>
   );
-};
-
-export default UserWithdraw;
+}

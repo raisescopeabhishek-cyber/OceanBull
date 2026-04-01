@@ -34,60 +34,98 @@ const modules = [
   //   subtitle: "Quick Overview",
   //   icon: <LayoutDashboard className="w-5 h-5" />,
   // },
-  {
-    name: "Challenges",
-    path: "/user/challenges",
-    subtitle: "Account Progress",
-    icon: <ShieldEllipsis className="w-5 h-5" />,
+  // {
+  //   name: "Challenges",
+  //   path: "/user/challenges",
+  //   subtitle: "Account Progress",
+  //   icon: <ShieldEllipsis className="w-5 h-5" />,
+  //   children: [
+  //     {
+  //       name: "My Challenges",
+  //       path: "/user/challenges",
+  //       icon: <ShieldCheck className="w-4 h-4" />,
+  //     },
+  //   ],
+  // },
+
+
+   {
+  name: "My Challenges",
+  path: "/user/challenges",
+  subtitle: "Track Your Progress",
+  icon: <ShieldEllipsis className="w-5 h-5" />,
+},
+
+{
+  name: "Fund",
+  subtitle: "Add Balance",
+  path: "/user/deposit",
+  icon: <CircleFadingPlus className="w-4 h-4" />,
+},
+
+{
+  name: "Payout",
+  subtitle: "Withdraw Earnings",
+  path: "/user/withdraw",
+  icon: <ArrowDownCircle className="w-4 h-4" />,
+},
+
+{
+  name: "Trades",
+  path: "/user/trade-history",
+  subtitle: "Trade History",
+  icon: <BarChart3 className="w-5 h-5" />,
+},
+
+{
+  name: "Transfer",
+  subtitle: "Payments & Transfers",
+  path: "/user/transfer",
+  icon: <ArrowLeftRight className="w-4 h-4" />,
+},
+
+
+
+// {
+//   name: "Transactions",
+//   path: "/user/transaction",
+//   subtitle: "Payments & Transfers",
+//   icon: <ArrowUpDown className="w-5 h-5" />,
+//   children: [
+//     {
+//       name: "Transactions",
+//       path: "/user/transaction",
+//       icon: <ArrowUpDown className="w-4 h-4" />,
+//     },
+//     {
+//       name: "Transfer",
+//       path: "/user/transfer",
+//       icon: <ArrowLeftRight className="w-4 h-4" />,
+//     },
+//   ],
+// },
+
+
+{
+    name: "Market",
+    path: "/user/economic-calendar",
+    subtitle: "Calendar & News",
+    icon: <CalendarDays className="w-5 h-5" />,
     children: [
       {
-        name: "My Challenges",
-        path: "/user/challenges",
-        icon: <ShieldCheck className="w-4 h-4" />,
+        name: "Economic Calendar",
+        path: "/user/economic-calendar",
+        icon: <CalendarDays className="w-4 h-4" />,
+      },
+      {
+        name: "Forex News",
+        path: "/user/forex-news",
+        icon: <Newspaper className="w-4 h-4" />,
       },
     ],
-  },
-  {
-    name: "Transactions",
-    path: "/user/transaction",
-    subtitle: "Money Activity",
-    icon: <ArrowUpDown className="w-5 h-5" />,
-    children: [
-      {
-        name: "Transactions",
-        path: "/user/transaction",
-        icon: <ArrowUpDown className="w-4 h-4" />,
-      },
-      {
-        name: "Deposit",
-        path: "/user/deposit",
-        icon: <CircleFadingPlus className="w-4 h-4" />,
-      },
-      {
-        name: "Transfer",
-        path: "/user/transfer",
-        icon: <ArrowLeftRight className="w-4 h-4" />,
-      },
-      {
-        name: "Withdraw",
-        path: "/user/withdraw",
-        icon: <ArrowDownCircle className="w-4 h-4" />,
-      },
-    ],
-  },
-  {
-    name: "Trades",
-    path: "/user/trade-history",
-    subtitle: "Trading Records",
-    icon: <BarChart3 className="w-5 h-5" />,
   },
 
-    {
-    name: "Platform",
-    path: "/user/platform",
-    subtitle: "Access Tools",
-    icon: <MonitorSmartphone className="w-5 h-5" />,
-  },
+
 
 
   //     {
@@ -127,24 +165,6 @@ const modules = [
   //     },
   //   ],
   // },
-  {
-    name: "Market",
-    path: "/user/economic-calendar",
-    subtitle: "Calendar & News",
-    icon: <CalendarDays className="w-5 h-5" />,
-    children: [
-      {
-        name: "Economic Calendar",
-        path: "/user/economic-calendar",
-        icon: <CalendarDays className="w-4 h-4" />,
-      },
-      {
-        name: "Forex News",
-        path: "/user/forex-news",
-        icon: <Newspaper className="w-4 h-4" />,
-      },
-    ],
-  },
   // {
   //   name: "Copy Trading",
   //   path: "/user/copy-trading",
@@ -452,7 +472,7 @@ const SidebarContent = ({ close }) => {
                 : "bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_12px_28px_rgba(249,115,22,0.22)] hover:brightness-105",
             ].join(" ")}
           >
-            Open Account
+            Copy Trading
           </button>
         </div>
 

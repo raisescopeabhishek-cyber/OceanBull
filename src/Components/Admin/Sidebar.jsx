@@ -595,7 +595,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="hidden md:block fixed left-0 top-0 z-40 h-screen w-72">
+      <aside className="hidden md:block fixed left-0 top-0 z-0 h-screen w-72">
         <SidebarContent />
       </aside>
 

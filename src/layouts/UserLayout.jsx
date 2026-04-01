@@ -129,7 +129,7 @@ const UserLayout = () => {
         <main className="flex-1 px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
           <div className="mx-auto w-full max-w-[1480px]">
             {/* Top Welcome Section */}
-            <div
+            {/* <div
               className={[
                 "mb-6 overflow-hidden rounded-[30px] border backdrop-blur-xl transition-all duration-300",
                 isDark
@@ -285,7 +285,7 @@ const UserLayout = () => {
                   ].join(" ")}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Main Content Shell */}
             <div

@@ -280,6 +280,36 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
                 Account Details
               </button>
 
+
+
+   <button
+                onClick={() => {
+                  navigate("/user/account-details");
+                  onClose();
+                }}
+                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Reffer
+              </button>
+
+
+
+
+   <button
+                onClick={() => {
+                  navigate("/user/account-details");
+                  onClose();
+                }}
+                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Platform
+              </button>
+
+
+
+
               <button
                 onClick={() => {
                   navigate("/user/customer-support");

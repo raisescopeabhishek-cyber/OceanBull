@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
@@ -14,9 +15,6 @@ import {
   DollarSign,
   Image as ImageIcon,
   ChevronDown,
-  ChevronUp,
-  ReceiptText,
-  LayoutDashboard,
   History,
   Search,
   RefreshCcw,
@@ -25,6 +23,11 @@ import {
   Activity,
   CircleDollarSign,
   Gauge,
+  BadgeCheck,
+  ShieldCheck,
+  Percent,
+  PencilLine,
+  ArrowRight,
 } from "lucide-react";
 
 import UserNewChallengeHook from "../../../hooks/user/UseNewChallengeHook";
@@ -105,21 +108,16 @@ function SectionCard({
 }) {
   return (
     <div
-      className={[
-        "rounded-[24px] border transition-all duration-300",
-        className,
-      ].join(" ")}
+      className={["overflow-hidden border transition-all duration-300", className].join(" ")}
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
-        background: isDark
-          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
+          : "rgba(0,0,0,0.08)",
+        background: isDark ? "rgba(17,24,39,0.9)" : "#ffffff",
         boxShadow: isDark
-          ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(251,146,60,0.10)",
-        backdropFilter: "blur(10px)",
+          ? "0 10px 30px rgba(0,0,0,0.25)"
+          : "0 1px 2px rgba(0,0,0,0.08)",
+        borderRadius: "4px",
       }}
     >
       {children}
@@ -145,29 +143,29 @@ function StatCard({
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(40,116,240,0.10)",
+          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(40,116,240,0.95)",
+          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(40,116,240,0.16)",
         }
       : tone === "warning"
       ? {
-          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
-          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
-          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.16)",
+          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(255,159,0,0.10)",
+          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(180,83,9,0.95)",
+          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(255,159,0,0.16)",
         }
       : {
-          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
-          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
+          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(245,247,250,1)",
+          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(17,24,39,0.92)",
           border: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
+            : "rgba(0,0,0,0.08)",
         };
 
   return (
     <SectionCard theme={theme} isDark={isDark} className="p-4">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -183,7 +181,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(100,116,139,0.96)",
+                : "rgba(107,114,128,0.96)",
             }}
           >
             {label}
@@ -194,7 +192,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(15,23,42,0.98)",
+                : "rgba(17,24,39,0.98)",
             }}
           >
             {value}
@@ -206,7 +204,7 @@ function StatCard({
               style={{
                 color: isDark
                   ? rgba(theme?.fg || "255 255 255", 0.48)
-                  : "rgba(100,116,139,0.88)",
+                  : "rgba(107,114,128,0.88)",
               }}
             >
               {hint}
@@ -244,11 +242,11 @@ function EmptyState({
         style={{
           borderColor: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
-          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.78)",
+            : "rgba(0,0,0,0.08)",
+          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(245,247,250,1)",
           color: isDark
             ? rgba(theme?.fg || "255 255 255", 0.7)
-            : "rgba(100,116,139,0.9)",
+            : "rgba(107,114,128,0.9)",
         }}
       >
         ⚪
@@ -259,7 +257,7 @@ function EmptyState({
         style={{
           color: isDark
             ? rgba(theme?.fg || "255 255 255", 0.92)
-            : "rgba(15,23,42,0.96)",
+            : "rgba(17,24,39,0.96)",
         }}
       >
         {title}
@@ -270,7 +268,7 @@ function EmptyState({
         style={{
           color: isDark
             ? rgba(theme?.fg || "255 255 255", 0.58)
-            : "rgba(100,116,139,0.95)",
+            : "rgba(107,114,128,0.95)",
         }}
       >
         {subtitle}
@@ -292,11 +290,12 @@ function SkeletonTable({
 }) {
   return (
     <div
-      className="overflow-x-auto rounded-[20px] border"
+      className="overflow-x-auto border"
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.12)
-          : "rgba(251,146,60,0.14)",
+          : "rgba(0,0,0,0.08)",
+        borderRadius: "4px",
       }}
     >
       <table className="w-full text-sm">
@@ -308,7 +307,7 @@ function SkeletonTable({
                 borderBottom: `1px solid ${
                   isDark
                     ? rgba(theme?.border || "255 255 255", 0.08)
-                    : "rgba(251,146,60,0.10)"
+                    : "rgba(0,0,0,0.06)"
                 }`,
               }}
             >
@@ -319,7 +318,7 @@ function SkeletonTable({
                     style={{
                       background: isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(255,255,255,0.9)",
+                        : "rgba(243,244,246,1)",
                     }}
                   />
                 </td>
@@ -328,6 +327,90 @@ function SkeletonTable({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function CheckoutStep({
+  step,
+  title,
+  isOpen,
+  isCompleted,
+  summary,
+  onChange,
+  children,
+  isDark,
+}: {
+  step: number;
+  title: string;
+  isOpen: boolean;
+  isCompleted: boolean;
+  summary?: React.ReactNode;
+  onChange?: () => void;
+  children?: React.ReactNode;
+  isDark: boolean;
+}) {
+  return (
+    <div
+      className="overflow-hidden border"
+      style={{
+        borderColor: "rgba(0,0,0,0.08)",
+        background: "#fff",
+        borderRadius: "4px",
+      }}
+    >
+      <div
+        className="flex items-start justify-between gap-4 px-5 py-4"
+        style={{
+          background: isOpen ? "#fff7e6" : "#fff",
+          borderBottom: isOpen ? "none" : "1px solid rgba(0,0,0,0.06)",
+          color: isOpen ? "#fff" : "#555",
+        }}
+      >
+        <div className="flex min-w-0 items-start gap-3">
+          <div
+            className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-sm text-xs font-bold"
+            style={{
+              background: isOpen ? "#fff" : "#f0f0f0",
+              color: isOpen ? "#fff7e6" : "#555",
+            }}
+          >
+            {step}
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[15px] font-semibold uppercase">{title}</span>
+              {isCompleted && !isOpen ? (
+                <CheckCircle2 className="h-4 w-4 text-[#fff7e6]" />
+              ) : null}
+            </div>
+
+            {!isOpen && summary ? (
+              <div className="mt-2 text-[15px] text-[#212121]">{summary}</div>
+            ) : null}
+          </div>
+        </div>
+
+        {!isOpen && onChange ? (
+          <button
+            type="button"
+            onClick={onChange}
+            className="shrink-0 border px-6 py-3 text-sm font-semibold uppercase"
+            style={{
+              borderColor: "rgba(0,0,0,0.12)",
+              color: "#fff7e6",
+              background: "#fff",
+              borderRadius: "2px",
+              minWidth: "132px",
+            }}
+          >
+            Change
+          </button>
+        ) : null}
+      </div>
+
+      {isOpen ? <div>{children}</div> : null}
     </div>
   );
 }
@@ -346,6 +429,8 @@ export default function UserDeposit() {
   const isDark = mode === "dark";
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const submitRequestRef = useRef<HTMLDivElement | null>(null);
+  const blinkTimeoutRef = useRef<any>(null);
 
   const [formData, setFormData] = useState({
     apiGroup: "",
@@ -359,7 +444,6 @@ export default function UserDeposit() {
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [creatingLoading, setCreatingLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showStatsOverview, setShowStatsOverview] = useState(true);
 
   const [selectedPayment, setSelectedPayment] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -369,19 +453,31 @@ export default function UserDeposit() {
   const [showPreview, setShowPreview] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentData, setPaymentData] = useState<any>(null);
-
-  /* -------------------- txn modal -------------------- */
   const [showTxnModal, setShowTxnModal] = useState(false);
+
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnError, setTxnError] = useState<string | null>(null);
   const [txnQ, setTxnQ] = useState("");
   const [depositTransactions, setDepositTransactions] = useState<any[]>([]);
 
+  const [openStep, setOpenStep] = useState<1 | 2>(1);
+  const [step1Completed, setStep1Completed] = useState(false);
+  const [step2Completed, setStep2Completed] = useState(false);
+  const [methodInteractionDone, setMethodInteractionDone] = useState(false);
+  const [highlightSubmit, setHighlightSubmit] = useState(false);
+
   useEffect(() => {
     try {
       getPaymentMethod?.();
     } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (blinkTimeoutRef.current) {
+        clearTimeout(blinkTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -573,15 +669,10 @@ export default function UserDeposit() {
             <button
               key={idx}
               onClick={() => window.open(part, "_blank", "noopener,noreferrer")}
-              className="mx-2 rounded-full px-6 py-2 font-semibold transition-all"
+              className="mx-1 inline-flex rounded-sm px-4 py-2 text-sm font-semibold transition-all"
               style={{
-                background: isDark
-                  ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
-                  : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+                background: "#fb641b",
                 color: "#fff",
-                boxShadow: isDark
-                  ? "0 14px 34px rgba(59,130,246,0.22)"
-                  : "0 14px 34px rgba(249,115,22,0.18)",
               }}
             >
               Pay Now
@@ -592,7 +683,7 @@ export default function UserDeposit() {
               style={{
                 color: isDark
                   ? rgba(theme?.fg || "255 255 255", 0.78)
-                  : "rgba(51,65,85,0.94)",
+                  : "rgba(55,65,81,0.94)",
               }}
             >
               {part}
@@ -602,6 +693,22 @@ export default function UserDeposit() {
     },
     [isDark, theme?.fg]
   );
+
+  const scrollToSubmitRequest = useCallback(() => {
+    requestAnimationFrame(() => {
+      submitRequestRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      setHighlightSubmit(true);
+
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      blinkTimeoutRef.current = setTimeout(() => {
+        setHighlightSubmit(false);
+      }, 3200);
+    });
+  }, []);
 
   const handleCryptoPayment = async (body: any) => {
     try {
@@ -703,38 +810,38 @@ export default function UserDeposit() {
 
   const titleColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(15,23,42,0.98)";
+    : "rgba(17,24,39,0.98)";
 
   const mutedTextColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
+    : "rgba(107,114,128,0.96)";
 
   const accentColor = isDark
     ? "rgba(96,165,250,0.95)"
-    : "rgba(249,115,22,0.95)";
+    : "#fff7e6";
 
   const selectStyle: React.CSSProperties = {
     width: "100%",
-    borderRadius: "16px",
+    borderRadius: "2px",
     padding: "13px 42px 13px 14px",
     outline: "none",
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(30,41,59,0.96)",
+    background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(31,41,55,0.96)",
     border: isDark
       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.16)",
+      : "1px solid #d1d5db",
   };
 
   const inputStyle: React.CSSProperties = {
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
+    background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
     color: titleColor,
     border: isDark
       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.16)",
-    borderRadius: "16px",
+      : "1px solid #d1d5db",
+    borderRadius: "2px",
     outline: "none",
   };
 
@@ -744,22 +851,29 @@ export default function UserDeposit() {
   };
 
   const subtleCard = (): React.CSSProperties => ({
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.82)",
+    background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
     border: isDark
       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.14)",
-    borderRadius: "14px",
+      : "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "4px",
   });
 
-  const primaryButtonStyle: React.CSSProperties = {
-    borderRadius: "999px",
-    color: "#fff",
-    background: isDark
-      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
-      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+  const panelStyle: React.CSSProperties = {
+    background: isDark ? "rgba(17,24,39,0.92)" : "#ffffff",
+    border: isDark
+      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
+      : "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "4px",
     boxShadow: isDark
-      ? "0 14px 34px rgba(59,130,246,0.22)"
-      : "0 14px 34px rgba(249,115,22,0.18)",
+      ? "0 10px 30px rgba(0,0,0,0.22)"
+      : "0 1px 2px rgba(0,0,0,0.08)",
+  };
+
+  const primaryButtonStyle: React.CSSProperties = {
+    borderRadius: "2px",
+    color: "#fff",
+    background: "#fb641b",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.14)",
   };
 
   const ctaEnabled =
@@ -769,6 +883,9 @@ export default function UserDeposit() {
     formData.accountNumber &&
     !isSubmitting &&
     !creatingLoading;
+
+  const canContinueStep1 = !!formData.accountNumber && !!formData.depositAmount;
+  const canContinueStep2 = !!selectedPayment;
 
   const inrAmount =
     Number(formData.depositAmount || 0) *
@@ -794,22 +911,33 @@ export default function UserDeposit() {
     rgb,
     rgba,
     inputStyle,
-    optionStyle,
+    panelStyle,
     subtleCard,
+    isDark,
+    textPrimary: isDark ? "rgba(255,255,255,0.94)" : "rgba(17,24,39,0.98)",
+    textSecondary: isDark ? "rgba(255,255,255,0.64)" : "rgba(107,114,128,0.96)",
+    textSoft: isDark ? "rgba(255,255,255,0.78)" : "rgba(55,65,81,0.94)",
+    badgeText: isDark ? "rgba(191,219,254,0.96)" : "#fff7e6",
     C: {
-      accent: theme?.accent || "59 130 246",
-      primary: theme?.primary || theme?.accent || "147 51 234",
+      accent: theme?.accent || "40 116 240",
+      primary: theme?.primary || theme?.accent || "251 100 27",
       fg: theme?.fg || "255 255 255",
       mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
-      border: theme?.border || theme?.inputBorder || "255 255 255",
-      surface1: theme?.surface1 || theme?.bg || "0 0 0",
-      surface2: theme?.surface2 || theme?.card || "18 18 18",
-      primaryFg: theme?.primaryFg || "0 0 0",
+      border: theme?.border || theme?.inputBorder || "209 213 219",
+      surface1: theme?.surface1 || theme?.bg || "255 255 255",
+      surface2: theme?.surface2 || theme?.card || "243 244 246",
+      primaryFg: theme?.primaryFg || "255 255 255",
       success: theme?.success || "34 197 94",
       warning: theme?.warning || "234 179 8",
       danger: theme?.danger || "244 63 94",
-      radius: theme?.radius || "18px",
+      ring: theme?.ring || theme?.accent || "40 116 240",
+      glow: theme?.accent || "40 116 240",
+      radius: theme?.radius || "4px",
+      accentFg: theme?.accentFg || "255 255 255",
     },
+    showPaymentModal,
+    setShowPaymentModal,
+    setMethodInteractionDone,
   };
 
   const statusStyle = (status: any) => {
@@ -817,33 +945,33 @@ export default function UserDeposit() {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
-        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(16,185,129,0.18)",
-        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.08)",
+        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(22,163,74,0.16)",
+        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(21,128,61,0.95)",
       };
     }
 
     if (tone === "pending") {
       return {
-        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
-        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.18)",
-        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
+        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.16)",
+        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(180,83,9,0.95)",
       };
     }
 
     if (tone === "rejected") {
       return {
-        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
-        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.18)",
-        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
+        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.16)",
+        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(185,28,28,0.95)",
       };
     }
 
     return {
-      background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
+      background: isDark ? "rgba(255,255,255,0.05)" : "#f3f4f6",
       border: isDark
         ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-        : "1px solid rgba(251,146,60,0.14)",
+        : "1px solid rgba(0,0,0,0.08)",
       color: titleColor,
     };
   };
@@ -882,6 +1010,37 @@ export default function UserDeposit() {
     };
   }, [filteredDepositTransactions]);
 
+  const savingsAmount = Math.max(Math.round(inrAmount * 0.02), 0);
+
+  const handleContinueStep1 = () => {
+    if (!canContinueStep1) {
+      toast.error("Please select account and enter deposit amount.");
+      return;
+    }
+    setStep1Completed(true);
+    setOpenStep(2);
+  };
+
+  const handleMethodSelect = (methodName: string) => {
+    setSelectedPayment(methodName);
+    setShowPaymentModal(true);
+  };
+
+  const handleContinueStep2 = () => {
+    if (!canContinueStep2) {
+      toast.error("Please select a payment method.");
+      return;
+    }
+
+    if (!methodInteractionDone) {
+      toast.error("Please open and close the payment method details first.");
+      return;
+    }
+
+    setStep2Completed(true);
+    scrollToSubmitRequest();
+  };
+
   const txnModal =
     typeof document !== "undefined"
       ? createPortal(
@@ -903,17 +1062,16 @@ export default function UserDeposit() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 12, scale: 0.98 }}
                   transition={{ duration: 0.25 }}
-                  className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-[28px] border"
+                  className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden border"
                   style={{
                     borderColor: isDark
                       ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(251,146,60,0.16)",
-                    background: isDark
-                      ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
-                      : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
+                      : "rgba(0,0,0,0.12)",
+                    background: isDark ? "#0f172a" : "#f1f3f6",
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(249,115,22,0.16)",
+                      : "0 30px 80px rgba(0,0,0,0.16)",
+                    borderRadius: "8px",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -922,10 +1080,8 @@ export default function UserDeposit() {
                     style={{
                       borderColor: isDark
                         ? rgba(theme?.border || "255 255 255", 0.1)
-                        : "rgba(251,146,60,0.12)",
-                      background: isDark
-                        ? "rgba(255,255,255,0.02)"
-                        : "rgba(255,255,255,0.45)",
+                        : "rgba(0,0,0,0.08)",
+                      background: isDark ? "rgba(255,255,255,0.02)" : "#ffffff",
                     }}
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -951,7 +1107,7 @@ export default function UserDeposit() {
                           className="mt-2 text-sm sm:text-[15px]"
                           style={{ color: mutedTextColor }}
                         >
-                          Yahan aapke saare deposit requests aur unka status dikhega.
+                          Here you can view all deposit requests and their live status.
                         </p>
                       </div>
 
@@ -959,15 +1115,14 @@ export default function UserDeposit() {
                         <button
                           type="button"
                           onClick={() => fetchDepositTransactions()}
-                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
                               ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(251,146,60,0.16)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(255,255,255,0.9)",
+                              : "rgba(0,0,0,0.12)",
+                            background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
                             color: titleColor,
+                            borderRadius: "4px",
                           }}
                         >
                           <RefreshCcw className="h-4 w-4" />
@@ -977,7 +1132,7 @@ export default function UserDeposit() {
                         <button
                           type="button"
                           onClick={() => setShowTxnModal(false)}
-                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
                               ? "rgba(239,68,68,0.24)"
@@ -988,6 +1143,7 @@ export default function UserDeposit() {
                             color: isDark
                               ? "rgba(248,113,113,0.95)"
                               : "rgba(220,38,38,0.95)",
+                            borderRadius: "4px",
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -1043,21 +1199,20 @@ export default function UserDeposit() {
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, method, txn id, status..."
-                          className="w-full rounded-2xl border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
                           style={{
                             borderColor: isDark
                               ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(251,146,60,0.16)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(255,255,255,0.9)",
+                              : "rgba(0,0,0,0.12)",
+                            background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
                             color: titleColor,
+                            borderRadius: "4px",
                           }}
                         />
                       </div>
                     </div>
 
-                    <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+                    <SectionCard theme={theme} isDark={isDark}>
                       <div className="overflow-x-auto">
                         <AnimatePresence mode="wait">
                           {txnLoading ? (
@@ -1122,10 +1277,10 @@ export default function UserDeposit() {
                                   style={{
                                     background: isDark
                                       ? "rgba(255,255,255,0.03)"
-                                      : "rgba(255,255,255,0.75)",
+                                      : "#f9fafb",
                                     borderBottom: isDark
                                       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
-                                      : "1px solid rgba(251,146,60,0.12)",
+                                      : "1px solid rgba(0,0,0,0.08)",
                                   }}
                                 >
                                   <tr>
@@ -1157,7 +1312,7 @@ export default function UserDeposit() {
                                       style={{
                                         borderBottom: isDark
                                           ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
-                                          : "1px solid rgba(251,146,60,0.10)",
+                                          : "1px solid rgba(0,0,0,0.06)",
                                       }}
                                     >
                                       <td
@@ -1169,14 +1324,14 @@ export default function UserDeposit() {
 
                                       <td className="px-4 py-3 text-center">
                                         <span
-                                          className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
+                                          className="inline-flex rounded-sm border px-3 py-1 text-[11px] font-semibold"
                                           style={{
                                             background: isDark
                                               ? "rgba(59,130,246,0.10)"
-                                              : "rgba(255,237,213,0.72)",
+                                              : "rgba(219,234,254,0.72)",
                                             borderColor: isDark
                                               ? "rgba(59,130,246,0.18)"
-                                              : "rgba(251,146,60,0.16)",
+                                              : "rgba(40,116,240,0.16)",
                                             color: accentColor,
                                           }}
                                         >
@@ -1193,14 +1348,14 @@ export default function UserDeposit() {
 
                                       <td className="px-4 py-3 text-center">
                                         <span
-                                          className="inline-flex rounded-lg border px-2 py-1 text-[11px] font-semibold"
+                                          className="inline-flex rounded-sm border px-2 py-1 text-[11px] font-semibold"
                                           style={{
                                             background: isDark
                                               ? "rgba(255,255,255,0.03)"
-                                              : "rgba(255,255,255,0.82)",
+                                              : "#ffffff",
                                             borderColor: isDark
                                               ? rgba(theme?.border || "255 255 255", 0.12)
-                                              : "rgba(251,146,60,0.14)",
+                                              : "rgba(0,0,0,0.08)",
                                             color: titleColor,
                                           }}
                                         >
@@ -1276,209 +1431,108 @@ export default function UserDeposit() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full"
+      <div
+        className="min-h-screen w-full"
+        style={{
+          background: isDark ? "#0b1120" : "#f1f3f6",
+        }}
       >
-        <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
-          <div
-            className="border-b px-5 py-4 sm:px-6"
-            style={{
-              borderColor: isDark
-                ? rgba(theme?.border || "255 255 255", 0.1)
-                : "rgba(251,146,60,0.12)",
-              background: isDark
-                ? "rgba(255,255,255,0.02)"
-                : "rgba(255,255,255,0.38)",
-            }}
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" style={{ color: accentColor }} />
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                    style={{ color: mutedTextColor }}
-                  >
-                    deposit · funding · account
-                  </span>
-                </div>
-
-                <h1
-                  className="text-3xl font-bold sm:text-4xl"
-                  style={{
-                    color: titleColor,
-                    fontFamily: "'Poppins', sans-serif",
-                  }}
-                >
-                  Deposit Funds
-                </h1>
-
-                <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
-                  Choose account, enter amount, select payment method, and submit your
-                  deposit request securely.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-start sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowTxnModal(true)}
-                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
-                  style={{
-                    borderColor: isDark
-                      ? "rgba(96,165,250,0.28)"
-                      : "rgba(249,115,22,0.24)",
-                    background: isDark
-                      ? "rgba(59,130,246,0.10)"
-                      : "rgba(255,237,213,0.72)",
-                    color: accentColor,
-                  }}
-                >
-                  <History className="h-4 w-4" />
-                  Deposite Txn
-                </button>
-              </div>
+        <div className="w-full" style={{ background: "#fff7e6" }}>
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-4 lg:px-6">
+            <div className="leading-none">
+              <div className="text-[30px] font-bold  text-white">Deposite Fund</div>
             </div>
-          </div>
 
-          <div className="p-4 sm:p-5 md:p-6">
-            <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Secure Invest
+                </div>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setShowStatsOverview((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition-all duration-300"
-                style={{
-                  borderColor: isDark
-                    ? rgba(theme?.border || "255 255 255", 0.1)
-                    : "rgba(251,146,60,0.14)",
-                  background: isDark
-                    ? "rgba(255,255,255,0.03)"
-                    : "rgba(255,255,255,0.84)",
-                }}
+                onClick={() => setShowTxnModal(true)}
+                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
+                style={{ borderRadius: "4px" }}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-                    style={{
-                      borderColor: isDark
-                        ? rgba(theme?.border || "255 255 255", 0.12)
-                        : "rgba(251,146,60,0.14)",
-                      background: isDark
-                        ? "rgba(59,130,246,0.10)"
-                        : "rgba(255,237,213,0.65)",
-                      color: accentColor,
-                    }}
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <div
-                      className="text-sm font-semibold"
-                      style={{ color: titleColor }}
-                    >
-                      Account Overview
-                    </div>
-                    <div
-                      className="text-xs"
-                      style={{ color: mutedTextColor }}
-                    >
-                      Selected account, balance and INR conversion
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ color: mutedTextColor }}
-                  >
-                    {showStatsOverview ? "Collapse" : "Expand"}
-                  </span>
-
-                  <motion.div
-                    animate={{ rotate: showStatsOverview ? 0 : -180 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {showStatsOverview ? (
-                      <ChevronUp className="h-5 w-5" style={{ color: accentColor }} />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" style={{ color: accentColor }} />
-                    )}
-                  </motion.div>
-                </div>
+                <History className="h-4 w-4" />
+                Deposit Transactions
               </button>
-
-              <AnimatePresence initial={false}>
-                {showStatsOverview && (
-                  <motion.div
-                    key="stats-overview"
-                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                    animate={{ height: "auto", opacity: 1, marginTop: 16 }}
-                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<Wallet className="h-5 w-5" />}
-                        label="Selected Account"
-                        value={formData.accountNumber || "—"}
-                        hint={accountType || "Choose an account to continue"}
-                        tone="default"
-                      />
-
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<DollarSign className="h-5 w-5" />}
-                        label="Current Balance"
-                        value={
-                          balanceLoading ? (
-                            <span className="inline-flex items-center gap-2">
-                              <LoaderIcon color={accentColor} />
-                            </span>
-                          ) : (
-                            `$${accountBalance || 0}`
-                          )
-                        }
-                        hint="Live equity balance"
-                        tone="success"
-                      />
-
-                      {siteConfig?.inrUi !== false ? (
-                        <StatCard
-                          theme={theme}
-                          isDark={isDark}
-                          icon={<Landmark className="h-5 w-5" />}
-                          label="INR Amount"
-                          value={`₹ ${inrAmount || 0}`}
-                          hint={`Rate: ₹${siteConfig?.dollarDepositRate || 0}`}
-                          tone="info"
-                        />
-                      ) : null}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
+          </div>
+        </div>
 
-            <div className="gap-5 lg:grid-cols-12">
-              <div className="lg:col-span-7">
-                <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<Wallet className="h-5 w-5" />}
+              label="Selected Account"
+              value={formData.accountNumber || "—"}
+              hint={accountType || "Choose account"}
+              tone="default"
+            />
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<DollarSign className="h-5 w-5" />}
+              label="Current Balance"
+              value={
+                balanceLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoaderIcon color={accentColor} />
+                  </span>
+                ) : (
+                  `$${accountBalance || 0}`
+                )
+              }
+              hint="Live equity"
+              tone="success"
+            />
+            <StatCard
+              theme={theme}
+              isDark={isDark}
+              icon={<Landmark className="h-5 w-5" />}
+              label="INR Equivalent"
+              value={`₹ ${money(inrAmount)}`}
+              hint={`Rate ₹${siteConfig?.dollarDepositRate || 0}`}
+              tone="info"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+            <div className="xl:col-span-8 space-y-4">
+              <CheckoutStep
+                step={1}
+                title="Select Account"
+                isOpen={openStep === 1}
+                isCompleted={step1Completed}
+                isDark={isDark}
+                onChange={() => setOpenStep(1)}
+                summary={
+                  <>
+                    <span className="font-semibold">
+                      {formData.accountNumber || "No account selected"}
+                    </span>
+                    {formData.depositAmount ? (
+                      <span className="ml-2 text-[#555]">
+                        • ${money(formData.depositAmount)} • {accountType || "N/A"}
+                      </span>
+                    ) : null}
+                  </>
+                }
+              >
+                <div className="p-5">
+                  <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div>
                       <label
-                        className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                        className="mb-2 block text-sm font-semibold"
                         style={{ color: titleColor }}
                       >
-                        <Wallet className="h-4 w-4" style={{ color: accentColor }} />
-                        1. Choose Trading Account
+                        Select Trading Account
                       </label>
 
                       <div className="relative">
@@ -1512,11 +1566,10 @@ export default function UserDeposit() {
 
                     <div>
                       <label
-                        className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                        className="mb-2 block text-sm font-semibold"
                         style={{ color: titleColor }}
                       >
-                        <DollarSign className="h-4 w-4" style={{ color: accentColor }} />
-                        2. Enter Deposit Amount
+                        Deposit Amount (USD)
                       </label>
 
                       <div className="relative">
@@ -1537,196 +1590,401 @@ export default function UserDeposit() {
                     </div>
                   </div>
 
-                  <div className="mt-5">
+                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div
-                      className="rounded-2xl border px-4 py-4"
+                      className="border p-4"
                       style={{
-                        borderColor: isDark
-                          ? "rgba(16,185,129,0.18)"
-                          : "rgba(16,185,129,0.16)",
-                        background: isDark
-                          ? "rgba(16,185,129,0.08)"
-                          : "rgba(240,253,244,0.8)",
+                        borderColor: "rgba(0,0,0,0.08)",
+                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
+                        borderRadius: "4px",
                       }}
                     >
-                      <div className="flex items-center justify-between gap-4">
-                        <span
-                          className="text-sm font-medium"
-                          style={{
-                            color: isDark
-                              ? "rgba(52,211,153,0.95)"
-                              : "rgba(5,150,105,0.95)",
-                          }}
-                        >
-                          Current Balance
-                        </span>
+                      <div className="text-xs text-gray-500">Account Type</div>
+                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
+                        {accountType || "Not selected"}
+                      </div>
+                    </div>
 
-                        {balanceLoading ? (
-                          <LoaderIcon color={accentColor} />
-                        ) : (
-                          <span
-                            className="text-xl font-bold"
-                            style={{ color: titleColor }}
-                          >
-                            ${accountBalance || 0}
-                          </span>
-                        )}
+                    <div
+                      className="border p-4"
+                      style={{
+                        borderColor: "rgba(0,0,0,0.08)",
+                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <div className="text-xs text-gray-500">Live Balance</div>
+                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
+                        {balanceLoading ? "Loading..." : `$${money(accountBalance)}`}
+                      </div>
+                    </div>
+
+                    <div
+                      className="border p-4"
+                      style={{
+                        borderColor: "rgba(0,0,0,0.08)",
+                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <div className="text-xs text-gray-500">INR Conversion</div>
+                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
+                        ₹ {money(inrAmount)}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-7">
-                    <label
-                      className="mb-3 flex items-center gap-2 text-sm font-semibold"
-                      style={{ color: titleColor }}
+                  <div className="mt-5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleContinueStep1}
+                      className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
+                      style={{
+                        background: "#fb641b",
+                        color: "#fff",
+                        borderRadius: "2px",
+                        opacity: canContinueStep1 ? 1 : 0.7,
+                      }}
                     >
-                      <CreditCard className="h-4 w-4" style={{ color: accentColor }} />
-                      3. Choose Payment Method
-                    </label>
+                      Continue
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </CheckoutStep>
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      <AnimatePresence initial={false}>
-                        {uniqueActiveMethods.map((method: any, index: number) => {
-                          const active = selectedPayment === method.name;
+              <CheckoutStep
+                step={2}
+                title="Payment Method"
+                isOpen={openStep === 2}
+                isCompleted={step2Completed}
+                isDark={isDark}
+                onChange={() => setOpenStep(2)}
+                summary={
+                  <>
+                    <span className="font-semibold">{selectedPayment || "No method selected"}</span>
+                    {methodInteractionDone ? (
+                      <span className="ml-2 text-[#555]">• details viewed</span>
+                    ) : null}
+                  </>
+                }
+              >
+                <div className="p-5">
+                  <div className="mb-5">
+                    <div
+                      className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
+                      style={{ color: mutedTextColor }}
+                    >
+                      Select Payment Method
+                    </div>
 
-                          return (
-                            <motion.button
-                              key={`${method.name}-${index}`}
-                              type="button"
-                              initial={{ opacity: 0, y: 8 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.04 }}
-                              whileHover={{ y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedPayment(method.name)}
-                              className="rounded-2xl border px-4 py-4 transition-all duration-300"
-                              style={{
-                                borderColor: active
-                                  ? isDark
-                                    ? "rgba(96,165,250,0.35)"
-                                    : "rgba(249,115,22,0.28)"
-                                  : isDark
-                                  ? rgba(theme?.border || "255 255 255", 0.1)
-                                  : "rgba(251,146,60,0.14)",
-                                background: active
-                                  ? isDark
-                                    ? "rgba(59,130,246,0.10)"
-                                    : "rgba(255,237,213,0.72)"
-                                  : isDark
-                                  ? "rgba(255,255,255,0.02)"
-                                  : "rgba(255,255,255,0.82)",
-                                boxShadow: active
-                                  ? isDark
-                                    ? "0 0 0 1px rgba(96,165,250,0.18)"
-                                    : "0 0 0 1px rgba(249,115,22,0.14)"
-                                  : "none",
-                              }}
-                            >
-                              <div className="flex flex-col items-center justify-center gap-2 text-center">
-                                <span className="text-2xl">{method.icon || "💳"}</span>
-                                <span
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {uniqueActiveMethods.map((method: any, index: number) => {
+                        const active = selectedPayment === method.name;
+
+                        return (
+                          <motion.button
+                            key={`${method.name}-${index}`}
+                            type="button"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => handleMethodSelect(method.name)}
+                            className="w-full border px-4 py-4 text-left transition-all duration-300"
+                            style={{
+                              borderColor: active ? "#fff7e6" : "rgba(0,0,0,0.08)",
+                              background: active ? "rgba(40,116,240,0.05)" : "#ffffff",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="flex h-10 w-10 items-center justify-center border text-lg"
+                                style={{
+                                  borderColor: active ? "#fff7e6" : "rgba(0,0,0,0.08)",
+                                  background: "#f9fafb",
+                                  borderRadius: "4px",
+                                }}
+                              >
+                                {method.icon || "💳"}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div
                                   className="text-sm font-semibold"
-                                  style={{
-                                    color: active
-                                      ? isDark
-                                        ? "rgba(191,219,254,0.96)"
-                                        : "rgba(194,65,12,0.96)"
-                                      : titleColor,
-                                  }}
+                                  style={{ color: active ? accentColor : titleColor }}
                                 >
                                   {method.name}
-                                </span>
+                                </div>
+                                <div
+                                  className="mt-1 text-xs"
+                                  style={{ color: mutedTextColor }}
+                                >
+                                  Secure funding option
+                                </div>
                               </div>
-                            </motion.button>
-                          );
-                        })}
-                      </AnimatePresence>
+
+                              {active ? (
+                                <CheckCircle2 className="h-4 w-4" style={{ color: accentColor }} />
+                              ) : null}
+                            </div>
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="mt-7">
-                    <SelectedPaymentMethod {...paymentProps} />
-                  </div>
+                  {selectedPayment ? (
+                    <div className="mb-5 rounded-sm border border-[#e0e0e0] bg-[#f9fafb] px-4 py-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-[#212121]">
+                            {selectedPayment}
+                          </div>
+                          <div className="mt-1 text-xs text-[#666]">
+                            Tap change below or click the card again to reopen modal and view details.
+                          </div>
+                        </div>
 
-                  <div className="mt-7">
-                    <label
-                      className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                      style={{ color: titleColor }}
-                    >
-                      <ReceiptText className="h-4 w-4" style={{ color: accentColor }} />
-                      4. Payment Confirmation
-                    </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowPaymentModal(true)}
+                          className="inline-flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase"
+                          style={{
+                            borderColor: "rgba(0,0,0,0.12)",
+                            background: "#fff",
+                            color: "#fff7e6",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          <PencilLine className="h-3.5 w-3.5" />
+                          Change
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
 
-                    <label
-                      className="flex cursor-pointer items-start gap-3 rounded-2xl border p-4"
-                      style={{
-                        borderColor: isDark
-                          ? rgba(theme?.border || "255 255 255", 0.12)
-                          : "rgba(251,146,60,0.14)",
-                        background: isDark
-                          ? "rgba(255,255,255,0.03)"
-                          : "rgba(255,255,255,0.82)",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={agreeToTerms}
-                        onChange={(e) => setAgreeToTerms(e.target.checked)}
-                        className="mt-0.5 h-5 w-5 rounded"
-                        style={{ accentColor: rgb(theme?.accent || "59 130 246") }}
+                  {selectedPayment ? (
+                    <>
+                      <SelectedPaymentMethod
+                        {...paymentProps}
+                        methodInteractionDone={methodInteractionDone}
                       />
 
-                      <span
-                        className="text-sm"
-                        style={{ color: titleColor }}
-                      >
-                        I agree to the{" "}
-                        <a
-                          href={siteConfig?.tNcLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                          style={{ color: accentColor }}
-                        >
-                          Terms & Conditions
-                        </a>
-                      </span>
-                    </label>
-                  </div>
+                      {!methodInteractionDone ? (
+                        <div className="rounded-sm border border-dashed border-[#c7d2fe] bg-[#f8fbff] px-4 py-8 text-center">
+                          <p className="text-sm font-medium text-[#fff7e6]">
+                            Opened method selected.
+                          </p>
+                          <p className="mt-1 text-sm text-[#666]">
+                            Close the modal after payment. Then screenshot upload and transaction ID fields will appear here.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
+                            <label className="flex cursor-pointer items-start gap-3">
+                              <input
+                                type="checkbox"
+                                checked={agreeToTerms}
+                                onChange={(e) => setAgreeToTerms(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded"
+                                style={{ accentColor: "#fff7e6" }}
+                              />
 
-                  <div className="mt-8 flex justify-center sm:justify-start">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: ctaEnabled ? 1.02 : 1 }}
-                      whileTap={{ scale: ctaEnabled ? 0.98 : 1 }}
-                      onClick={submitHandler}
-                      disabled={!ctaEnabled}
-                      className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
+                              <span className="text-sm" style={{ color: titleColor }}>
+                                I agree to the{" "}
+                                <a
+                                  href={siteConfig?.tNcLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline"
+                                  style={{ color: accentColor }}
+                                >
+                                  Terms & Conditions
+                                </a>
+                              </span>
+                            </label>
+                          </div>
+
+                          <div className="mt-5 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={handleContinueStep2}
+                              className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
+                              style={{
+                                background: "#fb641b",
+                                color: "#fff",
+                                borderRadius: "2px",
+                                opacity: canContinueStep2 ? 1 : 0.7,
+                              }}
+                            >
+                              Continue
+                              <ArrowRight className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : null}
+                </div>
+              </CheckoutStep>
+            </div>
+
+            <div className="xl:col-span-4">
+              <div className="sticky top-4 space-y-4" ref={submitRequestRef}>
+                <SectionCard theme={theme} isDark={isDark}>
+                  <div className="p-5">
+                    <div
+                      className="mb-4 text-[28px] font-semibold leading-none"
+                      style={{ color: titleColor }}
+                    >
+                      Price Details
+                    </div>
+
+                    <div
+                      className="space-y-4 border p-4"
                       style={{
-                        ...primaryButtonStyle,
-                        opacity: ctaEnabled ? 1 : 0.65,
-                        cursor: ctaEnabled ? "pointer" : "not-allowed",
+                        background: isDark ? "rgba(255,255,255,0.02)" : "#fafafa",
+                        borderColor: isDark
+                          ? rgba(theme?.border || "255 255 255", 0.1)
+                          : "rgba(0,0,0,0.08)",
+                        borderRadius: "4px",
                       }}
                     >
-                      {creatingLoading || isSubmitting ? (
-                        <LoaderIcon color="#ffffff" />
-                      ) : (
-                        <CheckCircle2 className="h-4 w-4" />
-                      )}
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: titleColor }}>Price (1 item)</span>
+                        <span style={{ color: titleColor }}>₹{money(inrAmount || 0)}</span>
+                      </div>
 
-                      <span>
-                        {selectedPayment?.toLowerCase() === "crypto"
-                          ? "Process Payment"
-                          : "Submit Deposit"}
-                      </span>
-                    </motion.button>
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: titleColor }}>Fees</span>
+                        <span style={{ color: titleColor }}>
+                          ₹{money(Math.round(inrAmount * 0.0025 || 0))}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: titleColor }}>Protect Promise Fee</span>
+                        <span style={{ color: titleColor }}>
+                          ₹{money(Math.round(inrAmount * 0.0015 || 0))}
+                        </span>
+                      </div>
+
+                      <div
+                        className="border-t pt-4"
+                        style={{
+                          borderColor: isDark
+                            ? rgba(theme?.border || "255 255 255", 0.1)
+                            : "rgba(0,0,0,0.08)",
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="text-lg font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            Total Payable
+                          </span>
+                          <span
+                            className="text-lg font-semibold"
+                            style={{ color: titleColor }}
+                          >
+                            ₹{money(inrAmount || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className="mt-4 text-base font-semibold"
+                      style={{ color: "#388e3c" }}
+                    >
+                      Your Total Savings on this order ₹{money(savingsAmount)}
+                    </div>
+
+                    <div
+                      className="mt-4 border px-4 py-3"
+                      style={{
+                        background: isDark ? "rgba(255,255,255,0.02)" : "#fff7e6",
+                        borderColor: isDark
+                          ? rgba(theme?.border || "255 255 255", 0.1)
+                          : "rgba(255,159,0,0.18)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Percent className="mt-0.5 h-4 w-4" style={{ color: "#ff9f00" }} />
+                        <div className="text-sm" style={{ color: titleColor }}>
+                          Save extra ₹{money(Math.max(Math.round(inrAmount * 0.0002), 0))} using reward points
+                        </div>
+                      </div>
+                    </div>
+
+                    <motion.div
+                      animate={
+                        highlightSubmit
+                          ? {
+                              scale: [1, 1.03, 1, 1.03, 1],
+                              opacity: [1, 0.7, 1, 0.7, 1],
+                            }
+                          : {
+                              scale: 1,
+                              opacity: 1,
+                            }
+                      }
+                      transition={{
+                        duration: highlightSubmit ? 2.2 : 0.2,
+                        repeat: highlightSubmit ? 1 : 0,
+                      }}
+                    >
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: ctaEnabled ? 1.01 : 1 }}
+                        whileTap={{ scale: ctaEnabled ? 0.99 : 1 }}
+                        onClick={submitHandler}
+                        disabled={!ctaEnabled}
+                        className="mt-5 inline-flex w-full items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
+                        style={{
+                          ...primaryButtonStyle,
+                          opacity: ctaEnabled ? 1 : 0.65,
+                          cursor: ctaEnabled ? "pointer" : "not-allowed",
+                          boxShadow: highlightSubmit
+                            ? "0 0 0 4px rgba(251, 100, 27, 0.18), 0 0 22px rgba(251, 100, 27, 0.28)"
+                            : primaryButtonStyle.boxShadow,
+                        }}
+                      >
+                        {creatingLoading || isSubmitting ? (
+                          <LoaderIcon color="#ffffff" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
+
+                        <span>
+                          {selectedPayment?.toLowerCase() === "crypto"
+                            ? "PROCESS PAYMENT"
+                            : "SUBMIT REQUEST"}
+                        </span>
+                      </motion.button>
+                    </motion.div>
                   </div>
                 </SectionCard>
               </div>
             </div>
           </div>
-        </SectionCard>
-      </motion.div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-4">
+              <span>Policies: Returns Policy</span>
+              <span>Terms of use</span>
+              <span>Security</span>
+              <span>Privacy</span>
+            </div>
+            <div>© 2007-2026 flipkart-style checkout</div>
+          </div>
+        </div>
+      </div>
 
       {showPreview && previewUrl && (
         <div
@@ -1734,14 +1992,12 @@ export default function UserDeposit() {
           style={{ background: "rgba(0,0,0,0.75)" }}
         >
           <div
-            className="max-h-[90vh] max-w-3xl overflow-auto rounded-[24px] border p-5"
+            className="max-h-[90vh] max-w-3xl overflow-auto border bg-white p-5"
             style={{
-              background: isDark
-                ? "linear-gradient(180deg, rgba(17,24,39,0.96), rgba(10,15,23,0.98))"
-                : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
               borderColor: isDark
                 ? rgba(theme?.border || "255 255 255", 0.12)
-                : "rgba(251,146,60,0.16)",
+                : "rgba(0,0,0,0.12)",
+              borderRadius: "6px",
             }}
           >
             <div className="mb-4 flex items-center gap-2">
@@ -1757,108 +2013,21 @@ export default function UserDeposit() {
             <img
               src={previewUrl}
               alt="Preview"
-              className="h-auto max-w-full rounded-xl"
+              className="h-auto max-w-full rounded"
             />
 
             <button
               type="button"
               onClick={togglePreview}
-              className="mt-4 w-full rounded-full px-6 py-3 font-semibold"
+              className="mt-4 w-full px-6 py-3 font-semibold"
               style={{
-                background: isDark
-                  ? "rgba(239,68,68,0.9)"
-                  : "rgba(220,38,38,0.92)",
+                background: "#fb641b",
                 color: "#fff",
+                borderRadius: "2px",
               }}
             >
               Close Preview
             </button>
-          </div>
-        </div>
-      )}
-
-      {showPaymentModal && paymentData && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-          style={{ background: "rgba(0,0,0,0.75)" }}
-        >
-          <div
-            className="w-full max-w-md rounded-[24px] border p-6"
-            style={{
-              background: isDark
-                ? "linear-gradient(180deg, rgba(17,24,39,0.96), rgba(10,15,23,0.98))"
-                : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
-              borderColor: isDark
-                ? rgba(theme?.border || "255 255 255", 0.12)
-                : "rgba(251,146,60,0.16)",
-            }}
-          >
-            <div className="space-y-4 text-center">
-              <div
-                className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border"
-                style={{
-                  borderColor: isDark
-                    ? "rgba(16,185,129,0.18)"
-                    : "rgba(16,185,129,0.16)",
-                  background: isDark
-                    ? "rgba(16,185,129,0.10)"
-                    : "rgba(240,253,244,0.90)",
-                }}
-              >
-                <div className="text-3xl">✅</div>
-              </div>
-
-              <h3
-                className="text-2xl font-bold"
-                style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
-              >
-                Payment Initiated
-              </h3>
-
-              <div
-                className="rounded-2xl border p-4 text-left"
-                style={subtleCard()}
-              >
-                <p style={{ color: titleColor }}>
-                  <span style={{ color: mutedTextColor }}>Pay Amount:</span>{" "}
-                  {paymentData.pay_amount} {paymentData.pay_currency}
-                </p>
-                <p style={{ color: titleColor }}>
-                  <span style={{ color: mutedTextColor }}>To Address:</span>{" "}
-                  {paymentData.pay_address}
-                </p>
-                <p style={{ color: titleColor }}>
-                  <span style={{ color: mutedTextColor }}>Price:</span>{" "}
-                  {paymentData.price_amount} {paymentData.price_currency}
-                </p>
-
-                {paymentData.expiration_estimate_date && (
-                  <p style={{ color: titleColor }}>
-                    <span style={{ color: mutedTextColor }}>Expires:</span>{" "}
-                    {new Date(paymentData.expiration_estimate_date).toLocaleString()}
-                  </p>
-                )}
-
-                <p style={{ color: titleColor }}>
-                  <span style={{ color: mutedTextColor }}>Payment ID:</span>{" "}
-                  {paymentData.payment_id}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowPaymentModal(false)}
-                className="w-full rounded-full py-3 font-semibold"
-                style={{
-                  background: isDark
-                    ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
-                    : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
-                  color: "#fff",
-                }}
-              >
-                Continue
-              </button>
-            </div>
           </div>
         </div>
       )}

@@ -460,6 +460,8 @@ export default function UserDeposit() {
   const [methodInteractionDone, setMethodInteractionDone] = useState(false);
   const [highlightSubmit, setHighlightSubmit] = useState(false);
 
+  const quickAmounts = [100, 200, 500, 1000];
+
   useEffect(() => {
     try {
       getPaymentMethod?.();
@@ -622,6 +624,13 @@ export default function UserDeposit() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleQuickAmountSelect = (amount: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      depositAmount: String(amount),
     }));
   };
 
@@ -1536,53 +1545,39 @@ export default function UserDeposit() {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  {/* QUICK AMOUNT BUTTONS */}
+                  <div className="mt-5">
                     <div
-                      className="border p-4"
-                      style={{
-                        borderColor: colors.border,
-                        background: colors.surfaceSoft,
-                        borderRadius: "16px",
-                      }}
+                      className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
+                      style={{ color: mutedTextColor }}
                     >
-                      <div className="text-xs" style={{ color: colors.muted }}>
-                        Account Type
-                      </div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        {accountType || "Not selected"}
-                      </div>
+                      Quick Select Amount
                     </div>
 
-                    <div
-                      className="border p-4"
-                      style={{
-                        borderColor: colors.border,
-                        background: colors.surfaceSoft,
-                        borderRadius: "16px",
-                      }}
-                    >
-                      <div className="text-xs" style={{ color: colors.muted }}>
-                        Live Balance
-                      </div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        {balanceLoading ? "Loading..." : `$${money(accountBalance)}`}
-                      </div>
-                    </div>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                      {quickAmounts.map((amount) => {
+                        const isActive = Number(formData.depositAmount) === amount;
 
-                    <div
-                      className="border p-4"
-                      style={{
-                        borderColor: colors.border,
-                        background: colors.surfaceSoft,
-                        borderRadius: "16px",
-                      }}
-                    >
-                      <div className="text-xs" style={{ color: colors.muted }}>
-                        INR Conversion
-                      </div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        ₹ {money(inrAmount)}
-                      </div>
+                        return (
+                          <button
+                            key={amount}
+                            type="button"
+                            onClick={() => handleQuickAmountSelect(amount)}
+                            className="border px-4 py-4 text-center text-sm font-semibold transition-all duration-300"
+                            style={{
+                              borderColor: isActive ? colors.accent : colors.border,
+                              background: isActive ? colors.accentSoft : colors.surfaceSoft,
+                              color: isActive ? accentColor : titleColor,
+                              borderRadius: "16px",
+                              boxShadow: isActive
+                                ? "0 10px 20px rgba(37,99,235,0.08)"
+                                : "none",
+                            }}
+                          >
+                            ${amount}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

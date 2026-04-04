@@ -1,32 +1,29 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
-  ArrowRightLeft,
   Wallet,
-  ArrowRight,
-  RefreshCcw,
-  Landmark,
-  BadgeDollarSign,
-  Shield,
-  CheckCircle2,
   TrendingUp,
+  Landmark,
+  CheckCircle2,
   DollarSign,
-  ChevronDown,
-  ChevronUp,
-  LayoutDashboard,
+  Search,
+  RefreshCcw,
+  X,
   Activity,
   CircleDollarSign,
   Gauge,
-  CreditCard,
-  Search,
-  X,
+  ShieldCheck,
+  Percent,
+  ArrowRightLeft,
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
+import TransferFormPanel from "./TransferFormPanel";
 
+/* -------------------- types -------------------- */
 type AccountType = {
   accountNumber: string;
   accountType?: string;
@@ -51,9 +48,7 @@ type RootState = {
 
 /* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0")
-    .trim()
-    .replace(/,/g, " ");
+  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
   const parts = s.split(/\s+/).map((x) => Number(x));
   const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
     Number.isFinite(n) ? n : 0
@@ -79,7 +74,6 @@ const shortText = (v: any, max = 90) => {
       : v && typeof v === "object"
       ? JSON.stringify(v)
       : String(v ?? "");
-
   return s.length > max ? `${s.slice(0, max)}...` : s;
 };
 
@@ -87,7 +81,6 @@ const getToastError = (e: any, fallback = "Something went wrong") => {
   const payload = e?.response?.data;
   const type = payload?.errorType;
   const label = type === "META" ? "Meta Error" : "Server Error";
-
   const msg = payload?.error || payload?.message || e?.message || fallback;
   return `${label}: ${shortText(msg, 110)}`;
 };
@@ -125,94 +118,69 @@ const money = (n: any) => {
     : "0";
 };
 
-const getAccountLabel = (account: AccountType) => {
-  return account?.accountType || account?.type || "Standard";
-};
-
 function statusTone(status: any) {
   const s = String(status || "").toLowerCase();
-
   if (s === "approved" || s === "completed" || s === "success") return "approved";
   if (s === "pending" || s === "processing") return "pending";
   if (s === "rejected" || s === "failed" || s === "reversed") return "rejected";
-
   return "unknown";
 }
 
 /* -------------------- shared ui -------------------- */
 function SectionCard({
   children,
-  theme,
-  isDark,
   className = "",
+  style,
 }: {
   children: React.ReactNode;
-  theme: any;
-  isDark: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
-      className={[
-        "rounded-[24px] border transition-all duration-300",
-        className,
-      ].join(" ")}
-      style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
-        background: isDark
-          ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
-        boxShadow: isDark
-          ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(251,146,60,0.10)",
-        backdropFilter: "blur(10px)",
-      }}
+      className={["overflow-hidden border transition-all duration-300", className].join(" ")}
+      style={{ borderRadius: "20px", ...style }}
     >
       {children}
     </div>
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  hint,
-  theme,
-  isDark,
-  tone = "default",
-}: any) {
+function StatCard({ icon, label, value, hint, colors, tone = "default" }: any) {
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
-          iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
-          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconColor: colors.success,
+          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconColor: colors.accent,
+          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
         }
       : tone === "warning"
       ? {
-          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
-          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
-          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.16)",
+          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconColor: colors.warning,
+          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
         }
       : {
-          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
-          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
-          border: isDark
-            ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
+          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconColor: colors.text,
+          border: colors.border,
         };
 
   return (
-    <SectionCard theme={theme} isDark={isDark} className="p-4">
+    <SectionCard
+      className="p-4"
+      style={{
+        background: colors.surface,
+        borderColor: colors.border,
+        boxShadow: colors.cardShadow,
+      }}
+    >
       <div className="flex items-center gap-3">
         <div
           className="flex h-11 w-11 items-center justify-center rounded-2xl border"
@@ -226,37 +194,14 @@ function StatCard({
         </div>
 
         <div>
-          <div
-            className="text-xs"
-            style={{
-              color: isDark
-                ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(100,116,139,0.96)",
-            }}
-          >
+          <div className="text-xs" style={{ color: colors.muted }}>
             {label}
           </div>
-
-          <div
-            className="text-lg font-bold"
-            style={{
-              color: isDark
-                ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(15,23,42,0.98)",
-            }}
-          >
+          <div className="text-lg font-bold" style={{ color: colors.text }}>
             {value}
           </div>
-
           {hint ? (
-            <div
-              className="mt-1 text-[11px]"
-              style={{
-                color: isDark
-                  ? rgba(theme?.fg || "255 255 255", 0.48)
-                  : "rgba(100,116,139,0.88)",
-              }}
-            >
+            <div className="mt-1 text-[11px]" style={{ color: colors.softText }}>
               {hint}
             </div>
           ) : null}
@@ -282,45 +227,26 @@ function LoaderIcon({ color }: { color: string }) {
 function EmptyState({
   title = "No data found",
   subtitle = "Try another filter or refresh the records.",
-  theme,
-  isDark,
+  colors,
 }: any) {
   return (
     <div className="py-12 text-center">
       <div
         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border"
         style={{
-          borderColor: isDark
-            ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
-          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.78)",
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.7)
-            : "rgba(100,116,139,0.9)",
+          borderColor: colors.border,
+          background: colors.surfaceSoft,
+          color: colors.softText,
         }}
       >
         ⚪
       </div>
 
-      <p
-        className="font-semibold"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.92)
-            : "rgba(15,23,42,0.96)",
-        }}
-      >
+      <p className="font-semibold" style={{ color: colors.text }}>
         {title}
       </p>
 
-      <p
-        className="mt-1 text-sm"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.58)
-            : "rgba(100,116,139,0.95)",
-        }}
-      >
+      <p className="mt-1 text-sm" style={{ color: colors.muted }}>
         {subtitle}
       </p>
     </div>
@@ -330,44 +256,32 @@ function EmptyState({
 function SkeletonTable({
   cols,
   rows = 6,
-  theme,
-  isDark,
+  colors,
 }: {
   cols: number;
   rows?: number;
-  theme: any;
-  isDark: boolean;
+  colors: any;
 }) {
   return (
     <div
-      className="overflow-x-auto rounded-[20px] border"
+      className="overflow-x-auto border"
       style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.12)
-          : "rgba(251,146,60,0.14)",
+        borderColor: colors.border,
+        borderRadius: "16px",
       }}
     >
       <table className="w-full text-sm">
         <tbody>
           {Array.from({ length: rows }).map((_, i) => (
-            <tr
-              key={i}
-              style={{
-                borderBottom: `1px solid ${
-                  isDark
-                    ? rgba(theme?.border || "255 255 255", 0.08)
-                    : "rgba(251,146,60,0.10)"
-                }`,
-              }}
-            >
+            <tr key={i} style={{ borderBottom: `1px solid ${colors.borderSoft}` }}>
               {Array.from({ length: cols }).map((__, j) => (
                 <td key={j} className="p-3">
                   <div
                     className="h-4 w-full animate-pulse rounded"
                     style={{
-                      background: isDark
+                      background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(255,255,255,0.9)",
+                        : "rgba(17,24,39,0.06)",
                     }}
                   />
                 </td>
@@ -388,6 +302,47 @@ export default function UserTransfer() {
   const isDark = mode === "dark";
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
 
+  const colors = useMemo(() => {
+    const accent = isDark
+      ? rgba(theme?.accent || "96 165 250", 0.95)
+      : rgb(theme?.accent || "37 99 235");
+
+    return {
+      isDark,
+      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      heroBg: isDark
+        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      accent,
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
+      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      border: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(15,23,42,0.08)",
+      borderSoft: isDark
+        ? rgba(theme?.border || "255 255 255", 0.08)
+        : "rgba(15,23,42,0.06)",
+      cardShadow: isDark
+        ? "0 20px 45px rgba(0,0,0,0.28)"
+        : "0 10px 30px rgba(15,23,42,0.06)",
+      primaryBtn: "#f97316",
+      primaryBtnText: "#ffffff",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+      modalOverlay: "rgba(2,6,23,0.72)",
+    };
+  }, [isDark, theme]);
+
+  const submitRequestRef = useRef<HTMLDivElement | null>(null);
+  const blinkTimeoutRef = useRef<any>(null);
+
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
   const [amount, setAmount] = useState("");
@@ -399,7 +354,6 @@ export default function UserTransfer() {
   const [loadingToBalance, setLoadingToBalance] = useState(false);
   const [isTransferLoading, setIsTransferLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showStatsOverview, setShowStatsOverview] = useState(true);
 
   const [showTxnModal, setShowTxnModal] = useState(false);
   const [txnLoading, setTxnLoading] = useState(false);
@@ -409,88 +363,20 @@ export default function UserTransfer() {
 
   const accounts = useMemo(() => loggedUser?.accounts || [], [loggedUser]);
 
-  const titleColor = isDark
-    ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(15,23,42,0.98)";
+  useEffect(() => {
+    return () => {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+    };
+  }, []);
 
-  const mutedTextColor = isDark
-    ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
+  const fromAccountOptions = useMemo(
+    () => accounts.filter((acc) => String(acc.accountNumber) !== String(toAccount)),
+    [accounts, toAccount]
+  );
 
-  const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "rgba(249,115,22,0.95)";
-
-  const selectStyle: React.CSSProperties = {
-    width: "100%",
-    borderRadius: "16px",
-    padding: "13px 42px 13px 14px",
-    outline: "none",
-    appearance: "none",
-    WebkitAppearance: "none",
-    MozAppearance: "none",
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(30,41,59,0.96)",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.16)",
-  };
-
-  const inputStyle: React.CSSProperties = {
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.92)",
-    color: titleColor,
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.16)",
-    borderRadius: "16px",
-    outline: "none",
-  };
-
-  const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#ffffff",
-    color: isDark ? "#ffffff" : "#0f172a",
-  };
-
-  const subtleCard = (): React.CSSProperties => ({
-    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.82)",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.14)",
-    borderRadius: "14px",
-  });
-
-  const primaryButtonStyle: React.CSSProperties = {
-    borderRadius: "999px",
-    color: "#fff",
-    background: isDark
-      ? "linear-gradient(90deg, rgba(59,130,246,0.95), rgba(34,211,238,0.9))"
-      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
-    boxShadow: isDark
-      ? "0 14px 34px rgba(59,130,246,0.22)"
-      : "0 14px 34px rgba(249,115,22,0.18)",
-  };
-
-  const fromAccountOptions = useMemo(() => {
-    return accounts.filter(
-      (acc) => String(acc.accountNumber) !== String(toAccount)
-    );
-  }, [accounts, toAccount]);
-
-  const toAccountOptions = useMemo(() => {
-    return accounts.filter(
-      (acc) => String(acc.accountNumber) !== String(fromAccount)
-    );
-  }, [accounts, fromAccount]);
-
-  const getAccountMeta = useCallback(
-    (accountNumber: string) => {
-      return (
-        accounts.find(
-          (acc) => String(acc.accountNumber) === String(accountNumber)
-        ) || {}
-      );
-    },
-    [accounts]
+  const toAccountOptions = useMemo(
+    () => accounts.filter((acc) => String(acc.accountNumber) !== String(fromAccount)),
+    [accounts, fromAccount]
   );
 
   const fetchAccountBalance = useCallback(
@@ -531,6 +417,17 @@ export default function UserTransfer() {
     fetchAccountBalance(toAccount, setToAccountBalance, setLoadingToBalance);
   }, [toAccount, fetchAccountBalance]);
 
+  const refreshBalances = useCallback(async () => {
+    await Promise.all([
+      fromAccount
+        ? fetchAccountBalance(fromAccount, setFromAccountBalance, setLoadingFromBalance)
+        : Promise.resolve(),
+      toAccount
+        ? fetchAccountBalance(toAccount, setToAccountBalance, setLoadingToBalance)
+        : Promise.resolve(),
+    ]);
+  }, [fromAccount, toAccount, fetchAccountBalance]);
+
   const validateTransfer = useCallback(() => {
     if (!fromAccount || !toAccount) {
       toast.error("Please select both source and destination accounts.");
@@ -547,37 +444,13 @@ export default function UserTransfer() {
       return false;
     }
 
-    const fromBalanceNum = parseFloat(String(fromAccountBalance || "0"));
-    const amountNum = parseFloat(String(amount || "0"));
-
-    if (!Number.isNaN(fromBalanceNum) && amountNum > fromBalanceNum) {
+    if (Number(amount) > Number(fromAccountBalance || 0)) {
       toast.error("Insufficient balance in source account.");
       return false;
     }
 
     return true;
   }, [fromAccount, toAccount, amount, fromAccountBalance]);
-
-  const refreshBalances = useCallback(async () => {
-    await Promise.all([
-      fromAccount
-        ? fetchAccountBalance(fromAccount, setFromAccountBalance, setLoadingFromBalance)
-        : Promise.resolve(),
-      toAccount
-        ? fetchAccountBalance(toAccount, setToAccountBalance, setLoadingToBalance)
-        : Promise.resolve(),
-    ]);
-  }, [fromAccount, toAccount, fetchAccountBalance]);
-
-  const handleSwapAccounts = () => {
-    if (!fromAccount && !toAccount) return;
-
-    const prevFrom = fromAccount;
-    const prevTo = toAccount;
-
-    setFromAccount(prevTo);
-    setToAccount(prevFrom);
-  };
 
   const handleSubmit = async () => {
     if (isTransferLoading || !validateTransfer()) return;
@@ -616,65 +489,53 @@ export default function UserTransfer() {
     }
   };
 
-  const fetchTransferTransactions = useCallback(
-    async (signal?: AbortSignal) => {
-      try {
-        setTxnLoading(true);
-        setTxnError(null);
+  const fetchTransferTransactions = useCallback(async (signal?: AbortSignal) => {
+    try {
+      setTxnLoading(true);
+      setTxnError(null);
 
-        const res = await userApi.get(
-          "/account-txn",
-          signal ? { signal } : undefined
-        );
+      const res = await userApi.get("/account-txn", signal ? { signal } : undefined);
+      const payload = res?.data?.data;
 
-        const payload = res?.data?.data;
-
-        if (!Array.isArray(payload) || payload.length === 0) {
-          setTransferTransactions([]);
-          setTxnError("No transfer transaction data available.");
-          return;
-        }
-
-        const normalized = payload.map((item: any) => ({
-          _id: item._id,
-          direction: item.direction || "unknown",
-          fromAccountNumber: item.fromAccountNumber || "—",
-          toAccountNumber: item.toAccountNumber || "—",
-          amount: Number(item.amount || 0),
-          status: item.status || "unknown",
-          note: item.note || "",
-          failureReason: item.failureReason || null,
-          createdAt: item.createdAt || null,
-          updatedAt: item.updatedAt || null,
-        }));
-
-        setTransferTransactions(normalized);
-      } catch (err: any) {
-        if (err?.name === "CanceledError" || err?.message === "canceled") return;
+      if (!Array.isArray(payload) || payload.length === 0) {
         setTransferTransactions([]);
-        setTxnError("Failed to fetch transfer transactions. Please try again.");
-      } finally {
-        setTxnLoading(false);
+        setTxnError("No transfer transaction data available.");
+        return;
       }
-    },
-    []
-  );
+
+      const normalized = payload.map((item: any) => ({
+        _id: item._id,
+        direction: item.direction || "unknown",
+        fromAccountNumber: item.fromAccountNumber || "—",
+        toAccountNumber: item.toAccountNumber || "—",
+        amount: Number(item.amount || 0),
+        status: item.status || "unknown",
+        note: item.note || "",
+        failureReason: item.failureReason || null,
+        createdAt: item.createdAt || null,
+      }));
+
+      setTransferTransactions(normalized);
+    } catch (err: any) {
+      if (err?.name === "CanceledError" || err?.message === "canceled") return;
+      setTransferTransactions([]);
+      setTxnError("Failed to fetch transfer transactions. Please try again.");
+    } finally {
+      setTxnLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!showTxnModal) return;
-
     const controller = new AbortController();
     fetchTransferTransactions(controller.signal);
-
     return () => controller.abort();
   }, [showTxnModal, fetchTransferTransactions]);
 
   useEffect(() => {
     if (!showTxnModal) return;
-
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
       document.body.style.overflow = original;
     };
@@ -682,13 +543,9 @@ export default function UserTransfer() {
 
   const filteredTransferTransactions = useMemo(() => {
     if (!txnQ.trim()) return transferTransactions;
-
     const term = txnQ.trim().toLowerCase();
-
     return transferTransactions.filter((row) =>
-      Object.values(row).some((v) =>
-        String(v ?? "").toLowerCase().includes(term)
-      )
+      Object.values(row).some((v) => String(v ?? "").toLowerCase().includes(term))
     );
   }, [txnQ, transferTransactions]);
 
@@ -714,11 +571,8 @@ export default function UserTransfer() {
     };
   }, [filteredTransferTransactions]);
 
-  const fromMeta = getAccountMeta(fromAccount);
-  const toMeta = getAccountMeta(toAccount);
-  const amountNum = Number(amount || 0);
-  const sourceBalanceNum = Number(fromAccountBalance || 0);
-  const projectedBalance = sourceBalanceNum - amountNum;
+  const projectedSourceBalance = Number(fromAccountBalance || 0) - Number(amount || 0);
+  const projectedDestinationBalance = Number(toAccountBalance || 0) + Number(amount || 0);
 
   const ctaEnabled =
     fromAccount &&
@@ -733,34 +587,32 @@ export default function UserTransfer() {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
-        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(16,185,129,0.18)",
-        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
+        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
+        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(22,163,74,0.16)",
+        color: colors.success,
       };
     }
 
     if (tone === "pending") {
       return {
-        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
-        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.18)",
-        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
+        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
+        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.16)",
+        color: colors.warning,
       };
     }
 
     if (tone === "rejected") {
       return {
-        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
-        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.18)",
-        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
+        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
+        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.16)",
+        color: colors.danger,
       };
     }
 
     return {
-      background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
-      border: isDark
-        ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-        : "1px solid rgba(251,146,60,0.14)",
-      color: titleColor,
+      background: colors.surfaceSoft,
+      border: `1px solid ${colors.border}`,
+      color: colors.text,
     };
   };
 
@@ -772,7 +624,7 @@ export default function UserTransfer() {
               <motion.div
                 className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5"
                 style={{
-                  background: "rgba(2,6,23,0.72)",
+                  background: colors.modalOverlay,
                   backdropFilter: "blur(8px)",
                 }}
                 initial={{ opacity: 0 }}
@@ -785,38 +637,31 @@ export default function UserTransfer() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 12, scale: 0.98 }}
                   transition={{ duration: 0.25 }}
-                  className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-[28px] border"
+                  className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden border"
                   style={{
-                    borderColor: isDark
-                      ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(251,146,60,0.16)",
-                    background: isDark
-                      ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
-                      : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
+                    borderColor: colors.border,
+                    background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(249,115,22,0.16)",
+                      : "0 30px 80px rgba(15,23,42,0.18)",
+                    borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
                     className="border-b px-4 py-4 sm:px-6"
                     style={{
-                      borderColor: isDark
-                        ? rgba(theme?.border || "255 255 255", 0.1)
-                        : "rgba(251,146,60,0.12)",
-                      background: isDark
-                        ? "rgba(255,255,255,0.02)"
-                        : "rgba(255,255,255,0.45)",
+                      borderColor: colors.border,
+                      background: colors.surface,
                     }}
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div>
                         <div className="mb-3 flex items-center gap-2">
-                          <Activity className="h-4 w-4" style={{ color: accentColor }} />
+                          <Activity className="h-4 w-4" style={{ color: colors.accent }} />
                           <span
                             className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                            style={{ color: mutedTextColor }}
+                            style={{ color: colors.muted }}
                           >
                             transfer · transaction · records
                           </span>
@@ -824,16 +669,13 @@ export default function UserTransfer() {
 
                         <h2
                           className="text-2xl font-bold sm:text-3xl"
-                          style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
+                          style={{ color: colors.text, fontFamily: "'Poppins', sans-serif" }}
                         >
                           Transfer Transactions
                         </h2>
 
-                        <p
-                          className="mt-2 text-sm sm:text-[15px]"
-                          style={{ color: mutedTextColor }}
-                        >
-                          Yahan aapke saare account transfer records dikhenge.
+                        <p className="mt-2 text-sm sm:text-[15px]" style={{ color: colors.muted }}>
+                          Here you can view all internal transfer records and their current status.
                         </p>
                       </div>
 
@@ -841,15 +683,12 @@ export default function UserTransfer() {
                         <button
                           type="button"
                           onClick={() => fetchTransferTransactions()}
-                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
-                            borderColor: isDark
-                              ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(251,146,60,0.16)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(255,255,255,0.9)",
-                            color: titleColor,
+                            borderColor: colors.border,
+                            background: colors.surface,
+                            color: colors.text,
+                            borderRadius: "14px",
                           }}
                         >
                           <RefreshCcw className="h-4 w-4" />
@@ -859,7 +698,7 @@ export default function UserTransfer() {
                         <button
                           type="button"
                           onClick={() => setShowTxnModal(false)}
-                          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
+                          className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
                               ? "rgba(239,68,68,0.24)"
@@ -867,9 +706,8 @@ export default function UserTransfer() {
                             background: isDark
                               ? "rgba(239,68,68,0.08)"
                               : "rgba(254,242,242,0.92)",
-                            color: isDark
-                              ? "rgba(248,113,113,0.95)"
-                              : "rgba(220,38,38,0.95)",
+                            color: colors.danger,
+                            borderRadius: "14px",
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -882,36 +720,31 @@ export default function UserTransfer() {
                   <div className="flex-1 overflow-auto p-4 sm:p-5 md:p-6">
                     <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<Wallet className="h-5 w-5" />}
                         label="Transfer Total"
                         value={`$${money(txnStats.total)}`}
                         tone="info"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<CircleDollarSign className="h-5 w-5" />}
                         label="Sent"
                         value={txnStats.sent}
                         tone="warning"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<Gauge className="h-5 w-5" />}
                         label="Received"
                         value={txnStats.received}
                         tone="success"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<TrendingUp className="h-5 w-5" />}
                         label="Rows"
                         value={txnStats.rows}
-                        tone="default"
                       />
                     </div>
 
@@ -919,27 +752,30 @@ export default function UserTransfer() {
                       <div className="relative max-w-md">
                         <Search
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: colors.muted }}
                         />
                         <input
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, direction, status..."
-                          className="w-full rounded-2xl border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
                           style={{
-                            borderColor: isDark
-                              ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(251,146,60,0.16)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(255,255,255,0.9)",
-                            color: titleColor,
+                            borderColor: colors.border,
+                            background: colors.surface,
+                            color: colors.text,
+                            borderRadius: "14px",
                           }}
                         />
                       </div>
                     </div>
 
-                    <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
+                    <SectionCard
+                      style={{
+                        background: colors.surface,
+                        borderColor: colors.border,
+                        boxShadow: colors.cardShadow,
+                      }}
+                    >
                       <div className="overflow-x-auto">
                         <AnimatePresence mode="wait">
                           {txnLoading ? (
@@ -951,16 +787,16 @@ export default function UserTransfer() {
                               className="p-5"
                             >
                               <div className="py-8 text-center">
-                                <LoaderIcon color={accentColor} />
+                                <LoaderIcon color={colors.accent} />
                                 <p
                                   className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]"
-                                  style={{ color: mutedTextColor }}
+                                  style={{ color: colors.muted }}
                                 >
                                   Fetching transfers...
                                 </p>
                               </div>
 
-                              <SkeletonTable cols={7} theme={theme} isDark={isDark} />
+                              <SkeletonTable cols={7} colors={colors} />
                             </motion.div>
                           ) : txnError ? (
                             <motion.div
@@ -973,8 +809,7 @@ export default function UserTransfer() {
                               <EmptyState
                                 title={txnError}
                                 subtitle="Please refresh to reload transfer transactions."
-                                theme={theme}
-                                isDark={isDark}
+                                colors={colors}
                               />
                             </motion.div>
                           ) : filteredTransferTransactions.length === 0 ? (
@@ -988,8 +823,7 @@ export default function UserTransfer() {
                               <EmptyState
                                 title="No transfer transactions found"
                                 subtitle="Your account transfer history will appear here once available."
-                                theme={theme}
-                                isDark={isDark}
+                                colors={colors}
                               />
                             </motion.div>
                           ) : (
@@ -1002,32 +836,22 @@ export default function UserTransfer() {
                               <table className="w-full text-sm">
                                 <thead
                                   style={{
-                                    background: isDark
-                                      ? "rgba(255,255,255,0.03)"
-                                      : "rgba(255,255,255,0.75)",
-                                    borderBottom: isDark
-                                      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
-                                      : "1px solid rgba(251,146,60,0.12)",
+                                    background: colors.tableHead,
+                                    borderBottom: `1px solid ${colors.border}`,
                                   }}
                                 >
                                   <tr>
-                                    {[
-                                      "Direction",
-                                      "From",
-                                      "To",
-                                      "Amount",
-                                      "Note",
-                                      "Status",
-                                      "Time",
-                                    ].map((head) => (
-                                      <th
-                                        key={head}
-                                        className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em]"
-                                        style={{ color: mutedTextColor }}
-                                      >
-                                        {head}
-                                      </th>
-                                    ))}
+                                    {["Direction", "From", "To", "Amount", "Note", "Status", "Time"].map(
+                                      (head) => (
+                                        <th
+                                          key={head}
+                                          className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em]"
+                                          style={{ color: colors.muted }}
+                                        >
+                                          {head}
+                                        </th>
+                                      )
+                                    )}
                                   </tr>
                                 </thead>
 
@@ -1036,34 +860,22 @@ export default function UserTransfer() {
                                     const dir = String(item?.direction || "").toLowerCase();
                                     const dirColor =
                                       dir === "sent"
-                                        ? isDark
-                                          ? "rgba(251,191,36,0.95)"
-                                          : "rgba(217,119,6,0.95)"
+                                        ? colors.warning
                                         : dir === "received"
-                                        ? isDark
-                                          ? "rgba(52,211,153,0.95)"
-                                          : "rgba(5,150,105,0.95)"
-                                        : accentColor;
+                                        ? colors.success
+                                        : colors.accent;
 
                                     return (
                                       <tr
                                         key={item?._id || i}
-                                        style={{
-                                          borderBottom: isDark
-                                            ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
-                                            : "1px solid rgba(251,146,60,0.10)",
-                                        }}
+                                        style={{ borderBottom: `1px solid ${colors.borderSoft}` }}
                                       >
                                         <td className="px-4 py-3 text-center">
                                           <span
                                             className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold"
                                             style={{
-                                              background: isDark
-                                                ? "rgba(255,255,255,0.03)"
-                                                : "rgba(255,255,255,0.82)",
-                                              borderColor: isDark
-                                                ? rgba(theme?.border || "255 255 255", 0.12)
-                                                : "rgba(251,146,60,0.14)",
+                                              background: colors.surfaceSoft,
+                                              borderColor: colors.border,
                                               color: dirColor,
                                             }}
                                           >
@@ -1074,39 +886,32 @@ export default function UserTransfer() {
 
                                         <td
                                           className="px-4 py-3 text-center font-mono text-sm"
-                                          style={{ color: titleColor }}
+                                          style={{ color: colors.text }}
                                         >
                                           #{item?.fromAccountNumber || "—"}
                                         </td>
 
                                         <td
                                           className="px-4 py-3 text-center font-mono text-sm"
-                                          style={{ color: titleColor }}
+                                          style={{ color: colors.text }}
                                         >
                                           #{item?.toAccountNumber || "—"}
                                         </td>
 
                                         <td
                                           className="px-4 py-3 text-center font-semibold"
-                                          style={{ color: titleColor }}
+                                          style={{ color: colors.text }}
                                         >
                                           ${money(item?.amount)}
                                         </td>
 
                                         <td
                                           className="px-4 py-3 text-center text-xs"
-                                          style={{ color: mutedTextColor }}
+                                          style={{ color: colors.muted }}
                                         >
                                           {item?.note ? String(item.note).slice(0, 40) : "—"}
                                           {item?.failureReason ? (
-                                            <div
-                                              className="mt-1"
-                                              style={{
-                                                color: isDark
-                                                  ? "rgba(248,113,113,0.95)"
-                                                  : "rgba(220,38,38,0.95)",
-                                              }}
-                                            >
+                                            <div className="mt-1" style={{ color: colors.danger }}>
                                               {String(item.failureReason).slice(0, 60)}
                                             </div>
                                           ) : null}
@@ -1123,7 +928,7 @@ export default function UserTransfer() {
 
                                         <td
                                           className="px-4 py-3 text-center text-xs"
-                                          style={{ color: mutedTextColor }}
+                                          style={{ color: colors.muted }}
                                         >
                                           {formatDate(item?.createdAt)}
                                         </td>
@@ -1148,610 +953,199 @@ export default function UserTransfer() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full"
-      >
-        <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
-          <div
-            className="border-b px-5 py-4 sm:px-6"
-            style={{
-              borderColor: isDark
-                ? rgba(theme?.border || "255 255 255", 0.1)
-                : "rgba(251,146,60,0.12)",
-              background: isDark
-                ? "rgba(255,255,255,0.02)"
-                : "rgba(255,255,255,0.38)",
-            }}
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" style={{ color: accentColor }} />
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                    style={{ color: mutedTextColor }}
-                  >
-                    transfer · wallet · internal
-                  </span>
-                </div>
-
-                <h1
-                  className="text-3xl font-bold sm:text-4xl"
-                  style={{
-                    color: titleColor,
-                    fontFamily: "'Poppins', sans-serif",
-                  }}
-                >
-                  Transfer Between Accounts
-                </h1>
-
-                <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
-                  Move funds securely between your linked trading wallets with
-                  live balances and a polished internal transfer flow.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-start sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowTxnModal(true)}
-                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
-                  style={{
-                    borderColor: isDark
-                      ? "rgba(96,165,250,0.28)"
-                      : "rgba(249,115,22,0.24)",
-                    background: isDark
-                      ? "rgba(59,130,246,0.10)"
-                      : "rgba(255,237,213,0.72)",
-                    color: accentColor,
-                  }}
-                >
-                  <Activity className="h-4 w-4" />
-                  Transfer Txn
-                </button>
+      <div className="min-h-screen w-full" style={{ background: colors.pageBg }}>
+        <div className="w-full" style={{ background: colors.heroBg }}>
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
+            <div className="leading-none">
+              <div className="text-[28px] font-bold text-white sm:text-[32px]">Transfer Funds</div>
+              <div className="mt-2 text-sm text-white/80">
+                Move funds securely between your linked trading accounts
               </div>
             </div>
-          </div>
 
-          <div className="p-4 sm:p-5 md:p-6">
-            <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Internal Transfer
+                </div>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setShowStatsOverview((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition-all duration-300"
-                style={{
-                  borderColor: isDark
-                    ? rgba(theme?.border || "255 255 255", 0.1)
-                    : "rgba(251,146,60,0.14)",
-                  background: isDark
-                    ? "rgba(255,255,255,0.03)"
-                    : "rgba(255,255,255,0.84)",
-                }}
+                onClick={() => setShowTxnModal(true)}
+                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
+                style={{ borderRadius: "14px" }}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-                    style={{
-                      borderColor: isDark
-                        ? rgba(theme?.border || "255 255 255", 0.12)
-                        : "rgba(251,146,60,0.14)",
-                      background: isDark
-                        ? "rgba(59,130,246,0.10)"
-                        : "rgba(255,237,213,0.65)",
-                      color: accentColor,
-                    }}
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <div
-                      className="text-sm font-semibold"
-                      style={{ color: titleColor }}
-                    >
-                      Transfer Overview
-                    </div>
-                    <div
-                      className="text-xs"
-                      style={{ color: mutedTextColor }}
-                    >
-                      Linked accounts, selected balances and projected summary
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-xs font-semibold uppercase tracking-[0.18em]"
-                    style={{ color: mutedTextColor }}
-                  >
-                    {showStatsOverview ? "Collapse" : "Expand"}
-                  </span>
-
-                  <motion.div
-                    animate={{ rotate: showStatsOverview ? 0 : -180 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {showStatsOverview ? (
-                      <ChevronUp className="h-5 w-5" style={{ color: accentColor }} />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" style={{ color: accentColor }} />
-                    )}
-                  </motion.div>
-                </div>
+                <Activity className="h-4 w-4" />
+                Transfer Transactions
               </button>
+            </div>
+          </div>
+        </div>
 
-              <AnimatePresence initial={false}>
-                {showStatsOverview && (
-                  <motion.div
-                    key="stats-overview"
-                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                    animate={{ height: "auto", opacity: 1, marginTop: 16 }}
-                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<Wallet className="h-5 w-5" />}
-                        label="Linked Accounts"
-                        value={accounts.length}
-                        hint="Available for internal transfer"
-                        tone="default"
-                      />
+        <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <StatCard
+              colors={colors}
+              icon={<Wallet className="h-5 w-5" />}
+              label="Linked Accounts"
+              value={accounts.length}
+              hint="Available for internal transfer"
+            />
+            <StatCard
+              colors={colors}
+              icon={<DollarSign className="h-5 w-5" />}
+              label="Source Balance"
+              value={
+                loadingFromBalance ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoaderIcon color={colors.accent} />
+                  </span>
+                ) : (
+                  `$${formatBalance(fromAccountBalance || 0)}`
+                )
+              }
+              hint={fromAccount || "Select source"}
+              tone="success"
+            />
+            <StatCard
+              colors={colors}
+              icon={<Landmark className="h-5 w-5" />}
+              label="Destination Balance"
+              value={
+                loadingToBalance ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoaderIcon color={colors.accent} />
+                  </span>
+                ) : (
+                  `$${formatBalance(toAccountBalance || 0)}`
+                )
+              }
+              hint={toAccount || "Select destination"}
+              tone="info"
+            />
+            <StatCard
+              colors={colors}
+              icon={<CircleDollarSign className="h-5 w-5" />}
+              label="Projected Source"
+              value={
+                fromAccount && amount
+                  ? `$${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}`
+                  : "$0.00"
+              }
+              hint="After transfer"
+              tone="warning"
+            />
+          </div>
 
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<DollarSign className="h-5 w-5" />}
-                        label="Source Balance"
-                        value={
-                          loadingFromBalance ? (
-                            <span className="inline-flex items-center gap-2">
-                              <LoaderIcon color={accentColor} />
-                            </span>
-                          ) : (
-                            `$${formatBalance(fromAccountBalance || 0)}`
-                          )
-                        }
-                        hint={fromAccount || "Select source account"}
-                        tone="success"
-                      />
-
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<Landmark className="h-5 w-5" />}
-                        label="Destination Balance"
-                        value={
-                          loadingToBalance ? (
-                            <span className="inline-flex items-center gap-2">
-                              <LoaderIcon color={accentColor} />
-                            </span>
-                          ) : (
-                            `$${formatBalance(toAccountBalance || 0)}`
-                          )
-                        }
-                        hint={toAccount || "Select destination account"}
-                        tone="info"
-                      />
-
-                      <StatCard
-                        theme={theme}
-                        isDark={isDark}
-                        icon={<BadgeDollarSign className="h-5 w-5" />}
-                        label="Projected Balance"
-                        value={
-                          fromAccount && amount
-                            ? `$${formatBalance(projectedBalance > 0 ? projectedBalance : 0)}`
-                            : "$0.00"
-                        }
-                        hint="After transfer completes"
-                        tone="warning"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+            <div className="space-y-4 xl:col-span-8">
+              <TransferFormPanel
+                colors={colors}
+                fromAccount={fromAccount}
+                setFromAccount={setFromAccount}
+                toAccount={toAccount}
+                setToAccount={setToAccount}
+                amount={amount}
+                setAmount={setAmount}
+                fromAccountBalance={fromAccountBalance}
+                toAccountBalance={toAccountBalance}
+                loadingFromBalance={loadingFromBalance}
+                loadingToBalance={loadingToBalance}
+                fromAccountOptions={fromAccountOptions}
+                toAccountOptions={toAccountOptions}
+                refreshBalances={refreshBalances}
+                handleSubmit={handleSubmit}
+                isTransferLoading={isTransferLoading}
+              />
             </div>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-              <div className="lg:col-span-7">
-                <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
-                  <div className="grid grid-cols-1 gap-5">
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-[1fr_auto_1fr] md:items-start">
-                      <div>
-                        <label
-                          className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                          style={{ color: titleColor }}
-                        >
-                          <Wallet className="h-4 w-4" style={{ color: accentColor }} />
-                          1. From Account
-                        </label>
-
-                        <div className="relative">
-                          <select
-                            value={fromAccount}
-                            onChange={(e) => setFromAccount(e.target.value)}
-                            style={selectStyle}
-                          >
-                            <option value="" style={optionStyle}>
-                              Select source wallet
-                            </option>
-                            {fromAccountOptions.map((account) => {
-                              const currency =
-                                account.currency || account.accountCurrency || "USD";
-
-                              return (
-                                <option
-                                  key={account.accountNumber}
-                                  value={account.accountNumber}
-                                  style={optionStyle}
-                                >
-                                  {account.accountNumber} • {currency}
-                                </option>
-                              );
-                            })}
-                          </select>
-
-                          <ChevronDown
-                            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                            style={{ color: mutedTextColor }}
-                          />
-                        </div>
-
-                        {fromAccount && (
-                          <div className="mt-3 rounded-2xl border p-4" style={subtleCard()}>
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <div className="text-xs" style={{ color: mutedTextColor }}>
-                                  Wallet Type
-                                </div>
-                                <div className="mt-1 text-sm font-semibold" style={{ color: titleColor }}>
-                                  {getAccountLabel(fromMeta as AccountType)}
-                                </div>
-                              </div>
-
-                              <div className="text-right">
-                                <div className="text-xs" style={{ color: mutedTextColor }}>
-                                  Balance
-                                </div>
-                                <div className="mt-1 text-sm font-bold" style={{ color: titleColor }}>
-                                  {loadingFromBalance
-                                    ? "Loading..."
-                                    : `$${formatBalance(fromAccountBalance)}`}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-end justify-center md:pb-3">
-                        <motion.button
-                          type="button"
-                          onClick={handleSwapAccounts}
-                          whileTap={{ scale: 0.96 }}
-                          className="flex h-12 w-12 items-center justify-center rounded-2xl border transition-all"
-                          style={{
-                            borderColor: isDark
-                              ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(251,146,60,0.16)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(255,255,255,0.92)",
-                            color: accentColor,
-                          }}
-                        >
-                          <ArrowRightLeft size={18} />
-                        </motion.button>
-                      </div>
-
-                      <div>
-                        <label
-                          className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                          style={{ color: titleColor }}
-                        >
-                          <Landmark className="h-4 w-4" style={{ color: accentColor }} />
-                          2. To Account
-                        </label>
-
-                        <div className="relative">
-                          <select
-                            value={toAccount}
-                            onChange={(e) => setToAccount(e.target.value)}
-                            style={selectStyle}
-                          >
-                            <option value="" style={optionStyle}>
-                              Select destination wallet
-                            </option>
-                            {toAccountOptions.map((account) => {
-                              const currency =
-                                account.currency || account.accountCurrency || "USD";
-
-                              return (
-                                <option
-                                  key={account.accountNumber}
-                                  value={account.accountNumber}
-                                  style={optionStyle}
-                                >
-                                  {account.accountNumber} • {currency}
-                                </option>
-                              );
-                            })}
-                          </select>
-
-                          <ChevronDown
-                            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                            style={{ color: mutedTextColor }}
-                          />
-                        </div>
-
-                        {toAccount && (
-                          <div className="mt-3 rounded-2xl border p-4" style={subtleCard()}>
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <div className="text-xs" style={{ color: mutedTextColor }}>
-                                  Wallet Type
-                                </div>
-                                <div className="mt-1 text-sm font-semibold" style={{ color: titleColor }}>
-                                  {getAccountLabel(toMeta as AccountType)}
-                                </div>
-                              </div>
-
-                              <div className="text-right">
-                                <div className="text-xs" style={{ color: mutedTextColor }}>
-                                  Balance
-                                </div>
-                                <div className="mt-1 text-sm font-bold" style={{ color: titleColor }}>
-                                  {loadingToBalance
-                                    ? "Loading..."
-                                    : `$${formatBalance(toAccountBalance)}`}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+            <div className="xl:col-span-4">
+              <div className="sticky top-4 space-y-4" ref={submitRequestRef}>
+                <SectionCard
+                  style={{
+                    background: colors.surface,
+                    borderColor: colors.border,
+                    boxShadow: colors.cardShadow,
+                  }}
+                >
+                  <div className="p-5">
+                    <div className="mb-4 text-[28px] font-semibold leading-none" style={{ color: colors.text }}>
+                      Transfer Details
                     </div>
 
-                    <div>
-                      <label
-                        className="mb-2 flex items-center gap-2 text-sm font-semibold"
-                        style={{ color: titleColor }}
-                      >
-                        <CreditCard className="h-4 w-4" style={{ color: accentColor }} />
-                        3. Transfer Amount
-                      </label>
-
-                      <div className="relative">
-                        <DollarSign
-                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
-                        />
-                        <input
-                          type="number"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          placeholder="Enter amount"
-                          className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold"
-                          style={inputStyle}
-                        />
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {[100, 500, 1000, 5000, 10000].map((quickAmount) => (
-                          <button
-                            key={quickAmount}
-                            type="button"
-                            onClick={() => setAmount(String(quickAmount))}
-                            className="rounded-full border px-4 py-2 text-sm font-medium transition-all"
-                            style={{
-                              borderColor: isDark
-                                ? rgba(theme?.border || "255 255 255", 0.12)
-                                : "rgba(251,146,60,0.16)",
-                              background: isDark
-                                ? "rgba(255,255,255,0.03)"
-                                : "rgba(255,255,255,0.9)",
-                              color: titleColor,
-                            }}
-                          >
-                            ${quickAmount.toLocaleString()}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border px-4 py-4" style={subtleCard()}>
-                      <div className="flex items-center justify-between gap-4">
-                        <span
-                          className="text-sm font-medium"
-                          style={{ color: mutedTextColor }}
-                        >
-                          Projected Source Balance
-                        </span>
-
-                        <span
-                          className="text-xl font-bold"
-                          style={{ color: titleColor }}
-                        >
-                          {fromAccount && amount
-                            ? `$${formatBalance(projectedBalance > 0 ? projectedBalance : 0)}`
-                            : "--"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 flex justify-center sm:justify-start gap-3">
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: ctaEnabled ? 1.02 : 1 }}
-                        whileTap={{ scale: ctaEnabled ? 0.98 : 1 }}
-                        onClick={handleSubmit}
-                        disabled={!ctaEnabled}
-                        className="inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
-                        style={{
-                          ...primaryButtonStyle,
-                          opacity: ctaEnabled ? 1 : 0.65,
-                          cursor: ctaEnabled ? "pointer" : "not-allowed",
-                        }}
-                      >
-                        {isTransferLoading ? (
-                          <LoaderIcon color="#ffffff" />
-                        ) : (
-                          <ArrowRight className="h-4 w-4" />
-                        )}
-
-                        <span>Transfer Now</span>
-                      </motion.button>
-
-                      <button
-                        type="button"
-                        onClick={refreshBalances}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all duration-300"
-                        style={{
-                          borderColor: isDark
-                            ? rgba(theme?.border || "255 255 255", 0.12)
-                            : "rgba(251,146,60,0.16)",
-                          background: isDark
-                            ? "rgba(255,255,255,0.03)"
-                            : "rgba(255,255,255,0.9)",
-                          color: titleColor,
-                        }}
-                      >
-                        <RefreshCcw className="h-4 w-4" />
-                        Refresh
-                      </button>
-                    </div>
-                  </div>
-                </SectionCard>
-              </div>
-
-              <div className="lg:col-span-5 space-y-5">
-                <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
-                  <div className="mb-4 flex items-center gap-3">
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-xl"
+                      className="space-y-4 border p-4"
                       style={{
-                        background: isDark
-                          ? "rgba(59,130,246,0.10)"
-                          : "rgba(255,237,213,0.72)",
-                        color: accentColor,
+                        background: colors.surfaceSoft,
+                        borderColor: colors.border,
+                        borderRadius: "16px",
                       }}
                     >
-                      <ArrowRightLeft size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold" style={{ color: titleColor }}>
-                        Transfer Summary
-                      </h3>
-                      <p
-                        className="text-sm"
-                        style={{ color: mutedTextColor }}
-                      >
-                        Review before submitting
-                      </p>
-                    </div>
-                  </div>
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: colors.text }}>From Account</span>
+                        <span style={{ color: colors.text }}>{fromAccount || "—"}</span>
+                      </div>
 
-                  <div className="space-y-3">
-                    <div className="rounded-2xl border p-4" style={subtleCard()}>
-                      <div className="text-xs" style={{ color: mutedTextColor }}>From</div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        {fromAccount || "Not selected"}
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: colors.text }}>To Account</span>
+                        <span style={{ color: colors.text }}>{toAccount || "—"}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: colors.text }}>Transfer Amount</span>
+                        <span style={{ color: colors.text }}>${formatBalance(amount || 0)}</span>
+                      </div>
+
+                      <div className="border-t pt-4" style={{ borderColor: colors.border }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-semibold" style={{ color: colors.text }}>
+                            Projected Destination
+                          </span>
+                          <span className="text-lg font-semibold" style={{ color: colors.text }}>
+                            ${formatBalance(projectedDestinationBalance > 0 ? projectedDestinationBalance : 0)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border p-4" style={subtleCard()}>
-                      <div className="text-xs" style={{ color: mutedTextColor }}>To</div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        {toAccount || "Not selected"}
-                      </div>
+                    <div className="mt-4 text-base font-semibold" style={{ color: colors.success }}>
+                      Live source balance ${formatBalance(fromAccountBalance || 0)}
                     </div>
 
-                    <div className="rounded-2xl border p-4" style={subtleCard()}>
-                      <div className="text-xs" style={{ color: mutedTextColor }}>Amount</div>
-                      <div className="mt-1 text-xl font-bold" style={{ color: titleColor }}>
-                        ${formatBalance(amount || 0)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border p-4" style={subtleCard()}>
-                      <div className="text-xs" style={{ color: mutedTextColor }}>Projected Source Balance</div>
-                      <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                        {fromAccount && amount
-                          ? `$${formatBalance(projectedBalance > 0 ? projectedBalance : 0)}`
-                          : "--"}
-                      </div>
-                    </div>
-                  </div>
-                </SectionCard>
-
-                <SectionCard theme={theme} isDark={isDark} className="p-5">
-                  <div className="mb-4 flex items-center gap-3">
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-xl"
+                      className="mt-4 border px-4 py-3"
                       style={{
-                        background: isDark
-                          ? "rgba(16,185,129,0.10)"
-                          : "rgba(209,250,229,1)",
-                        color: isDark
-                          ? "rgba(52,211,153,0.95)"
-                          : "rgba(5,150,105,0.95)",
+                        background: isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)",
+                        borderColor: isDark ? "rgba(245,158,11,0.16)" : "rgba(245,158,11,0.14)",
+                        borderRadius: "16px",
                       }}
                     >
-                      <Shield size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold" style={{ color: titleColor }}>
-                        Quick Notes
-                      </h3>
-                      <p className="text-sm" style={{ color: mutedTextColor }}>
-                        Important transfer points
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {[
-                      "Source and destination wallets must be different.",
-                      "Balance is fetched from the selected account before transfer.",
-                      "After successful transfer, balances refresh automatically.",
-                    ].map((item) => (
-                      <div key={item} className="flex items-start gap-3">
-                        <div
-                          className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full"
-                          style={{
-                            background: isDark
-                              ? "rgba(16,185,129,0.10)"
-                              : "rgba(209,250,229,1)",
-                            color: isDark
-                              ? "rgba(52,211,153,0.95)"
-                              : "rgba(5,150,105,0.95)",
-                          }}
-                        >
-                          <CheckCircle2 size={14} />
+                      <div className="flex items-start gap-2">
+                        <Percent className="mt-0.5 h-4 w-4" style={{ color: colors.warning }} />
+                        <div className="text-sm" style={{ color: colors.text }}>
+                          Check both account numbers carefully before final transfer submission.
                         </div>
-                        <p
-                          className="text-sm leading-6"
-                          style={{ color: mutedTextColor }}
-                        >
-                          {item}
-                        </p>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </SectionCard>
               </div>
             </div>
           </div>
-        </SectionCard>
-      </motion.div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm" style={{ color: colors.muted }}>
+            <div className="flex flex-wrap items-center gap-4">
+              <span>Policies: Returns Policy</span>
+              <span>Terms of use</span>
+              <span>Security</span>
+              <span>Privacy</span>
+            </div>
+            <div>© 2007-2026 secure transfer</div>
+          </div>
+        </div>
+      </div>
 
       <AnimatePresence>
         {showSuccess &&
@@ -1766,34 +1160,23 @@ export default function UserTransfer() {
               <div
                 className="w-full max-w-md rounded-[28px] border p-6 text-center shadow-2xl"
                 style={{
-                  borderColor: isDark
-                    ? rgba(theme?.border || "255 255 255", 0.12)
-                    : "rgba(251,146,60,0.16)",
-                  background: isDark
-                    ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
-                    : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
-                  color: titleColor,
+                  borderColor: colors.border,
+                  background: colors.surface,
+                  color: colors.text,
                 }}
               >
                 <div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
                   style={{
-                    background: isDark
-                      ? "rgba(16,185,129,0.10)"
-                      : "rgba(240,253,244,0.90)",
-                    color: isDark
-                      ? "rgba(52,211,153,0.95)"
-                      : "rgba(5,150,105,0.95)",
+                    background: isDark ? "rgba(16,185,129,0.10)" : "rgba(240,253,244,0.90)",
+                    color: colors.success,
                   }}
                 >
                   <CheckCircle2 size={30} />
                 </div>
 
                 <h3 className="text-xl font-bold">Transfer Successful</h3>
-                <p
-                  className="mt-2 text-sm"
-                  style={{ color: mutedTextColor }}
-                >
+                <p className="mt-2 text-sm" style={{ color: colors.muted }}>
                   Your funds were moved successfully between the selected accounts.
                 </p>
               </div>

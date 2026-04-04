@@ -5,17 +5,41 @@ import {
   Activity,
   ArrowUpRight,
   ArrowDownLeft,
-  BarChart3,
   Clock3,
   Loader2,
-  RefreshCw,
+  RefreshCcw,
   ShieldCheck,
   TrendingUp,
   Wallet,
   AlertTriangle,
+  BarChart3,
+  CircleDollarSign,
+  Gauge,
+  Landmark,
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
+
+const safeRgbParts = (v: any) => {
+  const s = String(v ?? "0 0 0")
+    .trim()
+    .replace(/,/g, " ");
+  const parts = s.split(/\s+/).map((x) => Number(x));
+  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
+    Number.isFinite(n) ? n : 0
+  );
+  return { r, g, b };
+};
+
+const rgb = (v: any) => {
+  const { r, g, b } = safeRgbParts(v);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+const rgba = (v: any, a = 1) => {
+  const { r, g, b } = safeRgbParts(v);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
 
 const money = (n: any) => {
   const num = Number(n ?? 0);
@@ -62,11 +86,179 @@ const getSymbolIcon = (symbol: string) => {
   return "📈";
 };
 
+function SectionCard({
+  children,
+  className = "",
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      className={["overflow-hidden border transition-all duration-300", className].join(" ")}
+      style={{
+        borderRadius: "20px",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+  colors,
+  tone = "default",
+}: any) {
+  const toneStyles =
+    tone === "success"
+      ? {
+          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconColor: colors.success,
+          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
+        }
+      : tone === "info"
+      ? {
+          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconColor: colors.accent,
+          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
+        }
+      : tone === "warning"
+      ? {
+          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconColor: colors.warning,
+          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
+        }
+      : tone === "danger"
+      ? {
+          iconBg: colors.isDark ? "rgba(239,68,68,0.14)" : "rgba(239,68,68,0.1)",
+          iconColor: colors.danger,
+          border: colors.isDark ? "rgba(239,68,68,0.22)" : "rgba(239,68,68,0.16)",
+        }
+      : {
+          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconColor: colors.text,
+          border: colors.border,
+        };
+
+  return (
+    <SectionCard
+      className="p-4"
+      style={{
+        background: colors.surface,
+        borderColor: colors.border,
+        boxShadow: colors.cardShadow,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          style={{
+            background: toneStyles.iconBg,
+            color: toneStyles.iconColor,
+            borderColor: toneStyles.border,
+          }}
+        >
+          {icon}
+        </div>
+
+        <div>
+          <div className="text-xs" style={{ color: colors.muted }}>
+            {label}
+          </div>
+
+          <div className="text-lg font-bold" style={{ color: colors.text }}>
+            {value}
+          </div>
+
+          {hint ? (
+            <div className="mt-1 text-[11px]" style={{ color: colors.softText }}>
+              {hint}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function EmptyState({
+  title = "No data found",
+  subtitle = "Try another filter or refresh the records.",
+  colors,
+}: any) {
+  return (
+    <div className="py-12 text-center">
+      <div
+        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border"
+        style={{
+          borderColor: colors.border,
+          background: colors.surfaceSoft,
+          color: colors.softText,
+        }}
+      >
+        ⚪
+      </div>
+
+      <p className="font-semibold" style={{ color: colors.text }}>
+        {title}
+      </p>
+
+      <p className="mt-1 text-sm" style={{ color: colors.muted }}>
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
 export default function UserTradeHistory() {
   const mode = useSelector((store: any) => store.userTheme?.mode || "light");
   const loggedUser = useSelector((store: any) => store?.user?.loggedUser);
+  const themeConfig = useSelector((store: any) => store?.user?.themeConfig);
 
+  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
   const isDark = mode === "dark";
+
+  const colors = useMemo(() => {
+    const accent = isDark
+      ? rgba(theme?.accent || "96 165 250", 0.95)
+      : rgb(theme?.accent || "37 99 235");
+
+    return {
+      isDark,
+      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      heroBg: isDark
+        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      accent,
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
+      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      border: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(15,23,42,0.08)",
+      borderSoft: isDark
+        ? rgba(theme?.border || "255 255 255", 0.08)
+        : "rgba(15,23,42,0.06)",
+      cardShadow: isDark
+        ? "0 20px 45px rgba(0,0,0,0.28)"
+        : "0 10px 30px rgba(15,23,42,0.06)",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+    };
+  }, [isDark, theme]);
 
   const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [isPending, startTransition] = useTransition();
@@ -99,13 +291,8 @@ export default function UserTradeHistory() {
       0
     );
 
-    const winningTrades = tradeData.filter(
-      (t) => Number(t?.Profit) > 0
-    ).length;
-
-    const losingTrades = tradeData.filter(
-      (t) => Number(t?.Profit) < 0
-    ).length;
+    const winningTrades = tradeData.filter((t) => Number(t?.Profit) > 0).length;
+    const losingTrades = tradeData.filter((t) => Number(t?.Profit) < 0).length;
 
     return {
       totalProfit,
@@ -189,21 +376,28 @@ export default function UserTradeHistory() {
   }, [activeTab, accountsKey, loggedUser?._id, fetchTradeData]);
 
   const renderTradeType = (trade: any) => {
-    const isBuy =
-      activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
+    const isBuy = activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
 
     return (
       <span
-        className={[
-          "inline-flex rounded-full border px-3 py-1 text-xs font-semibold",
-          isBuy
-            ? isDark
-              ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : isDark
-            ? "border-rose-400/20 bg-rose-500/10 text-rose-300"
-            : "border-rose-200 bg-rose-50 text-rose-700",
-        ].join(" ")}
+        className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
+        style={{
+          borderColor: isBuy
+            ? colors.isDark
+              ? "rgba(16,185,129,0.22)"
+              : "rgba(22,163,74,0.16)"
+            : colors.isDark
+            ? "rgba(239,68,68,0.22)"
+            : "rgba(239,68,68,0.16)",
+          background: isBuy
+            ? colors.isDark
+              ? "rgba(16,185,129,0.12)"
+              : "rgba(22,163,74,0.09)"
+            : colors.isDark
+            ? "rgba(239,68,68,0.12)"
+            : "rgba(239,68,68,0.08)",
+          color: isBuy ? colors.success : colors.danger,
+        }}
       >
         {isBuy ? "BUY" : "SELL"}
       </span>
@@ -215,16 +409,24 @@ export default function UserTradeHistory() {
 
     return (
       <span
-        className={[
-          "inline-flex rounded-xl border px-3 py-2 text-sm font-bold",
-          positive
-            ? isDark
-              ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : isDark
-            ? "border-rose-400/20 bg-rose-500/10 text-rose-300"
-            : "border-rose-200 bg-rose-50 text-rose-700",
-        ].join(" ")}
+        className="inline-flex rounded-xl border px-3 py-2 text-sm font-bold"
+        style={{
+          borderColor: positive
+            ? colors.isDark
+              ? "rgba(16,185,129,0.22)"
+              : "rgba(22,163,74,0.16)"
+            : colors.isDark
+            ? "rgba(239,68,68,0.22)"
+            : "rgba(239,68,68,0.16)",
+          background: positive
+            ? colors.isDark
+              ? "rgba(16,185,129,0.12)"
+              : "rgba(22,163,74,0.09)"
+            : colors.isDark
+            ? "rgba(239,68,68,0.12)"
+            : "rgba(239,68,68,0.08)",
+          color: positive ? colors.success : colors.danger,
+        }}
       >
         ${Math.abs(Number(profit ?? 0)).toFixed(2)}
       </span>
@@ -232,195 +434,95 @@ export default function UserTradeHistory() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-260px)] p-1 sm:p-2 md:p-4">
-      <div className="mx-auto max-w-7xl">
-        {/* Page Header */}
-        <div
-          className={[
-            "mb-6 overflow-hidden rounded-[28px] border backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.045] shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
-              : "border-orange-100/80 bg-white/70 shadow-[0_18px_50px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "relative px-4 py-5 sm:px-6 sm:py-6",
-              isDark
-                ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]"
-                : "bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(255,247,240,0.80))]",
-            ].join(" ")}
-          >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div
-                  className={[
-                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                      : "border-orange-200 bg-orange-50 text-orange-700",
-                  ].join(" ")}
-                >
-                  <BarChart3 size={14} />
-                  Trade Activity
-                </div>
+    <div className="min-h-screen w-full" style={{ background: colors.pageBg }}>
+      <div className="w-full" style={{ background: colors.heroBg }}>
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
+          <div className="leading-none">
+            <div className="text-[28px] font-bold text-white sm:text-[32px]">
+              Trade History
+            </div>
+            <div className="mt-2 text-sm text-white/80">
+              Track open and closed trades across your linked MT5 accounts
+            </div>
+          </div>
 
-                <h1 className="text-2xl font-bold sm:text-3xl">
-                  Trade History
-                </h1>
-
-                <p
-                  className={[
-                    "mt-2 max-w-2xl text-sm sm:text-[15px]",
-                    isDark ? "text-white/55" : "text-slate-600",
-                  ].join(" ")}
-                >
-                  Track your open and closed trades across linked MT5 accounts
-                  with profit, volume, symbol, and execution time details.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-emerald-500/10 text-emerald-300"
-                          : "bg-emerald-50 text-emerald-700",
-                      ].join(" ")}
-                    >
-                      <TrendingUp size={18} />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Total P/L
-                      </p>
-                      <p className="text-sm font-semibold">
-                        ${Number(tradeStats.totalProfit).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-blue-500/10 text-blue-300"
-                          : "bg-orange-50 text-orange-700",
-                      ].join(" ")}
-                    >
-                      <Activity size={18} />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Trades
-                      </p>
-                      <p className="text-sm font-semibold">{tradeData.length}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={[
-                    "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-white/70",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={[
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        isDark
-                          ? "bg-cyan-500/10 text-cyan-300"
-                          : "bg-amber-50 text-amber-700",
-                      ].join(" ")}
-                    >
-                      <ShieldCheck size={18} />
-                    </div>
-                    <div>
-                      <p
-                        className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Win / Loss
-                      </p>
-                      <p className="text-sm font-semibold">
-                        {tradeStats.winningTrades}/{tradeStats.losingTrades}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                MT5 Activity
               </div>
             </div>
 
-            <div
-              className={[
-                "pointer-events-none absolute inset-x-0 top-0 h-px",
-                isDark
-                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent",
-              ].join(" ")}
-            />
+            <button
+              type="button"
+              onClick={() => fetchTradeData(activeTab)}
+              disabled={loading}
+              className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
+              style={{ borderRadius: "14px" }}
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh Trades
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div
-          className={[
-            "mb-6 rounded-[28px] border p-4 sm:p-5 backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-orange-100/80 bg-white/60",
-          ].join(" ")}
+      <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
+        <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatCard
+            colors={colors}
+            icon={<TrendingUp className="h-5 w-5" />}
+            label="Total P/L"
+            value={`$${Number(tradeStats.totalProfit).toFixed(2)}`}
+            hint="Combined trade result"
+            tone={Number(tradeStats.totalProfit) >= 0 ? "success" : "danger"}
+          />
+          <StatCard
+            colors={colors}
+            icon={<Activity className="h-5 w-5" />}
+            label="Trades"
+            value={tradeData.length}
+            hint={activeTab === "open" ? "Live open trades" : "Closed trade records"}
+            tone="info"
+          />
+          <StatCard
+            colors={colors}
+            icon={<CircleDollarSign className="h-5 w-5" />}
+            label="Winning Trades"
+            value={tradeStats.winningTrades}
+            hint="Profitable positions"
+            tone="success"
+          />
+          <StatCard
+            colors={colors}
+            icon={<Gauge className="h-5 w-5" />}
+            label="Losing Trades"
+            value={tradeStats.losingTrades}
+            hint="Negative positions"
+            tone="warning"
+          />
+        </div>
+
+        <SectionCard
+          className="mb-5 p-4"
+          style={{
+            background: colors.surface,
+            borderColor: colors.border,
+            boxShadow: colors.cardShadow,
+          }}
         >
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={() => handleTab("open")}
               disabled={isPending}
-              className={[
-                "rounded-2xl border px-5 py-3 text-sm font-semibold transition-all",
-                activeTab === "open"
-                  ? isDark
-                    ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                    : "border-orange-200 bg-orange-50 text-orange-700"
-                  : isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/70"
-                  : "border-slate-200 bg-white text-slate-600",
-              ].join(" ")}
+              className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
+              style={{
+                borderColor: activeTab === "open" ? colors.accent : colors.border,
+                background: activeTab === "open" ? colors.accentSoft : colors.surface,
+                color: activeTab === "open" ? colors.accent : colors.text,
+              }}
             >
               Open Trades
             </button>
@@ -429,54 +531,51 @@ export default function UserTradeHistory() {
               type="button"
               onClick={() => handleTab("closed")}
               disabled={isPending}
-              className={[
-                "rounded-2xl border px-5 py-3 text-sm font-semibold transition-all",
-                activeTab === "closed"
-                  ? isDark
-                    ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                    : "border-orange-200 bg-orange-50 text-orange-700"
-                  : isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/70"
-                  : "border-slate-200 bg-white text-slate-600",
-              ].join(" ")}
+              className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
+              style={{
+                borderColor: activeTab === "closed" ? colors.accent : colors.border,
+                background: activeTab === "closed" ? colors.accentSoft : colors.surface,
+                color: activeTab === "closed" ? colors.accent : colors.text,
+              }}
             >
               Closed Trades
             </button>
-
-            <button
-              type="button"
-              onClick={() => fetchTradeData(activeTab)}
-              disabled={loading}
-              className={[
-                "inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition-all",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.05]"
-                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
-              ].join(" ")}
-            >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </button>
           </div>
-        </div>
+        </SectionCard>
 
-        {/* Table Shell */}
-        <div
-          className={[
-            "overflow-hidden rounded-[28px] border backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.035] shadow-[0_20px_70px_rgba(0,0,0,0.40)]"
-              : "border-orange-100/80 bg-white/65 shadow-[0_16px_50px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
+        <SectionCard
+          style={{
+            background: colors.surface,
+            borderColor: colors.border,
+            boxShadow: colors.cardShadow,
+          }}
         >
-          <div
-            className={[
-              "h-px",
-              isDark
-                ? "bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                : "bg-gradient-to-r from-transparent via-orange-200 to-transparent",
-            ].join(" ")}
-          />
+          <div className="border-b px-5 py-4 sm:px-6" style={{ borderColor: colors.border }}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" style={{ color: colors.accent }} />
+                  <span
+                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+                    style={{ color: colors.muted }}
+                  >
+                    trading · history · records
+                  </span>
+                </div>
+
+                <h2
+                  className="text-2xl font-bold"
+                  style={{ color: colors.text, fontFamily: "'Poppins', sans-serif" }}
+                >
+                  {activeTab === "open" ? "Open Trades" : "Closed Trades"}
+                </h2>
+
+                <p className="mt-1 text-sm" style={{ color: colors.muted }}>
+                  Detailed trade activity across your linked MT5 accounts.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="p-4 sm:p-6">
             <AnimatePresence mode="wait">
@@ -489,18 +588,15 @@ export default function UserTradeHistory() {
                   className="flex min-h-[300px] flex-col items-center justify-center"
                 >
                   <div
-                    className={[
-                      "mb-4 flex h-16 w-16 items-center justify-center rounded-2xl",
-                      isDark
-                        ? "bg-blue-500/10 text-blue-300"
-                        : "bg-orange-100 text-orange-700",
-                    ].join(" ")}
+                    className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+                    style={{
+                      background: colors.accentSoft,
+                      color: colors.accent,
+                    }}
                   >
                     <Loader2 size={30} className="animate-spin" />
                   </div>
-                  <p className={isDark ? "text-white/60" : "text-slate-600"}>
-                    Fetching trade data...
-                  </p>
+                  <p style={{ color: colors.muted }}>Fetching trade data...</p>
                 </motion.div>
               ) : error ? (
                 <motion.div
@@ -511,30 +607,31 @@ export default function UserTradeHistory() {
                   className="flex min-h-[260px] items-center justify-center"
                 >
                   <div
-                    className={[
-                      "max-w-md rounded-[24px] border p-6 text-center",
-                      isDark
-                        ? "border-rose-400/15 bg-rose-500/10"
-                        : "border-rose-200 bg-rose-50",
-                    ].join(" ")}
+                    className="max-w-md rounded-[24px] border p-6 text-center"
+                    style={{
+                      borderColor: colors.isDark
+                        ? "rgba(239,68,68,0.18)"
+                        : "rgba(239,68,68,0.16)",
+                      background: colors.isDark
+                        ? "rgba(239,68,68,0.08)"
+                        : "rgba(254,242,242,0.92)",
+                    }}
                   >
                     <div
-                      className={[
-                        "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl",
-                        isDark
-                          ? "bg-rose-500/10 text-rose-300"
-                          : "bg-rose-100 text-rose-700",
-                      ].join(" ")}
+                      className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+                      style={{
+                        background: colors.isDark
+                          ? "rgba(239,68,68,0.12)"
+                          : "rgba(254,226,226,1)",
+                        color: colors.danger,
+                      }}
                     >
                       <AlertTriangle size={24} />
                     </div>
-                    <h3 className="text-lg font-bold">Unable to load trades</h3>
-                    <p
-                      className={[
-                        "mt-2 text-sm",
-                        isDark ? "text-white/55" : "text-slate-600",
-                      ].join(" ")}
-                    >
+                    <h3 className="text-lg font-bold" style={{ color: colors.text }}>
+                      Unable to load trades
+                    </h3>
+                    <p className="mt-2 text-sm" style={{ color: colors.muted }}>
                       {error}
                     </p>
                   </div>
@@ -547,27 +644,11 @@ export default function UserTradeHistory() {
                   exit={{ opacity: 0 }}
                   className="flex min-h-[260px] items-center justify-center"
                 >
-                  <div className="text-center">
-                    <div
-                      className={[
-                        "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl",
-                        isDark
-                          ? "bg-white/[0.04] text-white/55"
-                          : "bg-slate-100 text-slate-500",
-                      ].join(" ")}
-                    >
-                      <Wallet size={24} />
-                    </div>
-                    <h3 className="text-lg font-bold">No trades found</h3>
-                    <p
-                      className={[
-                        "mt-2 text-sm",
-                        isDark ? "text-white/55" : "text-slate-600",
-                      ].join(" ")}
-                    >
-                      Start trading to see your history here.
-                    </p>
-                  </div>
+                  <EmptyState
+                    title="No trades found"
+                    subtitle="Start trading to see your history here."
+                    colors={colors}
+                  />
                 </motion.div>
               ) : (
                 <motion.div
@@ -576,30 +657,23 @@ export default function UserTradeHistory() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
                 >
-                  {/* Desktop Table */}
                   <div className="hidden overflow-x-auto xl:block">
                     <table className="min-w-full text-sm">
                       <thead>
-                        <tr
-                          className={
-                            isDark
-                              ? "border-b border-white/10 bg-white/[0.03]"
-                              : "border-b border-orange-100 bg-orange-50/60"
-                          }
-                        >
-                          <th className="px-4 py-4 text-left font-semibold">Account</th>
-                          <th className="px-4 py-4 text-left font-semibold">Symbol</th>
-                          <th className="px-4 py-4 text-left font-semibold">Open Time</th>
+                        <tr style={{ background: colors.tableHead, borderBottom: `1px solid ${colors.border}` }}>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Account</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Symbol</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Open Time</th>
                           {activeTab === "closed" && (
-                            <th className="px-4 py-4 text-left font-semibold">Close Time</th>
+                            <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Close Time</th>
                           )}
-                          <th className="px-4 py-4 text-left font-semibold">Open Price</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Open Price</th>
                           {activeTab === "closed" && (
-                            <th className="px-4 py-4 text-left font-semibold">Close Price</th>
+                            <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Close Price</th>
                           )}
-                          <th className="px-4 py-4 text-left font-semibold">Type</th>
-                          <th className="px-4 py-4 text-left font-semibold">Volume</th>
-                          <th className="px-4 py-4 text-left font-semibold">P/L</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Type</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Volume</th>
+                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>P/L</th>
                         </tr>
                       </thead>
 
@@ -607,42 +681,40 @@ export default function UserTradeHistory() {
                         {tradeData.map((trade, index) => (
                           <tr
                             key={`${trade?.MT5Account || "acc"}-${index}`}
-                            className={
-                              isDark
-                                ? "border-b border-white/5 hover:bg-white/[0.03]"
-                                : "border-b border-slate-100 hover:bg-orange-50/30"
-                            }
+                            style={{ borderBottom: `1px solid ${colors.borderSoft}` }}
                           >
-                            <td className="px-4 py-4 font-medium">
+                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
                               #{trade?.MT5Account}
                             </td>
 
-                            <td className="px-4 py-4 font-medium">
+                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
                               <span className="mr-2">{getSymbolIcon(trade?.Symbol)}</span>
                               {trade?.Symbol}
                             </td>
 
-                            <td className="px-4 py-4 text-xs">
+                            <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
                               {formatTime(trade?.Open_Time)}
                             </td>
 
                             {activeTab === "closed" && (
-                              <td className="px-4 py-4 text-xs">
+                              <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
                                 {formatTime(trade?.Close_Time)}
                               </td>
                             )}
 
-                            <td className="px-4 py-4">${money(trade?.Open_Price)}</td>
+                            <td className="px-4 py-4" style={{ color: colors.text }}>
+                              ${money(trade?.Open_Price)}
+                            </td>
 
                             {activeTab === "closed" && (
-                              <td className="px-4 py-4">
+                              <td className="px-4 py-4" style={{ color: colors.text }}>
                                 ${money(trade?.Close_Price)}
                               </td>
                             )}
 
                             <td className="px-4 py-4">{renderTradeType(trade)}</td>
 
-                            <td className="px-4 py-4 font-medium">
+                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
                               {activeTab === "open"
                                 ? (Number(trade?.Volume ?? 0) / 10000).toFixed(2)
                                 : Number(trade?.Lot ?? 0).toFixed(2)}
@@ -655,190 +727,105 @@ export default function UserTradeHistory() {
                     </table>
                   </div>
 
-                  {/* Mobile / Tablet Cards */}
                   <div className="grid grid-cols-1 gap-4 xl:hidden">
                     {tradeData.map((trade, index) => {
-                      const isBuy =
-                        activeTab === "closed"
-                          ? trade?.OrderType === 1
-                          : trade?.BUY_SELL === 0;
+                      const isBuy = activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
 
                       return (
                         <div
                           key={`${trade?.MT5Account || "acc"}-${index}`}
-                          className={[
-                            "rounded-[24px] border p-4",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03]"
-                              : "border-orange-100/70 bg-white/75",
-                          ].join(" ")}
+                          className="rounded-[24px] border p-4"
+                          style={{
+                            borderColor: colors.border,
+                            background: colors.surfaceSoft,
+                          }}
                         >
                           <div className="mb-4 flex items-start justify-between gap-3">
                             <div>
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
                                 #{trade?.MT5Account}
                               </p>
-                              <p
-                                className={[
-                                  "mt-1 text-xs",
-                                  isDark ? "text-white/50" : "text-slate-500",
-                                ].join(" ")}
-                              >
+                              <p className="mt-1 text-xs" style={{ color: colors.muted }}>
                                 {getSymbolIcon(trade?.Symbol)} {trade?.Symbol}
                               </p>
                             </div>
 
                             <div className="flex items-center gap-2">
                               <span
-                                className={[
-                                  "flex h-9 w-9 items-center justify-center rounded-xl",
-                                  isBuy
-                                    ? isDark
-                                      ? "bg-emerald-500/10 text-emerald-300"
-                                      : "bg-emerald-50 text-emerald-700"
-                                    : isDark
-                                    ? "bg-rose-500/10 text-rose-300"
-                                    : "bg-rose-50 text-rose-700",
-                                ].join(" ")}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl"
+                                style={{
+                                  background: isBuy
+                                    ? colors.isDark
+                                      ? "rgba(16,185,129,0.12)"
+                                      : "rgba(22,163,74,0.09)"
+                                    : colors.isDark
+                                    ? "rgba(239,68,68,0.12)"
+                                    : "rgba(239,68,68,0.08)",
+                                  color: isBuy ? colors.success : colors.danger,
+                                }}
                               >
-                                {isBuy ? (
-                                  <ArrowUpRight size={18} />
-                                ) : (
-                                  <ArrowDownLeft size={18} />
-                                )}
+                                {isBuy ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
                               </span>
                               {renderTradeType(trade)}
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div
-                              className={[
-                                "rounded-2xl border px-4 py-3",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-100 bg-slate-50/70",
-                              ].join(" ")}
-                            >
-                              <p
-                                className={[
-                                  "mb-1 text-xs uppercase tracking-[0.12em]",
-                                  isDark ? "text-white/40" : "text-slate-500",
-                                ].join(" ")}
-                              >
+                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                 Open Time
                               </p>
-                              <p className="text-sm font-medium flex items-start gap-2">
+                              <p className="flex items-start gap-2 text-sm font-medium" style={{ color: colors.text }}>
                                 <Clock3 size={14} className="mt-0.5" />
                                 <span>{formatTime(trade?.Open_Time)}</span>
                               </p>
                             </div>
 
                             {activeTab === "closed" && (
-                              <div
-                                className={[
-                                  "rounded-2xl border px-4 py-3",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.03]"
-                                    : "border-slate-100 bg-slate-50/70",
-                                ].join(" ")}
-                              >
-                                <p
-                                  className={[
-                                    "mb-1 text-xs uppercase tracking-[0.12em]",
-                                    isDark ? "text-white/40" : "text-slate-500",
-                                  ].join(" ")}
-                                >
+                              <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                                <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                   Close Time
                                 </p>
-                                <p className="text-sm font-medium flex items-start gap-2">
+                                <p className="flex items-start gap-2 text-sm font-medium" style={{ color: colors.text }}>
                                   <Clock3 size={14} className="mt-0.5" />
                                   <span>{formatTime(trade?.Close_Time)}</span>
                                 </p>
                               </div>
                             )}
 
-                            <div
-                              className={[
-                                "rounded-2xl border px-4 py-3",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-100 bg-slate-50/70",
-                              ].join(" ")}
-                            >
-                              <p
-                                className={[
-                                  "mb-1 text-xs uppercase tracking-[0.12em]",
-                                  isDark ? "text-white/40" : "text-slate-500",
-                                ].join(" ")}
-                              >
+                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                 Open Price
                               </p>
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
                                 ${money(trade?.Open_Price)}
                               </p>
                             </div>
 
                             {activeTab === "closed" && (
-                              <div
-                                className={[
-                                  "rounded-2xl border px-4 py-3",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.03]"
-                                    : "border-slate-100 bg-slate-50/70",
-                                ].join(" ")}
-                              >
-                                <p
-                                  className={[
-                                    "mb-1 text-xs uppercase tracking-[0.12em]",
-                                    isDark ? "text-white/40" : "text-slate-500",
-                                  ].join(" ")}
-                                >
+                              <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                                <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                   Close Price
                                 </p>
-                                <p className="text-sm font-semibold">
+                                <p className="text-sm font-semibold" style={{ color: colors.text }}>
                                   ${money(trade?.Close_Price)}
                                 </p>
                               </div>
                             )}
 
-                            <div
-                              className={[
-                                "rounded-2xl border px-4 py-3",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-100 bg-slate-50/70",
-                              ].join(" ")}
-                            >
-                              <p
-                                className={[
-                                  "mb-1 text-xs uppercase tracking-[0.12em]",
-                                  isDark ? "text-white/40" : "text-slate-500",
-                                ].join(" ")}
-                              >
+                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                 Volume
                               </p>
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
                                 {activeTab === "open"
                                   ? (Number(trade?.Volume ?? 0) / 10000).toFixed(2)
                                   : Number(trade?.Lot ?? 0).toFixed(2)}
                               </p>
                             </div>
 
-                            <div
-                              className={[
-                                "rounded-2xl border px-4 py-3",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-100 bg-slate-50/70",
-                              ].join(" ")}
-                            >
-                              <p
-                                className={[
-                                  "mb-1 text-xs uppercase tracking-[0.12em]",
-                                  isDark ? "text-white/40" : "text-slate-500",
-                                ].join(" ")}
-                              >
+                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
+                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
                                 Profit / Loss
                               </p>
                               <div>{renderProfit(Number(trade?.Profit))}</div>
@@ -852,7 +839,7 @@ export default function UserTradeHistory() {
               )}
             </AnimatePresence>
           </div>
-        </div>
+        </SectionCard>
       </div>
     </div>
   );

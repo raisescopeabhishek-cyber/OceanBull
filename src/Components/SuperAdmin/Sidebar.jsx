@@ -45,6 +45,14 @@ const modules = [
     path: "/s-admin/theme-config",
     icon: <Palette className="w-5 h-5" />,
   },
+
+   {
+    name: "Bonus Config",
+    path: "/s-admin/DepositeBonue",
+    icon: <Palette className="w-5 h-5" />,
+  },
+
+
   {
     name: "Site Configuration",
     path: "/s-admin/site-configuration",

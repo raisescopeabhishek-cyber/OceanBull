@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
   TrendingUp,
-  CreditCard,
   Landmark,
   CheckCircle2,
   DollarSign,
@@ -23,7 +22,6 @@ import {
   Activity,
   CircleDollarSign,
   Gauge,
-  BadgeCheck,
   ShieldCheck,
   Percent,
   PencilLine,
@@ -97,27 +95,19 @@ function statusTone(status: any) {
 /* -------------------- shared ui -------------------- */
 function SectionCard({
   children,
-  theme,
-  isDark,
   className = "",
+  style,
 }: {
   children: React.ReactNode;
-  theme: any;
-  isDark: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
       className={["overflow-hidden border transition-all duration-300", className].join(" ")}
       style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(0,0,0,0.08)",
-        background: isDark ? "rgba(17,24,39,0.9)" : "#ffffff",
-        boxShadow: isDark
-          ? "0 10px 30px rgba(0,0,0,0.25)"
-          : "0 1px 2px rgba(0,0,0,0.08)",
-        borderRadius: "4px",
+        borderRadius: "20px",
+        ...style,
       }}
     >
       {children}
@@ -130,42 +120,46 @@ function StatCard({
   label,
   value,
   hint,
-  theme,
-  isDark,
+  colors,
   tone = "default",
 }: any) {
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
-          iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
-          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconColor: colors.success,
+          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(40,116,240,0.10)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(40,116,240,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(40,116,240,0.16)",
+          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconColor: colors.accent,
+          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
         }
       : tone === "warning"
       ? {
-          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(255,159,0,0.10)",
-          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(180,83,9,0.95)",
-          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(255,159,0,0.16)",
+          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconColor: colors.warning,
+          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
         }
       : {
-          iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(245,247,250,1)",
-          iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(17,24,39,0.92)",
-          border: isDark
-            ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(0,0,0,0.08)",
+          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconColor: colors.text,
+          border: colors.border,
         };
 
   return (
-    <SectionCard theme={theme} isDark={isDark} className="p-4">
+    <SectionCard
+      className="p-4"
+      style={{
+        background: colors.surface,
+        borderColor: colors.border,
+        boxShadow: colors.cardShadow,
+      }}
+    >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -176,37 +170,16 @@ function StatCard({
         </div>
 
         <div>
-          <div
-            className="text-xs"
-            style={{
-              color: isDark
-                ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(107,114,128,0.96)",
-            }}
-          >
+          <div className="text-xs" style={{ color: colors.muted }}>
             {label}
           </div>
 
-          <div
-            className="text-lg font-bold"
-            style={{
-              color: isDark
-                ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(17,24,39,0.98)",
-            }}
-          >
+          <div className="text-lg font-bold" style={{ color: colors.text }}>
             {value}
           </div>
 
           {hint ? (
-            <div
-              className="mt-1 text-[11px]"
-              style={{
-                color: isDark
-                  ? rgba(theme?.fg || "255 255 255", 0.48)
-                  : "rgba(107,114,128,0.88)",
-              }}
-            >
+            <div className="mt-1 text-[11px]" style={{ color: colors.softText }}>
               {hint}
             </div>
           ) : null}
@@ -232,45 +205,26 @@ function LoaderIcon({ color }: { color: string }) {
 function EmptyState({
   title = "No data found",
   subtitle = "Try another filter or refresh the records.",
-  theme,
-  isDark,
+  colors,
 }: any) {
   return (
     <div className="py-12 text-center">
       <div
         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border"
         style={{
-          borderColor: isDark
-            ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(0,0,0,0.08)",
-          background: isDark ? "rgba(255,255,255,0.03)" : "rgba(245,247,250,1)",
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.7)
-            : "rgba(107,114,128,0.9)",
+          borderColor: colors.border,
+          background: colors.surfaceSoft,
+          color: colors.softText,
         }}
       >
         ⚪
       </div>
 
-      <p
-        className="font-semibold"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.92)
-            : "rgba(17,24,39,0.96)",
-        }}
-      >
+      <p className="font-semibold" style={{ color: colors.text }}>
         {title}
       </p>
 
-      <p
-        className="mt-1 text-sm"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.58)
-            : "rgba(107,114,128,0.95)",
-        }}
-      >
+      <p className="mt-1 text-sm" style={{ color: colors.muted }}>
         {subtitle}
       </p>
     </div>
@@ -280,22 +234,18 @@ function EmptyState({
 function SkeletonTable({
   cols,
   rows = 6,
-  theme,
-  isDark,
+  colors,
 }: {
   cols: number;
   rows?: number;
-  theme: any;
-  isDark: boolean;
+  colors: any;
 }) {
   return (
     <div
       className="overflow-x-auto border"
       style={{
-        borderColor: isDark
-          ? rgba(theme?.border || "255 255 255", 0.12)
-          : "rgba(0,0,0,0.08)",
-        borderRadius: "4px",
+        borderColor: colors.border,
+        borderRadius: "16px",
       }}
     >
       <table className="w-full text-sm">
@@ -304,11 +254,7 @@ function SkeletonTable({
             <tr
               key={i}
               style={{
-                borderBottom: `1px solid ${
-                  isDark
-                    ? rgba(theme?.border || "255 255 255", 0.08)
-                    : "rgba(0,0,0,0.06)"
-                }`,
+                borderBottom: `1px solid ${colors.borderSoft}`,
               }}
             >
               {Array.from({ length: cols }).map((__, j) => (
@@ -316,9 +262,9 @@ function SkeletonTable({
                   <div
                     className="h-4 w-full animate-pulse rounded"
                     style={{
-                      background: isDark
+                      background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(243,244,246,1)",
+                        : "rgba(17,24,39,0.06)",
                     }}
                   />
                 </td>
@@ -339,7 +285,7 @@ function CheckoutStep({
   summary,
   onChange,
   children,
-  isDark,
+  colors,
 }: {
   step: number;
   title: string;
@@ -348,31 +294,31 @@ function CheckoutStep({
   summary?: React.ReactNode;
   onChange?: () => void;
   children?: React.ReactNode;
-  isDark: boolean;
+  colors: any;
 }) {
   return (
     <div
       className="overflow-hidden border"
       style={{
-        borderColor: "rgba(0,0,0,0.08)",
-        background: "#fff",
-        borderRadius: "4px",
+        borderColor: colors.border,
+        background: colors.surface,
+        borderRadius: "20px",
+        boxShadow: colors.cardShadow,
       }}
     >
       <div
         className="flex items-start justify-between gap-4 px-5 py-4"
         style={{
-          background: isOpen ? "#fff7e6" : "#fff",
-          borderBottom: isOpen ? "none" : "1px solid rgba(0,0,0,0.06)",
-          color: isOpen ? "#fff" : "#555",
+          background: isOpen ? colors.stepActiveBg : colors.surface,
+          borderBottom: `1px solid ${isOpen ? colors.borderSoft : colors.border}`,
         }}
       >
         <div className="flex min-w-0 items-start gap-3">
           <div
-            className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-sm text-xs font-bold"
+            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold"
             style={{
-              background: isOpen ? "#fff" : "#f0f0f0",
-              color: isOpen ? "#fff7e6" : "#555",
+              background: isOpen ? colors.accent : colors.surfaceSoft,
+              color: isOpen ? "#ffffff" : colors.text,
             }}
           >
             {step}
@@ -380,14 +326,21 @@ function CheckoutStep({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[15px] font-semibold uppercase">{title}</span>
+              <span
+                className="text-[15px] font-semibold uppercase tracking-[0.06em]"
+                style={{ color: colors.text }}
+              >
+                {title}
+              </span>
               {isCompleted && !isOpen ? (
-                <CheckCircle2 className="h-4 w-4 text-[#fff7e6]" />
+                <CheckCircle2 className="h-4 w-4" style={{ color: colors.success }} />
               ) : null}
             </div>
 
             {!isOpen && summary ? (
-              <div className="mt-2 text-[15px] text-[#212121]">{summary}</div>
+              <div className="mt-2 text-[14px]" style={{ color: colors.softText }}>
+                {summary}
+              </div>
             ) : null}
           </div>
         </div>
@@ -396,13 +349,13 @@ function CheckoutStep({
           <button
             type="button"
             onClick={onChange}
-            className="shrink-0 border px-6 py-3 text-sm font-semibold uppercase"
+            className="shrink-0 border px-5 py-2.5 text-sm font-semibold"
             style={{
-              borderColor: "rgba(0,0,0,0.12)",
-              color: "#fff7e6",
-              background: "#fff",
-              borderRadius: "2px",
-              minWidth: "132px",
+              borderColor: colors.border,
+              color: colors.accent,
+              background: colors.surface,
+              borderRadius: "12px",
+              minWidth: "120px",
             }}
           >
             Change
@@ -427,6 +380,47 @@ export default function UserDeposit() {
 
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
   const isDark = mode === "dark";
+
+  const colors = useMemo(() => {
+    const accent = isDark
+      ? rgba(theme?.accent || "96 165 250", 0.95)
+      : rgb(theme?.accent || "37 99 235");
+
+    return {
+      isDark,
+      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      heroBg: isDark
+        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      accent,
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
+      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      link: isDark ? "rgba(147,197,253,1)" : "#2563eb",
+      border: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(15,23,42,0.08)",
+      borderSoft: isDark
+        ? rgba(theme?.border || "255 255 255", 0.08)
+        : "rgba(15,23,42,0.06)",
+      cardShadow: isDark
+        ? "0 20px 45px rgba(0,0,0,0.28)"
+        : "0 10px 30px rgba(15,23,42,0.06)",
+      primaryBtn: "#f97316",
+      primaryBtnHover: "#ea580c",
+      primaryBtnText: "#ffffff",
+      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.05)",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+      modalOverlay: "rgba(2,6,23,0.72)",
+    };
+  }, [isDark, theme]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const submitRequestRef = useRef<HTMLDivElement | null>(null);
@@ -669,29 +663,22 @@ export default function UserDeposit() {
             <button
               key={idx}
               onClick={() => window.open(part, "_blank", "noopener,noreferrer")}
-              className="mx-1 inline-flex rounded-sm px-4 py-2 text-sm font-semibold transition-all"
+              className="mx-1 inline-flex rounded-xl px-4 py-2 text-sm font-semibold transition-all"
               style={{
-                background: "#fb641b",
+                background: colors.primaryBtn,
                 color: "#fff",
               }}
             >
               Pay Now
             </button>
           ) : (
-            <span
-              key={idx}
-              style={{
-                color: isDark
-                  ? rgba(theme?.fg || "255 255 255", 0.78)
-                  : "rgba(55,65,81,0.94)",
-              }}
-            >
+            <span key={idx} style={{ color: colors.softText }}>
               {part}
             </span>
           )
         );
     },
-    [isDark, theme?.fg]
+    [colors]
   );
 
   const scrollToSubmitRequest = useCallback(() => {
@@ -808,40 +795,28 @@ export default function UserDeposit() {
     }
   };
 
-  const titleColor = isDark
-    ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(17,24,39,0.98)";
-
-  const mutedTextColor = isDark
-    ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(107,114,128,0.96)";
-
-  const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "#fff7e6";
+  const titleColor = colors.text;
+  const mutedTextColor = colors.muted;
+  const accentColor = colors.accent;
 
   const selectStyle: React.CSSProperties = {
     width: "100%",
-    borderRadius: "2px",
+    borderRadius: "14px",
     padding: "13px 42px 13px 14px",
     outline: "none",
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
-    color: isDark ? rgba(theme?.fg || "255 255 255", 0.92) : "rgba(31,41,55,0.96)",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid #d1d5db",
+    background: colors.surface,
+    color: colors.text,
+    border: `1px solid ${colors.border}`,
   };
 
   const inputStyle: React.CSSProperties = {
-    background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+    background: colors.surface,
     color: titleColor,
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid #d1d5db",
-    borderRadius: "2px",
+    border: `1px solid ${colors.border}`,
+    borderRadius: "14px",
     outline: "none",
   };
 
@@ -851,29 +826,23 @@ export default function UserDeposit() {
   };
 
   const subtleCard = (): React.CSSProperties => ({
-    background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "4px",
+    background: colors.surfaceSoft,
+    border: `1px solid ${colors.border}`,
+    borderRadius: "16px",
   });
 
   const panelStyle: React.CSSProperties = {
-    background: isDark ? "rgba(17,24,39,0.92)" : "#ffffff",
-    border: isDark
-      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "4px",
-    boxShadow: isDark
-      ? "0 10px 30px rgba(0,0,0,0.22)"
-      : "0 1px 2px rgba(0,0,0,0.08)",
+    background: colors.surface,
+    border: `1px solid ${colors.border}`,
+    borderRadius: "20px",
+    boxShadow: colors.cardShadow,
   };
 
   const primaryButtonStyle: React.CSSProperties = {
-    borderRadius: "2px",
-    color: "#fff",
-    background: "#fb641b",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.14)",
+    borderRadius: "14px",
+    color: colors.primaryBtnText,
+    background: colors.primaryBtn,
+    boxShadow: "0 12px 24px rgba(249,115,22,0.22)",
   };
 
   const ctaEnabled =
@@ -914,13 +883,13 @@ export default function UserDeposit() {
     panelStyle,
     subtleCard,
     isDark,
-    textPrimary: isDark ? "rgba(255,255,255,0.94)" : "rgba(17,24,39,0.98)",
-    textSecondary: isDark ? "rgba(255,255,255,0.64)" : "rgba(107,114,128,0.96)",
-    textSoft: isDark ? "rgba(255,255,255,0.78)" : "rgba(55,65,81,0.94)",
-    badgeText: isDark ? "rgba(191,219,254,0.96)" : "#fff7e6",
+    textPrimary: colors.text,
+    textSecondary: colors.muted,
+    textSoft: colors.softText,
+    badgeText: colors.accent,
     C: {
-      accent: theme?.accent || "40 116 240",
-      primary: theme?.primary || theme?.accent || "251 100 27",
+      accent: theme?.accent || "37 99 235",
+      primary: theme?.primary || theme?.accent || "249 115 22",
       fg: theme?.fg || "255 255 255",
       mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
       border: theme?.border || theme?.inputBorder || "209 213 219",
@@ -930,14 +899,15 @@ export default function UserDeposit() {
       success: theme?.success || "34 197 94",
       warning: theme?.warning || "234 179 8",
       danger: theme?.danger || "244 63 94",
-      ring: theme?.ring || theme?.accent || "40 116 240",
-      glow: theme?.accent || "40 116 240",
-      radius: theme?.radius || "4px",
+      ring: theme?.ring || theme?.accent || "37 99 235",
+      glow: theme?.accent || "37 99 235",
+      radius: theme?.radius || "16px",
       accentFg: theme?.accentFg || "255 255 255",
     },
     showPaymentModal,
     setShowPaymentModal,
     setMethodInteractionDone,
+    colors,
   };
 
   const statusStyle = (status: any) => {
@@ -945,9 +915,9 @@ export default function UserDeposit() {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.08)",
+        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
         border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(22,163,74,0.16)",
-        color: isDark ? "rgba(52,211,153,0.95)" : "rgba(21,128,61,0.95)",
+        color: colors.success,
       };
     }
 
@@ -955,7 +925,7 @@ export default function UserDeposit() {
       return {
         background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
         border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.16)",
-        color: isDark ? "rgba(251,191,36,0.95)" : "rgba(180,83,9,0.95)",
+        color: colors.warning,
       };
     }
 
@@ -963,16 +933,14 @@ export default function UserDeposit() {
       return {
         background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
         border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.16)",
-        color: isDark ? "rgba(248,113,113,0.95)" : "rgba(185,28,28,0.95)",
+        color: colors.danger,
       };
     }
 
     return {
-      background: isDark ? "rgba(255,255,255,0.05)" : "#f3f4f6",
-      border: isDark
-        ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-        : "1px solid rgba(0,0,0,0.08)",
-      color: titleColor,
+      background: colors.surfaceSoft,
+      border: `1px solid ${colors.border}`,
+      color: colors.text,
     };
   };
 
@@ -1049,7 +1017,7 @@ export default function UserDeposit() {
               <motion.div
                 className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5"
                 style={{
-                  background: "rgba(2,6,23,0.72)",
+                  background: colors.modalOverlay,
                   backdropFilter: "blur(8px)",
                 }}
                 initial={{ opacity: 0 }}
@@ -1064,24 +1032,20 @@ export default function UserDeposit() {
                   transition={{ duration: 0.25 }}
                   className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden border"
                   style={{
-                    borderColor: isDark
-                      ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(0,0,0,0.12)",
-                    background: isDark ? "#0f172a" : "#f1f3f6",
+                    borderColor: colors.border,
+                    background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(0,0,0,0.16)",
-                    borderRadius: "8px",
+                      : "0 30px 80px rgba(15,23,42,0.18)",
+                    borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
                     className="border-b px-4 py-4 sm:px-6"
                     style={{
-                      borderColor: isDark
-                        ? rgba(theme?.border || "255 255 255", 0.1)
-                        : "rgba(0,0,0,0.08)",
-                      background: isDark ? "rgba(255,255,255,0.02)" : "#ffffff",
+                      borderColor: colors.border,
+                      background: colors.surface,
                     }}
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1117,12 +1081,10 @@ export default function UserDeposit() {
                           onClick={() => fetchDepositTransactions()}
                           className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
-                            borderColor: isDark
-                              ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(0,0,0,0.12)",
-                            background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+                            borderColor: colors.border,
+                            background: colors.surface,
                             color: titleColor,
-                            borderRadius: "4px",
+                            borderRadius: "14px",
                           }}
                         >
                           <RefreshCcw className="h-4 w-4" />
@@ -1140,10 +1102,8 @@ export default function UserDeposit() {
                             background: isDark
                               ? "rgba(239,68,68,0.08)"
                               : "rgba(254,242,242,0.92)",
-                            color: isDark
-                              ? "rgba(248,113,113,0.95)"
-                              : "rgba(220,38,38,0.95)",
-                            borderRadius: "4px",
+                            color: colors.danger,
+                            borderRadius: "14px",
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -1156,32 +1116,28 @@ export default function UserDeposit() {
                   <div className="flex-1 overflow-auto p-4 sm:p-5 md:p-6">
                     <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<Wallet className="h-5 w-5" />}
                         label="Deposits Total"
                         value={`$${money(txnStats.total)}`}
                         tone="info"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<CircleDollarSign className="h-5 w-5" />}
                         label="Approved"
                         value={txnStats.approved}
                         tone="success"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<Gauge className="h-5 w-5" />}
                         label="Pending"
                         value={txnStats.pending}
                         tone="warning"
                       />
                       <StatCard
-                        theme={theme}
-                        isDark={isDark}
+                        colors={colors}
                         icon={<TrendingUp className="h-5 w-5" />}
                         label="Rows"
                         value={txnStats.rows}
@@ -1201,18 +1157,22 @@ export default function UserDeposit() {
                           placeholder="Search by account, method, txn id, status..."
                           className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
                           style={{
-                            borderColor: isDark
-                              ? rgba(theme?.border || "255 255 255", 0.12)
-                              : "rgba(0,0,0,0.12)",
-                            background: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+                            borderColor: colors.border,
+                            background: colors.surface,
                             color: titleColor,
-                            borderRadius: "4px",
+                            borderRadius: "14px",
                           }}
                         />
                       </div>
                     </div>
 
-                    <SectionCard theme={theme} isDark={isDark}>
+                    <SectionCard
+                      style={{
+                        background: colors.surface,
+                        borderColor: colors.border,
+                        boxShadow: colors.cardShadow,
+                      }}
+                    >
                       <div className="overflow-x-auto">
                         <AnimatePresence mode="wait">
                           {txnLoading ? (
@@ -1233,7 +1193,7 @@ export default function UserDeposit() {
                                 </p>
                               </div>
 
-                              <SkeletonTable cols={8} theme={theme} isDark={isDark} />
+                              <SkeletonTable cols={8} colors={colors} />
                             </motion.div>
                           ) : txnError ? (
                             <motion.div
@@ -1246,8 +1206,7 @@ export default function UserDeposit() {
                               <EmptyState
                                 title={txnError}
                                 subtitle="Please refresh to reload deposit transactions."
-                                theme={theme}
-                                isDark={isDark}
+                                colors={colors}
                               />
                             </motion.div>
                           ) : filteredDepositTransactions.length === 0 ? (
@@ -1261,8 +1220,7 @@ export default function UserDeposit() {
                               <EmptyState
                                 title="No deposit transactions found"
                                 subtitle="Your deposit history will appear here once available."
-                                theme={theme}
-                                isDark={isDark}
+                                colors={colors}
                               />
                             </motion.div>
                           ) : (
@@ -1275,12 +1233,8 @@ export default function UserDeposit() {
                               <table className="w-full text-sm">
                                 <thead
                                   style={{
-                                    background: isDark
-                                      ? "rgba(255,255,255,0.03)"
-                                      : "#f9fafb",
-                                    borderBottom: isDark
-                                      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.1)}`
-                                      : "1px solid rgba(0,0,0,0.08)",
+                                    background: colors.tableHead,
+                                    borderBottom: `1px solid ${colors.border}`,
                                   }}
                                 >
                                   <tr>
@@ -1310,9 +1264,7 @@ export default function UserDeposit() {
                                     <tr
                                       key={item?._id || `${item.mt5Account}-${i}`}
                                       style={{
-                                        borderBottom: isDark
-                                          ? `1px solid ${rgba(theme?.border || "255 255 255", 0.08)}`
-                                          : "1px solid rgba(0,0,0,0.06)",
+                                        borderBottom: `1px solid ${colors.borderSoft}`,
                                       }}
                                     >
                                       <td
@@ -1324,14 +1276,10 @@ export default function UserDeposit() {
 
                                       <td className="px-4 py-3 text-center">
                                         <span
-                                          className="inline-flex rounded-sm border px-3 py-1 text-[11px] font-semibold"
+                                          className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
                                           style={{
-                                            background: isDark
-                                              ? "rgba(59,130,246,0.10)"
-                                              : "rgba(219,234,254,0.72)",
-                                            borderColor: isDark
-                                              ? "rgba(59,130,246,0.18)"
-                                              : "rgba(40,116,240,0.16)",
+                                            background: colors.accentSoft,
+                                            borderColor: colors.border,
                                             color: accentColor,
                                           }}
                                         >
@@ -1348,14 +1296,10 @@ export default function UserDeposit() {
 
                                       <td className="px-4 py-3 text-center">
                                         <span
-                                          className="inline-flex rounded-sm border px-2 py-1 text-[11px] font-semibold"
+                                          className="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                           style={{
-                                            background: isDark
-                                              ? "rgba(255,255,255,0.03)"
-                                              : "#ffffff",
-                                            borderColor: isDark
-                                              ? rgba(theme?.border || "255 255 255", 0.12)
-                                              : "rgba(0,0,0,0.08)",
+                                            background: colors.surfaceSoft,
+                                            borderColor: colors.border,
                                             color: titleColor,
                                           }}
                                         >
@@ -1388,7 +1332,7 @@ export default function UserDeposit() {
                                                 : `${import.meta.env.VITE_BACKEND_BASE_URL}/${item.depositSS}`
                                             }
                                             className="inline-flex items-center gap-1 text-xs font-semibold underline"
-                                            style={{ color: accentColor }}
+                                            style={{ color: colors.link }}
                                           >
                                             <Eye className="h-3.5 w-3.5" />
                                             View Proof
@@ -1434,28 +1378,33 @@ export default function UserDeposit() {
       <div
         className="min-h-screen w-full"
         style={{
-          background: isDark ? "#0b1120" : "#f1f3f6",
+          background: colors.pageBg,
         }}
       >
-        <div className="w-full" style={{ background: "#fff7e6" }}>
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-4 lg:px-6">
+        <div className="w-full" style={{ background: colors.heroBg }}>
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
             <div className="leading-none">
-              <div className="text-[30px] font-bold  text-white">Deposite Fund</div>
+              <div className="text-[28px] font-bold text-white sm:text-[32px]">
+                Deposit Funds
+              </div>
+              <div className="mt-2 text-sm text-white/80">
+                Complete your deposit securely in 2 simple steps
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
-                  Secure Invest
+                  Secure Deposit
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowTxnModal(true)}
-                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
-                style={{ borderRadius: "4px" }}
+                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
+                style={{ borderRadius: "14px" }}
               >
                 <History className="h-4 w-4" />
                 Deposit Transactions
@@ -1467,8 +1416,7 @@ export default function UserDeposit() {
         <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
           <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatCard
-              theme={theme}
-              isDark={isDark}
+              colors={colors}
               icon={<Wallet className="h-5 w-5" />}
               label="Selected Account"
               value={formData.accountNumber || "—"}
@@ -1476,8 +1424,7 @@ export default function UserDeposit() {
               tone="default"
             />
             <StatCard
-              theme={theme}
-              isDark={isDark}
+              colors={colors}
               icon={<DollarSign className="h-5 w-5" />}
               label="Current Balance"
               value={
@@ -1493,8 +1440,7 @@ export default function UserDeposit() {
               tone="success"
             />
             <StatCard
-              theme={theme}
-              isDark={isDark}
+              colors={colors}
               icon={<Landmark className="h-5 w-5" />}
               label="INR Equivalent"
               value={`₹ ${money(inrAmount)}`}
@@ -1504,21 +1450,21 @@ export default function UserDeposit() {
           </div>
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-            <div className="xl:col-span-8 space-y-4">
+            <div className="space-y-4 xl:col-span-8">
               <CheckoutStep
                 step={1}
                 title="Select Account"
                 isOpen={openStep === 1}
                 isCompleted={step1Completed}
-                isDark={isDark}
+                colors={colors}
                 onChange={() => setOpenStep(1)}
                 summary={
                   <>
-                    <span className="font-semibold">
+                    <span className="font-semibold" style={{ color: colors.text }}>
                       {formData.accountNumber || "No account selected"}
                     </span>
                     {formData.depositAmount ? (
-                      <span className="ml-2 text-[#555]">
+                      <span className="ml-2" style={{ color: colors.softText }}>
                         • ${money(formData.depositAmount)} • {accountType || "N/A"}
                       </span>
                     ) : null}
@@ -1594,12 +1540,14 @@ export default function UserDeposit() {
                     <div
                       className="border p-4"
                       style={{
-                        borderColor: "rgba(0,0,0,0.08)",
-                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
-                        borderRadius: "4px",
+                        borderColor: colors.border,
+                        background: colors.surfaceSoft,
+                        borderRadius: "16px",
                       }}
                     >
-                      <div className="text-xs text-gray-500">Account Type</div>
+                      <div className="text-xs" style={{ color: colors.muted }}>
+                        Account Type
+                      </div>
                       <div className="mt-1 font-semibold" style={{ color: titleColor }}>
                         {accountType || "Not selected"}
                       </div>
@@ -1608,12 +1556,14 @@ export default function UserDeposit() {
                     <div
                       className="border p-4"
                       style={{
-                        borderColor: "rgba(0,0,0,0.08)",
-                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
-                        borderRadius: "4px",
+                        borderColor: colors.border,
+                        background: colors.surfaceSoft,
+                        borderRadius: "16px",
                       }}
                     >
-                      <div className="text-xs text-gray-500">Live Balance</div>
+                      <div className="text-xs" style={{ color: colors.muted }}>
+                        Live Balance
+                      </div>
                       <div className="mt-1 font-semibold" style={{ color: titleColor }}>
                         {balanceLoading ? "Loading..." : `$${money(accountBalance)}`}
                       </div>
@@ -1622,12 +1572,14 @@ export default function UserDeposit() {
                     <div
                       className="border p-4"
                       style={{
-                        borderColor: "rgba(0,0,0,0.08)",
-                        background: isDark ? "rgba(255,255,255,0.03)" : "#fafafa",
-                        borderRadius: "4px",
+                        borderColor: colors.border,
+                        background: colors.surfaceSoft,
+                        borderRadius: "16px",
                       }}
                     >
-                      <div className="text-xs text-gray-500">INR Conversion</div>
+                      <div className="text-xs" style={{ color: colors.muted }}>
+                        INR Conversion
+                      </div>
                       <div className="mt-1 font-semibold" style={{ color: titleColor }}>
                         ₹ {money(inrAmount)}
                       </div>
@@ -1640,9 +1592,9 @@ export default function UserDeposit() {
                       onClick={handleContinueStep1}
                       className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
                       style={{
-                        background: "#fb641b",
+                        background: colors.primaryBtn,
                         color: "#fff",
-                        borderRadius: "2px",
+                        borderRadius: "14px",
                         opacity: canContinueStep1 ? 1 : 0.7,
                       }}
                     >
@@ -1658,13 +1610,17 @@ export default function UserDeposit() {
                 title="Payment Method"
                 isOpen={openStep === 2}
                 isCompleted={step2Completed}
-                isDark={isDark}
+                colors={colors}
                 onChange={() => setOpenStep(2)}
                 summary={
                   <>
-                    <span className="font-semibold">{selectedPayment || "No method selected"}</span>
+                    <span className="font-semibold" style={{ color: colors.text }}>
+                      {selectedPayment || "No method selected"}
+                    </span>
                     {methodInteractionDone ? (
-                      <span className="ml-2 text-[#555]">• details viewed</span>
+                      <span className="ml-2" style={{ color: colors.softText }}>
+                        • details viewed
+                      </span>
                     ) : null}
                   </>
                 }
@@ -1693,18 +1649,19 @@ export default function UserDeposit() {
                             onClick={() => handleMethodSelect(method.name)}
                             className="w-full border px-4 py-4 text-left transition-all duration-300"
                             style={{
-                              borderColor: active ? "#fff7e6" : "rgba(0,0,0,0.08)",
-                              background: active ? "rgba(40,116,240,0.05)" : "#ffffff",
-                              borderRadius: "4px",
+                              borderColor: active ? colors.accent : colors.border,
+                              background: active ? colors.accentSoft : colors.surface,
+                              borderRadius: "18px",
+                              boxShadow: active ? "0 10px 20px rgba(37,99,235,0.08)" : "none",
                             }}
                           >
                             <div className="flex items-center gap-3">
                               <div
                                 className="flex h-10 w-10 items-center justify-center border text-lg"
                                 style={{
-                                  borderColor: active ? "#fff7e6" : "rgba(0,0,0,0.08)",
-                                  background: "#f9fafb",
-                                  borderRadius: "4px",
+                                  borderColor: active ? colors.accent : colors.border,
+                                  background: colors.surfaceSoft,
+                                  borderRadius: "14px",
                                 }}
                               >
                                 {method.icon || "💳"}
@@ -1736,13 +1693,20 @@ export default function UserDeposit() {
                   </div>
 
                   {selectedPayment ? (
-                    <div className="mb-5 rounded-sm border border-[#e0e0e0] bg-[#f9fafb] px-4 py-3">
+                    <div
+                      className="mb-5 border px-4 py-3"
+                      style={{
+                        borderRadius: "16px",
+                        borderColor: colors.border,
+                        background: colors.surfaceSoft,
+                      }}
+                    >
                       <div className="flex items-center justify-between gap-4">
                         <div className="min-w-0">
-                          <div className="text-sm font-semibold text-[#212121]">
+                          <div className="text-sm font-semibold" style={{ color: colors.text }}>
                             {selectedPayment}
                           </div>
-                          <div className="mt-1 text-xs text-[#666]">
+                          <div className="mt-1 text-xs" style={{ color: colors.muted }}>
                             Tap change below or click the card again to reopen modal and view details.
                           </div>
                         </div>
@@ -1752,10 +1716,10 @@ export default function UserDeposit() {
                           onClick={() => setShowPaymentModal(true)}
                           className="inline-flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase"
                           style={{
-                            borderColor: "rgba(0,0,0,0.12)",
-                            background: "#fff",
-                            color: "#fff7e6",
-                            borderRadius: "2px",
+                            borderColor: colors.border,
+                            background: colors.surface,
+                            color: colors.accent,
+                            borderRadius: "12px",
                           }}
                         >
                           <PencilLine className="h-3.5 w-3.5" />
@@ -1773,11 +1737,18 @@ export default function UserDeposit() {
                       />
 
                       {!methodInteractionDone ? (
-                        <div className="rounded-sm border border-dashed border-[#c7d2fe] bg-[#f8fbff] px-4 py-8 text-center">
-                          <p className="text-sm font-medium text-[#fff7e6]">
+                        <div
+                          className="border border-dashed px-4 py-8 text-center"
+                          style={{
+                            borderColor: colors.accent,
+                            background: colors.accentSoft,
+                            borderRadius: "16px",
+                          }}
+                        >
+                          <p className="text-sm font-medium" style={{ color: colors.accent }}>
                             Opened method selected.
                           </p>
-                          <p className="mt-1 text-sm text-[#666]">
+                          <p className="mt-1 text-sm" style={{ color: colors.softText }}>
                             Close the modal after payment. Then screenshot upload and transaction ID fields will appear here.
                           </p>
                         </div>
@@ -1790,7 +1761,7 @@ export default function UserDeposit() {
                                 checked={agreeToTerms}
                                 onChange={(e) => setAgreeToTerms(e.target.checked)}
                                 className="mt-0.5 h-4 w-4 rounded"
-                                style={{ accentColor: "#fff7e6" }}
+                                style={{ accentColor: colors.primaryBtn }}
                               />
 
                               <span className="text-sm" style={{ color: titleColor }}>
@@ -1800,7 +1771,7 @@ export default function UserDeposit() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="underline"
-                                  style={{ color: accentColor }}
+                                  style={{ color: colors.link }}
                                 >
                                   Terms & Conditions
                                 </a>
@@ -1814,9 +1785,9 @@ export default function UserDeposit() {
                               onClick={handleContinueStep2}
                               className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
                               style={{
-                                background: "#fb641b",
+                                background: colors.primaryBtn,
                                 color: "#fff",
-                                borderRadius: "2px",
+                                borderRadius: "14px",
                                 opacity: canContinueStep2 ? 1 : 0.7,
                               }}
                             >
@@ -1834,7 +1805,13 @@ export default function UserDeposit() {
 
             <div className="xl:col-span-4">
               <div className="sticky top-4 space-y-4" ref={submitRequestRef}>
-                <SectionCard theme={theme} isDark={isDark}>
+                <SectionCard
+                  style={{
+                    background: colors.surface,
+                    borderColor: colors.border,
+                    boxShadow: colors.cardShadow,
+                  }}
+                >
                   <div className="p-5">
                     <div
                       className="mb-4 text-[28px] font-semibold leading-none"
@@ -1846,11 +1823,9 @@ export default function UserDeposit() {
                     <div
                       className="space-y-4 border p-4"
                       style={{
-                        background: isDark ? "rgba(255,255,255,0.02)" : "#fafafa",
-                        borderColor: isDark
-                          ? rgba(theme?.border || "255 255 255", 0.1)
-                          : "rgba(0,0,0,0.08)",
-                        borderRadius: "4px",
+                        background: colors.surfaceSoft,
+                        borderColor: colors.border,
+                        borderRadius: "16px",
                       }}
                     >
                       <div className="flex items-center justify-between">
@@ -1875,9 +1850,7 @@ export default function UserDeposit() {
                       <div
                         className="border-t pt-4"
                         style={{
-                          borderColor: isDark
-                            ? rgba(theme?.border || "255 255 255", 0.1)
-                            : "rgba(0,0,0,0.08)",
+                          borderColor: colors.border,
                         }}
                       >
                         <div className="flex items-center justify-between">
@@ -1899,7 +1872,7 @@ export default function UserDeposit() {
 
                     <div
                       className="mt-4 text-base font-semibold"
-                      style={{ color: "#388e3c" }}
+                      style={{ color: colors.success }}
                     >
                       Your Total Savings on this order ₹{money(savingsAmount)}
                     </div>
@@ -1907,15 +1880,15 @@ export default function UserDeposit() {
                     <div
                       className="mt-4 border px-4 py-3"
                       style={{
-                        background: isDark ? "rgba(255,255,255,0.02)" : "#fff7e6",
+                        background: isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)",
                         borderColor: isDark
-                          ? rgba(theme?.border || "255 255 255", 0.1)
-                          : "rgba(255,159,0,0.18)",
-                        borderRadius: "4px",
+                          ? "rgba(245,158,11,0.16)"
+                          : "rgba(245,158,11,0.14)",
+                        borderRadius: "16px",
                       }}
                     >
                       <div className="flex items-start gap-2">
-                        <Percent className="mt-0.5 h-4 w-4" style={{ color: "#ff9f00" }} />
+                        <Percent className="mt-0.5 h-4 w-4" style={{ color: colors.warning }} />
                         <div className="text-sm" style={{ color: titleColor }}>
                           Save extra ₹{money(Math.max(Math.round(inrAmount * 0.0002), 0))} using reward points
                         </div>
@@ -1951,7 +1924,7 @@ export default function UserDeposit() {
                           opacity: ctaEnabled ? 1 : 0.65,
                           cursor: ctaEnabled ? "pointer" : "not-allowed",
                           boxShadow: highlightSubmit
-                            ? "0 0 0 4px rgba(251, 100, 27, 0.18), 0 0 22px rgba(251, 100, 27, 0.28)"
+                            ? "0 0 0 4px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.28)"
                             : primaryButtonStyle.boxShadow,
                         }}
                       >
@@ -1974,14 +1947,17 @@ export default function UserDeposit() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
+          <div
+            className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm"
+            style={{ color: colors.muted }}
+          >
             <div className="flex flex-wrap items-center gap-4">
               <span>Policies: Returns Policy</span>
               <span>Terms of use</span>
               <span>Security</span>
               <span>Privacy</span>
             </div>
-            <div>© 2007-2026 flipkart-style checkout</div>
+            <div>© 2007-2026 secure checkout</div>
           </div>
         </div>
       </div>
@@ -1992,20 +1968,16 @@ export default function UserDeposit() {
           style={{ background: "rgba(0,0,0,0.75)" }}
         >
           <div
-            className="max-h-[90vh] max-w-3xl overflow-auto border bg-white p-5"
+            className="max-h-[90vh] max-w-3xl overflow-auto border p-5"
             style={{
-              borderColor: isDark
-                ? rgba(theme?.border || "255 255 255", 0.12)
-                : "rgba(0,0,0,0.12)",
-              borderRadius: "6px",
+              borderColor: colors.border,
+              background: colors.surface,
+              borderRadius: "20px",
             }}
           >
             <div className="mb-4 flex items-center gap-2">
               <ImageIcon className="h-4 w-4" style={{ color: accentColor }} />
-              <h3
-                className="text-lg font-semibold"
-                style={{ color: titleColor }}
-              >
+              <h3 className="text-lg font-semibold" style={{ color: titleColor }}>
                 Upload Preview
               </h3>
             </div>
@@ -2013,7 +1985,7 @@ export default function UserDeposit() {
             <img
               src={previewUrl}
               alt="Preview"
-              className="h-auto max-w-full rounded"
+              className="h-auto max-w-full rounded-xl"
             />
 
             <button
@@ -2021,9 +1993,9 @@ export default function UserDeposit() {
               onClick={togglePreview}
               className="mt-4 w-full px-6 py-3 font-semibold"
               style={{
-                background: "#fb641b",
+                background: colors.primaryBtn,
                 color: "#fff",
-                borderRadius: "2px",
+                borderRadius: "14px",
               }}
             >
               Close Preview

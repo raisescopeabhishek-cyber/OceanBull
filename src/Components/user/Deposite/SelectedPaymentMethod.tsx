@@ -47,6 +47,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
     setShowPaymentModal,
     setMethodInteractionDone,
     methodInteractionDone,
+    colors,
   } = paymentProps;
 
   const [showQrModal, setShowQrModal] = useState(false);
@@ -115,7 +116,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
 
   const boxStyle: React.CSSProperties = {
     ...subtleCard(),
-    borderRadius: "4px",
+    borderRadius: "18px",
   };
 
   const closeMainModal = () => {
@@ -132,11 +133,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
             onClick={closeMainModal}
           >
             <div
-              className="relative h-screen w-screen overflow-auto bg-white p-5 sm:p-6"
+              className="relative h-screen w-screen overflow-auto p-5 sm:p-6"
               style={{
-                borderColor: isDark
-                  ? rgba(C.border, 0.14)
-                  : "rgba(0,0,0,0.12)",
+                background: colors?.pageBg || (isDark ? "#0b1120" : "#f8fafc"),
                 borderRadius: "0px",
                 boxShadow: "0 30px 80px rgba(0,0,0,0.24)",
               }}
@@ -172,9 +171,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                       background: isDark
                         ? "rgba(239,68,68,0.08)"
                         : "rgba(254,242,242,0.92)",
-                      color: isDark
-                        ? "rgba(248,113,113,0.95)"
-                        : "rgba(220,38,38,0.95)",
+                      color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc2626"),
                     }}
                   >
                     <XIcon size={18} />
@@ -194,7 +191,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                               <div className="flex items-center gap-2">
                                 <BanknoteIcon
                                   size={18}
-                                  style={{ color: rgba(C.accent, 0.95) }}
+                                  style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                                 />
                                 <div
                                   className="font-semibold"
@@ -208,16 +205,16 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                                 onClick={() =>
                                   copyText(JSON.stringify(bt, null, 2))
                                 }
-                                className="inline-flex items-center gap-1 rounded-sm px-3 py-1.5 text-xs font-semibold"
+                                className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold"
                                 style={{
                                   background: isDark
                                     ? rgba(C.accent, 0.14)
-                                    : "rgba(40,116,240,0.08)",
+                                    : "rgba(37,99,235,0.08)",
                                   color: textPrimary,
                                   border: `1px solid ${
                                     isDark
                                       ? rgba(C.accent, 0.22)
-                                      : "rgba(40,116,240,0.16)"
+                                      : "rgba(37,99,235,0.16)"
                                   }`,
                                 }}
                               >
@@ -232,13 +229,13 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                                   key={k}
                                   className="border px-3 py-3"
                                   style={{
-                                    borderColor: isDark
+                                    borderColor: colors?.border || (isDark
                                       ? rgba(C.border, 0.12)
-                                      : "rgba(0,0,0,0.06)",
-                                    borderRadius: "4px",
-                                    background: isDark
+                                      : "rgba(0,0,0,0.06)"),
+                                    borderRadius: "14px",
+                                    background: colors?.surface || (isDark
                                       ? "rgba(255,255,255,0.02)"
-                                      : "#ffffff",
+                                      : "#ffffff"),
                                   }}
                                 >
                                   <div
@@ -281,7 +278,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                         <button
                           onClick={() => copyText(onlineUrl)}
                           className="mt-3 inline-flex items-center gap-2 text-sm font-semibold"
-                          style={{ color: rgba(C.accent, 0.95) }}
+                          style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                         >
                           <ClipboardIcon size={18} />
                           Copy Payment Link
@@ -298,9 +295,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                         }
                         className="flex w-full items-center justify-center gap-2 px-5 py-3 text-sm font-semibold"
                         style={{
-                          background: "#2874f0",
+                          background: colors?.accent || "#2563eb",
                           color: "#ffffff",
-                          borderRadius: "2px",
+                          borderRadius: "14px",
                         }}
                       >
                         <ExternalLinkIcon size={18} />
@@ -321,7 +318,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                       <div className="mb-3 flex items-center gap-2">
                         <ClipboardIcon
                           size={16}
-                          style={{ color: rgba(C.accent, 0.95) }}
+                          style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                         />
                         <div
                           className="text-sm font-semibold"
@@ -342,7 +339,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                         <button
                           onClick={() => copyText(paymentDetails)}
                           className="mt-4 inline-flex items-center gap-2 text-sm font-semibold"
-                          style={{ color: rgba(C.accent, 0.95) }}
+                          style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                         >
                           <ClipboardIcon size={18} />
                           Copy Details
@@ -361,7 +358,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                       <div className="mb-3 flex items-center gap-2">
                         <QrCodeIcon
                           size={16}
-                          style={{ color: rgba(C.accent, 0.95) }}
+                          style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                         />
                         <div
                           className="text-sm font-semibold"
@@ -377,13 +374,13 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                             <img
                               src={fullImageUrl}
                               alt="Payment QR"
-                              className="mx-auto h-48 w-48 rounded object-contain"
+                              className="mx-auto h-48 w-48 rounded-2xl object-contain"
                             />
 
                             <button
                               onClick={() => setShowQrModal(true)}
                               className="mt-3 inline-flex items-center gap-2 text-sm font-semibold underline"
-                              style={{ color: rgba(C.accent, 0.95) }}
+                              style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                             >
                               <EyeIcon size={16} />
                               View Larger QR
@@ -393,13 +390,13 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                           <div
                             className="flex h-48 w-48 flex-col items-center justify-center border text-center"
                             style={{
-                              borderColor: isDark
+                              borderColor: colors?.border || (isDark
                                 ? rgba(C.border, 0.14)
-                                : "rgba(0,0,0,0.08)",
-                              borderRadius: "4px",
-                              background: isDark
+                                : "rgba(0,0,0,0.08)"),
+                              borderRadius: "16px",
+                              background: colors?.surfaceSoft || (isDark
                                 ? "rgba(255,255,255,0.02)"
-                                : "#fafafa",
+                                : "#fafafa"),
                               color: textSecondary,
                             }}
                           >
@@ -418,9 +415,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                     onClick={closeMainModal}
                     className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold uppercase"
                     style={{
-                      background: "#fb641b",
+                      background: colors?.primaryBtn || "#f97316",
                       color: "#fff",
-                      borderRadius: "2px",
+                      borderRadius: "14px",
                     }}
                   >
                     Close & Continue
@@ -442,13 +439,14 @@ export default function SelectedPaymentMethod(paymentProps: any) {
             onClick={() => setShowQrModal(false)}
           >
             <div
-              className="relative w-full max-w-3xl border bg-white p-5 sm:p-6"
+              className="relative w-full max-w-3xl border p-5 sm:p-6"
               style={{
-                borderColor: isDark
+                borderColor: colors?.border || (isDark
                   ? rgba(C.border, 0.14)
-                  : "rgba(0,0,0,0.12)",
+                  : "rgba(0,0,0,0.12)"),
                 boxShadow: "0 30px 80px rgba(0,0,0,0.16)",
-                borderRadius: "6px",
+                borderRadius: "20px",
+                background: colors?.surface || "#fff",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -476,9 +474,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                     background: isDark
                       ? "rgba(239,68,68,0.08)"
                       : "rgba(254,242,242,0.92)",
-                    color: isDark
-                      ? "rgba(248,113,113,0.95)"
-                      : "rgba(220,38,38,0.95)",
+                    color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc2626"),
                   }}
                 >
                   <XIcon size={18} />
@@ -490,14 +486,14 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                 style={{
                   ...boxStyle,
                   border: `1px solid ${
-                    isDark ? rgba(C.border, 0.14) : "rgba(0,0,0,0.08)"
+                    colors?.border || (isDark ? rgba(C.border, 0.14) : "rgba(0,0,0,0.08)")
                   }`,
                 }}
               >
                 <img
                   src={fullImageUrl}
                   alt="Payment QR Large Preview"
-                  className="max-h-[70vh] w-full rounded object-contain"
+                  className="max-h-[70vh] w-full rounded-2xl object-contain"
                 />
               </div>
 
@@ -509,14 +505,14 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   style={{
                     background: isDark
                       ? rgba(C.accent, 0.14)
-                      : "rgba(40,116,240,0.08)",
+                      : "rgba(37,99,235,0.08)",
                     color: textPrimary,
                     border: `1px solid ${
                       isDark
                         ? rgba(C.accent, 0.22)
-                        : "rgba(40,116,240,0.16)"
+                        : "rgba(37,99,235,0.16)"
                     }`,
-                    borderRadius: "2px",
+                    borderRadius: "14px",
                   }}
                 >
                   <ClipboardIcon size={18} />
@@ -530,9 +526,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   }
                   className="inline-flex flex-1 items-center justify-center gap-2 px-5 py-3 text-sm font-semibold"
                   style={{
-                    background: "#2874f0",
+                    background: colors?.accent || "#2563eb",
                     color: rgb(C.primaryFg),
-                    borderRadius: "2px",
+                    borderRadius: "14px",
                   }}
                 >
                   <ExternalLinkIcon size={18} />
@@ -549,9 +545,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
     <>
       {methodInteractionDone ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="border p-4" style={{ ...panelStyle, borderRadius: "4px" }}>
+          <div className="border p-4" style={{ ...panelStyle, borderRadius: "20px" }}>
             <div className="mb-3 flex items-center gap-2">
-              <UploadIcon size={16} style={{ color: rgba(C.accent, 0.95) }} />
+              <UploadIcon size={16} style={{ color: colors?.accent || rgba(C.accent, 0.95) }} />
               <h4
                 className="text-sm font-semibold uppercase tracking-[0.06em]"
                 style={{ color: textPrimary }}
@@ -567,7 +563,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   ? rgba(C.border, 0.22)
                   : "rgba(0,0,0,0.14)",
                 background: isDark ? rgba(C.surface2, 0.1) : "#fafafa",
-                borderRadius: "4px",
+                borderRadius: "16px",
               }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLLabelElement).style.borderColor =
@@ -581,7 +577,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
             >
               <div
                 className="transition-transform group-hover:scale-110"
-                style={{ color: rgba(C.accent, 0.95) }}
+                style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
               >
                 <UploadIcon />
               </div>
@@ -614,7 +610,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   {previewUrl && (
                     <button
                       onClick={togglePreview}
-                      style={{ color: rgba(C.accent, 0.95) }}
+                      style={{ color: colors?.accent || rgba(C.accent, 0.95) }}
                       className="transition-all hover:scale-110"
                     >
                       <EyeIcon />
@@ -622,7 +618,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   )}
                   <button
                     onClick={handleRemoveFile}
-                    style={{ color: rgba(C.danger, 0.95) }}
+                    style={{ color: colors?.danger || rgba(C.danger, 0.95) }}
                     className="transition-all hover:scale-110"
                   >
                     <XIcon />
@@ -632,9 +628,9 @@ export default function SelectedPaymentMethod(paymentProps: any) {
             )}
           </div>
 
-          <div className="border p-4" style={{ ...panelStyle, borderRadius: "4px" }}>
+          <div className="border p-4" style={{ ...panelStyle, borderRadius: "20px" }}>
             <div className="mb-3 flex items-center gap-2">
-              <CheckCircle2 size={16} style={{ color: rgba(C.accent, 0.95) }} />
+              <CheckCircle2 size={16} style={{ color: colors?.accent || rgba(C.accent, 0.95) }} />
               <h4
                 className="text-sm font-semibold uppercase tracking-[0.06em]"
                 style={{ color: textPrimary }}

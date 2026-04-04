@@ -173,7 +173,7 @@ export default function UserDashboard() {
       transition={{ duration: 0.4 }}
     >
       This Feature is Comming Soon.. please visit other sections
-      {/* <FloatingParticles />
+      <FloatingParticles />
       <AnimatedGrid />
 
       <motion.div
@@ -203,7 +203,7 @@ export default function UserDashboard() {
           <UserDashboardTransaction />
           <UserDashboardTradeHistory />
         </motion.div>
-      </motion.div> */}
+      </motion.div>
     </motion.div>
   );
 }

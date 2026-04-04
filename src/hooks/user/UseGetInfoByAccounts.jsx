@@ -46,23 +46,26 @@ export function useGetInfoByAccounts(accountIds = [], component) {
             (sum, acc) => sum + Number(acc.Profit || 0),
             0
           );
-          const dispatchStats = {
-            totalBalance: totalBalance,
-            totalEquity: totalEquity,
-            totalProfit: totalProfit,
-          };
 
-          setStats({ totalBalance, totalEquity, totalProfit });
+          console.log("totalEquityyyyyyyy =------------>>" ,res );
+          
+          // const dispatchStats = {
+          //   totalBalance: totalBalance,
+          //   totalEquity: totalEquity,
+          //   totalProfit: totalProfit,
+          // };
 
-          // dispatch conditionally ---
-          if (component === "accounts") {
-            dispatch(setAccountsData(res.data));
-            dispatch(setAccountStats(dispatchStats));
-          }
-          // dispatch conditionally ---
-          if (component === "ib") {
-            dispatch(setIbAccountsData(res.data));
-          }
+          // setStats({ totalBalance, totalEquity, totalProfit });
+
+          // // dispatch conditionally ---
+          // if (component === "accounts") {
+          //   dispatch(setAccountsData(res.data));
+          //   dispatch(setAccountStats(dispatchStats));
+          // }
+          // // dispatch conditionally ---
+          // if (component === "ib") {
+          //   dispatch(setIbAccountsData(res.data));
+          // }
         }
       } catch (err) {
         console.error("Error fetching live data:", err);

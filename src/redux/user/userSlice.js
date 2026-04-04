@@ -1,6 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { fetchCurrentUser } from "../AsyncThunk/fetchCurrentUser";
 
+import {
+  fetchAccountsInfo,
+  fetchIbAccountsInfo,
+} from "../AsyncThunk/fetchAccountsInfo";
+
+
+const isValidObject = (value) => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+};
+
+const calculateStats = (accounts = []) => ({
+  totalBalance: accounts.reduce((sum, acc) => sum + Number(acc.Balance || 0), 0),
+  totalEquity: accounts.reduce((sum, acc) => sum + Number(acc.Equity || 0), 0),
+  totalProfit: accounts.reduce((sum, acc) => sum + Number(acc.Profit || 0), 0),
+});
+
+
 const initialState = {
   isSidebarOpen: false,
   isNewChallengeModalOpen: false,
@@ -15,6 +32,15 @@ const initialState = {
   accountsStats: {},
   ibAccountsData: [],
   notification: [],
+
+   loading: false,
+  isAuthenticated: false,
+
+  accountsLoading: false,
+  ibAccountsLoading: false,
+  accountsError: null,
+  ibAccountsError: null,
+
 };
 
 export const userSlice = createSlice({
@@ -108,7 +134,47 @@ export const userSlice = createSlice({
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
+      })
+
+      .addCase(fetchAccountsInfo.pending, (state) => {
+        state.accountsLoading = true;
+        state.accountsError = null;
+      })
+      .addCase(fetchAccountsInfo.fulfilled, (state, action) => {
+        state.accountsLoading = false;
+
+        const payload = Array.isArray(action.payload) ? action.payload : [];
+        state.accountsData = payload;
+        state.accountsStats = calculateStats(payload);
+      })
+      .addCase(fetchAccountsInfo.rejected, (state, action) => {
+        state.accountsLoading = false;
+        state.accountsData = [];
+        state.accountsStats = {
+          totalBalance: 0,
+          totalEquity: 0,
+          totalProfit: 0,
+        };
+        state.accountsError = action.payload || "Failed to fetch accounts";
+      })
+
+      .addCase(fetchIbAccountsInfo.pending, (state) => {
+        state.ibAccountsLoading = true;
+        state.ibAccountsError = null;
+      })
+      .addCase(fetchIbAccountsInfo.fulfilled, (state, action) => {
+        state.ibAccountsLoading = false;
+
+        const payload = Array.isArray(action.payload) ? action.payload : [];
+        state.ibAccountsData = payload;
+      })
+      .addCase(fetchIbAccountsInfo.rejected, (state, action) => {
+        state.ibAccountsLoading = false;
+        state.ibAccountsData = [];
+        state.ibAccountsError = action.payload || "Failed to fetch IB accounts";
       });
+
+
   },
 });
 

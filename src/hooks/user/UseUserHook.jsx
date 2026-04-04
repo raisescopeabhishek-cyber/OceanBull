@@ -35,7 +35,7 @@ export default function UseUserHook() {
     dispatch(setOpenTrades([]));
     dispatch(setPlatforms([]));
     dispatch(setPaymentMethods([]));
-    dispatch(setAccountStats([]));
+    dispatch(setAccountStats({}));
 
     // setAccountStats
     ws.current?.close();

@@ -155,6 +155,9 @@ const UserDashboardBalanceCards = () => {
   // useGetInfoByAccounts(accountIds, "accounts");
   const { accountsStats } = useSelector((store: any) => store.user);
 
+  const availableBalance = Number(accountsStats?.totalEquity || 0);
+  
+
   const dispatch = useDispatch();
 
   // ✅ theme
@@ -258,7 +261,7 @@ const fetch_TotalTransfer = async () => {
       {
         key: "balance",
         title: "Available Balance",
-        value: equity,
+        value: availableBalance,
         decimals: 2,
         suffix: " USD",
         Icon: isPositive ? TrendingUp : TrendingDown,

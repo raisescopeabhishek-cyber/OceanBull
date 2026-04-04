@@ -28,12 +28,12 @@ import {
 import sidebarBg from "@/assets/sidebar.png";
 
 const modules = [
-  // {
-  //   name: "Dashboard",
-  //   path: "/user/dashboard",
-  //   subtitle: "Quick Overview",
-  //   icon: <LayoutDashboard className="w-5 h-5" />,
-  // },
+  {
+    name: "Dashboard",
+    path: "/user/dashboard",
+    subtitle: "Quick Overview",
+    icon: <LayoutDashboard className="w-5 h-5" />,
+  },
   // {
   //   name: "Challenges",
   //   path: "/user/challenges",

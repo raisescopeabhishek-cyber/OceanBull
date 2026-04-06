@@ -51,6 +51,15 @@ const modules = [
     subtitle: "Withdraw Requests",
     icon: <HandCoins className="w-5 h-5" />,
   },
+
+    {
+    name: "Bonus",
+    path: "/admin/BonusReports",
+    subtitle: "Client Control",
+    icon: <UserRoundCog className="w-5 h-5" />,
+  },
+
+
   {
     name: "Referral",
     path: "/admin/manage-users/all-users",

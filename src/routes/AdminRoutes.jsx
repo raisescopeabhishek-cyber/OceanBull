@@ -21,6 +21,7 @@ import IbUsers from "@/Components/Admin/admin/IbUsers";
 import AdminCopyRequests from "@/Components/Admin/admin/AdminCopyRequests";
 import ManageUsers from "@/Components/Admin/admin/ManageUsers";
 import LoginLogs from "@/Components/Admin/admin/LoginLogs";
+import BonusReports from "@/Components/Admin/admin/BonusReport/Bonus-report-page";
 
 
 const AdminRoutes = () => {
@@ -44,6 +45,13 @@ const AdminRoutes = () => {
                     {/* <Route path="/logs" element={<LogsTable />} /> */}
         
                     {/* Admin module routes */}
+
+                    {/* BonusReports */}
+
+                      <Route
+                      path="/BonusReports"
+                      element={<BonusReports />}
+                    />
         
                     <Route
                       path="/customerSupport/tickets"

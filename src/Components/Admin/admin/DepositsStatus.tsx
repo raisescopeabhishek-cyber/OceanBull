@@ -195,6 +195,10 @@ const DepositsStatus = () => {
     fetchAllData();
   }, []);
 
+    const TotalBonus = allDepositData
+    .reduce((total, item) => total + Number(item.bonus || 0), 0)
+    .toFixed(2);
+
   const TotalDeposits = allDepositData
     .reduce((total, item) => total + Number(item.deposit || 0), 0)
     .toFixed(2);
@@ -495,14 +499,21 @@ const DepositsStatus = () => {
               label: "Successful Deposits",
               amount: TotalSuccessfulDeposits,
             },
+
+                   {
+              label: "Total Bonus",
+              amount: TotalBonus,
+            },
+
+
             {
               label: "Pending Deposits",
               amount: TotalPendingDeposits,
             },
-            {
-              label: "Rejected Deposits",
-              amount: TotalRejectedDeposits,
-            },
+            // {
+            //   label: "Rejected Deposits",
+            //   amount: TotalRejectedDeposits,
+            // },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -570,6 +581,7 @@ const DepositsStatus = () => {
                     "MT5 Account",
                     "Account Type",
                     "Deposit",
+                     "Bonus",
                     "Date",
                     "Proof",
                     "Status / Action",
@@ -686,6 +698,17 @@ const DepositsStatus = () => {
                           ].join(" ")}
                         >
                           ${Number(item?.deposit || 0).toFixed(2)}
+                        </span>
+                      </td>
+
+                          <td className="px-5 py-4">
+                        <span
+                          className={[
+                            "text-sm font-semibold",
+                            isDark ? "text-white" : "text-slate-900",
+                          ].join(" ")}
+                        >
+                          ${Number(item?.bonus || 0).toFixed(2)}
                         </span>
                       </td>
 

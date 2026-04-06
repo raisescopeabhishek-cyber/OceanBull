@@ -13,6 +13,8 @@ import {
   Palette,
   Settings2,
   UserCog,
+  Wallet,
+  ChartCandlestick,
 } from "lucide-react";
 import { backendApi } from "@/utils/apiClients";
 import { toast } from "react-toastify";
@@ -40,17 +42,24 @@ const modules = [
       },
     ],
   },
-  {
-    name: "Theme Config",
-    path: "/s-admin/theme-config",
-    icon: <Palette className="w-5 h-5" />,
-  },
+{
+  name: "Theme Config",
+  path: "/s-admin/theme-config",
+  icon: <Palette className="w-5 h-5" />,
+},
+{
+  name: "Bonus Deposite Config",
+  path: "/s-admin/DepositBonusConfig",
+  icon: <Wallet className="w-5 h-5" />,
+},
+{
+  name: "Bonus Lot Config",
+  path: "/s-admin/TradeLotBonusConfig",
+  icon: <ChartCandlestick className="w-5 h-5" />,
+},
 
-   {
-    name: "Bonus Config",
-    path: "/s-admin/DepositeBonue",
-    icon: <Palette className="w-5 h-5" />,
-  },
+  //   <Route path="DepositBonusConfig" element={<DepositBonusConfig />} />
+        // <Route path="TradeLotBonusConfig" element={<TradeLotBonusConfig />} />
 
 
   {

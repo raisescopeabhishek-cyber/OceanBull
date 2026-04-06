@@ -10,6 +10,9 @@ import SadminSiteConfiguration from "@/Components/SuperAdmin/SideBar_Content/Sad
 import ThemeConfig from "@/Components/SuperAdmin/Theme/ThemeConfig";
 import SadminAdminInfo from "@/Components/SuperAdmin/SideBar_Content/SadminInfo";
 import SadminBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/SadminBonusConfig";
+import BonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/BonusConfig";
+import TradeLotBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/TradeLotBonusConfig";
+import DepositBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/DepositBonusConfig";
 
 const SuperAdminRoutes = () => {
   return (
@@ -25,7 +28,13 @@ const SuperAdminRoutes = () => {
         <Route path="dashboard" element={<Platform />} />
         <Route path="Group" element={<GroupManagement />} />
         <Route path="Platform" element={<Platform />} />
-        <Route path="DepositeBonue" element={<SadminBonusConfig />} />
+        {/* <Route path="DepositeBonue" element={<SadminBonusConfig />} /> */}
+
+        <Route path="DepositBonusConfig" element={<DepositBonusConfig />} />
+        <Route path="TradeLotBonusConfig" element={<TradeLotBonusConfig />} />
+
+
+
 
 
         <Route path="configure-account-types" element={<AccountTypes />} />

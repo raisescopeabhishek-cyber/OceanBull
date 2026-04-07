@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronRight,
   ShieldCheck,
+  Wallet2,
 } from "lucide-react";
 
 import sidebarBg from "@/assets/sidebar.png";
@@ -47,6 +48,12 @@ const modules = [
   //     },
   //   ],
   // },
+
+  {
+  name: "Bonus",
+  path: "/user/bonus/dashboard",
+  icon: <Wallet2 className="w-5 h-5" />,
+},
 
 
    {

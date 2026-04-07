@@ -9,6 +9,7 @@ import PublicRoutes from "./routes/PublicRoutes";
 import SuperAdminRoutes from "./routes/SuperAdminRoutes";
 import AdminRoutes from "./routes/AdminRoutes";
 import UserRoutes from "./routes/UserRoutes";
+import UserBonusRoutes from "./routes/UserBonusRoutes";
 
 const App = () => {
   return (
@@ -25,6 +26,8 @@ const App = () => {
           <Route path="/" element={<Navigate to="/auth/login" replace />} />
           <Route path="/auth/*" element={<PublicRoutes />} />
           <Route path="/user/*" element={<UserRoutes />} />
+          <Route path="/user/bonus/*" element={<UserBonusRoutes />} />
+
           <Route path="/admin/*" element={<AdminRoutes />} />
           <Route path="/s-admin/*" element={<SuperAdminRoutes />} />
           <Route path="/*" element={<Navigate to="/auth/login" replace />} />

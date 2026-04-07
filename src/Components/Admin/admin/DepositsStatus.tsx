@@ -701,16 +701,29 @@ const DepositsStatus = () => {
                         </span>
                       </td>
 
-                          <td className="px-5 py-4">
-                        <span
-                          className={[
-                            "text-sm font-semibold",
-                            isDark ? "text-white" : "text-slate-900",
-                          ].join(" ")}
-                        >
-                          ${Number(item?.bonus || 0).toFixed(2)}
-                        </span>
-                      </td>
+                 <td className="px-5 py-4">
+  <div className="flex flex-col">
+    <span
+      className={[
+        "text-sm font-semibold leading-none",
+        isDark ? "text-white" : "text-slate-900",
+      ].join(" ")}
+    >
+      ${Number(item?.bonus || 0).toFixed(2)}
+    </span>
+
+    <span
+      className={[
+        "mt-1 text-xs font-medium",
+        isDark ? "text-slate-400" : "text-slate-500",
+      ].join(" ")}
+    >
+      {Number(item?.deposit || 0) > 0
+        ? `${((Number(item?.bonus || 0) / Number(item?.deposit || 0)) * 100).toFixed(2)}% bonus`
+        : "—"}
+    </span>
+  </div>
+</td>
 
                       <td className="px-5 py-4">
                         <p

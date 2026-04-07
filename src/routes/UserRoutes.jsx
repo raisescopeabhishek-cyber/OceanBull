@@ -27,6 +27,15 @@ import UserCopyTrading from "@/Components/user/UserCopyTrading";
 import UserMasterUserCT from "@/Components/user/UserMasterUserCT";
 import UserCopyRequest from "@/Components/user/UserCopyRequest";
 
+// BONUS
+import BonusLayout from "@/Components/user/bonus/BonusLayout";
+import BonusDashboard from "@/Components/user/bonus/BonusDashboard";
+import BonusOverviewTab from "@/Components/user/bonus/BonusOverviewTab";
+import BonusDepositsTab from "@/Components/user/bonus/BonusDepositsTab";
+import BonusLedgerTab from "@/Components/user/bonus/BonusLedgerTab";
+import BonusPayoutsTab from "@/Components/user/bonus/BonusPayoutsTab";
+import BonusTradesTab from "@/Components/user/bonus/BonusTradesTab";
+
 const UserRoutes = () => {
   return (
     <Routes>
@@ -78,6 +87,18 @@ const UserRoutes = () => {
           element={<UserMasterUserCT />}
         />
         <Route path="copy-request" element={<UserCopyRequest />} />
+
+          {/* BONUS MODULE */}
+        <Route path="bonus" element={<BonusLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<BonusDashboard />} />
+          <Route path="overview" element={<BonusOverviewTab />} />
+          <Route path="deposits" element={<BonusDepositsTab />} />
+          <Route path="ledger" element={<BonusLedgerTab />} />
+          <Route path="payouts" element={<BonusPayoutsTab />} />
+          <Route path="trades" element={<BonusTradesTab />} />
+        </Route>
+        
 
         <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
       </Route>

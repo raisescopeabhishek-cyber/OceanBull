@@ -295,6 +295,20 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
 
 
 
+              
+   <button
+  onClick={() => {
+    window.open("/user/bonus/dashboard", "_blank", "noopener,noreferrer");
+    onClose();
+  }}
+  className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
+>
+  <Wallet className="mr-2 h-4 w-4" />
+  Bonus
+</button>
+
+
+
 
    <button
                 onClick={() => {

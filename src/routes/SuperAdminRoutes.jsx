@@ -13,6 +13,7 @@ import SadminBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeB
 import BonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/BonusConfig";
 import TradeLotBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/TradeLotBonusConfig";
 import DepositBonusConfig from "@/Components/SuperAdmin/SideBar_Content/DepositeBonue/DepositBonusConfig";
+import InsuranceConfig from "@/Components/SuperAdmin/SideBar_Content/Insurance/InsuranceConfig";
 
 const SuperAdminRoutes = () => {
   return (
@@ -28,6 +29,8 @@ const SuperAdminRoutes = () => {
         <Route path="dashboard" element={<Platform />} />
         <Route path="Group" element={<GroupManagement />} />
         <Route path="Platform" element={<Platform />} />
+        <Route path="InsuranceConfig" element={<InsuranceConfig />} />
+
         {/* <Route path="DepositeBonue" element={<SadminBonusConfig />} /> */}
 
         <Route path="DepositBonusConfig" element={<DepositBonusConfig />} />

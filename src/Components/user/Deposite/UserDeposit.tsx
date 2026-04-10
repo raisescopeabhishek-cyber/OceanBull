@@ -26,6 +26,7 @@ import {
   Percent,
   PencilLine,
   ArrowRight,
+  Gift,
 } from "lucide-react";
 
 import UserNewChallengeHook from "../../../hooks/user/UseNewChallengeHook";
@@ -372,6 +373,15 @@ export default function UserDeposit() {
   const navigate = useNavigate();
   const { getPaymentMethod } = UserNewChallengeHook();
 
+  const [bonusQuote, setBonusQuote] = useState(null);
+const [bonusLoading, setBonusLoading] = useState(false);
+const [wantBonus, setWantBonus] = useState(false);
+
+
+  const [insuranceQuote, setInsuranceQuote] = useState(null);
+const [insuranceLoading, setInsuranceLoading] = useState(false);
+const [wantInsurance, setWantInsurance] = useState(false);
+
   const loggedUser = useSelector((s: any) => s.user?.loggedUser);
   const siteConfig = useSelector((s: any) => s.user?.siteConfig);
   const paymentMethods = useSelector((s: any) => s.user?.paymentMethods);
@@ -459,7 +469,6 @@ export default function UserDeposit() {
   const [step2Completed, setStep2Completed] = useState(false);
   const [methodInteractionDone, setMethodInteractionDone] = useState(false);
   const [highlightSubmit, setHighlightSubmit] = useState(false);
-
   const quickAmounts = [100, 200, 500, 1000];
 
   useEffect(() => {
@@ -503,6 +512,131 @@ export default function UserDeposit() {
     fetchAccountInfo();
   }, [formData.accountNumber]);
 
+
+
+  //   useEffect(() => {
+
+  //     if(formData.depositAmount  && wantInsurance ){
+
+        
+  //       const total = Number(formData.depositAmount) + Number(insuranceQuote?.insuranceChargeAmount)
+  // TotalPayable = total
+  //       alert(total)
+
+  //     }
+  //     else if(formData.depositAmount === insuranceQuote?.exactAmount && !wantInsurance ){
+
+
+  //       const totals = Number(formData.depositAmount) - Number(insuranceQuote.insuranceChargeAmount)
+  // TotalPayable = totals
+  //       alert(totals)
+
+
+
+  //     }else{
+  // TotalPayable = formData.depositAmount
+  //       alert(formData.depositAmount)
+
+
+  //     }
+   
+
+  // }, [wantInsurance]);
+
+
+
+
+
+  const fetchInsuranceQuote = useCallback(async (amount) => {
+  const numAmount = Number(amount);
+
+  if (!numAmount || numAmount <= 0) {
+    setInsuranceQuote(null);
+    setWantInsurance(false);
+    return;
+  }
+
+  try {
+    setInsuranceLoading(true);
+
+    const res = await userApi.get(`/insurance-config/quote?amount=${numAmount}`);
+    const quote = res?.data?.data || null;
+    
+
+    setInsuranceQuote(quote);
+
+    if (!quote?.eligible) {
+      setWantInsurance(false);
+    }
+  } catch (error) {
+    setInsuranceQuote(null);
+    setWantInsurance(false);
+  } finally {
+    setInsuranceLoading(false);
+  }
+}, []);
+
+
+const fetchBonusQuote = useCallback(async (amount) => {
+  const numAmount = Number(amount);
+
+  if (!numAmount || numAmount <= 0) {
+    setBonusQuote(null);
+    return;
+  }
+
+  try {
+    setBonusLoading(true);
+
+    const res = await userApi.get(`/deposit-bonus/quote?amount=${numAmount}`);
+    const quote = res?.data?.data || null;
+
+    setBonusQuote(quote);
+  } catch (error) {
+    setBonusQuote(null);
+  } finally {
+    setBonusLoading(false);
+  }
+}, []);
+
+
+useEffect(() => {
+  fetchBonusQuote(formData.depositAmount);
+}, [formData.depositAmount, fetchBonusQuote]);
+
+
+  useEffect(() => {
+  fetchInsuranceQuote(formData.depositAmount);
+}, [formData.depositAmount, fetchInsuranceQuote]);
+
+
+const bonusAmount =
+  wantBonus && bonusQuote?.eligible
+    ? Number(bonusQuote?.bonusAmount || 0)
+    : 0;
+
+const bonusPercent =
+  wantBonus && bonusQuote?.eligible
+    ? Number(bonusQuote?.bonusPercent || 0)
+    : 0;
+
+
+const baseAmount = Number(formData.depositAmount || 0);
+
+const insuranceChargeAmount =
+  wantInsurance && insuranceQuote?.eligible
+    ? Number(insuranceQuote?.insuranceChargeAmount || 0)
+    : 0;
+
+// platform charge hata diya
+const platformChargeAmount = 0;
+
+const finalPayableAmount =
+  wantInsurance && insuranceQuote?.eligible
+    ? baseAmount + insuranceChargeAmount
+    : baseAmount;
+
+
   const fetchDepositTransactions = useCallback(
     async (signal?: AbortSignal) => {
       try {
@@ -528,18 +662,49 @@ export default function UserDeposit() {
           return;
         }
 
-        const normalized = payload.map((item: any) => ({
-          _id: item._id,
-          mt5Account: item.mt5Account || item.accountNumber || item.account || "N/A",
-          accountType: item.accountType || item.type || "N/A",
-          deposit: item.deposit ?? item.amount ?? 0,
-          method: (item.method || "N/A").toString(),
-          transactionId: item.transactionId || item.txnId || item.trxId || "—",
-          createdAt: item.createdAt || item.created_at || item.created || null,
-          updatedAt: item.updatedAt || item.updated_at || item.updated || null,
-          depositSS: item.depositSS || item.attachment || item.file || null,
-          status: item.status || "unknown",
-        }));
+  const normalized = payload.map((item: any) => ({
+  _id: item._id,
+  mt5Account: item.mt5Account || item.accountNumber || item.account || "N/A",
+  accountType: item.accountType || item.type || "N/A",
+
+  deposit: Number(item.deposit ?? item.amount ?? 0),
+  baseDepositAmount: Number(item.baseDepositAmount ?? item.deposit ?? 0),
+  finalPayableAmount: Number(item.finalPayableAmount ?? item.deposit ?? 0),
+
+  method: (item.method || "N/A").toString(),
+  transactionId: item.transactionId || item.txnId || item.trxId || "—",
+  orderId: item.orderId || "—",
+
+  createdAt: item.createdAt || item.created_at || item.created || null,
+  updatedAt: item.updatedAt || item.updated_at || item.updated || null,
+  approvedAt: item.approvedAt || null,
+
+  depositSS: item.depositSS || item.attachment || item.file || null,
+  status: item.status || "unknown",
+
+  depositBonusConfigId: item.depositBonusConfigId || null,
+  bonusDetails: item.bonusDetails
+    ? {
+        depositAmount: Number(item.bonusDetails.depositAmount || 0),
+        bonusPercent: Number(item.bonusDetails.bonusPercent || 0),
+        bonusAmount: Number(item.bonusDetails.bonusAmount || 0),
+      }
+    : null,
+
+  insuranceOpted: !!item.insuranceOpted,
+  insuranceDetails: item.insuranceDetails
+    ? {
+        exactAmount: Number(item.insuranceDetails.exactAmount || 0),
+        insuranceChargesPercent: Number(
+          item.insuranceDetails.insuranceChargesPercent || 0
+        ),
+        claimPercent: Number(item.insuranceDetails.claimPercent || 0),
+        insuranceChargeAmount: Number(
+          item.insuranceDetails.insuranceChargeAmount || 0
+        ),
+      }
+    : null,
+}));
 
         setDepositTransactions(normalized);
       } catch (err: any) {
@@ -552,6 +717,12 @@ export default function UserDeposit() {
     },
     [loggedUser?._id]
   );
+
+  useEffect(() => {
+  if (!bonusQuote?.eligible) {
+    setWantBonus(false);
+  }
+}, [bonusQuote]);
 
   useEffect(() => {
     if (!showTxnModal) return;
@@ -776,11 +947,29 @@ export default function UserDeposit() {
       const body = {
         userId: loggedUser._id,
         mt5Account: formData.accountNumber,
-        deposit: formData.depositAmount,
+        deposit: Number(finalPayableAmount).toFixed(2),
+        baseDeposit : formData.depositAmount,
         status: "pending",
         accountType,
         method: selectedPayment,
         transactionId: formData.transactionId,
+
+          // insurance fields
+  wantInsurance: wantInsurance && insuranceQuote?.eligible ? true : false,
+  insuranceConfigId:
+    wantInsurance && insuranceQuote?.eligible
+      ? insuranceQuote?.insuranceConfigId
+      : null,
+
+      // bonus fields
+  wantBonus: wantBonus && bonusQuote?.eligible ? true : false,
+  bonusConfigId:
+    wantBonus && bonusQuote?.eligible
+      ? bonusQuote?.depositBonusConfigId
+
+      : null,
+
+
       };
 
       const fd = new FormData();
@@ -869,6 +1058,10 @@ export default function UserDeposit() {
     Number(formData.depositAmount || 0) *
     Number(siteConfig?.dollarDepositRate || 0);
 
+
+
+
+
   const paymentProps = {
     selectedPayment,
     selectedMethod,
@@ -953,23 +1146,52 @@ export default function UserDeposit() {
     };
   };
 
-  const filteredDepositTransactions = useMemo(() => {
-    if (!txnQ.trim()) return depositTransactions;
+ const filteredDepositTransactions = useMemo(() => {
+  if (!txnQ.trim()) return depositTransactions;
 
-    const term = txnQ.trim().toLowerCase();
+  const term = txnQ.trim().toLowerCase();
 
-    return depositTransactions.filter((row) =>
-      Object.values(row).some((v) =>
-        String(v ?? "").toLowerCase().includes(term)
-      )
+  return depositTransactions.filter((row: any) => {
+    const searchable = [
+      row._id,
+      row.mt5Account,
+      row.accountType,
+      row.deposit,
+      row.baseDepositAmount,
+      row.finalPayableAmount,
+      row.method,
+      row.transactionId,
+      row.orderId,
+      row.status,
+      row.createdAt,
+      row.updatedAt,
+      row.approvedAt,
+      row.insuranceOpted,
+      row.bonusDetails?.depositAmount,
+      row.bonusDetails?.bonusPercent,
+      row.bonusDetails?.bonusAmount,
+      row.insuranceDetails?.exactAmount,
+      row.insuranceDetails?.insuranceChargesPercent,
+      row.insuranceDetails?.claimPercent,
+      row.insuranceDetails?.insuranceChargeAmount,
+    ];
+
+    return searchable.some((v) =>
+      String(v ?? "").toLowerCase().includes(term)
     );
-  }, [txnQ, depositTransactions]);
+  });
+}, [txnQ, depositTransactions]);
 
   const txnStats = useMemo(() => {
     const total = filteredDepositTransactions.reduce(
       (sum, item: any) => sum + (Number(item.deposit) || 0),
       0
     );
+
+   const totalBonus = filteredDepositTransactions.reduce(
+  (sum, item: any) => sum + (Number(item.bonusDetails?.bonusAmount) || 0),
+  0
+);
 
     const approved = filteredDepositTransactions.filter(
       (item: any) => String(item.status).toLowerCase() === "approved"
@@ -982,6 +1204,7 @@ export default function UserDeposit() {
     return {
       total,
       approved,
+       totalBonus,
       pending,
       rows: filteredDepositTransactions.length,
     };
@@ -1145,6 +1368,16 @@ export default function UserDeposit() {
                         value={txnStats.pending}
                         tone="warning"
                       />
+
+                      <StatCard
+  icon={<Gift className="h-5 w-5" />}
+  label="Total Bonus"
+  value={`$${money(txnStats.totalBonus)}`}
+  colors={colors}
+  tone="success"
+/>
+
+
                       <StatCard
                         colors={colors}
                         icon={<TrendingUp className="h-5 w-5" />}
@@ -1253,9 +1486,11 @@ export default function UserDeposit() {
                                       "Deposit",
                                       "Method",
                                       "Txn ID",
+                                      "Insurance / Bonus",
                                       "Requested",
                                       "Proof",
                                       "Status",
+                                      "approvedAt"
                                     ].map((head) => (
                                       <th
                                         key={head}
@@ -1323,6 +1558,58 @@ export default function UserDeposit() {
                                         {item?.transactionId || "—"}
                                       </td>
 
+
+                                      <td className="px-4 py-4 align-top">
+  <div className="space-y-2">
+    <div
+      className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+      style={{
+        borderColor: item.insuranceDetails
+          ? "rgba(59,130,246,0.25)"
+          : colors.border,
+        background: item.insuranceDetails
+          ? isDark
+            ? "rgba(59,130,246,0.12)"
+            : "rgba(59,130,246,0.08)"
+          : colors.surfaceSoft,
+        color: item.insuranceDetails ? colors.accent : colors.softText,
+      }}
+    >
+      {item.insuranceDetails
+        ? `Insurance: $${money(item.insuranceDetails.insuranceChargeAmount)} (${money(
+            item.insuranceDetails.insuranceChargesPercent
+          )}%)`
+        : "Insurance: No"}
+    </div>
+
+    <div
+      className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+      style={{
+        borderColor:
+          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+            ? "rgba(16,185,129,0.25)"
+            : colors.border,
+        background:
+          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+            ? isDark
+              ? "rgba(16,185,129,0.12)"
+              : "rgba(16,185,129,0.08)"
+            : colors.surfaceSoft,
+        color:
+          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+            ? colors.success
+            : colors.softText,
+      }}
+    >
+      {item.bonusDetails
+        ? `Bonus: ${money(item.bonusDetails.bonusPercent)}% ($${money(
+            item.bonusDetails.bonusAmount
+          )})`
+        : "Bonus: No"}
+    </div>
+  </div>
+</td>
+
                                       <td
                                         className="px-4 py-3 text-center text-xs"
                                         style={{ color: mutedTextColor }}
@@ -1364,6 +1651,27 @@ export default function UserDeposit() {
                                           {(item?.status || "UNKNOWN").toString().toUpperCase()}
                                         </span>
                                       </td>
+
+
+                                      <td className="px-4 py-4 align-top">
+  <div className="space-y-1">
+    <div className="text-sm" style={{ color: colors.text }}>
+      Created: {formatDate(item.createdAt)}
+    </div>
+
+    <div className="text-xs" style={{ color: colors.muted }}>
+      Updated: {formatDate(item.updatedAt)}
+    </div>
+
+    {item.approvedAt ? (
+      <div className="text-xs" style={{ color: colors.success }}>
+        Approved: {formatDate(item.approvedAt)}
+      </div>
+    ) : null}
+  </div>
+</td>
+
+
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1467,18 +1775,30 @@ export default function UserDeposit() {
                 isCompleted={step1Completed}
                 colors={colors}
                 onChange={() => setOpenStep(1)}
-                summary={
-                  <>
-                    <span className="font-semibold" style={{ color: colors.text }}>
-                      {formData.accountNumber || "No account selected"}
-                    </span>
-                    {formData.depositAmount ? (
-                      <span className="ml-2" style={{ color: colors.softText }}>
-                        • ${money(formData.depositAmount)} • {accountType || "N/A"}
-                      </span>
-                    ) : null}
-                  </>
-                }
+               summary={
+  <div className="flex flex-wrap items-center gap-3">
+    <span>Amount: ${money(baseAmount)}</span>
+
+    {insuranceQuote?.eligible && wantInsurance ? (
+      <span>
+        Insurance: +${money(insuranceChargeAmount)} (
+        {Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
+      </span>
+    ) : (
+      <span style={{ color: colors.muted }}>Insurance: No</span>
+    )}
+
+    {bonusQuote?.eligible ? (
+      <span style={{ color: colors.success }}>
+        Bonus: +${money(bonusAmount)} ({bonusPercent}%)
+      </span>
+    ) : (
+      <span style={{ color: colors.muted }}>Bonus: No</span>
+    )}
+
+    <span>Total Payable: ${money(finalPayableAmount)}</span>
+  </div>
+}
               >
                 <div className="p-5">
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -1543,6 +1863,9 @@ export default function UserDeposit() {
                         />
                       </div>
                     </div>
+
+
+
                   </div>
 
                   {/* QUICK AMOUNT BUTTONS */}
@@ -1749,7 +2072,7 @@ export default function UserDeposit() {
                         </div>
                       ) : (
                         <>
-                          <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
+                          {/* <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
                             <label className="flex cursor-pointer items-start gap-3">
                               <input
                                 type="checkbox"
@@ -1772,7 +2095,7 @@ export default function UserDeposit() {
                                 </a>
                               </span>
                             </label>
-                          </div>
+                          </div> */}
 
                           <div className="mt-5 flex justify-end">
                             <button
@@ -1808,87 +2131,283 @@ export default function UserDeposit() {
                   }}
                 >
                   <div className="p-5">
-                    <div
-                      className="mb-4 text-[28px] font-semibold leading-none"
-                      style={{ color: titleColor }}
-                    >
-                      Price Details
-                    </div>
 
-                    <div
-                      className="space-y-4 border p-4"
-                      style={{
-                        background: colors.surfaceSoft,
-                        borderColor: colors.border,
-                        borderRadius: "16px",
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span style={{ color: titleColor }}>Price (1 item)</span>
-                        <span style={{ color: titleColor }}>₹{money(inrAmount || 0)}</span>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <span style={{ color: titleColor }}>Fees</span>
-                        <span style={{ color: titleColor }}>
-                          ₹{money(Math.round(inrAmount * 0.0025 || 0))}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <span style={{ color: titleColor }}>Protect Promise Fee</span>
-                        <span style={{ color: titleColor }}>
-                          ₹{money(Math.round(inrAmount * 0.0015 || 0))}
-                        </span>
-                      </div>
+         <div
+  className="mt-4 overflow-hidden border"
+  style={{
+    borderColor: colors.border,
+    background: colors.surface,
+    borderRadius: "20px",
+    boxShadow: colors.cardShadow,
+  }}
+>
+  <div
+    className="border-b px-5 py-4"
+    style={{
+      borderColor: colors.border,
+      background: colors.surfaceSoft,
+    }}
+  >
+    <div className="flex items-center gap-2">
+      <Wallet className="h-5 w-5" style={{ color: colors.accent }} />
+      <h3
+        className="text-base font-semibold"
+        style={{ color: colors.text }}
+      >
+        Payment Summary
+      </h3>
+    </div>
+  </div>
 
-                      <div
-                        className="border-t pt-4"
-                        style={{
-                          borderColor: colors.border,
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span
-                            className="text-lg font-semibold"
-                            style={{ color: titleColor }}
-                          >
-                            Total Payable
-                          </span>
-                          <span
-                            className="text-lg font-semibold"
-                            style={{ color: titleColor }}
-                          >
-                            ₹{money(inrAmount || 0)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+  <div className="space-y-3 px-5 py-4">
+    <div className="flex items-center justify-between">
+      <span style={{ color: colors.softText }}>Deposit Amount</span>
+      <span className="font-semibold" style={{ color: colors.text }}>
+        ${money(baseAmount)}
+      </span>
+    </div>
 
-                    <div
+    {insuranceLoading ? (
+      <div className="flex items-center justify-between">
+        <span style={{ color: colors.softText }}>Insurance</span>
+        <span style={{ color: colors.muted }}>Checking...</span>
+      </div>
+    ) : insuranceQuote?.eligible ? (
+      <>
+        <div className="flex items-center justify-between">
+          <span style={{ color: colors.softText }}>
+            Insurance Charges ({Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
+            {wantInsurance ? (
+              <span className="ml-2 text-xs" style={{ color: colors.success }}>
+                Applied
+              </span>
+            ) : (
+              <span className="ml-2 text-xs" style={{ color: colors.muted }}>
+                Optional
+              </span>
+            )}
+          </span>
+
+          <span className="font-semibold" style={{ color: colors.text }}>
+            {wantInsurance ? `+$${money(insuranceChargeAmount)}` : "$0"}
+          </span>
+        </div>
+
+      </>
+    ) : (
+      <div className="flex items-center justify-between">
+        <span style={{ color: colors.softText }}>Insurance</span>
+        <span style={{ color: colors.muted }}>Not available</span>
+      </div>
+    )}
+
+    {/* <div
+      className="flex items-center justify-between rounded-2xl border px-4 py-3"
+      style={{
+        borderColor: bonusQuote?.eligible
+          ? "rgba(34,197,94,0.25)"
+          : colors.border,
+        background: bonusQuote?.eligible
+          ? isDark
+            ? "rgba(34,197,94,0.10)"
+            : "rgba(34,197,94,0.06)"
+          : colors.surfaceSoft,
+      }}
+    >
+      <div>
+        <div className="flex items-center gap-2">
+          <Gift className="h-4 w-4" style={{ color: colors.success }} />
+          <span className="font-medium" style={{ color: colors.text }}>
+            Deposit Bonus ({bonusQuote?.eligible ? bonusPercent : 0}%)
+          </span>
+        </div>
+
+        <div className="mt-1 text-xs" style={{ color: colors.softText }}>
+          {bonusLoading
+            ? "Checking bonus..."
+            : bonusQuote?.eligible
+            ? `${bonusPercent}% bonus available on this amount`
+            : "No bonus available on this amount"}
+        </div>
+      </div>
+
+      <div className="text-right">
+        <div className="font-bold" style={{ color: colors.success }}>
+          {bonusQuote?.eligible ? `+$${money(bonusAmount)}` : "$0"}
+        </div>
+      </div>
+    </div> */}
+
+
+{bonusLoading ? (
+  <div className="text-sm" style={{ color: colors.muted }}>
+    Checking bonus...
+  </div>
+) : bonusQuote?.eligible ? (
+  <label
+    className="flex items-start gap-3 rounded-2xl border p-4 cursor-pointer"
+    style={{
+      borderColor: colors.border,
+      background: colors.surfaceSoft,
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={wantBonus}
+      onChange={(e) => setWantBonus(e.target.checked)}
+      className="mt-1 h-4 w-4"
+    />
+
+    <div>
+      <div className="font-semibold flex items-center gap-2" style={{ color: colors.text }}>
+        <Gift className="h-4 w-4" />
+        Apply Deposit Bonus
+      </div>
+
+      <div className="text-sm mt-1" style={{ color: colors.softText }}>
+        You are eligible for{" "}
+        <span className="font-semibold" style={{ color: colors.success }}>
+          {bonusPercent}%
+        </span>{" "}
+        bonus ={" "}
+        <span className="font-semibold" style={{ color: colors.success }}>
+          ${money(bonusAmount)}
+        </span>
+      </div>
+    </div>
+  </label>
+) : null}
+
+
+    <div
+      className="flex items-center justify-between border-t pt-3"
+      style={{ borderColor: colors.border }}
+    >
+      <span className="text-sm font-semibold" style={{ color: colors.text }}>
+        Total Payable
+      </span>
+      <span
+        className="text-lg font-bold"
+        style={{ color: colors.primaryBtn }}
+      >
+        ${money(finalPayableAmount)}
+      </span>
+    </div>
+
+    {bonusQuote?.eligible ? (
+      <div
+        className="rounded-xl px-3 py-2 text-xs"
+        style={{
+          background: isDark
+            ? "rgba(34,197,94,0.10)"
+            : "rgba(34,197,94,0.08)",
+          color: colors.success,
+        }}
+      >
+        After approval, you will receive <strong>${money(bonusAmount)}</strong> bonus
+        in your bonus wallet ({bonusPercent}%).
+      </div>
+    ) : null}
+  </div>
+</div>
+
+
+
+     <div
                       className="mt-4 text-base font-semibold"
                       style={{ color: colors.success }}
                     >
-                      Your Total Savings on this order ₹{money(savingsAmount)}
+
+                          {(formData.depositAmount && insuranceQuote?.eligible )? (
+  <div
+    className="mt-4 rounded-[20px] border p-4"
+    style={{
+      borderColor: colors.border,
+      background: colors.surfaceSoft,
+    }}
+  >
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <div
+          className="text-sm font-semibold"
+          style={{ color: colors.text }}
+        >
+          Insurance Availability
+        </div>
+
+        {insuranceLoading ? (
+          <p className="mt-1 text-sm" style={{ color: colors.muted }}>
+            Checking insurance eligibility...
+          </p>
+        ) : insuranceQuote?.eligible ? (
+          <>
+            <p className="mt-1 text-sm" style={{ color: colors.success }}>
+              Insurance is available for this amount.
+            </p>
+          </>
+        ) : (
+          <p className="mt-1 text-sm" style={{ color: colors.warning }}>
+            Insurance is not available for this amount.
+          </p>
+        )}
+      </div>
+
+      {insuranceQuote?.eligible ? (
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={wantInsurance}
+            onChange={(e) =>  setWantInsurance(e.target.checked)}
+            className="h-4 w-4"
+          />
+          <span
+            className="text-sm font-medium"
+            style={{ color: colors.text }}
+          >
+            I want insurance
+          </span>
+        </label>
+      ) : null}
+    </div>
+  </div>
+) : null}
+
+
+
+
+
+                      {/* Your Total Savings on this order ₹{money(savingsAmount)} */}
                     </div>
 
-                    <div
-                      className="mt-4 border px-4 py-3"
-                      style={{
-                        background: isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)",
-                        borderColor: isDark
-                          ? "rgba(245,158,11,0.16)"
-                          : "rgba(245,158,11,0.14)",
-                        borderRadius: "16px",
-                      }}
-                    >
-                      <div className="flex items-start gap-2">
-                        <Percent className="mt-0.5 h-4 w-4" style={{ color: colors.warning }} />
-                        <div className="text-sm" style={{ color: titleColor }}>
-                          Save extra ₹{money(Math.max(Math.round(inrAmount * 0.0002), 0))} using reward points
-                        </div>
-                      </div>
-                    </div>
+
+
+                    <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
+                            <label className="flex cursor-pointer items-start gap-3">
+                              <input
+                                type="checkbox"
+                                checked={agreeToTerms}
+                                onChange={(e) => setAgreeToTerms(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded"
+                                style={{ accentColor: colors.primaryBtn }}
+                              />
+
+                              <span className="text-sm" style={{ color: titleColor }}>
+                                I agree to the{" "}
+                                <a
+                                  href={siteConfig?.tNcLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline"
+                                  style={{ color: colors.link }}
+                                >
+                                  Terms & Conditions
+                                </a>
+                              </span>
+                            </label>
+                          </div>
+
 
                     <motion.div
                       animate={

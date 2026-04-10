@@ -58,6 +58,12 @@ const modules = [
   icon: <ChartCandlestick className="w-5 h-5" />,
 },
 
+{
+  name: "Insurance Config",
+  path: "/s-admin/InsuranceConfig",
+  icon: <ChartCandlestick className="w-5 h-5" />,
+},
+
   //   <Route path="DepositBonusConfig" element={<DepositBonusConfig />} />
         // <Route path="TradeLotBonusConfig" element={<TradeLotBonusConfig />} />
 

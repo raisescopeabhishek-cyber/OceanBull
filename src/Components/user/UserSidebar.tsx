@@ -49,11 +49,12 @@ const modules = [
   //   ],
   // },
 
-  {
-  name: "Bonus",
-  path: "/user/bonus/dashboard",
-  icon: <Wallet2 className="w-5 h-5" />,
-},
+//   {
+//   name: "Bonus",
+//   path: "/user/bonus/dashboard",
+//   subtitle: "Track Your Bonus",
+//   icon: <Wallet2 className="w-5 h-5" />,
+// },
 
 
    {

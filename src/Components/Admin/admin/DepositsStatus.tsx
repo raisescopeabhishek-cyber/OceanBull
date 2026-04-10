@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeftRight,
   CircleCheckBig,
@@ -12,6 +12,13 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
+  Eye,
+  Shield,
+  Gift,
+  Wallet,
+  User,
+  CreditCard,
+  FileText,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -31,7 +38,118 @@ import {
 } from "../../../utils/CustomFunctions";
 import { useSelector } from "react-redux";
 
+import DepositDetailsModal from "../admin/DepositDetailsModal.jsx"
+
 const PAGE_LIMIT = 10;
+
+const DetailStatCard = ({
+  title,
+  value,
+  helper,
+  icon,
+  tone = "default",
+  isDark,
+}: {
+  title: string;
+  value: React.ReactNode;
+  helper?: React.ReactNode;
+  icon: React.ReactNode;
+  tone?: "default" | "success" | "warning" | "info";
+  isDark: boolean;
+}) => {
+  const toneClasses = {
+    default: isDark
+      ? "border-white/10 bg-white/[0.04]"
+      : "border-slate-200 bg-white",
+    success: isDark
+      ? "border-emerald-500/20 bg-emerald-500/10"
+      : "border-emerald-200 bg-emerald-50",
+    warning: isDark
+      ? "border-yellow-500/20 bg-yellow-500/10"
+      : "border-yellow-200 bg-yellow-50",
+    info: isDark
+      ? "border-blue-500/20 bg-blue-500/10"
+      : "border-blue-200 bg-blue-50",
+  };
+
+  return (
+    <div className={`rounded-2xl border p-4 ${toneClasses[tone]}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={[
+              "text-[11px] font-semibold uppercase tracking-[0.16em]",
+              isDark ? "text-white/45" : "text-slate-500",
+            ].join(" ")}
+          >
+            {title}
+          </p>
+          <div
+            className={[
+              "mt-2 text-lg font-bold leading-tight sm:text-xl",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            {value}
+          </div>
+          {helper ? (
+            <p
+              className={[
+                "mt-1 text-xs",
+                isDark ? "text-white/50" : "text-slate-500",
+              ].join(" ")}
+            >
+              {helper}
+            </p>
+          ) : null}
+        </div>
+
+        <div
+          className={[
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+            isDark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-700",
+          ].join(" ")}
+        >
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DetailRow = ({
+  label,
+  value,
+  isDark,
+}: {
+  label: string;
+  value: React.ReactNode;
+  isDark: boolean;
+}) => (
+  <div
+    className={[
+      "flex items-start justify-between gap-4 border-b border-dashed py-3 last:border-b-0",
+      isDark ? "border-white/10" : "border-slate-200",
+    ].join(" ")}
+  >
+    <span
+      className={[
+        "text-sm",
+        isDark ? "text-white/55" : "text-slate-500",
+      ].join(" ")}
+    >
+      {label}
+    </span>
+    <span
+      className={[
+        "max-w-[55%] text-right text-sm font-semibold break-words",
+        isDark ? "text-white" : "text-slate-900",
+      ].join(" ")}
+    >
+      {value}
+    </span>
+  </div>
+);
 
 const DepositsStatus = () => {
   const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
@@ -40,6 +158,7 @@ const DepositsStatus = () => {
   const [depositData, setDepositData] = useState<any[]>([]);
   const [allDepositData, setAllDepositData] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>({});
+  const [summary, setSummary] = useState<any>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [allLoading, setAllLoading] = useState(true);
@@ -54,6 +173,8 @@ const DepositsStatus = () => {
 
   const [selectedDeposit, setSelectedDeposit] = useState<any | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"" | "approve" | "reject">("");
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -62,7 +183,10 @@ const DepositsStatus = () => {
   const totalPages = Math.max(
     1,
     Number(pagination?.totalPages) ||
-      Math.ceil((Number(pagination?.totalDeposits) || 0) / PAGE_LIMIT)
+      Math.ceil(
+        (Number(pagination?.totalDeposits || pagination?.totalRecords) || 0) /
+          PAGE_LIMIT
+      )
   );
 
   const updateFilter = (key: string, value: string) => {
@@ -97,15 +221,14 @@ const DepositsStatus = () => {
         params.append("status", "pending");
       } else if (filters.status === "rejected") {
         params.append("status", "rejected");
-      } else {
-        params.append("status", "");
       }
 
       const res = await adminApi.get(`/deposits?${params.toString()}`);
-      const finalRes = res?.data;
+      const finalRes = res?.data || {};
 
       setDepositData(finalRes?.data || []);
       setPagination(finalRes?.pagination || {});
+      setSummary(finalRes?.summary || {});
     } catch (error) {
       console.log("Error fetching deposits:", error);
       toast.error("Something went wrong while fetching deposits");
@@ -118,7 +241,8 @@ const DepositsStatus = () => {
     setAllLoading(true);
     try {
       const res = await adminApi.get(`/deposits`);
-      setAllDepositData(res?.data?.data || []);
+      const finalRes = res?.data || {};
+      setAllDepositData(finalRes?.data || []);
     } catch (error) {
       console.log("Error fetching all deposits:", error);
     } finally {
@@ -129,6 +253,11 @@ const DepositsStatus = () => {
   const togglePreview = (item: any) => {
     setSelectedDeposit(item);
     setShowPreview(true);
+  };
+
+  const toggleDetails = (item: any) => {
+    setSelectedDeposit(item);
+    setShowDetails(true);
   };
 
   const handleActionClick = (deposit: any, action: "approve" | "reject") => {
@@ -150,7 +279,7 @@ const DepositsStatus = () => {
         status: actionType,
         mt5Account: selected.mt5Account,
         amount: selected.deposit,
-        email: selected.userId?.email,
+        email: selected.user?.email,
         selectedDeposit: selected,
         comment,
       });
@@ -165,6 +294,7 @@ const DepositsStatus = () => {
       await fetchApiData();
       await fetchAllData();
     } catch (err) {
+      console.log(err);
       toast.error("Something went wrong", { id: toastId });
     } finally {
       setIsActionLoading(false);
@@ -195,28 +325,44 @@ const DepositsStatus = () => {
     fetchAllData();
   }, []);
 
-    const TotalBonus = allDepositData
-    .reduce((total, item) => total + Number(item.bonus || 0), 0)
-    .toFixed(2);
+const TotalBonus = useMemo(
+  () =>
+    allDepositData
+      .filter((item) => item?.status === "approved")
+      .reduce(
+        (total, item) =>
+          total + Number(item?.bonusDetails?.bonusAmount || 0),
+        0
+      )
+      .toFixed(2),
+  [allDepositData]
+);
 
-  const TotalDeposits = allDepositData
-    .reduce((total, item) => total + Number(item.deposit || 0), 0)
-    .toFixed(2);
+  const TotalDeposits = useMemo(
+    () =>
+      allDepositData
+        .reduce((total, item) => total + Number(item?.deposit || 0), 0)
+        .toFixed(2),
+    [allDepositData]
+  );
 
-  const TotalPendingDeposits = allDepositData
-    .filter((i) => i.status === "pending")
-    .reduce((t, i) => t + Number(i.deposit || 0), 0)
-    .toFixed(2);
+  const TotalPendingDeposits = useMemo(
+    () =>
+      allDepositData
+        .filter((i) => i.status === "pending")
+        .reduce((t, i) => t + Number(i?.deposit || 0), 0)
+        .toFixed(2),
+    [allDepositData]
+  );
 
-  const TotalSuccessfulDeposits = allDepositData
-    .filter((i) => i.status === "approved")
-    .reduce((t, i) => t + Number(i.deposit || 0), 0)
-    .toFixed(2);
-
-  const TotalRejectedDeposits = allDepositData
-    .filter((i) => i.status === "rejected")
-    .reduce((t, i) => t + Number(i.deposit || 0), 0)
-    .toFixed(2);
+  const TotalSuccessfulDeposits = useMemo(
+    () =>
+      allDepositData
+        .filter((i) => i.status === "approved")
+        .reduce((t, i) => t + Number(i?.deposit || 0), 0)
+        .toFixed(2),
+    [allDepositData]
+  );
 
   const imgUrl = (p?: string) =>
     p ? `${import.meta.env.VITE_API_BASE_URL}/${p}` : "";
@@ -243,9 +389,7 @@ const DepositsStatus = () => {
         <span
           className={[
             "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
-            isDark
-              ? "bg-red-500/10 text-red-300"
-              : "bg-red-50 text-red-700",
+            isDark ? "bg-red-500/10 text-red-300" : "bg-red-50 text-red-700",
           ].join(" ")}
         >
           <CircleX size={16} />
@@ -269,10 +413,77 @@ const DepositsStatus = () => {
     );
   };
 
+  const InfoCard = ({
+    icon,
+    label,
+    value,
+    subValue,
+    iconClass = "",
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    value: React.ReactNode;
+    subValue?: React.ReactNode;
+    iconClass?: string;
+  }) => (
+    <div
+      className={[
+        "rounded-2xl border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.03]"
+          : "border-orange-100 bg-orange-50/40",
+      ].join(" ")}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={[
+            "flex h-10 w-10 items-center justify-center rounded-xl",
+            isDark ? "bg-white/[0.05] text-white" : "bg-white text-slate-700",
+            iconClass,
+          ].join(" ")}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p
+            className={[
+              "text-[11px] font-semibold uppercase tracking-[0.12em] whitespace-nowrap",
+              isDark ? "text-white/45" : "text-slate-500",
+            ].join(" ")}
+          >
+            {label}
+          </p>
+          <p
+            className={[
+              "mt-1 text-sm font-semibold leading-6 break-words sm:text-base",
+              isDark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            {value}
+          </p>
+          {subValue ? (
+            <p
+              className={[
+                "mt-1 text-xs",
+                isDark ? "text-white/45" : "text-slate-500",
+              ].join(" ")}
+            >
+              {subValue}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDetailValue = (value: any, fallback = "N/A") => {
+    if (value === null || value === undefined || value === "") return fallback;
+    return value;
+  };
+
   return (
     <div className="w-full">
       <div className="space-y-4 lg:space-y-5">
-        {/* Top Section */}
         <div
           className={[
             "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
@@ -308,7 +519,7 @@ const DepositsStatus = () => {
                       isDark ? "text-white" : "text-slate-900",
                     ].join(" ")}
                   >
-                   Funds Management
+                    Funds Management
                   </h1>
                   <p
                     className={[
@@ -366,14 +577,17 @@ const DepositsStatus = () => {
                       : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
                   ].join(" ")}
                 >
-                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
                   {isFiltersOpen ? "Collapse" : "Expand"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Filter Row */}
           <div
             className={[
               "overflow-hidden transition-all duration-300 ease-in-out",
@@ -429,7 +643,7 @@ const DepositsStatus = () => {
                     isDark ? "text-white" : "text-slate-900",
                   ].join(" ")}
                 >
-                  {pagination?.totalDeposits || 0}
+                  {summary?.totalRecords || pagination?.totalDeposits || 0}
                 </p>
               </div>
 
@@ -488,7 +702,6 @@ const DepositsStatus = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
@@ -499,21 +712,14 @@ const DepositsStatus = () => {
               label: "Successful Deposits",
               amount: TotalSuccessfulDeposits,
             },
-
-                   {
+            {
               label: "Total Bonus",
               amount: TotalBonus,
             },
-
-
             {
               label: "Pending Deposits",
               amount: TotalPendingDeposits,
             },
-            // {
-            //   label: "Rejected Deposits",
-            //   amount: TotalRejectedDeposits,
-            // },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -558,7 +764,6 @@ const DepositsStatus = () => {
           ))}
         </div>
 
-        {/* Desktop Table */}
         <div
           className={[
             "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
@@ -568,7 +773,7 @@ const DepositsStatus = () => {
           ].join(" ")}
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1150px]">
+            <table className="w-full min-w-[1400px]">
               <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
                 <tr
                   className={[
@@ -581,8 +786,7 @@ const DepositsStatus = () => {
                     "MT5 Account",
                     "Account Type",
                     "Deposit",
-                     "Bonus",
-                    "Date",
+                    "Details",
                     "Proof",
                     "Status / Action",
                   ].map((heading) => (
@@ -602,7 +806,7 @@ const DepositsStatus = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12">
+                    <td colSpan={9} className="px-5 py-12">
                       <div
                         className={[
                           "flex items-center justify-center gap-3",
@@ -616,7 +820,7 @@ const DepositsStatus = () => {
                   </tr>
                 ) : depositData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center">
+                    <td colSpan={9} className="px-5 py-12 text-center">
                       <p
                         className={[
                           "text-lg font-semibold",
@@ -654,8 +858,11 @@ const DepositsStatus = () => {
                               isDark ? "text-white" : "text-slate-900",
                             ].join(" ")}
                           >
-                            {item?.userId?.firstName || "Not found"}{" "}
-                            {item?.userId?.lastName || ""}
+                            {item?.user?.fullName ||
+                              `${item?.user?.firstName || ""} ${
+                                item?.user?.lastName || ""
+                              }`.trim() ||
+                              "Not found"}
                           </p>
                           <p
                             className={[
@@ -663,7 +870,7 @@ const DepositsStatus = () => {
                               isDark ? "text-blue-300" : "text-primary-600",
                             ].join(" ")}
                           >
-                            {item?.userId?.email || "Not found"}
+                            {item?.user?.email || "Not found"}
                           </p>
                         </div>
                       </td>
@@ -691,65 +898,41 @@ const DepositsStatus = () => {
                       </td>
 
                       <td className="px-5 py-4">
-                        <span
-                          className={[
-                            "text-sm font-semibold",
-                            isDark ? "text-white" : "text-slate-900",
-                          ].join(" ")}
-                        >
-                          ${Number(item?.deposit || 0).toFixed(2)}
-                        </span>
+                        <div className="flex flex-col">
+                          <span
+                            className={[
+                              "text-sm font-semibold",
+                              isDark ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            ${Number(item?.deposit || 0).toFixed(2)}
+                          </span>
+                          <span
+                            className={[
+                              "mt-1 text-xs",
+                              isDark ? "text-white/40" : "text-slate-500",
+                            ].join(" ")}
+                          >
+                            Base: $
+                            {Number(item?.baseDepositAmount || 0).toFixed(2)}
+                          </span>
+                        </div>
                       </td>
 
-                 <td className="px-5 py-4">
-  <div className="flex flex-col">
-    <span
-      className={[
-        "text-sm font-semibold leading-none",
-        isDark ? "text-white" : "text-slate-900",
-      ].join(" ")}
-    >
-      ${Number(item?.bonus || 0).toFixed(2)}
-    </span>
-
-    <span
-      className={[
-        "mt-1 text-xs font-medium",
-        isDark ? "text-slate-400" : "text-slate-500",
-      ].join(" ")}
-    >
-      {Number(item?.deposit || 0) > 0
-        ? `${((Number(item?.bonus || 0) / Number(item?.deposit || 0)) * 100).toFixed(2)}% bonus`
-        : "—"}
-    </span>
-  </div>
-</td>
 
                       <td className="px-5 py-4">
-                        <p
+                        <button
+                          onClick={() => toggleDetails(item)}
                           className={[
-                            "font-medium",
-                            isDark ? "text-white" : "text-slate-900",
+                            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
+                            isDark
+                              ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                              : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
                           ].join(" ")}
                         >
-                          {CFformatDate(
-                            item?.status === "approved" || item?.status === "rejected"
-                              ? item?.updatedAt
-                              : item?.createdAt
-                          )}
-                        </p>
-                        <p
-                          className={[
-                            "text-sm",
-                            isDark ? "text-white/40" : "text-slate-500",
-                          ].join(" ")}
-                        >
-                          {CFcalculateTimeSinceJoined(
-                            item?.status === "approved" || item?.status === "rejected"
-                              ? item?.updatedAt
-                              : item?.createdAt
-                          )}
-                        </p>
+                          <Eye size={16} />
+                          Details
+                        </button>
                       </td>
 
                       <td className="px-5 py-4">
@@ -771,7 +954,9 @@ const DepositsStatus = () => {
                         {item?.status === "pending" ? (
                           isActionLoading ? (
                             <span
-                              className={isDark ? "text-white/50" : "text-slate-500"}
+                              className={
+                                isDark ? "text-white/50" : "text-slate-500"
+                              }
                             >
                               Please wait...
                             </span>
@@ -816,7 +1001,6 @@ const DepositsStatus = () => {
           </div>
         </div>
 
-        {/* Mobile Cards */}
         <div className="grid grid-cols-1 gap-3 lg:hidden">
           {loading ? (
             <div
@@ -882,8 +1066,11 @@ const DepositsStatus = () => {
                         isDark ? "text-white" : "text-slate-900",
                       ].join(" ")}
                     >
-                      {item?.userId?.firstName || "Not found"}{" "}
-                      {item?.userId?.lastName || ""}
+                      {item?.user?.fullName ||
+                        `${item?.user?.firstName || ""} ${
+                          item?.user?.lastName || ""
+                        }`.trim() ||
+                        "Not found"}
                     </h3>
                     <p
                       className={[
@@ -891,21 +1078,35 @@ const DepositsStatus = () => {
                         isDark ? "text-blue-300" : "text-primary-600",
                       ].join(" ")}
                     >
-                      {item?.userId?.email || "Not found"}
+                      {item?.user?.email || "Not found"}
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => togglePreview(item)}
-                    className={[
-                      "shrink-0 rounded-xl border p-2",
-                      isDark
-                        ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                        : "border-blue-200 bg-blue-50 text-blue-600",
-                    ].join(" ")}
-                  >
-                    <Image size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleDetails(item)}
+                      className={[
+                        "shrink-0 rounded-xl border p-2",
+                        isDark
+                          ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                          : "border-blue-200 bg-blue-50 text-blue-600",
+                      ].join(" ")}
+                    >
+                      <Eye size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => togglePreview(item)}
+                      className={[
+                        "shrink-0 rounded-xl border p-2",
+                        isDark
+                          ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                          : "border-blue-200 bg-blue-50 text-blue-600",
+                      ].join(" ")}
+                    >
+                      <Image size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
@@ -925,7 +1126,7 @@ const DepositsStatus = () => {
                     </p>
                     <p
                       className={[
-                        "mt-1 text-sm font-medium",
+                        "mt-1 text-sm font-semibold",
                         isDark ? "text-white" : "text-slate-900",
                       ].join(" ")}
                     >
@@ -945,16 +1146,9 @@ const DepositsStatus = () => {
                         isDark ? "text-white/45" : "text-slate-500",
                       ].join(" ")}
                     >
-                      Account Type
+                      Status
                     </p>
-                    <p
-                      className={[
-                        "mt-1 text-sm font-medium",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {item?.accountType || "--"}
-                    </p>
+                    <div className="mt-1">{getStatusBadge(item?.status)}</div>
                   </div>
 
                   <div
@@ -973,7 +1167,7 @@ const DepositsStatus = () => {
                     </p>
                     <p
                       className={[
-                        "mt-1 text-sm font-medium",
+                        "mt-1 text-sm font-semibold",
                         isDark ? "text-white" : "text-slate-900",
                       ].join(" ")}
                     >
@@ -993,71 +1187,58 @@ const DepositsStatus = () => {
                         isDark ? "text-white/45" : "text-slate-500",
                       ].join(" ")}
                     >
-                      Status
+                      Bonus
                     </p>
-                    <div className="mt-1">{getStatusBadge(item?.status)}</div>
+                    <p
+                      className={[
+                        "mt-1 text-sm font-semibold",
+                        isDark ? "text-white" : "text-slate-900",
+                      ].join(" ")}
+                    >
+                      ${Number(item?.bonus || 0).toFixed(2)}
+                    </p>
                   </div>
                 </div>
 
-                <div
-                  className={[
-                    "mt-4 border-t pt-4",
-                    isDark ? "border-white/10" : "border-orange-100/80",
-                  ].join(" ")}
-                >
-                  <p
-                    className={[
-                      "text-sm font-medium",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    {CFformatDate(
-                      item?.status === "approved" || item?.status === "rejected"
-                        ? item?.updatedAt
-                        : item?.createdAt
-                    )}
-                  </p>
-                  <p
-                    className={[
-                      "text-xs",
-                      isDark ? "text-white/40" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    {CFcalculateTimeSinceJoined(
-                      item?.status === "approved" || item?.status === "rejected"
-                        ? item?.updatedAt
-                        : item?.createdAt
-                    )}
-                  </p>
-
-                  {item?.status === "pending" && (
-                    <div className="mt-4 flex items-center gap-3">
-                      <button
-                        onClick={() => handleActionClick(item, "approve")}
-                        className={[
-                          "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                          isDark
-                            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                        ].join(" ")}
+                <div className="mt-4">
+                  {item?.status === "pending" ? (
+                    isActionLoading ? (
+                      <span
+                        className={isDark ? "text-white/50" : "text-slate-500"}
                       >
-                        <CircleCheckBig size={15} />
-                        Approve
-                      </button>
+                        Please wait...
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={() => handleActionClick(item, "approve")}
+                          className={[
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                            isDark
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
+                              : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                          ].join(" ")}
+                        >
+                          <CircleCheckBig size={16} />
+                          Approve
+                        </button>
 
-                      <button
-                        onClick={() => handleActionClick(item, "reject")}
-                        className={[
-                          "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                          isDark
-                            ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-                            : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-                        ].join(" ")}
-                      >
-                        <CircleX size={15} />
-                        Reject
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => handleActionClick(item, "reject")}
+                          className={[
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                            isDark
+                              ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                              : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                          ].join(" ")}
+                        >
+                          <CircleX size={16} />
+                          Reject
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <div>{getStatusBadge(item?.status)}</div>
                   )}
                 </div>
               </div>
@@ -1065,92 +1246,50 @@ const DepositsStatus = () => {
           )}
         </div>
 
-        {/* Pagination */}
-        <div
-          className={[
-            "rounded-[24px] border p-4 backdrop-blur-xl",
-            isDark
-              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-              : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p
-              className={[
-                "text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              Showing page{" "}
-              <span
-                className={[
-                  "font-semibold",
-                  isDark ? "text-white" : "text-slate-900",
-                ].join(" ")}
-              >
-                {currentPage}
-              </span>{" "}
-              of{" "}
-              <span
-                className={[
-                  "font-semibold",
-                  isDark ? "text-white" : "text-slate-900",
-                ].join(" ")}
-              >
-                {totalPages}
-              </span>
-            </p>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage <= 1}
+            className={[
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+            ].join(" ")}
+          >
+            <ChevronLeft size={16} />
+            Previous
+          </button>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
-                  currentPage === 1
-                    ? isDark
-                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
-                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
-                    : isDark
-                    ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                    : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
-                }`}
-              >
-                <ChevronLeft size={16} />
-                Prev
-              </button>
-
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
-                  currentPage === totalPages
-                    ? isDark
-                      ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
-                      : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
-                    : isDark
-                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                    : "bg-orange-500 text-white hover:bg-orange-600"
-                }`}
-              >
-                Next
-                <ChevronRight size={16} />
-              </button>
-            </div>
+          <div
+            className={[
+              "text-sm font-medium",
+              isDark ? "text-white/65" : "text-slate-600",
+            ].join(" ")}
+          >
+            Page {currentPage} of {totalPages}
           </div>
+
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage >= totalPages}
+            className={[
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
+            ].join(" ")}
+          >
+            Next
+            <ChevronRight size={16} />
+          </button>
         </div>
       </div>
 
-      {/* Action Dialog */}
-      <AlertDialog
-        open={isDialogOpen}
-        onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setComment("");
-        }}
-      >
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent
           className={[
-            "max-w-xl rounded-2xl backdrop-blur-xl",
+            "rounded-2xl backdrop-blur-xl",
             isDark
               ? "border-white/10 bg-[#0b1220] text-white"
               : "border-orange-200 bg-white text-slate-900",
@@ -1158,106 +1297,31 @@ const DepositsStatus = () => {
         >
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-semibold">
-              {actionType === "approve" ? "Approve Deposit" : "Reject Deposit"}
+              Confirm {actionType === "approve" ? "Approval" : "Rejection"}
             </AlertDialogTitle>
-
-            <AlertDialogDescription asChild>
-              {selectedDeposit && (
-                <div className={isDark ? "text-white/70" : "text-slate-600"}>
-                  <div className="space-y-4">
-                    <div
-                      className={[
-                        "rounded-xl border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-orange-50/40",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "mb-2 text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        User Information
-                      </p>
-                      <p>
-                        Name: {selectedDeposit.userId?.firstName}{" "}
-                        {selectedDeposit.userId?.lastName}
-                      </p>
-                      <p>Email: {selectedDeposit.userId?.email}</p>
-                      <p>Phone: {selectedDeposit.userId?.phone}</p>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-orange-50/40",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "mb-2 text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        Deposit Details
-                      </p>
-                      <p>Deposit Amount: ${selectedDeposit.deposit}</p>
-                      <p>AC Number: {selectedDeposit?.mt5Account}</p>
-                      <p>AC Type: {selectedDeposit.accountType}</p>
-                      <p>Transaction ID: {selectedDeposit?.transactionId}</p>
-                      <p>
-                        Date:{" "}
-                        {CFformatDate(
-                          selectedDeposit?.updatedAt || selectedDeposit?.createdAt
-                        )}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="admin-comment"
-                        className={[
-                          "mb-2 block text-sm font-medium",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        Admin Comment *
-                      </label>
-                      <textarea
-                        id="admin-comment"
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        maxLength={300}
-                        placeholder={
-                          actionType === "approve"
-                            ? "Add a note for the user"
-                            : "Reason for rejection"
-                        }
-                        className={[
-                          "min-h-[90px] w-full resize-none rounded-xl border px-3 py-2 text-sm outline-none transition",
-                          isDark
-                            ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40"
-                            : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300",
-                        ].join(" ")}
-                      />
-                      <div
-                        className={[
-                          "mt-1 text-right text-xs",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        {comment.length}/300
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <AlertDialogDescription
+              className={isDark ? "text-white/60" : "text-slate-500"}
+            >
+              Please enter a comment before continuing.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="space-y-3">
+            <textarea
+              rows={4}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder={`Write reason for ${
+                actionType === "approve" ? "approval" : "rejection"
+              }...`}
+              className={[
+                "w-full rounded-xl border p-3 text-sm outline-none transition",
+                isDark
+                  ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
+                  : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
+              ].join(" ")}
+            />
+          </div>
 
           <AlertDialogFooter>
             <AlertDialogCancel
@@ -1289,13 +1353,24 @@ const DepositsStatus = () => {
             >
               {isActionLoading
                 ? "Processing..."
-                : `Confirm ${actionType === "approve" ? "Approval" : "Rejection"}`}
+                : `Confirm ${
+                    actionType === "approve" ? "Approval" : "Rejection"
+                  }`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Proof Preview Dialog */}
+    <DepositDetailsModal
+  showDetails={showDetails}
+  setShowDetails={setShowDetails}
+  selectedDeposit={selectedDeposit}
+  isDark={isDark}
+  getStatusBadge={getStatusBadge}
+  renderDetailValue={renderDetailValue}
+  CFformatDate={CFformatDate}
+/>
+
       <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
         <AlertDialogContent
           className={[
@@ -1311,37 +1386,27 @@ const DepositsStatus = () => {
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div>
-                <img
-                  src={imgUrl(selectedDeposit?.depositSS)}
-                  alt="Proof of Deposit"
-                  className="my-6 h-auto w-full rounded-xl border object-contain"
-                />
+                {selectedDeposit?.depositSS ? (
+                  <img
+                    src={imgUrl(selectedDeposit?.depositSS)}
+                    alt="Deposit proof"
+                    className="max-h-[70vh] w-full rounded-xl object-contain"
+                  />
+                ) : (
+                  <div
+                    className={[
+                      "rounded-xl border p-8 text-center",
+                      isDark
+                        ? "border-white/10 bg-white/[0.03] text-white/60"
+                        : "border-slate-200 bg-slate-50 text-slate-500",
+                    ].join(" ")}
+                  >
+                    No screenshot uploaded.
+                  </div>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              className={[
-                "rounded-xl border px-4 py-2",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
-                  : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
-              ].join(" ")}
-            >
-              Close
-            </AlertDialogCancel>
-
-            <AlertDialogAction className="rounded-xl border border-blue-500 bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href={imgUrl(selectedDeposit?.depositSS)}
-              >
-                View Full Image
-              </a>
-            </AlertDialogAction>
-          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

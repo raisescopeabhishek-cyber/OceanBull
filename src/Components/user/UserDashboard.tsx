@@ -510,70 +510,70 @@ export default function UserDashboard() {
   }, [loadDashboardSummary]);
 
   const stats: StatItem[] = useMemo(
-    () => [
-      {
-        title: "Total Balance",
-        value: formatCurrency(summary.totalBalance, summary.currency),
-        change: `Combined from ${summary.totalAccounts} account${
-          summary.totalAccounts === 1 ? "" : "s"
-        }`,
-        icon: <Wallet size={20} />,
-        positive: summary.totalBalance >= 0,
-        trend: [18, 20, 21, 23, 24, 25, 25.3, 25.48],
-        link: CARD_LINKS[0],
-      },
-      {
-        title: "Total Equity",
-        value: formatCurrency(summary.totalEquity, summary.currency),
-        change: "Summed from accountsData",
-        icon: <TrendingUp size={20} />,
-        positive: summary.totalEquity >= summary.totalBalance,
-        trend: [17.6, 18.2, 19.4, 20.7, 22.1, 23.9, 24.8, 26.12],
-        link: CARD_LINKS[1],
-      },
-      {
-        title: "Total Deposit",
-        value: formatCurrency(summary.totalDeposit, summary.currency),
-        change:
-          summary.totalDeposit > 0 ? "Loaded from deposit API" : "No deposits yet",
-        icon: <Landmark size={20} />,
-        positive: summary.totalDeposit >= 0,
-        trend: [8, 9.5, 11, 12.5, 13.5, 15, 16.8, 18],
-        link: CARD_LINKS[2],
-      },
-      {
-        title: "Total Withdrawal",
-        value: formatCurrency(summary.totalWithdrawal, summary.currency),
-        change:
-          summary.totalWithdrawal > 0
-            ? "Loaded from withdrawal API"
-            : "No withdrawals yet",
-        icon: <CircleDollarSign size={20} />,
-        positive: summary.totalWithdrawal >= 0,
-        trend: [1.2, 1.4, 1.8, 2.1, 2.4, 2.7, 3.0, 3.2],
-        link: CARD_LINKS[3],
-      },
-      {
-        title: "Total Bonus",
-        value: formatCurrency(summary.totalBonus, summary.currency),
-        change: "Loaded from loggedUser bonusWallet",
-        icon: <Gift size={20} />,
-        positive: summary.totalBonus >= 0,
-        trend: [0.2, 0.25, 0.32, 0.4, 0.55, 0.63, 0.75, 0.85],
-        link: CARD_LINKS[4],
-      },
-      {
-        title: "Total IB Commission",
-        value: formatCurrency(summary.totalIbCommission, summary.currency),
-        change: "API placeholder ready",
-        icon: <Gift size={20} />,
-        positive: summary.totalIbCommission >= 0,
-        trend: [0.2, 0.25, 0.32, 0.4, 0.55, 0.63, 0.75, 0.85],
-        link: CARD_LINKS[5],
-      },
-    ],
-    [summary]
-  );
+  () => [
+    {
+      title: "Total Balance",
+      value: formatCurrency(summary.totalBalance, summary.currency),
+      change: `Combined from ${summary.totalAccounts} account${
+        summary.totalAccounts === 1 ? "" : "s"
+      }`,
+      icon: <Wallet size={20} />,
+      positive: summary.totalBalance >= 0,
+      trend: [0, 1, 0, 0.5, 0, 2, 0.1, 0],
+      link: CARD_LINKS[0],
+    },
+    {
+      title: "Total Equity",
+      value: formatCurrency(summary.totalEquity, summary.currency),
+      change: "Summed from accountsData",
+      icon: <TrendingUp size={20} />,
+      positive: summary.totalEquity >= summary.totalBalance,
+      trend: [0.2, 0, 0.6, 0.1, 0.5, 0, 0.4, 0.1],
+      link: CARD_LINKS[1],
+    },
+    {
+      title: "Total Deposit",
+      value: formatCurrency(summary.totalDeposit, summary.currency),
+      change:
+        summary.totalDeposit > 0 ? "Loaded from deposit API" : "No deposits yet",
+      icon: <Landmark size={20} />,
+      positive: summary.totalDeposit >= 0,
+      trend: [0, 0.3, 0.1, 0.6, 0, 0.4, 0.2, 0.7],
+      link: CARD_LINKS[2],
+    },
+    {
+      title: "Total Withdrawal",
+      value: formatCurrency(summary.totalWithdrawal, summary.currency),
+      change:
+        summary.totalWithdrawal > 0
+          ? "Loaded from withdrawal API"
+          : "No withdrawals yet",
+      icon: <CircleDollarSign size={20} />,
+      positive: summary.totalWithdrawal >= 0,
+      trend: [0.5, 0.1, 0.4, 0, 0.3, 0.1, 0.6, 0],
+      link: CARD_LINKS[3],
+    },
+    {
+      title: "Total Bonus",
+      value: formatCurrency(summary.totalBonus, summary.currency),
+      change: "Loaded from loggedUser bonusWallet",
+      icon: <Gift size={20} />,
+      positive: summary.totalBonus >= 0,
+      trend: [0, 0.4, 0.2, 0.5, 0.1, 0.3, 0, 0.6],
+      link: CARD_LINKS[4],
+    },
+    {
+      title: "Total IB Commission",
+      value: formatCurrency(summary.totalIbCommission, summary.currency),
+      change: "API placeholder ready",
+      icon: <Gift size={20} />,
+      positive: summary.totalIbCommission >= 0,
+      trend: [0.3, 0, 0.5, 0.2, 0.6, 0.1, 0.4, 0],
+      link: CARD_LINKS[5],
+    },
+  ],
+  [summary]
+);
 
   const miniSummary: SummaryItem[] = [
     {
@@ -788,8 +788,8 @@ export default function UserDashboard() {
         <section className={cx(sectionShell, "p-5 sm:p-6")}>
           <div className={statsGridClass}>
             {stats.map((item, index) => {
-              const sparklineWidth = 260;
-              const sparklineHeight = 110;
+              const sparklineWidth = 4000;
+              const sparklineHeight = 1000;
 
               const sparklinePoints = buildSparklinePoints(
                 item.trend,
@@ -870,7 +870,7 @@ export default function UserDashboard() {
                       )}
                     />
 
-                    <div className="absolute right-[-10px] bottom-[-10px] h-[120px] w-[58%] opacity-95">
+                    <div className="absolute right-[-50px] bottom-[-1px] h-[100px] w-[58%] opacity-95">
                       <svg
                         viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
                         className="h-full w-full"
@@ -1059,14 +1059,6 @@ export default function UserDashboard() {
                         {item.change}
                       </span>
 
-                      <span
-                        className={cx(
-                          "shrink-0 text-[11px] font-medium uppercase tracking-[0.22em]",
-                          mutedText
-                        )}
-                      >
-                        Overall
-                      </span>
                     </div>
                   </div>
                 </motion.article>

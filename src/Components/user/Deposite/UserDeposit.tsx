@@ -457,7 +457,7 @@ const [wantInsurance, setWantInsurance] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [showTxnModal, setShowTxnModal] = useState(true);
 
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnError, setTxnError] = useState<string | null>(null);

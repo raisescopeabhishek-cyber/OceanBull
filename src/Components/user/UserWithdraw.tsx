@@ -444,7 +444,7 @@ export default function UserWithdraw() {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [apiLoader, setApiLoader] = useState(false);
 
-  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [showTxnModal, setShowTxnModal] = useState(true);
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnError, setTxnError] = useState<string | null>(null);
   const [txnQ, setTxnQ] = useState("");

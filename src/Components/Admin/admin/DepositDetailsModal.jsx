@@ -1,6 +1,4 @@
 import { createPortal } from "react-dom";
-
-
 import {
   ArrowLeftRight,
   Gift,
@@ -11,6 +9,7 @@ import {
   Shield,
   CircleCheckBig,
 } from "lucide-react";
+
 const DetailStatCard = ({
   title,
   value,
@@ -79,13 +78,7 @@ const DetailStatCard = ({
   );
 };
 
-
-
-const DetailRow = ({
-  label,
-  value,
-  isDark,
-}) => (
+const DetailRow = ({ label, value, isDark }) => (
   <div
     className={[
       "flex items-start justify-between gap-4 border-b border-dashed py-3 last:border-b-0",
@@ -111,23 +104,69 @@ const DetailRow = ({
   </div>
 );
 
-
-
- const DepositDetailsModal = ({
+const DepositDetailsModal = ({
   showDetails,
   setShowDetails,
   selectedDeposit,
   isDark,
   getStatusBadge,
   renderDetailValue,
-  CFformatDate
 }) => {
   if (!showDetails) return null;
 
+  const insuranceDetails = selectedDeposit?.insuranceDetails || null;
 
+  const getInsuranceStatusBadge = (status) => {
+    const normalized = String(status || "").toLowerCase();
 
+    if (normalized === "claimed") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+            isDark
+              ? "bg-blue-500/10 text-blue-300"
+              : "bg-blue-50 text-blue-700",
+          ].join(" ")}
+        >
+          <Shield size={14} />
+          Claimed
+        </span>
+      );
+    }
 
-    const InfoCard = ({
+    if (normalized === "pending_coverage") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+            isDark
+              ? "bg-yellow-500/10 text-yellow-300"
+              : "bg-yellow-50 text-yellow-700",
+          ].join(" ")}
+        >
+          <Shield size={14} />
+          Pending Coverage
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className={[
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
+          isDark
+            ? "bg-emerald-500/10 text-emerald-300"
+            : "bg-emerald-50 text-emerald-700",
+        ].join(" ")}
+      >
+        <Shield size={14} />
+        Active
+      </span>
+    );
+  };
+
+  const InfoCard = ({
     icon,
     label,
     value,
@@ -184,9 +223,6 @@ const DetailRow = ({
     </div>
   );
 
-
-
-
   return createPortal(
     <div className="fixed inset-0 z-[9999]">
       <div
@@ -222,52 +258,29 @@ const DetailRow = ({
                 </p>
               </div>
 
-             <div className="flex gap-3">
+              <div className="flex gap-3">
+                <div>{renderDetailValue(selectedDeposit?.mt5Account)}</div>
 
+                <div>{getStatusBadge(selectedDeposit?.status)}</div>
 
-              <div>
-                {renderDetailValue(selectedDeposit?.mt5Account)}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowDetails(false)}
+                    className={`rounded-xl border px-4 py-1 ${
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
+                        : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50"
+                    }`}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-
-
-               <div >{getStatusBadge(selectedDeposit?.status)}</div>
-
-
-                <div >
-            <button
-              type="button"
-              onClick={() => setShowDetails(false)}
-              className={`rounded-xl border px-4 py-1 ${
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
-                  : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50"
-              }`}
-            >
-              Close
-            </button>
-          </div>
-
-
-
-
-             </div>
-
-
-
-
-
-
-
-
             </div>
-
-
-
-          
           </div>
 
           <div className="space-y-6 p-6">
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <DetailStatCard
                 title="Deposit Amount"
@@ -276,39 +289,48 @@ const DetailRow = ({
                 tone="default"
                 isDark={isDark}
               />
+
               <DetailStatCard
-  title="Base Amount"
-  value={`$${Number(selectedDeposit?.baseDepositAmount || 0).toFixed(2)}`}
-  helper={`Type: ${renderDetailValue(selectedDeposit?.accountType)}`}
-  icon={<CreditCard size={18} />}
-  tone="default"
-  isDark={isDark}
-/>
-            <DetailStatCard
-  title="Bonus"
-  value={`$${Number(selectedDeposit?.bonusDetails?.bonusAmount || 0).toFixed(2)}`}
-  helper={`${Number(
-    selectedDeposit?.bonusDetails?.bonusPercent || 0
-  ).toFixed(2)}%`}
-  icon={<Gift size={18} />}
-  tone="success"
-  isDark={isDark}
-/>
-              <DetailStatCard
-                title="Method"
-                value={renderDetailValue(selectedDeposit?.method)}
-                helper={CFformatDate(
-                  selectedDeposit?.status === "approved" ||
-                    selectedDeposit?.status === "rejected"
-                    ? selectedDeposit?.updatedAt
-                    : selectedDeposit?.createdAt
-                )}
-                icon={<ArrowLeftRight size={18} />}
-                tone="warning"
+                title="Base Amount"
+                value={`$${Number(
+                  selectedDeposit?.baseDepositAmount || 0
+                ).toFixed(2)}`}
+                helper={`Type: ${renderDetailValue(selectedDeposit?.accountType)}`}
+                icon={<CreditCard size={18} />}
+                tone="default"
                 isDark={isDark}
               />
 
-              
+              <DetailStatCard
+                title="Bonus"
+                value={`$${Number(
+                  selectedDeposit?.bonusDetails?.bonusAmount || 0
+                ).toFixed(2)}`}
+                helper={`${Number(
+                  selectedDeposit?.bonusDetails?.bonusPercent || 0
+                ).toFixed(2)}%`}
+                icon={<Gift size={18} />}
+                tone="success"
+                isDark={isDark}
+              />
+
+              <DetailStatCard
+                title="Insurance Claim"
+                value={`$${Number(
+                  selectedDeposit?.insuranceDetails?.claimAmount || 0
+                ).toFixed(2)}`}
+                helper={
+                  insuranceDetails
+                    ? `Charge: $${Number(
+                        selectedDeposit?.insuranceDetails?.insuranceChargeAmount ||
+                          0
+                      ).toFixed(2)}`
+                    : "No insurance"
+                }
+                icon={<Shield size={18} />}
+                tone="info"
+                isDark={isDark}
+              />
             </div>
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -327,34 +349,20 @@ const DetailRow = ({
                   <h3 className="text-base font-semibold">Insurance Details</h3>
                 </div>
 
-                {selectedDeposit?.insuranceOpted &&
-                selectedDeposit?.insuranceDetails ? (
+                {insuranceDetails ? (
                   <>
                     <DetailRow
-                      label="Insurance Status"
-                      value="Opted"
+                      label="Coverage Status"
+                      value={getInsuranceStatusBadge(
+                        selectedDeposit?.insuranceDetails?.status
+                      )}
                       isDark={isDark}
                     />
                     <DetailRow
-                      label="Configured Amount"
-                      value={`$${Number(
-                        selectedDeposit?.insuranceDetails?.exactAmount || 0
-                      ).toFixed(2)}`}
-                      isDark={isDark}
-                    />
-                    <DetailRow
-                      label="Insurance %"
-                      value={`${Number(
-                        selectedDeposit?.insuranceDetails
-                          ?.insuranceChargesPercent || 0
-                      ).toFixed(2)}%`}
-                      isDark={isDark}
-                    />
-                    <DetailRow
-                      label="Claim %"
-                      value={`${Number(
-                        selectedDeposit?.insuranceDetails?.claimPercent || 0
-                      ).toFixed(2)}%`}
+                      label="Coverage ID"
+                      value={renderDetailValue(
+                        selectedDeposit?.insuranceDetails?.coverageId
+                      )}
                       isDark={isDark}
                     />
                     <DetailRow
@@ -363,6 +371,35 @@ const DetailRow = ({
                         selectedDeposit?.insuranceDetails
                           ?.insuranceChargeAmount || 0
                       ).toFixed(2)}`}
+                      isDark={isDark}
+                    />
+                    <DetailRow
+                      label="Claim Amount"
+                      value={`$${Number(
+                        selectedDeposit?.insuranceDetails?.claimAmount || 0
+                      ).toFixed(2)}`}
+                      isDark={isDark}
+                    />
+                    <DetailRow
+                      label="Claimed At"
+                      value={
+                        selectedDeposit?.insuranceDetails?.claimedAt
+                          ? new Date(
+                              selectedDeposit?.insuranceDetails?.claimedAt
+                            ).toLocaleString()
+                          : "Not claimed yet"
+                      }
+                      isDark={isDark}
+                    />
+                    <DetailRow
+                      label="Coverage Updated At"
+                      value={
+                        selectedDeposit?.insuranceDetails?.updatedAt
+                          ? new Date(
+                              selectedDeposit?.insuranceDetails?.updatedAt
+                            ).toLocaleString()
+                          : "N/A"
+                      }
                       isDark={isDark}
                     />
                   </>
@@ -374,7 +411,7 @@ const DetailRow = ({
                         : "border-slate-200 text-slate-500"
                     }`}
                   >
-                    No insurance details found for this deposit.
+                    No insurance coverage found for this deposit.
                   </div>
                 )}
               </div>
@@ -394,11 +431,11 @@ const DetailRow = ({
                   <h3 className="text-base font-semibold">Bonus Details</h3>
                 </div>
 
-                { selectedDeposit?.bonusDetails ? (
+                {selectedDeposit?.bonusDetails ? (
                   <>
                     <DetailRow
                       label="Bonus Status"
-                      value="Opted"
+                      value="Applied"
                       isDark={isDark}
                     />
                     <DetailRow
@@ -422,11 +459,6 @@ const DetailRow = ({
                       ).toFixed(2)}`}
                       isDark={isDark}
                     />
-                   <DetailRow
-  label="Stored Bonus Field"
-  value={`$${Number(selectedDeposit?.bonus || 0).toFixed(2)}`}
-  isDark={isDark}
-/>
                   </>
                 ) : (
                   <div
@@ -463,60 +495,67 @@ const DetailRow = ({
                   label="Transaction ID"
                   value={renderDetailValue(selectedDeposit?.transactionId)}
                 />
-                {/* <InfoCard
-                  icon={<FileText size={18} />}
-                  label="Insurance Config ID"
-                  value={renderDetailValue(selectedDeposit?.insuranceConfigId)}
-                /> */}
-                {/* <InfoCard
-                  icon={<FileText size={18} />}
-                  label="Deposit Bonus Config ID"
-                  value={renderDetailValue(
-                    selectedDeposit?.depositBonusConfigId
-                  )}
-                /> */}
+
+                <InfoCard
+                  icon={<Wallet size={18} />}
+                  label="Final Payable Amount"
+                  value={`$${Number(
+                    selectedDeposit?.finalPayableAmount ||
+                      selectedDeposit?.deposit ||
+                      0
+                  ).toFixed(2)}`}
+                />
+
                 <InfoCard
                   icon={<CircleCheckBig size={18} />}
                   label="Approved At"
                   value={
                     selectedDeposit?.approvedAt
-                      // ? CFformatDate(selectedDeposit?.approvedAt)
-                       ? "Admin"
+                      ? new Date(selectedDeposit?.approvedAt).toLocaleString()
                       : "Not approved yet"
                   }
                 />
+
                 <InfoCard
                   icon={<User size={18} />}
                   label="Approved By"
                   value={renderDetailValue(selectedDeposit?.approvedBy)}
                 />
+
                 <InfoCard
                   icon={<FileText size={18} />}
                   label="Created At"
                   value={
                     selectedDeposit?.createdAt
-                      ? CFformatDate(selectedDeposit?.createdAt)
+                      ? new Date(selectedDeposit?.createdAt).toLocaleString()
                       : "N/A"
                   }
                 />
+
                 <InfoCard
                   icon={<FileText size={18} />}
                   label="Updated At"
                   value={
                     selectedDeposit?.updatedAt
-                      ? CFformatDate(selectedDeposit?.updatedAt)
+                      ? new Date(selectedDeposit?.updatedAt).toLocaleString()
                       : "N/A"
                   }
                 />
+
                 <InfoCard
                   icon={<User size={18} />}
                   label="Country"
                   value={renderDetailValue(selectedDeposit?.user?.country)}
                 />
+
+                <InfoCard
+                  icon={<ArrowLeftRight size={18} />}
+                  label="Method"
+                  value={renderDetailValue(selectedDeposit?.method)}
+                />
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>,

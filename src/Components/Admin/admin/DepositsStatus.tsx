@@ -14,11 +14,6 @@ import {
   ChevronUp,
   Eye,
   Shield,
-  Gift,
-  Wallet,
-  User,
-  CreditCard,
-  FileText,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -32,124 +27,11 @@ import {
 } from "../../ui/alert-dialog";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
-import {
-  CFcalculateTimeSinceJoined,
-  CFformatDate,
-} from "../../../utils/CustomFunctions";
 import { useSelector } from "react-redux";
 
-import DepositDetailsModal from "../admin/DepositDetailsModal.jsx"
+import DepositDetailsModal from "../admin/DepositDetailsModal.jsx";
 
 const PAGE_LIMIT = 10;
-
-const DetailStatCard = ({
-  title,
-  value,
-  helper,
-  icon,
-  tone = "default",
-  isDark,
-}: {
-  title: string;
-  value: React.ReactNode;
-  helper?: React.ReactNode;
-  icon: React.ReactNode;
-  tone?: "default" | "success" | "warning" | "info";
-  isDark: boolean;
-}) => {
-  const toneClasses = {
-    default: isDark
-      ? "border-white/10 bg-white/[0.04]"
-      : "border-slate-200 bg-white",
-    success: isDark
-      ? "border-emerald-500/20 bg-emerald-500/10"
-      : "border-emerald-200 bg-emerald-50",
-    warning: isDark
-      ? "border-yellow-500/20 bg-yellow-500/10"
-      : "border-yellow-200 bg-yellow-50",
-    info: isDark
-      ? "border-blue-500/20 bg-blue-500/10"
-      : "border-blue-200 bg-blue-50",
-  };
-
-  return (
-    <div className={`rounded-2xl border p-4 ${toneClasses[tone]}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p
-            className={[
-              "text-[11px] font-semibold uppercase tracking-[0.16em]",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            {title}
-          </p>
-          <div
-            className={[
-              "mt-2 text-lg font-bold leading-tight sm:text-xl",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            {value}
-          </div>
-          {helper ? (
-            <p
-              className={[
-                "mt-1 text-xs",
-                isDark ? "text-white/50" : "text-slate-500",
-              ].join(" ")}
-            >
-              {helper}
-            </p>
-          ) : null}
-        </div>
-
-        <div
-          className={[
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-            isDark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-700",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DetailRow = ({
-  label,
-  value,
-  isDark,
-}: {
-  label: string;
-  value: React.ReactNode;
-  isDark: boolean;
-}) => (
-  <div
-    className={[
-      "flex items-start justify-between gap-4 border-b border-dashed py-3 last:border-b-0",
-      isDark ? "border-white/10" : "border-slate-200",
-    ].join(" ")}
-  >
-    <span
-      className={[
-        "text-sm",
-        isDark ? "text-white/55" : "text-slate-500",
-      ].join(" ")}
-    >
-      {label}
-    </span>
-    <span
-      className={[
-        "max-w-[55%] text-right text-sm font-semibold break-words",
-        isDark ? "text-white" : "text-slate-900",
-      ].join(" ")}
-    >
-      {value}
-    </span>
-  </div>
-);
 
 const DepositsStatus = () => {
   const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
@@ -278,7 +160,7 @@ const DepositsStatus = () => {
         _id: selected._id,
         status: actionType,
         mt5Account: selected.mt5Account,
-        amount: selected.deposit,
+        amount: selected.baseDepositAmount || selected.deposit,
         email: selected.user?.email,
         selectedDeposit: selected,
         comment,
@@ -325,18 +207,17 @@ const DepositsStatus = () => {
     fetchAllData();
   }, []);
 
-const TotalBonus = useMemo(
-  () =>
-    allDepositData
-      .filter((item) => item?.status === "approved")
-      .reduce(
-        (total, item) =>
-          total + Number(item?.bonusDetails?.bonusAmount || 0),
-        0
-      )
-      .toFixed(2),
-  [allDepositData]
-);
+  const TotalBonus = useMemo(
+    () =>
+      allDepositData
+        .filter((item) => item?.status === "approved")
+        .reduce(
+          (total, item) => total + Number(item?.bonusDetails?.bonusAmount || 0),
+          0
+        )
+        .toFixed(2),
+    [allDepositData]
+  );
 
   const TotalDeposits = useMemo(
     () =>
@@ -413,68 +294,71 @@ const TotalBonus = useMemo(
     );
   };
 
-  const InfoCard = ({
-    icon,
-    label,
-    value,
-    subValue,
-    iconClass = "",
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    value: React.ReactNode;
-    subValue?: React.ReactNode;
-    iconClass?: string;
-  }) => (
-    <div
-      className={[
-        "rounded-2xl border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-orange-100 bg-orange-50/40",
-      ].join(" ")}
-    >
-      <div className="flex items-start gap-3">
-        <div
+  const getInsuranceBadge = (insuranceDetails?: any) => {
+    if (!insuranceDetails) {
+      return (
+        <span
           className={[
-            "flex h-10 w-10 items-center justify-center rounded-xl",
-            isDark ? "bg-white/[0.05] text-white" : "bg-white text-slate-700",
-            iconClass,
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+            isDark
+              ? "bg-white/10 text-white/65"
+              : "bg-slate-100 text-slate-600",
           ].join(" ")}
         >
-          {icon}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className={[
-              "text-[11px] font-semibold uppercase tracking-[0.12em] whitespace-nowrap",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            {label}
-          </p>
-          <p
-            className={[
-              "mt-1 text-sm font-semibold leading-6 break-words sm:text-base",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            {value}
-          </p>
-          {subValue ? (
-            <p
-              className={[
-                "mt-1 text-xs",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              {subValue}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
+          <Shield size={14} />
+          No Insurance
+        </span>
+      );
+    }
+
+    const status = String(insuranceDetails?.status || "").toLowerCase();
+
+    if (status === "claimed") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+            isDark
+              ? "bg-blue-500/10 text-blue-300"
+              : "bg-blue-50 text-blue-700",
+          ].join(" ")}
+        >
+          <Shield size={14} />
+          Claimed
+        </span>
+      );
+    }
+
+    if (status === "pending_coverage") {
+      return (
+        <span
+          className={[
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+            isDark
+              ? "bg-yellow-500/10 text-yellow-300"
+              : "bg-yellow-50 text-yellow-700",
+          ].join(" ")}
+        >
+          <Shield size={14} />
+          Pending Coverage
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className={[
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+          isDark
+            ? "bg-emerald-500/10 text-emerald-300"
+            : "bg-emerald-50 text-emerald-700",
+        ].join(" ")}
+      >
+        <Shield size={14} />
+        Active
+      </span>
+    );
+  };
 
   const renderDetailValue = (value: any, fallback = "N/A") => {
     if (value === null || value === undefined || value === "") return fallback;
@@ -773,7 +657,7 @@ const TotalBonus = useMemo(
           ].join(" ")}
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1400px]">
+            <table className="w-full min-w-[1500px]">
               <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
                 <tr
                   className={[
@@ -786,6 +670,7 @@ const TotalBonus = useMemo(
                     "MT5 Account",
                     "Account Type",
                     "Deposit",
+                    "Insurance",
                     "Details",
                     "Proof",
                     "Status / Action",
@@ -919,6 +804,32 @@ const TotalBonus = useMemo(
                         </div>
                       </td>
 
+                      <td className="px-5 py-4">
+                        <div className="flex flex-col gap-2">
+                          {getInsuranceBadge(item?.insuranceDetails)}
+                          {item?.insuranceDetails ? (
+                            <div
+                              className={[
+                                "space-y-1 text-xs",
+                                isDark ? "text-white/55" : "text-slate-500",
+                              ].join(" ")}
+                            >
+                              <p>
+                                Charge: $
+                                {Number(
+                                  item?.insuranceDetails?.insuranceChargeAmount || 0
+                                ).toFixed(2)}
+                              </p>
+                              <p>
+                                Claim: $
+                                {Number(
+                                  item?.insuranceDetails?.claimAmount || 0
+                                ).toFixed(2)}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
 
                       <td className="px-5 py-4">
                         <button
@@ -1173,6 +1084,14 @@ const TotalBonus = useMemo(
                     >
                       ${Number(item?.deposit || 0).toFixed(2)}
                     </p>
+                    <p
+                      className={[
+                        "mt-1 text-xs",
+                        isDark ? "text-white/45" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      Base: ${Number(item?.baseDepositAmount || 0).toFixed(2)}
+                    </p>
                   </div>
 
                   <div
@@ -1187,16 +1106,24 @@ const TotalBonus = useMemo(
                         isDark ? "text-white/45" : "text-slate-500",
                       ].join(" ")}
                     >
-                      Bonus
+                      Insurance
                     </p>
-                    <p
-                      className={[
-                        "mt-1 text-sm font-semibold",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      ${Number(item?.bonus || 0).toFixed(2)}
-                    </p>
+                    <div className="mt-1">
+                      {getInsuranceBadge(item?.insuranceDetails)}
+                    </div>
+                    {item?.insuranceDetails ? (
+                      <p
+                        className={[
+                          "mt-2 text-xs",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Claim: $
+                        {Number(item?.insuranceDetails?.claimAmount || 0).toFixed(
+                          2
+                        )}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -1361,15 +1288,14 @@ const TotalBonus = useMemo(
         </AlertDialogContent>
       </AlertDialog>
 
-    <DepositDetailsModal
-  showDetails={showDetails}
-  setShowDetails={setShowDetails}
-  selectedDeposit={selectedDeposit}
-  isDark={isDark}
-  getStatusBadge={getStatusBadge}
-  renderDetailValue={renderDetailValue}
-  CFformatDate={CFformatDate}
-/>
+      <DepositDetailsModal
+        showDetails={showDetails}
+        setShowDetails={setShowDetails}
+        selectedDeposit={selectedDeposit}
+        isDark={isDark}
+        getStatusBadge={getStatusBadge}
+        renderDetailValue={renderDetailValue}
+      />
 
       <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
         <AlertDialogContent

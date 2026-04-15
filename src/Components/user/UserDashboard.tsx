@@ -7,8 +7,10 @@ import {
   Landmark,
   RefreshCw,
   Server,
+  ShieldCheck,
   TrendingUp,
   Wallet,
+  X,
 } from "lucide-react";
 import { userApi } from "@/utils/apiClients";
 import AccountOpenTradesMarketSection from "./AccountOpenTradesMarketSection";
@@ -31,6 +33,9 @@ const CARD_LINKS = [
   "/user/bonus/dashboard",
   "/user/dashboard",
 ];
+
+const INSURANCE_POPUP_ENDPOINT = "/insurance-claim-popup-status";
+// agar tumhara backend route alag hai to yahan change kar dena
 
 type DashboardSummary = {
   totalBalance: number;
@@ -60,6 +65,30 @@ type SummaryItem = {
   value: string;
   icon: React.ReactNode;
   tone: "primary" | "warning" | "success";
+};
+
+type InsuranceClaimTrade = {
+  symbol?: string;
+  profit?: number;
+  closeTime?: string;
+  closeTimeDate?: string;
+};
+
+type InsuranceClaimItem = {
+  accountNumber: string;
+  availableBalance?: number | null;
+  latestCloseTrade?: InsuranceClaimTrade | null;
+};
+
+type InsuranceEligibilityResponse = {
+  success?: boolean;
+  showInsuranceClaimPopup?: boolean;
+  message?: string;
+  summary?: {
+    threshold?: number;
+    eligibleAccounts?: number;
+  };
+  report?: InsuranceClaimItem[];
 };
 
 type SvgPoint = {
@@ -304,6 +333,13 @@ export default function UserDashboard() {
     getEmptyDashboardSummary("USD")
   );
 
+  const [insurancePopupOpen, setInsurancePopupOpen] = useState(false);
+  const [insurancePopupMessage, setInsurancePopupMessage] = useState("");
+  const [insuranceEligibleAccounts, setInsuranceEligibleAccounts] = useState<
+    InsuranceClaimItem[]
+  >([]);
+  const [insurancePopupKey, setInsurancePopupKey] = useState("");
+
   const allAccounts = useMemo(
     () => extractAccounts(accountsData, loggedUser),
     [accountsData, loggedUser]
@@ -421,6 +457,56 @@ export default function UserDashboard() {
     return 0;
   }, []);
 
+  const closeInsurancePopup = useCallback(() => {
+    if (typeof window !== "undefined" && insurancePopupKey) {
+      sessionStorage.setItem(insurancePopupKey, "seen");
+    }
+    setInsurancePopupOpen(false);
+  }, [insurancePopupKey]);
+
+  const checkInsuranceEligibility = useCallback(async () => {
+    try {
+      const res = await userApi.get(INSURANCE_POPUP_ENDPOINT);
+      const data: InsuranceEligibilityResponse = res?.data || {};
+
+      if (
+        !data?.showInsuranceClaimPopup ||
+        !Array.isArray(data?.report) ||
+        !data.report.length
+      ) {
+        setInsurancePopupOpen(false);
+        setInsuranceEligibleAccounts([]);
+        setInsurancePopupMessage("");
+        setInsurancePopupKey("");
+        return;
+      }
+
+      const normalizedAccounts = data.report
+        .map((item) => String(item?.accountNumber || "").trim())
+        .filter(Boolean)
+        .sort();
+
+      const nextPopupKey = `insurance-claim-popup:${normalizedAccounts.join(",")}:${
+        data?.summary?.threshold ?? 10
+      }`;
+
+      if (typeof window !== "undefined") {
+        const alreadySeen = sessionStorage.getItem(nextPopupKey) === "seen";
+        if (alreadySeen) return;
+      }
+
+      setInsuranceEligibleAccounts(data.report);
+      setInsurancePopupMessage(
+        data?.message ||
+          "Congratulations! Your account is eligible for an insurance claim."
+      );
+      setInsurancePopupKey(nextPopupKey);
+      setInsurancePopupOpen(true);
+    } catch (error) {
+      console.error("Insurance eligibility check failed:", error);
+    }
+  }, []);
+
   const loadDashboardSummary = useCallback(async () => {
     setRefreshing(true);
     setErrorText("");
@@ -479,6 +565,8 @@ export default function UserDashboard() {
       });
 
       setLastUpdated(new Date().toLocaleString());
+
+      await checkInsuranceEligibility();
     } catch (error) {
       console.error("Failed to load dashboard summary:", error);
       setErrorText("Unable to load dashboard summary.");
@@ -495,6 +583,7 @@ export default function UserDashboard() {
     }
   }, [
     allAccounts,
+    checkInsuranceEligibility,
     fetchBonusTotalFromWallet,
     fetchDepositTotal,
     fetchIbCommissionTotalPlaceholder,
@@ -510,70 +599,70 @@ export default function UserDashboard() {
   }, [loadDashboardSummary]);
 
   const stats: StatItem[] = useMemo(
-  () => [
-    {
-      title: "Total Balance",
-      value: formatCurrency(summary.totalBalance, summary.currency),
-      change: `Combined from ${summary.totalAccounts} account${
-        summary.totalAccounts === 1 ? "" : "s"
-      }`,
-      icon: <Wallet size={20} />,
-      positive: summary.totalBalance >= 0,
-      trend: [0, 1, 0, 0.5, 0, 2, 0.1, 0],
-      link: CARD_LINKS[0],
-    },
-    {
-      title: "Total Equity",
-      value: formatCurrency(summary.totalEquity, summary.currency),
-      change: "Summed from accountsData",
-      icon: <TrendingUp size={20} />,
-      positive: summary.totalEquity >= summary.totalBalance,
-      trend: [0.2, 0, 0.6, 0.1, 0.5, 0, 0.4, 0.1],
-      link: CARD_LINKS[1],
-    },
-    {
-      title: "Total Deposit",
-      value: formatCurrency(summary.totalDeposit, summary.currency),
-      change:
-        summary.totalDeposit > 0 ? "Loaded from deposit API" : "No deposits yet",
-      icon: <Landmark size={20} />,
-      positive: summary.totalDeposit >= 0,
-      trend: [0, 0.3, 0.1, 0.6, 0, 0.4, 0.2, 0.7],
-      link: CARD_LINKS[2],
-    },
-    {
-      title: "Total Withdrawal",
-      value: formatCurrency(summary.totalWithdrawal, summary.currency),
-      change:
-        summary.totalWithdrawal > 0
-          ? "Loaded from withdrawal API"
-          : "No withdrawals yet",
-      icon: <CircleDollarSign size={20} />,
-      positive: summary.totalWithdrawal >= 0,
-      trend: [0.5, 0.1, 0.4, 0, 0.3, 0.1, 0.6, 0],
-      link: CARD_LINKS[3],
-    },
-    {
-      title: "Total Bonus",
-      value: formatCurrency(summary.totalBonus, summary.currency),
-      change: "Loaded from loggedUser bonusWallet",
-      icon: <Gift size={20} />,
-      positive: summary.totalBonus >= 0,
-      trend: [0, 0.4, 0.2, 0.5, 0.1, 0.3, 0, 0.6],
-      link: CARD_LINKS[4],
-    },
-    {
-      title: "Total IB Commission",
-      value: formatCurrency(summary.totalIbCommission, summary.currency),
-      change: "API placeholder ready",
-      icon: <Gift size={20} />,
-      positive: summary.totalIbCommission >= 0,
-      trend: [0.3, 0, 0.5, 0.2, 0.6, 0.1, 0.4, 0],
-      link: CARD_LINKS[5],
-    },
-  ],
-  [summary]
-);
+    () => [
+      {
+        title: "Total Balance",
+        value: formatCurrency(summary.totalBalance, summary.currency),
+        change: `Combined from ${summary.totalAccounts} account${
+          summary.totalAccounts === 1 ? "" : "s"
+        }`,
+        icon: <Wallet size={20} />,
+        positive: summary.totalBalance >= 0,
+        trend: [0, 1, 0, 0.5, 0, 2, 0.1, 0],
+        link: CARD_LINKS[0],
+      },
+      {
+        title: "Total Equity",
+        value: formatCurrency(summary.totalEquity, summary.currency),
+        change: "Summed from accountsData",
+        icon: <TrendingUp size={20} />,
+        positive: summary.totalEquity >= summary.totalBalance,
+        trend: [0.2, 0, 0.6, 0.1, 0.5, 0, 0.4, 0.1],
+        link: CARD_LINKS[1],
+      },
+      {
+        title: "Total Deposit",
+        value: formatCurrency(summary.totalDeposit, summary.currency),
+        change:
+          summary.totalDeposit > 0 ? "Loaded from deposit API" : "No deposits yet",
+        icon: <Landmark size={20} />,
+        positive: summary.totalDeposit >= 0,
+        trend: [0, 0.3, 0.1, 0.6, 0, 0.4, 0.2, 0.7],
+        link: CARD_LINKS[2],
+      },
+      {
+        title: "Total Withdrawal",
+        value: formatCurrency(summary.totalWithdrawal, summary.currency),
+        change:
+          summary.totalWithdrawal > 0
+            ? "Loaded from withdrawal API"
+            : "No withdrawals yet",
+        icon: <CircleDollarSign size={20} />,
+        positive: summary.totalWithdrawal >= 0,
+        trend: [0.5, 0.1, 0.4, 0, 0.3, 0.1, 0.6, 0],
+        link: CARD_LINKS[3],
+      },
+      {
+        title: "Total Bonus",
+        value: formatCurrency(summary.totalBonus, summary.currency),
+        change: "Loaded from loggedUser bonusWallet",
+        icon: <Gift size={20} />,
+        positive: summary.totalBonus >= 0,
+        trend: [0, 0.4, 0.2, 0.5, 0.1, 0.3, 0, 0.6],
+        link: CARD_LINKS[4],
+      },
+      {
+        title: "Total IB Commission",
+        value: formatCurrency(summary.totalIbCommission, summary.currency),
+        change: "API placeholder ready",
+        icon: <Gift size={20} />,
+        positive: summary.totalIbCommission >= 0,
+        trend: [0.3, 0, 0.5, 0.2, 0.6, 0.1, 0.4, 0],
+        link: CARD_LINKS[5],
+      },
+    ],
+    [summary]
+  );
 
   const miniSummary: SummaryItem[] = [
     {
@@ -1058,7 +1147,6 @@ export default function UserDashboard() {
                       >
                         {item.change}
                       </span>
-
                     </div>
                   </div>
                 </motion.article>
@@ -1067,9 +1155,155 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        <AccountOpenTradesMarketSection />
+        {insurancePopupOpen ? (
+          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.25 }}
+              className={cx(
+                "relative w-full max-w-2xl overflow-hidden rounded-[28px] border shadow-2xl",
+                isDark
+                  ? "border-white/10 bg-slate-900 text-white"
+                  : "border-orange-100 bg-white text-slate-900"
+              )}
+            >
+              <button
+                type="button"
+                onClick={closeInsurancePopup}
+                className={cx(
+                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
+                  isDark
+                    ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                )}
+              >
+                <X size={18} />
+              </button>
 
-        
+              <div
+                className={cx(
+                  "px-6 py-6 sm:px-7 sm:py-7",
+                  isDark
+                    ? "bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(59,130,246,0.10))]"
+                    : "bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(236,253,245,1))]"
+                )}
+              >
+                <div className="flex items-start gap-4 pr-10">
+                  <div
+                    className={cx(
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl",
+                      isDark
+                        ? "bg-emerald-500/15 text-emerald-300"
+                        : "bg-emerald-50 text-emerald-700"
+                    )}
+                  >
+                    <ShieldCheck size={28} />
+                  </div>
+
+                  <div>
+                    <p
+                      className={cx(
+                        "text-xs font-semibold uppercase tracking-[0.18em]",
+                        isDark ? "text-emerald-300" : "text-emerald-700"
+                      )}
+                    >
+                      Insurance Eligible
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-bold sm:text-3xl">
+                      Congratulations 🎉
+                    </h2>
+
+                    <p className={cx("mt-2 text-sm sm:text-base", mutedText)}>
+                      {insurancePopupMessage}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 py-5 sm:px-7 sm:py-6">
+                <div className="space-y-3">
+                  {insuranceEligibleAccounts.map((item, index) => (
+                    <div
+                      key={`${item.accountNumber}-${index}`}
+                      className={cx(
+                        "rounded-2xl border p-4",
+                        isDark
+                          ? "border-white/10 bg-white/[0.04]"
+                          : "border-orange-100 bg-orange-50/40"
+                      )}
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
+                            Account Number
+                          </p>
+                          <p className="text-base font-semibold">{item.accountNumber}</p>
+                        </div>
+
+                        <div className="text-left sm:text-right">
+                          <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
+                            Available Balance
+                          </p>
+                          <p className="text-base font-semibold">
+                            {formatCurrency(
+                              Number(item?.availableBalance || 0),
+                              summary.currency || "USD"
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {item?.latestCloseTrade ? (
+                        <div
+                          className={cx(
+                            "mt-3 rounded-xl border px-3 py-3 text-sm",
+                            isDark
+                              ? "border-white/10 bg-black/20"
+                              : "border-emerald-100 bg-white"
+                          )}
+                        >
+                          <p className="font-medium">
+                            Last Closed Trade: {item.latestCloseTrade.symbol || "N/A"}
+                          </p>
+                          <p className={mutedText}>
+                            Profit: {toNumber(item.latestCloseTrade.profit, 0).toFixed(2)}
+                          </p>
+                          <p className={mutedText}>
+                            Closed At:{" "}
+                            {item.latestCloseTrade.closeTime ||
+                              item.latestCloseTrade.closeTimeDate ||
+                              "N/A"}
+                          </p>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={closeInsurancePopup}
+                    className={cx(
+                      "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition",
+                      isDark
+                        ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                    )}
+                  >
+                    <Gift size={16} />
+                    Awesome
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        ) : null}
+
+        <AccountOpenTradesMarketSection />
       </div>
     </motion.div>
   );

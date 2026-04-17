@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   CircleDollarSign,
@@ -15,16 +17,6 @@ import {
 import { userApi } from "@/utils/apiClients";
 import AccountOpenTradesMarketSection from "./AccountOpenTradesMarketSection";
 
-/**
- * Yahin par saare card links de do, imports ke just baad.
- * Order stats cards ke hisaab se rahega:
- * 0 = Total Balance
- * 1 = Total Equity
- * 2 = Total Deposit
- * 3 = Total Withdrawal
- * 4 = Total Bonus
- * 5 = Total IB Commission
- */
 const CARD_LINKS = [
   "/user/dashboard",
   "/user/dashboard",
@@ -35,7 +27,8 @@ const CARD_LINKS = [
 ];
 
 const INSURANCE_POPUP_ENDPOINT = "/insurance-claim-popup-status";
-// agar tumhara backend route alag hai to yahan change kar dena
+const INSURANCE_CLAIM_DETAILS_ENDPOINT = "/insurance-claim-details";
+const INSURANCE_CLAIM_ENDPOINT = "/insurance-claim";
 
 type DashboardSummary = {
   totalBalance: number;
@@ -67,28 +60,44 @@ type SummaryItem = {
   tone: "primary" | "warning" | "success";
 };
 
-type InsuranceClaimTrade = {
-  symbol?: string;
-  profit?: number;
-  closeTime?: string;
-  closeTimeDate?: string;
-};
-
-type InsuranceClaimItem = {
+type InsurancePopupAccount = {
   accountNumber: string;
-  availableBalance?: number | null;
-  latestCloseTrade?: InsuranceClaimTrade | null;
+  claimableAmount: number;
+  unclaimedCount: number;
 };
 
-type InsuranceEligibilityResponse = {
+type InsurancePopupResponse = {
   success?: boolean;
   showInsuranceClaimPopup?: boolean;
+  title?: string;
   message?: string;
-  summary?: {
-    threshold?: number;
-    eligibleAccounts?: number;
-  };
-  report?: InsuranceClaimItem[];
+  accounts?: InsurancePopupAccount[];
+};
+
+type InsuranceCoverageItem = {
+  coverageId: string;
+  claimAmount: number;
+};
+
+type InsuranceClaimDetailsResponse = {
+  success?: boolean;
+  accountNumber?: string;
+  totalClaimAmount?: number;
+  coverages?: InsuranceCoverageItem[];
+};
+
+type InsuranceClaimActionResponse = {
+  success?: boolean;
+  message?: string;
+  creditedAmount?: number;
+  redirectUrl?: string;
+};
+
+type InsuranceClaimDecisionPayload = {
+  mt5Account: string;
+  claimType: "single" | "all";
+  coverageIds: string[];
+  claimAmount: number;
 };
 
 type SvgPoint = {
@@ -317,7 +326,25 @@ const navigateToLink = (link?: string) => {
   window.location.href = link;
 };
 
+const buildClaimQueryString = (
+  mt5Account: string,
+  claimType: "single" | "all",
+  coverageIds: string[]
+) => {
+  const params = new URLSearchParams();
+  params.append("mt5Account", mt5Account);
+  params.append("claimType", claimType);
+
+  coverageIds.forEach((coverageId) => {
+    params.append("coverageIds", coverageId);
+  });
+
+  return params.toString();
+};
+
 export default function UserDashboard() {
+  const navigate = useNavigate();
+
   const mode = useSelector((store: any) => store.userTheme?.mode || "light");
   const userSiteconfig = useSelector((store: any) => store.user?.siteConfig);
   const loggedUser = useSelector((store: any) => store.user?.loggedUser);
@@ -334,11 +361,30 @@ export default function UserDashboard() {
   );
 
   const [insurancePopupOpen, setInsurancePopupOpen] = useState(false);
+  const [insurancePopupTitle, setInsurancePopupTitle] = useState(
+    "Congratulations 🎉"
+  );
   const [insurancePopupMessage, setInsurancePopupMessage] = useState("");
   const [insuranceEligibleAccounts, setInsuranceEligibleAccounts] = useState<
-    InsuranceClaimItem[]
+    InsurancePopupAccount[]
   >([]);
   const [insurancePopupKey, setInsurancePopupKey] = useState("");
+
+  const [selectedInsuranceAccount, setSelectedInsuranceAccount] = useState("");
+  const [insuranceDetailsLoading, setInsuranceDetailsLoading] = useState(false);
+  const [insuranceClaimLoading, setInsuranceClaimLoading] = useState(false);
+  const [claimingCoverageId, setClaimingCoverageId] = useState<string | null>(
+    null
+  );
+  const [insuranceClaimError, setInsuranceClaimError] = useState("");
+  const [insuranceClaimSuccess, setInsuranceClaimSuccess] = useState("");
+  const [insuranceClaimDetails, setInsuranceClaimDetails] =
+    useState<InsuranceClaimDetailsResponse | null>(null);
+
+  const [isClient, setIsClient] = useState(false);
+  const [claimDecisionOpen, setClaimDecisionOpen] = useState(false);
+  const [pendingClaimAction, setPendingClaimAction] =
+    useState<InsuranceClaimDecisionPayload | null>(null);
 
   const allAccounts = useMemo(
     () => extractAccounts(accountsData, loggedUser),
@@ -358,6 +404,26 @@ export default function UserDashboard() {
 
     return Array.from(new Set(names));
   }, [allAccounts]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const previousOverflow = document.body.style.overflow;
+
+    if (insurancePopupOpen || claimDecisionOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = previousOverflow || "";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow || "";
+    };
+  }, [insurancePopupOpen, claimDecisionOpen, isClient]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -431,30 +497,25 @@ export default function UserDashboard() {
     return toNumber(loggedUser?.bonusWallet, 0);
   }, [loggedUser?.bonusWallet]);
 
-  const fetchIbCommissionTotalPlaceholder = useCallback(async (userId?: string) => {
-    if (!userId) return 0;
-
-    /**
-     * =========================================================
-     * IB COMMISSION API PLACEHOLDER
-     * =========================================================
-     * Backend endpoint ready ho jaaye to yahan bas uncomment karke
-     * response map kar dena.
-     *
-     * Example:
-     *
-     * const res = await userApi.get(`/dashboard/ib-commission-summary/${userId}`);
-     * const data = res?.data?.data ?? {};
-     *
-     * return toNumber(
-     *   data?.totalIbCommission ??
-     *   data?.ibCommission ??
-     *   data?.commission ??
-     *   data?.total_ib_commission,
-     *   0
-     * );
-     */
+  const fetchIbCommissionTotalPlaceholder = useCallback(async (_userId?: string) => {
     return 0;
+  }, []);
+
+  const resetInsuranceStates = useCallback(() => {
+    setInsuranceEligibleAccounts([]);
+    setInsurancePopupMessage("");
+    setInsurancePopupTitle("Congratulations 🎉");
+    setInsurancePopupKey("");
+    setInsurancePopupOpen(false);
+    setSelectedInsuranceAccount("");
+    setInsuranceClaimDetails(null);
+    setInsuranceClaimError("");
+    setInsuranceClaimSuccess("");
+    setInsuranceDetailsLoading(false);
+    setInsuranceClaimLoading(false);
+    setClaimingCoverageId(null);
+    setClaimDecisionOpen(false);
+    setPendingClaimAction(null);
   }, []);
 
   const closeInsurancePopup = useCallback(() => {
@@ -462,50 +523,296 @@ export default function UserDashboard() {
       sessionStorage.setItem(insurancePopupKey, "seen");
     }
     setInsurancePopupOpen(false);
+    setInsuranceClaimError("");
+    setInsuranceClaimSuccess("");
   }, [insurancePopupKey]);
+
+  const closeClaimDecision = useCallback(() => {
+    setClaimDecisionOpen(false);
+    setPendingClaimAction(null);
+  }, []);
+
+  const fetchInsuranceClaimDetails = useCallback(async (accountNumber: string) => {
+    if (!accountNumber) return;
+
+    setInsuranceDetailsLoading(true);
+    setInsuranceClaimError("");
+    setInsuranceClaimSuccess("");
+
+    try {
+      const res = await userApi.get(
+        `${INSURANCE_CLAIM_DETAILS_ENDPOINT}/${accountNumber}`
+      );
+
+      const data: InsuranceClaimDetailsResponse = res?.data || {};
+
+      setInsuranceClaimDetails({
+        success: data?.success,
+        accountNumber: data?.accountNumber || accountNumber,
+        totalClaimAmount: toNumber(data?.totalClaimAmount, 0),
+        coverages: Array.isArray(data?.coverages)
+          ? data.coverages.map((item) => ({
+              coverageId: String(item?.coverageId || ""),
+              claimAmount: toNumber(item?.claimAmount, 0),
+            }))
+          : [],
+      });
+    } catch (error: any) {
+      console.error("Insurance claim details fetch failed:", error);
+      setInsuranceClaimDetails({
+        success: false,
+        accountNumber,
+        totalClaimAmount: 0,
+        coverages: [],
+      });
+      setInsuranceClaimError(
+        error?.response?.data?.message ||
+          "Unable to load insurance claim details."
+      );
+    } finally {
+      setInsuranceDetailsLoading(false);
+    }
+  }, []);
+
+  const updateInsuranceStateAfterClaim = useCallback(
+    (
+      accountNumber: string,
+      claimedCoverageIds: string[],
+      creditedAmount: number,
+      claimType: "single" | "all"
+    ) => {
+      setInsuranceClaimDetails((prev) => {
+        if (!prev || prev.accountNumber !== accountNumber) return prev;
+
+        const previousCoverages = Array.isArray(prev.coverages)
+          ? prev.coverages
+          : [];
+
+        const remainingCoverages = previousCoverages.filter(
+          (item) => !claimedCoverageIds.includes(item.coverageId)
+        );
+
+        return {
+          ...prev,
+          coverages: remainingCoverages,
+          totalClaimAmount: remainingCoverages.reduce(
+            (sum, item) => sum + toNumber(item.claimAmount, 0),
+            0
+          ),
+        };
+      });
+
+      setInsuranceEligibleAccounts((prev) => {
+        const next = prev
+          .map((item) => {
+            if (item.accountNumber !== accountNumber) return item;
+
+            if (claimType === "all") {
+              return null;
+            }
+
+            const nextCount = Math.max(
+              0,
+              toNumber(item.unclaimedCount, 0) - claimedCoverageIds.length
+            );
+
+            const nextAmount = Math.max(
+              0,
+              toNumber(item.claimableAmount, 0) - creditedAmount
+            );
+
+            if (nextCount <= 0 || nextAmount <= 0) return null;
+
+            return {
+              ...item,
+              unclaimedCount: nextCount,
+              claimableAmount: nextAmount,
+            };
+          })
+          .filter(Boolean) as InsurancePopupAccount[];
+
+        if (!next.length) {
+          if (typeof window !== "undefined" && insurancePopupKey) {
+            sessionStorage.setItem(insurancePopupKey, "seen");
+          }
+          setInsurancePopupOpen(false);
+          setSelectedInsuranceAccount("");
+        } else {
+          const accountStillExists = next.some(
+            (item) => item.accountNumber === accountNumber
+          );
+
+          if (!accountStillExists) {
+            setSelectedInsuranceAccount(next[0]?.accountNumber || "");
+          }
+        }
+
+        return next;
+      });
+    },
+    [insurancePopupKey]
+  );
+
+  const handleInsuranceClaim = useCallback(
+    async (
+      payload: {
+        mt5Account: string;
+        claimType: "single" | "all";
+        coverageIds: string[];
+      },
+      options?: {
+        redirectAfterSuccess?: boolean;
+      }
+    ) => {
+      const { mt5Account, claimType, coverageIds } = payload;
+
+      if (!mt5Account || !coverageIds.length) return;
+
+      setInsuranceClaimError("");
+      setInsuranceClaimSuccess("");
+
+      if (claimType === "all") {
+        setInsuranceClaimLoading(true);
+      } else {
+        setClaimingCoverageId(coverageIds[0]);
+      }
+
+      try {
+        const queryString = buildClaimQueryString(
+          mt5Account,
+          claimType,
+          coverageIds
+        );
+
+        const res = await userApi.get(`${INSURANCE_CLAIM_ENDPOINT}?${queryString}`);
+        const data: InsuranceClaimActionResponse = res?.data || {};
+
+        const creditedAmount = toNumber(data?.creditedAmount, 0);
+
+        updateInsuranceStateAfterClaim(
+          mt5Account,
+          coverageIds,
+          creditedAmount,
+          claimType
+        );
+
+        const successMessage =
+          data?.message ||
+          (claimType === "all"
+            ? "All insurance claimed successfully."
+            : "Insurance claimed successfully.");
+
+        setInsuranceClaimSuccess(successMessage);
+
+        if (options?.redirectAfterSuccess && typeof window !== "undefined") {
+          window.location.href = data?.redirectUrl || "/user/deposit";
+        }
+      } catch (error: any) {
+        console.error("Insurance claim failed:", error);
+        setInsuranceClaimError(
+          error?.response?.data?.message || "Unable to process insurance claim."
+        );
+      } finally {
+        setInsuranceClaimLoading(false);
+        setClaimingCoverageId(null);
+      }
+    },
+    [updateInsuranceStateAfterClaim]
+  );
+
+  const openClaimDecision = useCallback(
+    (payload: InsuranceClaimDecisionPayload) => {
+      setInsuranceClaimError("");
+      setInsuranceClaimSuccess("");
+      setPendingClaimAction(payload);
+      setClaimDecisionOpen(true);
+    },
+    []
+  );
+
+  const handleClaimWithoutInsurance = useCallback(async () => {
+    if (!pendingClaimAction) return;
+
+    await handleInsuranceClaim({
+      mt5Account: pendingClaimAction.mt5Account,
+      claimType: pendingClaimAction.claimType,
+      coverageIds: pendingClaimAction.coverageIds,
+    });
+
+    setClaimDecisionOpen(false);
+    setPendingClaimAction(null);
+  }, [pendingClaimAction, handleInsuranceClaim]);
+
+  const handleClaimWithInsurance = useCallback(() => {
+    if (!pendingClaimAction) return;
+
+    navigate("/user/deposit", {
+      state: {
+        source: "insurance_claim",
+        mt5Account: pendingClaimAction.mt5Account,
+        claimType: pendingClaimAction.claimType,
+        coverageIds: pendingClaimAction.coverageIds,
+        claimAmount: pendingClaimAction.claimAmount,
+        autoApplyInsurance: true,
+        autoApplyBonus: true,
+      },
+    });
+
+    setClaimDecisionOpen(false);
+    setPendingClaimAction(null);
+    setInsurancePopupOpen(false);
+    setInsuranceClaimError("");
+    setInsuranceClaimSuccess("");
+  }, [navigate, pendingClaimAction]);
 
   const checkInsuranceEligibility = useCallback(async () => {
     try {
       const res = await userApi.get(INSURANCE_POPUP_ENDPOINT);
-      const data: InsuranceEligibilityResponse = res?.data || {};
+      const data: InsurancePopupResponse = res?.data || {};
 
-      if (
-        !data?.showInsuranceClaimPopup ||
-        !Array.isArray(data?.report) ||
-        !data.report.length
-      ) {
-        setInsurancePopupOpen(false);
-        setInsuranceEligibleAccounts([]);
-        setInsurancePopupMessage("");
-        setInsurancePopupKey("");
+      const accounts = Array.isArray(data?.accounts)
+        ? data.accounts
+            .map((item) => ({
+              accountNumber: String(item?.accountNumber || "").trim(),
+              claimableAmount: toNumber(item?.claimableAmount, 0),
+              unclaimedCount: toNumber(item?.unclaimedCount, 0),
+            }))
+            .filter((item) => item.accountNumber)
+        : [];
+
+      if (!data?.showInsuranceClaimPopup || !accounts.length) {
+        resetInsuranceStates();
         return;
       }
 
-      const normalizedAccounts = data.report
-        .map((item) => String(item?.accountNumber || "").trim())
-        .filter(Boolean)
+      const normalizedAccounts = accounts
+        .map(
+          (item) =>
+            `${item.accountNumber}:${item.claimableAmount}:${item.unclaimedCount}`
+        )
         .sort();
 
-      const nextPopupKey = `insurance-claim-popup:${normalizedAccounts.join(",")}:${
-        data?.summary?.threshold ?? 10
-      }`;
+      const nextPopupKey = `insurance-claim-popup:${normalizedAccounts.join("|")}`;
 
       if (typeof window !== "undefined") {
         const alreadySeen = sessionStorage.getItem(nextPopupKey) === "seen";
         if (alreadySeen) return;
       }
 
-      setInsuranceEligibleAccounts(data.report);
+      setInsuranceEligibleAccounts(accounts);
+      setInsurancePopupTitle(data?.title || "Congratulations 🎉");
       setInsurancePopupMessage(
-        data?.message ||
-          "Congratulations! Your account is eligible for an insurance claim."
+        data?.message || "You can claim insurance now."
       );
       setInsurancePopupKey(nextPopupKey);
       setInsurancePopupOpen(true);
+
+      const firstAccount = accounts[0]?.accountNumber || "";
+      setSelectedInsuranceAccount(firstAccount);
     } catch (error) {
       console.error("Insurance eligibility check failed:", error);
     }
-  }, []);
+  }, [resetInsuranceStates]);
 
   const loadDashboardSummary = useCallback(async () => {
     setRefreshing(true);
@@ -598,6 +905,17 @@ export default function UserDashboard() {
     loadDashboardSummary();
   }, [loadDashboardSummary]);
 
+  useEffect(() => {
+    if (!insurancePopupOpen) return;
+    if (!selectedInsuranceAccount) return;
+
+    fetchInsuranceClaimDetails(selectedInsuranceAccount);
+  }, [
+    insurancePopupOpen,
+    selectedInsuranceAccount,
+    fetchInsuranceClaimDetails,
+  ]);
+
   const stats: StatItem[] = useMemo(
     () => [
       {
@@ -688,6 +1006,12 @@ export default function UserDashboard() {
     },
   ];
 
+  const selectedAccountSummary = useMemo(() => {
+    return insuranceEligibleAccounts.find(
+      (item) => item.accountNumber === selectedInsuranceAccount
+    );
+  }, [insuranceEligibleAccounts, selectedInsuranceAccount]);
+
   const sectionShell = cx(
     "h-full rounded-[30px] border backdrop-blur-xl",
     isDark
@@ -704,7 +1028,6 @@ export default function UserDashboard() {
 
   const mutedText = isDark ? "text-white/55" : "text-slate-500";
   const strongText = isDark ? "text-white" : "text-slate-900";
-
   const statsGridClass = "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3";
 
   const getSummaryTone = (tone: SummaryItem["tone"]) => {
@@ -724,6 +1047,523 @@ export default function UserDashboard() {
       ? "bg-emerald-500/10 text-emerald-300"
       : "bg-emerald-50 text-emerald-700";
   };
+
+  const insurancePopupModal =
+    isClient && insurancePopupOpen
+      ? createPortal(
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.25 }}
+              className={cx(
+                "relative w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl",
+                isDark
+                  ? "border-white/10 bg-slate-900 text-white"
+                  : "border-orange-100 bg-white text-slate-900"
+              )}
+            >
+              <button
+                type="button"
+                onClick={closeInsurancePopup}
+                className={cx(
+                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
+                  isDark
+                    ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                )}
+              >
+                <X size={18} />
+              </button>
+
+              <div
+                className={cx(
+                  "px-6 py-6 sm:px-7 sm:py-7",
+                  isDark
+                    ? "bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(59,130,246,0.10))]"
+                    : "bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(236,253,245,1))]"
+                )}
+              >
+                <div className="flex items-start gap-4 pr-10">
+                  <div
+                    className={cx(
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl",
+                      isDark
+                        ? "bg-emerald-500/15 text-emerald-300"
+                        : "bg-emerald-50 text-emerald-700"
+                    )}
+                  >
+                    <ShieldCheck size={28} />
+                  </div>
+
+                  <div>
+                    <p
+                      className={cx(
+                        "text-xs font-semibold uppercase tracking-[0.18em]",
+                        isDark ? "text-emerald-300" : "text-emerald-700"
+                      )}
+                    >
+                      Insurance Eligible
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-bold sm:text-3xl">
+                      {insurancePopupTitle}
+                    </h2>
+
+                    <p className={cx("mt-2 text-sm sm:text-base", mutedText)}>
+                      {insurancePopupMessage}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-0 lg:grid-cols-[340px_minmax(0,1fr)]">
+                <div
+                  className={cx(
+                    "border-b px-6 py-5 lg:border-b-0 lg:border-r",
+                    isDark
+                      ? "border-white/10 bg-white/[0.02]"
+                      : "border-orange-100 bg-orange-50/30"
+                  )}
+                >
+                  <div className="mb-4">
+                    <p className={cx("text-xs uppercase tracking-[0.18em]", mutedText)}>
+                      Eligible Accounts
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold">
+                      Select Account
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    {insuranceEligibleAccounts.map((item) => {
+                      const isSelected =
+                        selectedInsuranceAccount === item.accountNumber;
+
+                      return (
+                        <button
+                          key={item.accountNumber}
+                          type="button"
+                          onClick={() => {
+                            setSelectedInsuranceAccount(item.accountNumber);
+                            setInsuranceClaimError("");
+                            setInsuranceClaimSuccess("");
+                          }}
+                          className={cx(
+                            "w-full rounded-2xl border p-4 text-left transition",
+                            isSelected
+                              ? isDark
+                                ? "border-emerald-400/40 bg-emerald-500/10"
+                                : "border-emerald-300 bg-emerald-50"
+                              : isDark
+                              ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
+                              : "border-orange-100 bg-white hover:bg-orange-50"
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
+                                Account
+                              </p>
+                              <p className="mt-1 text-base font-semibold">
+                                {item.accountNumber}
+                              </p>
+                            </div>
+
+                            <div
+                              className={cx(
+                                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                isDark
+                                  ? "bg-white/8 text-white/80"
+                                  : "bg-white text-slate-700"
+                              )}
+                            >
+                              {item.unclaimedCount} unclaimed
+                            </div>
+                          </div>
+
+                          <div className="mt-3">
+                            <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
+                              Claimable Amount
+                            </p>
+                            <p className="mt-1 text-lg font-bold">
+                              {formatCurrency(
+                                item.claimableAmount,
+                                summary.currency || "USD"
+                              )}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="px-6 py-5 sm:px-7 sm:py-6">
+                  {selectedInsuranceAccount ? (
+                    <>
+                      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className={cx("text-xs uppercase tracking-[0.18em]", mutedText)}>
+                            Selected Account
+                          </p>
+                          <h3 className="mt-1 text-xl font-bold">
+                            {selectedInsuranceAccount}
+                          </h3>
+                          <p className={cx("mt-2 text-sm", mutedText)}>
+                            Unclaimed insurance coverages for this account are shown below.
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                          <div className="text-left sm:text-right">
+                            <p className={cx("text-xs uppercase tracking-[0.18em]", mutedText)}>
+                              Total Claimable
+                            </p>
+                            <p className="mt-1 text-2xl font-bold">
+                              {formatCurrency(
+                                toNumber(
+                                  insuranceClaimDetails?.totalClaimAmount ??
+                                    selectedAccountSummary?.claimableAmount,
+                                  0
+                                ),
+                                summary.currency || "USD"
+                              )}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={
+                              insuranceDetailsLoading ||
+                              insuranceClaimLoading ||
+                              !insuranceClaimDetails?.coverages?.length
+                            }
+                            onClick={() =>
+                              openClaimDecision({
+                                mt5Account: selectedInsuranceAccount,
+                                claimType: "all",
+                                coverageIds: (
+                                  insuranceClaimDetails?.coverages || []
+                                ).map((item) => item.coverageId),
+                                claimAmount: toNumber(
+                                  insuranceClaimDetails?.totalClaimAmount,
+                                  0
+                                ),
+                              })
+                            }
+                            className={cx(
+                              "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+                              insuranceDetailsLoading ||
+                                insuranceClaimLoading ||
+                                !insuranceClaimDetails?.coverages?.length
+                                ? "cursor-not-allowed bg-slate-300 text-slate-600"
+                                : isDark
+                                ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                            )}
+                          >
+                            <ShieldCheck
+                              size={16}
+                              className={cx(insuranceClaimLoading && "animate-pulse")}
+                            />
+                            Claim All
+                          </button>
+                        </div>
+                      </div>
+
+                      {insuranceClaimError ? (
+                        <div
+                          className={cx(
+                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
+                            isDark
+                              ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
+                              : "border-rose-200 bg-rose-50 text-rose-700"
+                          )}
+                        >
+                          {insuranceClaimError}
+                        </div>
+                      ) : null}
+
+                      {insuranceClaimSuccess ? (
+                        <div
+                          className={cx(
+                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
+                            isDark
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          )}
+                        >
+                          {insuranceClaimSuccess}
+                        </div>
+                      ) : null}
+
+                      {insuranceDetailsLoading ? (
+                        <div
+                          className={cx(
+                            "flex min-h-[240px] items-center justify-center rounded-2xl border",
+                            isDark
+                              ? "border-white/10 bg-white/[0.03]"
+                              : "border-orange-100 bg-orange-50/30"
+                          )}
+                        >
+                          <div className="inline-flex items-center gap-2 text-sm">
+                            <RefreshCw size={16} className="animate-spin" />
+                            Loading claim details...
+                          </div>
+                        </div>
+                      ) : insuranceClaimDetails?.coverages?.length ? (
+                        <div className="space-y-3">
+                          {insuranceClaimDetails.coverages.map((coverage, index) => (
+                            <div
+                              key={`${coverage.coverageId}-${index}`}
+                              className={cx(
+                                "rounded-2xl border p-4",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.04]"
+                                  : "border-orange-100 bg-orange-50/40"
+                              )}
+                            >
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="min-w-0">
+                                  <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
+                                    Coverage ID
+                                  </p>
+                                  <p className="mt-1 break-all text-sm font-medium">
+                                    {coverage.coverageId}
+                                  </p>
+
+                                  <p className={cx("mt-3 text-xs uppercase tracking-[0.16em]", mutedText)}>
+                                    Claim Amount
+                                  </p>
+                                  <p className="mt-1 text-lg font-bold">
+                                    {formatCurrency(
+                                      coverage.claimAmount,
+                                      summary.currency || "USD"
+                                    )}
+                                  </p>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  disabled={
+                                    insuranceClaimLoading ||
+                                    claimingCoverageId === coverage.coverageId
+                                  }
+                                  onClick={() =>
+                                    openClaimDecision({
+                                      mt5Account: selectedInsuranceAccount,
+                                      claimType: "single",
+                                      coverageIds: [coverage.coverageId],
+                                      claimAmount: toNumber(
+                                        coverage.claimAmount,
+                                        0
+                                      ),
+                                    })
+                                  }
+                                  className={cx(
+                                    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:min-w-[130px]",
+                                    insuranceClaimLoading ||
+                                      claimingCoverageId === coverage.coverageId
+                                      ? "cursor-not-allowed bg-slate-300 text-slate-600"
+                                      : isDark
+                                      ? "bg-blue-500 text-white hover:bg-blue-400"
+                                      : "bg-blue-600 text-white hover:bg-blue-700"
+                                  )}
+                                >
+                                  <Gift
+                                    size={16}
+                                    className={cx(
+                                      claimingCoverageId === coverage.coverageId &&
+                                        "animate-pulse"
+                                    )}
+                                  />
+                                  {claimingCoverageId === coverage.coverageId
+                                    ? "Claiming..."
+                                    : "Claim"}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className={cx(
+                            "rounded-2xl border px-4 py-8 text-center",
+                            isDark
+                              ? "border-white/10 bg-white/[0.03]"
+                              : "border-orange-100 bg-orange-50/30"
+                          )}
+                        >
+                          <p className="text-base font-semibold">
+                            No unclaimed insurance found
+                          </p>
+                          <p className={cx("mt-2 text-sm", mutedText)}>
+                            This account does not have any active insurance coverage to claim.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div
+                      className={cx(
+                        "flex min-h-[240px] items-center justify-center rounded-2xl border",
+                        isDark
+                          ? "border-white/10 bg-white/[0.03]"
+                          : "border-orange-100 bg-orange-50/30"
+                      )}
+                    >
+                      <p className={cx("text-sm", mutedText)}>
+                        Select an account to view insurance claim details.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  const claimDecisionModal =
+    isClient && claimDecisionOpen && pendingClaimAction
+      ? createPortal(
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className={cx(
+                "w-full max-w-2xl rounded-[28px] border shadow-2xl",
+                isDark
+                  ? "border-white/10 bg-slate-900 text-white"
+                  : "border-orange-100 bg-white text-slate-900"
+              )}
+            >
+              <div
+                className={cx(
+                  "border-b px-6 py-5",
+                  isDark ? "border-white/10" : "border-orange-100"
+                )}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p
+                      className={cx(
+                        "text-xs font-semibold uppercase tracking-[0.18em]",
+                        isDark ? "text-blue-300" : "text-blue-700"
+                      )}
+                    >
+                      Claim Decision
+                    </p>
+                    <h3 className="mt-1 text-2xl font-bold">
+                      Insure this claimed amount?
+                    </h3>
+                    <p className={cx("mt-2 text-sm", mutedText)}>
+                      You selected{" "}
+                      <span className="font-semibold">
+                        {formatCurrency(
+                          pendingClaimAction.claimAmount,
+                          summary.currency || "USD"
+                        )}
+                      </span>{" "}
+                      from account{" "}
+                      <span className="font-semibold">
+                        {pendingClaimAction.mt5Account}
+                      </span>
+                      .
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={closeClaimDecision}
+                    className={cx(
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
+                      isDark
+                        ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                        : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                    )}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-6 py-6">
+                <div
+                  className={cx(
+                    "rounded-2xl border p-4",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04]"
+                      : "border-orange-100 bg-orange-50/40"
+                  )}
+                >
+                  <p className="text-sm leading-7">
+                    If you click <span className="font-semibold">Yes</span>, you
+                    will be redirected to the deposit page. That page will be
+                    auto-filled with this claim amount, insurance will be applied
+                    by default, and the user will only pay the insurance charge.
+                  </p>
+
+                  <p className="mt-3 text-sm leading-7">
+                    If you click <span className="font-semibold">No</span>, the
+                    insurance claim will be processed immediately from here.
+                  </p>
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={closeClaimDecision}
+                    className={cx(
+                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
+                      isDark
+                        ? "bg-white/5 text-white/80 hover:bg-white/10"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    )}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClaimWithoutInsurance}
+                    disabled={insuranceClaimLoading}
+                    className={cx(
+                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
+                      insuranceClaimLoading
+                        ? "cursor-not-allowed bg-slate-300 text-slate-600"
+                        : isDark
+                        ? "bg-blue-500 text-white hover:bg-blue-400"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    )}
+                  >
+                    {insuranceClaimLoading ? "Processing..." : "No, Claim Now"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClaimWithInsurance}
+                    className={cx(
+                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
+                      isDark
+                        ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                    )}
+                  >
+                    Yes, Continue to Deposit
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
     <motion.div
@@ -1155,153 +1995,8 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {insurancePopupOpen ? (
-          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.25 }}
-              className={cx(
-                "relative w-full max-w-2xl overflow-hidden rounded-[28px] border shadow-2xl",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-orange-100 bg-white text-slate-900"
-              )}
-            >
-              <button
-                type="button"
-                onClick={closeInsurancePopup}
-                className={cx(
-                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
-                  isDark
-                    ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
-                )}
-              >
-                <X size={18} />
-              </button>
-
-              <div
-                className={cx(
-                  "px-6 py-6 sm:px-7 sm:py-7",
-                  isDark
-                    ? "bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(59,130,246,0.10))]"
-                    : "bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(236,253,245,1))]"
-                )}
-              >
-                <div className="flex items-start gap-4 pr-10">
-                  <div
-                    className={cx(
-                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl",
-                      isDark
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-emerald-50 text-emerald-700"
-                    )}
-                  >
-                    <ShieldCheck size={28} />
-                  </div>
-
-                  <div>
-                    <p
-                      className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.18em]",
-                        isDark ? "text-emerald-300" : "text-emerald-700"
-                      )}
-                    >
-                      Insurance Eligible
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-bold sm:text-3xl">
-                      Congratulations 🎉
-                    </h2>
-
-                    <p className={cx("mt-2 text-sm sm:text-base", mutedText)}>
-                      {insurancePopupMessage}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 py-5 sm:px-7 sm:py-6">
-                <div className="space-y-3">
-                  {insuranceEligibleAccounts.map((item, index) => (
-                    <div
-                      key={`${item.accountNumber}-${index}`}
-                      className={cx(
-                        "rounded-2xl border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-orange-50/40"
-                      )}
-                    >
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
-                            Account Number
-                          </p>
-                          <p className="text-base font-semibold">{item.accountNumber}</p>
-                        </div>
-
-                        <div className="text-left sm:text-right">
-                          <p className={cx("text-xs uppercase tracking-[0.16em]", mutedText)}>
-                            Available Balance
-                          </p>
-                          <p className="text-base font-semibold">
-                            {formatCurrency(
-                              Number(item?.availableBalance || 0),
-                              summary.currency || "USD"
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      {item?.latestCloseTrade ? (
-                        <div
-                          className={cx(
-                            "mt-3 rounded-xl border px-3 py-3 text-sm",
-                            isDark
-                              ? "border-white/10 bg-black/20"
-                              : "border-emerald-100 bg-white"
-                          )}
-                        >
-                          <p className="font-medium">
-                            Last Closed Trade: {item.latestCloseTrade.symbol || "N/A"}
-                          </p>
-                          <p className={mutedText}>
-                            Profit: {toNumber(item.latestCloseTrade.profit, 0).toFixed(2)}
-                          </p>
-                          <p className={mutedText}>
-                            Closed At:{" "}
-                            {item.latestCloseTrade.closeTime ||
-                              item.latestCloseTrade.closeTimeDate ||
-                              "N/A"}
-                          </p>
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-5 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={closeInsurancePopup}
-                    className={cx(
-                      "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition",
-                      isDark
-                        ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                        : "bg-emerald-600 text-white hover:bg-emerald-700"
-                    )}
-                  >
-                    <Gift size={16} />
-                    Awesome
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        ) : null}
+        {insurancePopupModal}
+        {claimDecisionModal}
 
         <AccountOpenTradesMarketSection />
       </div>

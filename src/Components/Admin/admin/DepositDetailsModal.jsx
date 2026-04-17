@@ -10,6 +10,61 @@ import {
   CircleCheckBig,
 } from "lucide-react";
 
+
+
+const SummaryMiniCard = ({ label, value, helper, isDark, accent = "default" }) => {
+  const accentClasses = {
+    default: isDark
+      ? "border-white/10 bg-white/[0.03]"
+      : "border-slate-200 bg-white",
+    green: isDark
+      ? "border-emerald-500/20 bg-emerald-500/[0.06]"
+      : "border-emerald-200 bg-emerald-50/70",
+    blue: isDark
+      ? "border-blue-500/20 bg-blue-500/[0.06]"
+      : "border-blue-200 bg-blue-50/70",
+    purple: isDark
+      ? "border-purple-500/20 bg-purple-500/[0.06]"
+      : "border-purple-200 bg-purple-50/70",
+    orange: isDark
+      ? "border-orange-500/20 bg-orange-500/[0.06]"
+      : "border-orange-200 bg-orange-50/70",
+  };
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses[accent]}`}>
+      <p
+        className={[
+          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+          isDark ? "text-white/45" : "text-slate-500",
+        ].join(" ")}
+      >
+        {label}
+      </p>
+
+      <div
+        className={[
+          "mt-2 text-base font-bold leading-6 sm:text-lg",
+          isDark ? "text-white" : "text-slate-900",
+        ].join(" ")}
+      >
+        {value}
+      </div>
+
+      {helper ? (
+        <p
+          className={[
+            "mt-1 text-xs leading-5",
+            isDark ? "text-white/50" : "text-slate-500",
+          ].join(" ")}
+        >
+          {helper}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+
 const DetailStatCard = ({
   title,
   value,
@@ -115,6 +170,42 @@ const DepositDetailsModal = ({
   if (!showDetails) return null;
 
   const insuranceDetails = selectedDeposit?.insuranceDetails || null;
+
+
+  const bonusDetails = selectedDeposit?.bonusDetails || null;
+
+const payableAmount = Number(
+  selectedDeposit?.finalPayableAmount || selectedDeposit?.deposit || 0
+);
+
+const creditedAmount = Number(selectedDeposit?.baseDepositAmount || 0);
+
+const insuranceCharge = Number(
+  selectedDeposit?.insuranceDetails?.insuranceChargeAmount || 0
+);
+
+const claimAmount = Number(selectedDeposit?.insuranceDetails?.claimAmount || 0);
+
+const isReinsuranceRequest =
+  Boolean(selectedDeposit?.insuranceDetails) &&
+  payableAmount > 0 &&
+  creditedAmount > 0 &&
+  payableAmount < creditedAmount;
+
+const requestTypeLabel = isReinsuranceRequest
+  ? "Reinsurance Deposit"
+  : "Standard Deposit";
+
+const bonusLabel = bonusDetails
+  ? `$${Number(bonusDetails?.bonusAmount || 0).toFixed(2)}`
+  : "Not Applied";
+
+const insuranceLabel = insuranceDetails
+  ? `$${insuranceCharge.toFixed(2)}`
+  : "Not Applied";
+
+
+  
 
   const getInsuranceStatusBadge = (status) => {
     const normalized = String(status || "").toLowerCase();
@@ -473,6 +564,173 @@ const DepositDetailsModal = ({
                 )}
               </div>
             </div>
+
+
+
+
+<div
+  className={`rounded-[24px] border p-5 ${
+    isDark
+      ? "border-purple-500/20 bg-purple-500/[0.05]"
+      : "border-purple-200 bg-purple-50/60"
+  }`}
+>
+  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center gap-2">
+      <FileText
+        size={18}
+        className={isDark ? "text-purple-300" : "text-purple-700"}
+      />
+      <h3 className="text-base font-semibold">Summary Note</h3>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      <span
+        className={[
+          "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+          isReinsuranceRequest
+            ? isDark
+              ? "bg-purple-500/15 text-purple-300"
+              : "bg-purple-100 text-purple-700"
+            : isDark
+            ? "bg-blue-500/15 text-blue-300"
+            : "bg-blue-100 text-blue-700",
+        ].join(" ")}
+      >
+        {requestTypeLabel}
+      </span>
+
+      {getStatusBadge(selectedDeposit?.status)}
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <SummaryMiniCard
+      label="Account"
+      value={renderDetailValue(selectedDeposit?.mt5Account)}
+      helper={`Method: ${renderDetailValue(selectedDeposit?.method)}`}
+      isDark={isDark}
+      accent="purple"
+    />
+
+    <SummaryMiniCard
+      label="Payable Amount"
+      value={`$${payableAmount.toFixed(2)}`}
+      helper="User payable amount"
+      isDark={isDark}
+      accent="orange"
+    />
+
+    <SummaryMiniCard
+      label="Credited Amount"
+      value={`$${creditedAmount.toFixed(2)}`}
+      helper="MT5 credited/base amount"
+      isDark={isDark}
+      accent="blue"
+    />
+
+    <SummaryMiniCard
+      label="Insurance"
+      value={insuranceLabel}
+      helper={
+        insuranceDetails
+          ? `Claim Amount: $${claimAmount.toFixed(2)}`
+          : "Insurance not applied"
+      }
+      isDark={isDark}
+      accent="green"
+    />
+
+    <SummaryMiniCard
+      label="Bonus"
+      value={bonusLabel}
+      helper={
+        bonusDetails
+          ? `${Number(bonusDetails?.bonusPercent || 0).toFixed(2)}% bonus`
+          : "Bonus not applied"
+      }
+      isDark={isDark}
+      accent="green"
+    />
+
+    <SummaryMiniCard
+      label="Request Type"
+      value={requestTypeLabel}
+      helper={
+        isReinsuranceRequest
+          ? "Insurance charge paid separately"
+          : "Normal deposit request"
+      }
+      isDark={isDark}
+      accent="purple"
+    />
+
+    <SummaryMiniCard
+      label="Coverage Status"
+      value={
+        insuranceDetails?.status
+          ? String(insuranceDetails.status).replaceAll("_", " ")
+          : "N/A"
+      }
+      helper={
+        insuranceDetails?.claimedAt
+          ? `Claimed At: ${new Date(insuranceDetails.claimedAt).toLocaleString()}`
+          : "Not claimed yet"
+      }
+      isDark={isDark}
+      accent="blue"
+    />
+
+    <SummaryMiniCard
+      label="Created"
+      value={
+        selectedDeposit?.createdAt
+          ? new Date(selectedDeposit.createdAt).toLocaleString()
+          : "N/A"
+      }
+      helper="Request created time"
+      isDark={isDark}
+      accent="default"
+    />
+  </div>
+
+  <div
+    className={`mt-5 rounded-2xl border p-4 ${
+      isDark ? "border-white/10 bg-white/[0.03]" : "border-white bg-white"
+    }`}
+  >
+    <p
+      className={[
+        "text-[11px] font-semibold uppercase tracking-[0.14em]",
+        isDark ? "text-white/45" : "text-slate-500",
+      ].join(" ")}
+    >
+      System Generated Note
+    </p>
+
+    {selectedDeposit?.summaryText ? (
+      <p
+        className={`mt-2 text-sm leading-7 whitespace-pre-line ${
+          isDark ? "text-white/80" : "text-slate-700"
+        }`}
+      >
+        {selectedDeposit.summaryText}
+      </p>
+    ) : (
+      <p
+        className={`mt-2 text-sm ${
+          isDark ? "text-white/50" : "text-slate-500"
+        }`}
+      >
+        No summary available for this deposit.
+      </p>
+    )}
+  </div>
+</div>
+
+
+
+
 
             <div
               className={`rounded-[24px] border p-5 ${

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -23,7 +23,6 @@ import {
   CircleDollarSign,
   Gauge,
   ShieldCheck,
-  Percent,
   PencilLine,
   ArrowRight,
   Gift,
@@ -92,6 +91,16 @@ function statusTone(status: any) {
 
   return "unknown";
 }
+
+type InsuranceClaimDepositPrefill = {
+  source: "insurance_claim";
+  mt5Account: string;
+  claimType: "single" | "all";
+  coverageIds: string[];
+  claimAmount: number;
+  autoApplyInsurance?: boolean;
+  autoApplyBonus?: boolean;
+};
 
 /* -------------------- shared ui -------------------- */
 function SectionCard({
@@ -371,16 +380,23 @@ function CheckoutStep({
 
 export default function UserDeposit() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { getPaymentMethod } = UserNewChallengeHook();
 
-  const [bonusQuote, setBonusQuote] = useState(null);
-const [bonusLoading, setBonusLoading] = useState(false);
-const [wantBonus, setWantBonus] = useState(false);
+  const claimPrefill = useMemo<InsuranceClaimDepositPrefill | null>(() => {
+    const state = location.state as InsuranceClaimDepositPrefill | null;
+    return state?.source === "insurance_claim" ? state : null;
+  }, [location.state]);
 
+  const isInsuranceClaimDeposit = claimPrefill?.source === "insurance_claim";
 
-  const [insuranceQuote, setInsuranceQuote] = useState(null);
-const [insuranceLoading, setInsuranceLoading] = useState(false);
-const [wantInsurance, setWantInsurance] = useState(false);
+  const [bonusQuote, setBonusQuote] = useState<any>(null);
+  const [bonusLoading, setBonusLoading] = useState(false);
+  const [wantBonus, setWantBonus] = useState(false);
+
+  const [insuranceQuote, setInsuranceQuote] = useState<any>(null);
+  const [insuranceLoading, setInsuranceLoading] = useState(false);
+  const [wantInsurance, setWantInsurance] = useState(false);
 
   const loggedUser = useSelector((s: any) => s.user?.loggedUser);
   const siteConfig = useSelector((s: any) => s.user?.siteConfig);
@@ -435,6 +451,7 @@ const [wantInsurance, setWantInsurance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const submitRequestRef = useRef<HTMLDivElement | null>(null);
   const blinkTimeoutRef = useRef<any>(null);
+  const claimPrefillAppliedRef = useRef(false);
 
   const [formData, setFormData] = useState({
     apiGroup: "",
@@ -457,7 +474,7 @@ const [wantInsurance, setWantInsurance] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showTxnModal, setShowTxnModal] = useState(true);
+  const [showTxnModal, setShowTxnModal] = useState(false);
 
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnError, setTxnError] = useState<string | null>(null);
@@ -469,6 +486,7 @@ const [wantInsurance, setWantInsurance] = useState(false);
   const [step2Completed, setStep2Completed] = useState(false);
   const [methodInteractionDone, setMethodInteractionDone] = useState(false);
   const [highlightSubmit, setHighlightSubmit] = useState(false);
+
   const quickAmounts = [100, 200, 500, 1000];
 
   useEffect(() => {
@@ -484,6 +502,34 @@ const [wantInsurance, setWantInsurance] = useState(false);
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!claimPrefill || claimPrefillAppliedRef.current) return;
+
+    claimPrefillAppliedRef.current = true;
+
+    const accountNumber = String(claimPrefill.mt5Account || "");
+    const claimAmount = String(claimPrefill.claimAmount || "");
+
+    const selected = loggedUser?.accounts?.find(
+      (item: any) => String(item.accountNumber) === accountNumber
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      accountNumber,
+      depositAmount: claimAmount,
+      apiGroup: selected?.apiGroup || "",
+    }));
+
+    setAccountType(selected?.accountType || "");
+    setWantInsurance(claimPrefill.autoApplyInsurance !== false);
+    setWantBonus(claimPrefill.autoApplyBonus !== false);
+    setStep1Completed(true);
+    setOpenStep(2);
+
+    toast.success("Claim amount imported into deposit form.");
+  }, [claimPrefill, loggedUser?.accounts]);
 
   useEffect(() => {
     const fetchAccountInfo = async () => {
@@ -512,130 +558,99 @@ const [wantInsurance, setWantInsurance] = useState(false);
     fetchAccountInfo();
   }, [formData.accountNumber]);
 
+  const fetchInsuranceQuote = useCallback(
+    async (amount: string | number) => {
+      const numAmount = Number(amount);
 
+      if (!numAmount || numAmount <= 0) {
+        setInsuranceQuote(null);
+        setWantInsurance(false);
+        return;
+      }
 
-  //   useEffect(() => {
+      try {
+        setInsuranceLoading(true);
 
-  //     if(formData.depositAmount  && wantInsurance ){
+        const res = await userApi.get(`/insurance-config/quote?amount=${numAmount}`);
+        const quote = res?.data?.data || null;
 
-        
-  //       const total = Number(formData.depositAmount) + Number(insuranceQuote?.insuranceChargeAmount)
-  // TotalPayable = total
-  //       alert(total)
+        setInsuranceQuote(quote);
 
-  //     }
-  //     else if(formData.depositAmount === insuranceQuote?.exactAmount && !wantInsurance ){
+        if (!quote?.eligible) {
+          setWantInsurance(false);
+        } else if (isInsuranceClaimDeposit) {
+          setWantInsurance(true);
+        }
+      } catch {
+        setInsuranceQuote(null);
+        setWantInsurance(false);
+      } finally {
+        setInsuranceLoading(false);
+      }
+    },
+    [isInsuranceClaimDeposit]
+  );
 
+  const fetchBonusQuote = useCallback(async (amount: string | number) => {
+    const numAmount = Number(amount);
 
-  //       const totals = Number(formData.depositAmount) - Number(insuranceQuote.insuranceChargeAmount)
-  // TotalPayable = totals
-  //       alert(totals)
-
-
-
-  //     }else{
-  // TotalPayable = formData.depositAmount
-  //       alert(formData.depositAmount)
-
-
-  //     }
-   
-
-  // }, [wantInsurance]);
-
-
-
-
-
-  const fetchInsuranceQuote = useCallback(async (amount) => {
-  const numAmount = Number(amount);
-
-  if (!numAmount || numAmount <= 0) {
-    setInsuranceQuote(null);
-    setWantInsurance(false);
-    return;
-  }
-
-  try {
-    setInsuranceLoading(true);
-
-    const res = await userApi.get(`/insurance-config/quote?amount=${numAmount}`);
-    const quote = res?.data?.data || null;
-    
-
-    setInsuranceQuote(quote);
-
-    if (!quote?.eligible) {
-      setWantInsurance(false);
+    if (!numAmount || numAmount <= 0) {
+      setBonusQuote(null);
+      return;
     }
-  } catch (error) {
-    setInsuranceQuote(null);
-    setWantInsurance(false);
-  } finally {
-    setInsuranceLoading(false);
-  }
-}, []);
 
+    try {
+      setBonusLoading(true);
 
-const fetchBonusQuote = useCallback(async (amount) => {
-  const numAmount = Number(amount);
+      const res = await userApi.get(`/deposit-bonus/quote?amount=${numAmount}`);
+      const quote = res?.data?.data || null;
 
-  if (!numAmount || numAmount <= 0) {
-    setBonusQuote(null);
-    return;
-  }
-
-  try {
-    setBonusLoading(true);
-
-    const res = await userApi.get(`/deposit-bonus/quote?amount=${numAmount}`);
-    const quote = res?.data?.data || null;
-
-    setBonusQuote(quote);
-  } catch (error) {
-    setBonusQuote(null);
-  } finally {
-    setBonusLoading(false);
-  }
-}, []);
-
-
-useEffect(() => {
-  fetchBonusQuote(formData.depositAmount);
-}, [formData.depositAmount, fetchBonusQuote]);
-
+      setBonusQuote(quote);
+    } catch {
+      setBonusQuote(null);
+    } finally {
+      setBonusLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-  fetchInsuranceQuote(formData.depositAmount);
-}, [formData.depositAmount, fetchInsuranceQuote]);
+    fetchBonusQuote(formData.depositAmount);
+  }, [formData.depositAmount, fetchBonusQuote]);
 
+  useEffect(() => {
+    fetchInsuranceQuote(formData.depositAmount);
+  }, [formData.depositAmount, fetchInsuranceQuote]);
 
-const bonusAmount =
-  wantBonus && bonusQuote?.eligible
-    ? Number(bonusQuote?.bonusAmount || 0)
-    : 0;
+  useEffect(() => {
+    if (!bonusQuote?.eligible) {
+      setWantBonus(false);
+    }
+  }, [bonusQuote]);
 
-const bonusPercent =
-  wantBonus && bonusQuote?.eligible
-    ? Number(bonusQuote?.bonusPercent || 0)
-    : 0;
+  const bonusAmount =
+    wantBonus && bonusQuote?.eligible
+      ? Number(bonusQuote?.bonusAmount || 0)
+      : 0;
 
+  const bonusPercent =
+    wantBonus && bonusQuote?.eligible
+      ? Number(bonusQuote?.bonusPercent || 0)
+      : 0;
 
-const baseAmount = Number(formData.depositAmount || 0);
+  const baseAmount = Number(formData.depositAmount || 0);
 
-const insuranceChargeAmount =
-  wantInsurance && insuranceQuote?.eligible
-    ? Number(insuranceQuote?.insuranceChargeAmount || 0)
-    : 0;
+  const insuranceChargeAmount =
+    wantInsurance && insuranceQuote?.eligible
+      ? Number(insuranceQuote?.insuranceChargeAmount || 0)
+      : 0;
 
-// platform charge hata diya
-const platformChargeAmount = 0;
-
-const finalPayableAmount =
-  wantInsurance && insuranceQuote?.eligible
+  const finalPayableAmount = isInsuranceClaimDeposit
+    ? wantInsurance && insuranceQuote?.eligible
+      ? insuranceChargeAmount
+      : 0
+    : wantInsurance && insuranceQuote?.eligible
     ? baseAmount + insuranceChargeAmount
     : baseAmount;
-
 
   const fetchDepositTransactions = useCallback(
     async (signal?: AbortSignal) => {
@@ -662,49 +677,43 @@ const finalPayableAmount =
           return;
         }
 
-  const normalized = payload.map((item: any) => ({
-  _id: item._id,
-  mt5Account: item.mt5Account || item.accountNumber || item.account || "N/A",
-  accountType: item.accountType || item.type || "N/A",
-
-  deposit: Number(item.deposit ?? item.amount ?? 0),
-  baseDepositAmount: Number(item.baseDepositAmount ?? item.deposit ?? 0),
-  finalPayableAmount: Number(item.finalPayableAmount ?? item.deposit ?? 0),
-
-  method: (item.method || "N/A").toString(),
-  transactionId: item.transactionId || item.txnId || item.trxId || "—",
-  orderId: item.orderId || "—",
-
-  createdAt: item.createdAt || item.created_at || item.created || null,
-  updatedAt: item.updatedAt || item.updated_at || item.updated || null,
-  approvedAt: item.approvedAt || null,
-
-  depositSS: item.depositSS || item.attachment || item.file || null,
-  status: item.status || "unknown",
-
-  depositBonusConfigId: item.depositBonusConfigId || null,
-  bonusDetails: item.bonusDetails
-    ? {
-        depositAmount: Number(item.bonusDetails.depositAmount || 0),
-        bonusPercent: Number(item.bonusDetails.bonusPercent || 0),
-        bonusAmount: Number(item.bonusDetails.bonusAmount || 0),
-      }
-    : null,
-
-  insuranceOpted: !!item.insuranceOpted,
-  insuranceDetails: item.insuranceDetails
-    ? {
-        exactAmount: Number(item.insuranceDetails.exactAmount || 0),
-        insuranceChargesPercent: Number(
-          item.insuranceDetails.insuranceChargesPercent || 0
-        ),
-        claimPercent: Number(item.insuranceDetails.claimPercent || 0),
-        insuranceChargeAmount: Number(
-          item.insuranceDetails.insuranceChargeAmount || 0
-        ),
-      }
-    : null,
-}));
+        const normalized = payload.map((item: any) => ({
+          _id: item._id,
+          mt5Account: item.mt5Account || item.accountNumber || item.account || "N/A",
+          accountType: item.accountType || item.type || "N/A",
+          deposit: Number(item.deposit ?? item.amount ?? 0),
+          baseDepositAmount: Number(item.baseDepositAmount ?? item.deposit ?? 0),
+          finalPayableAmount: Number(item.finalPayableAmount ?? item.deposit ?? 0),
+          method: (item.method || "N/A").toString(),
+          transactionId: item.transactionId || item.txnId || item.trxId || "—",
+          orderId: item.orderId || "—",
+          createdAt: item.createdAt || item.created_at || item.created || null,
+          updatedAt: item.updatedAt || item.updated_at || item.updated || null,
+          approvedAt: item.approvedAt || null,
+          depositSS: item.depositSS || item.attachment || item.file || null,
+          status: item.status || "unknown",
+          depositBonusConfigId: item.depositBonusConfigId || null,
+          bonusDetails: item.bonusDetails
+            ? {
+                depositAmount: Number(item.bonusDetails.depositAmount || 0),
+                bonusPercent: Number(item.bonusDetails.bonusPercent || 0),
+                bonusAmount: Number(item.bonusDetails.bonusAmount || 0),
+              }
+            : null,
+          insuranceOpted: !!item.insuranceOpted,
+          insuranceDetails: item.insuranceDetails
+            ? {
+                exactAmount: Number(item.insuranceDetails.exactAmount || 0),
+                insuranceChargesPercent: Number(
+                  item.insuranceDetails.insuranceChargesPercent || 0
+                ),
+                claimPercent: Number(item.insuranceDetails.claimPercent || 0),
+                insuranceChargeAmount: Number(
+                  item.insuranceDetails.insuranceChargeAmount || 0
+                ),
+              }
+            : null,
+        }));
 
         setDepositTransactions(normalized);
       } catch (err: any) {
@@ -717,12 +726,6 @@ const finalPayableAmount =
     },
     [loggedUser?._id]
   );
-
-  useEffect(() => {
-  if (!bonusQuote?.eligible) {
-    setWantBonus(false);
-  }
-}, [bonusQuote]);
 
   useEffect(() => {
     if (!showTxnModal) return;
@@ -778,6 +781,13 @@ const finalPayableAmount =
   const handleInputChange = (e: any) => {
     const { name, value, type, checked } = e.target;
 
+    if (
+      isInsuranceClaimDeposit &&
+      (name === "accountNumber" || name === "depositAmount")
+    ) {
+      return;
+    }
+
     if (name === "accountNumber") {
       const selected = loggedUser?.accounts?.find(
         (item: any) => String(item.accountNumber) === String(value)
@@ -799,6 +809,8 @@ const finalPayableAmount =
   };
 
   const handleQuickAmountSelect = (amount: number) => {
+    if (isInsuranceClaimDeposit) return;
+
     setFormData((prev) => ({
       ...prev,
       depositAmount: String(amount),
@@ -927,13 +939,25 @@ const finalPayableAmount =
       return;
     }
 
+    if (isInsuranceClaimDeposit && (!insuranceQuote?.eligible || !wantInsurance)) {
+      toast.error("Insurance is required for this claim-funded deposit.");
+      return;
+    }
+
+    if (!Number(finalPayableAmount) || Number(finalPayableAmount) <= 0) {
+      toast.error("Invalid payable amount.");
+      return;
+    }
+
     if (selectedPayment?.toLowerCase() === "crypto") {
       return handleCryptoPayment({
-        price_amount: Number(formData.depositAmount),
+        price_amount: Number(finalPayableAmount),
         price_currency: "usd",
         pay_currency: "usdttrc20",
         order_id: `${loggedUser?._id}-${Date.now()}`,
-        order_description: `Deposit for ${formData.accountNumber}`,
+        order_description: isInsuranceClaimDeposit
+          ? `Insurance charge for claimed amount on ${formData.accountNumber}`
+          : `Deposit for ${formData.accountNumber}`,
         ipn_callback_url: `${import.meta.env.VITE_API_BASE_URL}/api/auth/nowpayments-webhook`,
       });
     }
@@ -948,28 +972,29 @@ const finalPayableAmount =
         userId: loggedUser._id,
         mt5Account: formData.accountNumber,
         deposit: Number(finalPayableAmount).toFixed(2),
-        baseDeposit : formData.depositAmount,
+        baseDeposit: formData.depositAmount,
         status: "pending",
         accountType,
         method: selectedPayment,
         transactionId: formData.transactionId,
 
-          // insurance fields
-  wantInsurance: wantInsurance && insuranceQuote?.eligible ? true : false,
-  insuranceConfigId:
-    wantInsurance && insuranceQuote?.eligible
-      ? insuranceQuote?.insuranceConfigId
-      : null,
+        wantInsurance: wantInsurance && insuranceQuote?.eligible ? true : false,
+        insuranceConfigId:
+          wantInsurance && insuranceQuote?.eligible
+            ? insuranceQuote?.insuranceConfigId
+            : null,
 
-      // bonus fields
-  wantBonus: wantBonus && bonusQuote?.eligible ? true : false,
-  bonusConfigId:
-    wantBonus && bonusQuote?.eligible
-      ? bonusQuote?.depositBonusConfigId
+        wantBonus: wantBonus && bonusQuote?.eligible ? true : false,
+        bonusConfigId:
+          wantBonus && bonusQuote?.eligible
+            ? bonusQuote?.depositBonusConfigId
+            : null,
 
-      : null,
-
-
+        fundingSource: isInsuranceClaimDeposit ? "insurance_claim" : "cash",
+        insuranceClaimSourceAccount: claimPrefill?.mt5Account || "",
+        insuranceClaimType: claimPrefill?.claimType || "",
+        insuranceClaimAmount: claimPrefill?.claimAmount || "",
+        insuranceClaimCoverageIds: JSON.stringify(claimPrefill?.coverageIds || []),
       };
 
       const fd = new FormData();
@@ -1043,13 +1068,18 @@ const finalPayableAmount =
     boxShadow: "0 12px 24px rgba(249,115,22,0.22)",
   };
 
+  const claimFlowReady =
+    !isInsuranceClaimDeposit || (wantInsurance && !!insuranceQuote?.eligible);
+
   const ctaEnabled =
     selectedPayment &&
     agreeToTerms &&
     formData.depositAmount &&
     formData.accountNumber &&
     !isSubmitting &&
-    !creatingLoading;
+    !creatingLoading &&
+    Number(finalPayableAmount) > 0 &&
+    claimFlowReady;
 
   const canContinueStep1 = !!formData.accountNumber && !!formData.depositAmount;
   const canContinueStep2 = !!selectedPayment;
@@ -1057,10 +1087,6 @@ const finalPayableAmount =
   const inrAmount =
     Number(formData.depositAmount || 0) *
     Number(siteConfig?.dollarDepositRate || 0);
-
-
-
-
 
   const paymentProps = {
     selectedPayment,
@@ -1146,41 +1172,41 @@ const finalPayableAmount =
     };
   };
 
- const filteredDepositTransactions = useMemo(() => {
-  if (!txnQ.trim()) return depositTransactions;
+  const filteredDepositTransactions = useMemo(() => {
+    if (!txnQ.trim()) return depositTransactions;
 
-  const term = txnQ.trim().toLowerCase();
+    const term = txnQ.trim().toLowerCase();
 
-  return depositTransactions.filter((row: any) => {
-    const searchable = [
-      row._id,
-      row.mt5Account,
-      row.accountType,
-      row.deposit,
-      row.baseDepositAmount,
-      row.finalPayableAmount,
-      row.method,
-      row.transactionId,
-      row.orderId,
-      row.status,
-      row.createdAt,
-      row.updatedAt,
-      row.approvedAt,
-      row.insuranceOpted,
-      row.bonusDetails?.depositAmount,
-      row.bonusDetails?.bonusPercent,
-      row.bonusDetails?.bonusAmount,
-      row.insuranceDetails?.exactAmount,
-      row.insuranceDetails?.insuranceChargesPercent,
-      row.insuranceDetails?.claimPercent,
-      row.insuranceDetails?.insuranceChargeAmount,
-    ];
+    return depositTransactions.filter((row: any) => {
+      const searchable = [
+        row._id,
+        row.mt5Account,
+        row.accountType,
+        row.deposit,
+        row.baseDepositAmount,
+        row.finalPayableAmount,
+        row.method,
+        row.transactionId,
+        row.orderId,
+        row.status,
+        row.createdAt,
+        row.updatedAt,
+        row.approvedAt,
+        row.insuranceOpted,
+        row.bonusDetails?.depositAmount,
+        row.bonusDetails?.bonusPercent,
+        row.bonusDetails?.bonusAmount,
+        row.insuranceDetails?.exactAmount,
+        row.insuranceDetails?.insuranceChargesPercent,
+        row.insuranceDetails?.claimPercent,
+        row.insuranceDetails?.insuranceChargeAmount,
+      ];
 
-    return searchable.some((v) =>
-      String(v ?? "").toLowerCase().includes(term)
-    );
-  });
-}, [txnQ, depositTransactions]);
+      return searchable.some((v) =>
+        String(v ?? "").toLowerCase().includes(term)
+      );
+    });
+  }, [txnQ, depositTransactions]);
 
   const txnStats = useMemo(() => {
     const total = filteredDepositTransactions.reduce(
@@ -1188,10 +1214,10 @@ const finalPayableAmount =
       0
     );
 
-   const totalBonus = filteredDepositTransactions.reduce(
-  (sum, item: any) => sum + (Number(item.bonusDetails?.bonusAmount) || 0),
-  0
-);
+    const totalBonus = filteredDepositTransactions.reduce(
+      (sum, item: any) => sum + (Number(item.bonusDetails?.bonusAmount) || 0),
+      0
+    );
 
     const approved = filteredDepositTransactions.filter(
       (item: any) => String(item.status).toLowerCase() === "approved"
@@ -1204,13 +1230,11 @@ const finalPayableAmount =
     return {
       total,
       approved,
-       totalBonus,
+      totalBonus,
       pending,
       rows: filteredDepositTransactions.length,
     };
   }, [filteredDepositTransactions]);
-
-  const savingsAmount = Math.max(Math.round(inrAmount * 0.02), 0);
 
   const handleContinueStep1 = () => {
     if (!canContinueStep1) {
@@ -1368,16 +1392,13 @@ const finalPayableAmount =
                         value={txnStats.pending}
                         tone="warning"
                       />
-
                       <StatCard
-  icon={<Gift className="h-5 w-5" />}
-  label="Total Bonus"
-  value={`$${money(txnStats.totalBonus)}`}
-  colors={colors}
-  tone="success"
-/>
-
-
+                        icon={<Gift className="h-5 w-5" />}
+                        label="Total Bonus"
+                        value={`$${money(txnStats.totalBonus)}`}
+                        colors={colors}
+                        tone="success"
+                      />
                       <StatCard
                         colors={colors}
                         icon={<TrendingUp className="h-5 w-5" />}
@@ -1490,7 +1511,7 @@ const finalPayableAmount =
                                       "Requested",
                                       "Proof",
                                       "Status",
-                                      "approvedAt"
+                                      "approvedAt",
                                     ].map((head) => (
                                       <th
                                         key={head}
@@ -1558,57 +1579,56 @@ const finalPayableAmount =
                                         {item?.transactionId || "—"}
                                       </td>
 
-
                                       <td className="px-4 py-4 align-top">
-  <div className="space-y-2">
-    <div
-      className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-      style={{
-        borderColor: item.insuranceDetails
-          ? "rgba(59,130,246,0.25)"
-          : colors.border,
-        background: item.insuranceDetails
-          ? isDark
-            ? "rgba(59,130,246,0.12)"
-            : "rgba(59,130,246,0.08)"
-          : colors.surfaceSoft,
-        color: item.insuranceDetails ? colors.accent : colors.softText,
-      }}
-    >
-      {item.insuranceDetails
-        ? `Insurance: $${money(item.insuranceDetails.insuranceChargeAmount)} (${money(
-            item.insuranceDetails.insuranceChargesPercent
-          )}%)`
-        : "Insurance: No"}
-    </div>
+                                        <div className="space-y-2">
+                                          <div
+                                            className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                                            style={{
+                                              borderColor: item.insuranceDetails
+                                                ? "rgba(59,130,246,0.25)"
+                                                : colors.border,
+                                              background: item.insuranceDetails
+                                                ? isDark
+                                                  ? "rgba(59,130,246,0.12)"
+                                                  : "rgba(59,130,246,0.08)"
+                                                : colors.surfaceSoft,
+                                              color: item.insuranceDetails ? colors.accent : colors.softText,
+                                            }}
+                                          >
+                                            {item.insuranceDetails
+                                              ? `Insurance: $${money(item.insuranceDetails.insuranceChargeAmount)} (${money(
+                                                  item.insuranceDetails.insuranceChargesPercent
+                                                )}%)`
+                                              : "Insurance: No"}
+                                          </div>
 
-    <div
-      className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-      style={{
-        borderColor:
-          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
-            ? "rgba(16,185,129,0.25)"
-            : colors.border,
-        background:
-          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
-            ? isDark
-              ? "rgba(16,185,129,0.12)"
-              : "rgba(16,185,129,0.08)"
-            : colors.surfaceSoft,
-        color:
-          item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
-            ? colors.success
-            : colors.softText,
-      }}
-    >
-      {item.bonusDetails
-        ? `Bonus: ${money(item.bonusDetails.bonusPercent)}% ($${money(
-            item.bonusDetails.bonusAmount
-          )})`
-        : "Bonus: No"}
-    </div>
-  </div>
-</td>
+                                          <div
+                                            className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                                            style={{
+                                              borderColor:
+                                                item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+                                                  ? "rgba(16,185,129,0.25)"
+                                                  : colors.border,
+                                              background:
+                                                item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+                                                  ? isDark
+                                                    ? "rgba(16,185,129,0.12)"
+                                                    : "rgba(16,185,129,0.08)"
+                                                  : colors.surfaceSoft,
+                                              color:
+                                                item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
+                                                  ? colors.success
+                                                  : colors.softText,
+                                            }}
+                                          >
+                                            {item.bonusDetails
+                                              ? `Bonus: ${money(item.bonusDetails.bonusPercent)}% ($${money(
+                                                  item.bonusDetails.bonusAmount
+                                                )})`
+                                              : "Bonus: No"}
+                                          </div>
+                                        </div>
+                                      </td>
 
                                       <td
                                         className="px-4 py-3 text-center text-xs"
@@ -1652,26 +1672,23 @@ const finalPayableAmount =
                                         </span>
                                       </td>
 
-
                                       <td className="px-4 py-4 align-top">
-  <div className="space-y-1">
-    <div className="text-sm" style={{ color: colors.text }}>
-      Created: {formatDate(item.createdAt)}
-    </div>
+                                        <div className="space-y-1">
+                                          <div className="text-sm" style={{ color: colors.text }}>
+                                            Created: {formatDate(item.createdAt)}
+                                          </div>
 
-    <div className="text-xs" style={{ color: colors.muted }}>
-      Updated: {formatDate(item.updatedAt)}
-    </div>
+                                          <div className="text-xs" style={{ color: colors.muted }}>
+                                            Updated: {formatDate(item.updatedAt)}
+                                          </div>
 
-    {item.approvedAt ? (
-      <div className="text-xs" style={{ color: colors.success }}>
-        Approved: {formatDate(item.approvedAt)}
-      </div>
-    ) : null}
-  </div>
-</td>
-
-
+                                          {item.approvedAt ? (
+                                            <div className="text-xs" style={{ color: colors.success }}>
+                                              Approved: {formatDate(item.approvedAt)}
+                                            </div>
+                                          ) : null}
+                                        </div>
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1731,6 +1748,39 @@ const finalPayableAmount =
         </div>
 
         <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
+          {isInsuranceClaimDeposit ? (
+            <div
+              className="mb-5 rounded-[20px] border px-5 py-4"
+              style={{
+                borderColor: isDark ? "rgba(16,185,129,0.24)" : "rgba(16,185,129,0.18)",
+                background: isDark ? "rgba(16,185,129,0.08)" : "rgba(16,185,129,0.06)",
+              }}
+            >
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="text-sm font-semibold" style={{ color: colors.text }}>
+                    Insurance Claim Deposit Flow
+                  </div>
+                  <div className="mt-1 text-sm" style={{ color: colors.softText }}>
+                    Claim amount <strong>${money(claimPrefill?.claimAmount)}</strong> has
+                    been auto-filled for account <strong>{claimPrefill?.mt5Account}</strong>.
+                    You only need to pay the insurance charge from this page.
+                  </div>
+                </div>
+
+                <div
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{
+                    background: isDark ? "rgba(255,255,255,0.08)" : "#ffffff",
+                    color: colors.success,
+                  }}
+                >
+                  Claim-funded deposit
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatCard
               colors={colors}
@@ -1775,30 +1825,30 @@ const finalPayableAmount =
                 isCompleted={step1Completed}
                 colors={colors}
                 onChange={() => setOpenStep(1)}
-               summary={
-  <div className="flex flex-wrap items-center gap-3">
-    <span>Amount: ${money(baseAmount)}</span>
+                summary={
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span>Amount: ${money(baseAmount)}</span>
 
-    {insuranceQuote?.eligible && wantInsurance ? (
-      <span>
-        Insurance: +${money(insuranceChargeAmount)} (
-        {Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
-      </span>
-    ) : (
-      <span style={{ color: colors.muted }}>Insurance: No</span>
-    )}
+                    {insuranceQuote?.eligible && wantInsurance ? (
+                      <span>
+                        Insurance: +${money(insuranceChargeAmount)} (
+                        {Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
+                      </span>
+                    ) : (
+                      <span style={{ color: colors.muted }}>Insurance: No</span>
+                    )}
 
-    {bonusQuote?.eligible ? (
-      <span style={{ color: colors.success }}>
-        Bonus: +${money(bonusAmount)} ({bonusPercent}%)
-      </span>
-    ) : (
-      <span style={{ color: colors.muted }}>Bonus: No</span>
-    )}
+                    {bonusQuote?.eligible && wantBonus ? (
+                      <span style={{ color: colors.success }}>
+                        Bonus: +${money(bonusAmount)} ({bonusPercent}%)
+                      </span>
+                    ) : (
+                      <span style={{ color: colors.muted }}>Bonus: No</span>
+                    )}
 
-    <span>Total Payable: ${money(finalPayableAmount)}</span>
-  </div>
-}
+                    <span>Total Payable: ${money(finalPayableAmount)}</span>
+                  </div>
+                }
               >
                 <div className="p-5">
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -1816,6 +1866,7 @@ const finalPayableAmount =
                           value={formData.accountNumber}
                           onChange={handleInputChange}
                           style={selectStyle}
+                          disabled={isInsuranceClaimDeposit}
                         >
                           <option value="" style={optionStyle}>
                             Select Account
@@ -1860,49 +1911,48 @@ const finalPayableAmount =
                           onChange={handleInputChange}
                           className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold"
                           style={inputStyle}
+                          disabled={isInsuranceClaimDeposit}
                         />
                       </div>
                     </div>
-
-
-
                   </div>
 
-                  {/* QUICK AMOUNT BUTTONS */}
-                  <div className="mt-5">
-                    <div
-                      className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
-                      style={{ color: mutedTextColor }}
-                    >
-                      Quick Select Amount
-                    </div>
+                  {!isInsuranceClaimDeposit ? (
+                    <div className="mt-5">
+                      <div
+                        className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
+                        style={{ color: mutedTextColor }}
+                      >
+                        Quick Select Amount
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                      {quickAmounts.map((amount) => {
-                        const isActive = Number(formData.depositAmount) === amount;
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {quickAmounts.map((amount) => {
+                          const isActive = Number(formData.depositAmount) === amount;
 
-                        return (
-                          <button
-                            key={amount}
-                            type="button"
-                            onClick={() => handleQuickAmountSelect(amount)}
-                            className="border px-4 py-4 text-center text-sm font-semibold transition-all duration-300"
-                            style={{
-                              borderColor: isActive ? colors.accent : colors.border,
-                              background: isActive ? colors.accentSoft : colors.surfaceSoft,
-                              color: isActive ? accentColor : titleColor,
-                              borderRadius: "16px",
-                              boxShadow: isActive
-                                ? "0 10px 20px rgba(37,99,235,0.08)"
-                                : "none",
-                            }}
-                          >
-                            ${amount}
-                          </button>
-                        );
-                      })}
+                          return (
+                            <button
+                              key={amount}
+                              type="button"
+                              onClick={() => handleQuickAmountSelect(amount)}
+                              className="border px-4 py-4 text-center text-sm font-semibold transition-all duration-300"
+                              style={{
+                                borderColor: isActive ? colors.accent : colors.border,
+                                background: isActive ? colors.accentSoft : colors.surfaceSoft,
+                                color: isActive ? accentColor : titleColor,
+                                borderRadius: "16px",
+                                boxShadow: isActive
+                                  ? "0 10px 20px rgba(37,99,235,0.08)"
+                                  : "none",
+                              }}
+                            >
+                              ${amount}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
                   <div className="mt-5 flex justify-end">
                     <button
@@ -2071,49 +2121,22 @@ const finalPayableAmount =
                           </p>
                         </div>
                       ) : (
-                        <>
-                          {/* <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
-                            <label className="flex cursor-pointer items-start gap-3">
-                              <input
-                                type="checkbox"
-                                checked={agreeToTerms}
-                                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 rounded"
-                                style={{ accentColor: colors.primaryBtn }}
-                              />
-
-                              <span className="text-sm" style={{ color: titleColor }}>
-                                I agree to the{" "}
-                                <a
-                                  href={siteConfig?.tNcLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline"
-                                  style={{ color: colors.link }}
-                                >
-                                  Terms & Conditions
-                                </a>
-                              </span>
-                            </label>
-                          </div> */}
-
-                          <div className="mt-5 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={handleContinueStep2}
-                              className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
-                              style={{
-                                background: colors.primaryBtn,
-                                color: "#fff",
-                                borderRadius: "14px",
-                                opacity: canContinueStep2 ? 1 : 0.7,
-                              }}
-                            >
-                              Continue
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </>
+                        <div className="mt-5 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={handleContinueStep2}
+                            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
+                            style={{
+                              background: colors.primaryBtn,
+                              color: "#fff",
+                              borderRadius: "14px",
+                              opacity: canContinueStep2 ? 1 : 0.7,
+                            }}
+                          >
+                            Continue
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        </div>
                       )}
                     </>
                   ) : null}
@@ -2131,283 +2154,244 @@ const finalPayableAmount =
                   }}
                 >
                   <div className="p-5">
+                    <div
+                      className="mt-4 overflow-hidden border"
+                      style={{
+                        borderColor: colors.border,
+                        background: colors.surface,
+                        borderRadius: "20px",
+                        boxShadow: colors.cardShadow,
+                      }}
+                    >
+                      <div
+                        className="border-b px-5 py-4"
+                        style={{
+                          borderColor: colors.border,
+                          background: colors.surfaceSoft,
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Wallet className="h-5 w-5" style={{ color: colors.accent }} />
+                          <h3
+                            className="text-base font-semibold"
+                            style={{ color: colors.text }}
+                          >
+                            Payment Summary
+                          </h3>
+                        </div>
+                      </div>
 
+                      <div className="space-y-3 px-5 py-4">
+                        <div className="flex items-center justify-between">
+                          <span style={{ color: colors.softText }}>
+                            {isInsuranceClaimDeposit ? "Claim Amount" : "Deposit Amount"}
+                          </span>
+                          <span className="font-semibold" style={{ color: colors.text }}>
+                            ${money(baseAmount)}
+                          </span>
+                        </div>
 
+                        {insuranceLoading ? (
+                          <div className="flex items-center justify-between">
+                            <span style={{ color: colors.softText }}>Insurance</span>
+                            <span style={{ color: colors.muted }}>Checking...</span>
+                          </div>
+                        ) : insuranceQuote?.eligible ? (
+                          <div className="flex items-center justify-between">
+                            <span style={{ color: colors.softText }}>
+                              Insurance Charges ({Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
+                              {wantInsurance ? (
+                                <span className="ml-2 text-xs" style={{ color: colors.success }}>
+                                  Applied
+                                </span>
+                              ) : (
+                                <span className="ml-2 text-xs" style={{ color: colors.muted }}>
+                                  Optional
+                                </span>
+                              )}
+                            </span>
 
-         <div
-  className="mt-4 overflow-hidden border"
-  style={{
-    borderColor: colors.border,
-    background: colors.surface,
-    borderRadius: "20px",
-    boxShadow: colors.cardShadow,
-  }}
->
-  <div
-    className="border-b px-5 py-4"
-    style={{
-      borderColor: colors.border,
-      background: colors.surfaceSoft,
-    }}
-  >
-    <div className="flex items-center gap-2">
-      <Wallet className="h-5 w-5" style={{ color: colors.accent }} />
-      <h3
-        className="text-base font-semibold"
-        style={{ color: colors.text }}
-      >
-        Payment Summary
-      </h3>
-    </div>
-  </div>
+                            <span className="font-semibold" style={{ color: colors.text }}>
+                              {wantInsurance ? `+$${money(insuranceChargeAmount)}` : "$0"}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span style={{ color: colors.softText }}>Insurance</span>
+                            <span style={{ color: colors.muted }}>Not available</span>
+                          </div>
+                        )}
 
-  <div className="space-y-3 px-5 py-4">
-    <div className="flex items-center justify-between">
-      <span style={{ color: colors.softText }}>Deposit Amount</span>
-      <span className="font-semibold" style={{ color: colors.text }}>
-        ${money(baseAmount)}
-      </span>
-    </div>
+                        {bonusLoading ? (
+                          <div className="text-sm" style={{ color: colors.muted }}>
+                            Checking bonus...
+                          </div>
+                        ) : bonusQuote?.eligible ? (
+                          <label
+                            className="flex items-start gap-3 rounded-2xl border p-4 cursor-pointer"
+                            style={{
+                              borderColor: colors.border,
+                              background: colors.surfaceSoft,
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={wantBonus}
+                              onChange={(e) => setWantBonus(e.target.checked)}
+                              className="mt-1 h-4 w-4"
+                            />
 
-    {insuranceLoading ? (
-      <div className="flex items-center justify-between">
-        <span style={{ color: colors.softText }}>Insurance</span>
-        <span style={{ color: colors.muted }}>Checking...</span>
-      </div>
-    ) : insuranceQuote?.eligible ? (
-      <>
-        <div className="flex items-center justify-between">
-          <span style={{ color: colors.softText }}>
-            Insurance Charges ({Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
-            {wantInsurance ? (
-              <span className="ml-2 text-xs" style={{ color: colors.success }}>
-                Applied
-              </span>
-            ) : (
-              <span className="ml-2 text-xs" style={{ color: colors.muted }}>
-                Optional
-              </span>
-            )}
-          </span>
+                            <div>
+                              <div className="font-semibold flex items-center gap-2" style={{ color: colors.text }}>
+                                <Gift className="h-4 w-4" />
+                                Apply Deposit Bonus
+                              </div>
 
-          <span className="font-semibold" style={{ color: colors.text }}>
-            {wantInsurance ? `+$${money(insuranceChargeAmount)}` : "$0"}
-          </span>
-        </div>
+                              <div className="text-sm mt-1" style={{ color: colors.softText }}>
+                                You are eligible for{" "}
+                                <span className="font-semibold" style={{ color: colors.success }}>
+                                  {bonusPercent}%
+                                </span>{" "}
+                                bonus ={" "}
+                                <span className="font-semibold" style={{ color: colors.success }}>
+                                  ${money(bonusAmount)}
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                        ) : null}
 
-      </>
-    ) : (
-      <div className="flex items-center justify-between">
-        <span style={{ color: colors.softText }}>Insurance</span>
-        <span style={{ color: colors.muted }}>Not available</span>
-      </div>
-    )}
+                        <div
+                          className="flex items-center justify-between border-t pt-3"
+                          style={{ borderColor: colors.border }}
+                        >
+                          <span className="text-sm font-semibold" style={{ color: colors.text }}>
+                            Total Payable
+                          </span>
+                          <span
+                            className="text-lg font-bold"
+                            style={{ color: colors.primaryBtn }}
+                          >
+                            ${money(finalPayableAmount)}
+                          </span>
+                        </div>
 
-    {/* <div
-      className="flex items-center justify-between rounded-2xl border px-4 py-3"
-      style={{
-        borderColor: bonusQuote?.eligible
-          ? "rgba(34,197,94,0.25)"
-          : colors.border,
-        background: bonusQuote?.eligible
-          ? isDark
-            ? "rgba(34,197,94,0.10)"
-            : "rgba(34,197,94,0.06)"
-          : colors.surfaceSoft,
-      }}
-    >
-      <div>
-        <div className="flex items-center gap-2">
-          <Gift className="h-4 w-4" style={{ color: colors.success }} />
-          <span className="font-medium" style={{ color: colors.text }}>
-            Deposit Bonus ({bonusQuote?.eligible ? bonusPercent : 0}%)
-          </span>
-        </div>
+                        {bonusQuote?.eligible && wantBonus ? (
+                          <div
+                            className="rounded-xl px-3 py-2 text-xs"
+                            style={{
+                              background: isDark
+                                ? "rgba(34,197,94,0.10)"
+                                : "rgba(34,197,94,0.08)",
+                              color: colors.success,
+                            }}
+                          >
+                            After approval, you will receive <strong>${money(bonusAmount)}</strong> bonus
+                            in your bonus wallet ({bonusPercent}%).
+                          </div>
+                        ) : null}
 
-        <div className="mt-1 text-xs" style={{ color: colors.softText }}>
-          {bonusLoading
-            ? "Checking bonus..."
-            : bonusQuote?.eligible
-            ? `${bonusPercent}% bonus available on this amount`
-            : "No bonus available on this amount"}
-        </div>
-      </div>
+                        {isInsuranceClaimDeposit ? (
+                          <div
+                            className="rounded-xl px-3 py-2 text-xs"
+                            style={{
+                              background: isDark
+                                ? "rgba(59,130,246,0.10)"
+                                : "rgba(59,130,246,0.08)",
+                              color: colors.accent,
+                            }}
+                          >
+                            This is a claim-funded deposit. The claim amount will be treated as the
+                            base deposit and you are only paying the insurance charge here.
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
 
-      <div className="text-right">
-        <div className="font-bold" style={{ color: colors.success }}>
-          {bonusQuote?.eligible ? `+$${money(bonusAmount)}` : "$0"}
-        </div>
-      </div>
-    </div> */}
-
-
-{bonusLoading ? (
-  <div className="text-sm" style={{ color: colors.muted }}>
-    Checking bonus...
-  </div>
-) : bonusQuote?.eligible ? (
-  <label
-    className="flex items-start gap-3 rounded-2xl border p-4 cursor-pointer"
-    style={{
-      borderColor: colors.border,
-      background: colors.surfaceSoft,
-    }}
-  >
-    <input
-      type="checkbox"
-      checked={wantBonus}
-      onChange={(e) => setWantBonus(e.target.checked)}
-      className="mt-1 h-4 w-4"
-    />
-
-    <div>
-      <div className="font-semibold flex items-center gap-2" style={{ color: colors.text }}>
-        <Gift className="h-4 w-4" />
-        Apply Deposit Bonus
-      </div>
-
-      <div className="text-sm mt-1" style={{ color: colors.softText }}>
-        You are eligible for{" "}
-        <span className="font-semibold" style={{ color: colors.success }}>
-          {bonusPercent}%
-        </span>{" "}
-        bonus ={" "}
-        <span className="font-semibold" style={{ color: colors.success }}>
-          ${money(bonusAmount)}
-        </span>
-      </div>
-    </div>
-  </label>
-) : null}
-
-
-    <div
-      className="flex items-center justify-between border-t pt-3"
-      style={{ borderColor: colors.border }}
-    >
-      <span className="text-sm font-semibold" style={{ color: colors.text }}>
-        Total Payable
-      </span>
-      <span
-        className="text-lg font-bold"
-        style={{ color: colors.primaryBtn }}
-      >
-        ${money(finalPayableAmount)}
-      </span>
-    </div>
-
-    {bonusQuote?.eligible ? (
-      <div
-        className="rounded-xl px-3 py-2 text-xs"
-        style={{
-          background: isDark
-            ? "rgba(34,197,94,0.10)"
-            : "rgba(34,197,94,0.08)",
-          color: colors.success,
-        }}
-      >
-        After approval, you will receive <strong>${money(bonusAmount)}</strong> bonus
-        in your bonus wallet ({bonusPercent}%).
-      </div>
-    ) : null}
-  </div>
-</div>
-
-
-
-     <div
+                    <div
                       className="mt-4 text-base font-semibold"
                       style={{ color: colors.success }}
                     >
+                      {formData.depositAmount && insuranceQuote?.eligible ? (
+                        <div
+                          className="mt-4 rounded-[20px] border p-4"
+                          style={{
+                            borderColor: colors.border,
+                            background: colors.surfaceSoft,
+                          }}
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div
+                                className="text-sm font-semibold"
+                                style={{ color: colors.text }}
+                              >
+                                Insurance Availability
+                              </div>
 
-                          {(formData.depositAmount && insuranceQuote?.eligible )? (
-  <div
-    className="mt-4 rounded-[20px] border p-4"
-    style={{
-      borderColor: colors.border,
-      background: colors.surfaceSoft,
-    }}
-  >
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <div
-          className="text-sm font-semibold"
-          style={{ color: colors.text }}
-        >
-          Insurance Availability
-        </div>
+                              {insuranceLoading ? (
+                                <p className="mt-1 text-sm" style={{ color: colors.muted }}>
+                                  Checking insurance eligibility...
+                                </p>
+                              ) : insuranceQuote?.eligible ? (
+                                <p className="mt-1 text-sm" style={{ color: colors.success }}>
+                                  Insurance is available for this amount.
+                                </p>
+                              ) : (
+                                <p className="mt-1 text-sm" style={{ color: colors.warning }}>
+                                  Insurance is not available for this amount.
+                                </p>
+                              )}
+                            </div>
 
-        {insuranceLoading ? (
-          <p className="mt-1 text-sm" style={{ color: colors.muted }}>
-            Checking insurance eligibility...
-          </p>
-        ) : insuranceQuote?.eligible ? (
-          <>
-            <p className="mt-1 text-sm" style={{ color: colors.success }}>
-              Insurance is available for this amount.
-            </p>
-          </>
-        ) : (
-          <p className="mt-1 text-sm" style={{ color: colors.warning }}>
-            Insurance is not available for this amount.
-          </p>
-        )}
-      </div>
-
-      {insuranceQuote?.eligible ? (
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={wantInsurance}
-            onChange={(e) =>  setWantInsurance(e.target.checked)}
-            className="h-4 w-4"
-          />
-          <span
-            className="text-sm font-medium"
-            style={{ color: colors.text }}
-          >
-            I want insurance
-          </span>
-        </label>
-      ) : null}
-    </div>
-  </div>
-) : null}
-
-
-
-
-
-                      {/* Your Total Savings on this order ₹{money(savingsAmount)} */}
+                            {insuranceQuote?.eligible ? (
+                              <label className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={wantInsurance}
+                                  onChange={(e) => setWantInsurance(e.target.checked)}
+                                  className="h-4 w-4"
+                                  disabled={isInsuranceClaimDeposit}
+                                />
+                                <span
+                                  className="text-sm font-medium"
+                                  style={{ color: colors.text }}
+                                >
+                                  {isInsuranceClaimDeposit
+                                    ? "Insurance applied for claim flow"
+                                    : "I want insurance"}
+                                </span>
+                              </label>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
 
-
-
                     <div className="mt-6 border p-4" style={{ ...subtleCard() }}>
-                            <label className="flex cursor-pointer items-start gap-3">
-                              <input
-                                type="checkbox"
-                                checked={agreeToTerms}
-                                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 rounded"
-                                style={{ accentColor: colors.primaryBtn }}
-                              />
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={agreeToTerms}
+                          onChange={(e) => setAgreeToTerms(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded"
+                          style={{ accentColor: colors.primaryBtn }}
+                        />
 
-                              <span className="text-sm" style={{ color: titleColor }}>
-                                I agree to the{" "}
-                                <a
-                                  href={siteConfig?.tNcLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline"
-                                  style={{ color: colors.link }}
-                                >
-                                  Terms & Conditions
-                                </a>
-                              </span>
-                            </label>
-                          </div>
-
+                        <span className="text-sm" style={{ color: titleColor }}>
+                          I agree to the{" "}
+                          <a
+                            href={siteConfig?.tNcLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
+                            style={{ color: colors.link }}
+                          >
+                            Terms & Conditions
+                          </a>
+                        </span>
+                      </label>
+                    </div>
 
                     <motion.div
                       animate={

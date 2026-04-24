@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowLeft,
   BadgeDollarSign,
   CalendarClock,
   CheckCheck,
+  ChevronDown,
+  ChevronRight,
   Clock3,
   Info,
   Layers3,
@@ -12,10 +14,17 @@ import {
   Search,
   SlidersHorizontal,
   TrendingUp,
+  UserRound,
   Wallet,
   X,
 } from "lucide-react";
-import { useNavigate, useOutletContext, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useOutletContext,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { useSelector } from "react-redux";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -34,10 +43,10 @@ const safeNumber = (value) => {
 };
 
 const format4 = (value) => safeNumber(value).toFixed(4);
-const format2 = (value) => safeNumber(value).toFixed(2);
 
-const getStatusText = (row) => {
-  return row?.commission?.isCalculated === true ? "completed" : "pending";
+const normalizeAccountNumber = (value) => {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
 };
 
 const normalizeDateText = (value) => {
@@ -86,23 +95,121 @@ const getTradeSideClass = (buySell, isDark) => {
     : "border-slate-200 bg-slate-50 text-slate-600";
 };
 
+const getStatusText = (row) => {
+  return row?.commission?.isCalculated === true ? "completed" : "pending";
+};
+
+const parseAccountPairs = (rawValue) => {
+  const raw = rawValue || "";
+  if (!raw) return [];
+
+  return raw
+    .split(",")
+    .map((pair) => {
+      const [accountNumber, level] = pair.split(":");
+
+      return {
+        accountNumber: normalizeAccountNumber(accountNumber),
+        level: level === undefined || level === "" ? null : Number(level),
+      };
+    })
+    .filter((item) => item.accountNumber);
+};
+
+const uniqueTargets = (targets = []) => {
+  const map = new Map();
+
+  targets.forEach((target) => {
+    const accountNumber = normalizeAccountNumber(target?.accountNumber);
+    if (!accountNumber) return;
+
+    const key = `${accountNumber}:${target?.level ?? ""}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        ...target,
+        accountNumber,
+        level:
+          target?.level === undefined || target?.level === null || target?.level === ""
+            ? null
+            : Number(target.level),
+      });
+    }
+  });
+
+  return Array.from(map.values());
+};
+
 const UserReferralCloseTrades = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const outletContext = useOutletContext() || {};
-  const tableRef = useRef(null);
 
   const themeMode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = outletContext?.isDark ?? themeMode === "dark";
 
-  const levelParam = searchParams.get("level");
-  const selectedLevel = useMemo(() => {
-    const parsed = Number(levelParam);
+  const explicitLevelParam = searchParams.get("level");
+  const explicitLevel = useMemo(() => {
+    const parsed = Number(explicitLevelParam);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }, [levelParam]);
+  }, [explicitLevelParam]);
 
-  const [commissionsData, setCommissionsData] = useState([]);
+  const userGroupFromState = location?.state?.userGroup || null;
+
+  const accountTargets = useMemo(() => {
+    const fromQuery = parseAccountPairs(searchParams.get("accounts"));
+    const fromState = Array.isArray(userGroupFromState?.accounts)
+      ? userGroupFromState.accounts.map((row) => ({
+          accountNumber: row?.accountNumber,
+          level: row?.level,
+          name: row?.name,
+          email: row?.email,
+          country: row?.country,
+          totalLot: row?.totalLot,
+          totalCommission: row?.totalCommission,
+        }))
+      : [];
+
+    const fallbackId = normalizeAccountNumber(id);
+
+    if (fromQuery.length) {
+      const merged = fromQuery.map((target) => {
+        const stateMatch = fromState.find(
+          (row) =>
+            normalizeAccountNumber(row.accountNumber) ===
+            normalizeAccountNumber(target.accountNumber)
+        );
+
+        return {
+          ...stateMatch,
+          ...target,
+        };
+      });
+
+      return uniqueTargets(merged);
+    }
+
+    if (fromState.length) {
+      return uniqueTargets(fromState);
+    }
+
+    if (fallbackId && fallbackId !== "unknown") {
+      return uniqueTargets([
+        {
+          accountNumber: fallbackId,
+          level: explicitLevel,
+        },
+      ]);
+    }
+
+    return [];
+  }, [explicitLevel, id, searchParams, userGroupFromState]);
+
+  const [tradeRows, setTradeRows] = useState([]);
+  const [accountErrors, setAccountErrors] = useState([]);
+  const [expandedAccounts, setExpandedAccounts] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorText, setErrorText] = useState("");
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
@@ -112,44 +219,93 @@ const UserReferralCloseTrades = () => {
   const [sortBy, setSortBy] = useState("closeTime");
   const [sortDirection, setSortDirection] = useState("desc");
 
-  const normalizeTradeRows = useCallback(
-    (rows) => {
-      const list = Array.isArray(rows) ? [...rows].reverse() : [];
-
-      return list.flatMap((trade) => {
-        const commissions = Array.isArray(trade?.commissions)
-          ? trade.commissions
-          : [];
-
-        const matchedCommissions = selectedLevel
-          ? commissions.filter(
-              (commission) => Number(commission?.level) === Number(selectedLevel)
-            )
-          : commissions;
-
-        return matchedCommissions.map((commission, index) => ({
-          ...trade,
-          commission,
-          _rowKey: `${trade?._id || trade?.positionId || "trade"}-${
-            commission?.level || "level"
-          }-${commission?.ibAccountNumber || "ib"}-${index}`,
-        }));
-      });
-    },
-    [selectedLevel]
-  );
+  const pageUserName = userGroupFromState?.name || "IB User";
+  const pageUserEmail = userGroupFromState?.email || decodeURIComponent(id || "");
+  const pageUserCountry = userGroupFromState?.country || "";
 
   const fetchCommissions = useCallback(async () => {
     setIsLoading(true);
     setErrorText("");
+    setAccountErrors([]);
 
     try {
-      const res = await userApi.get(`/user-ib-close-trade/${id}`);
-      const rows = res?.data?.data || [];
-      const normalizedRows = normalizeTradeRows(rows);
+      if (!accountTargets.length) {
+        setTradeRows([]);
+        setErrorText("No account found for this user.");
+        return;
+      }
 
-      setCommissionsData(normalizedRows);
+      const results = await Promise.allSettled(
+        accountTargets.map(async (target) => {
+          const res = await userApi.get(`/user-ib-close-trade/${target.accountNumber}`);
+
+          return {
+            target,
+            rows: Array.isArray(res?.data?.data) ? res.data.data : [],
+          };
+        })
+      );
+
+      const nextRows = [];
+      const nextErrors = [];
+
+      results.forEach((result, resultIndex) => {
+        const target = accountTargets[resultIndex];
+
+        if (result.status !== "fulfilled") {
+          nextErrors.push({
+            accountNumber: target?.accountNumber,
+            message:
+              result?.reason?.response?.data?.message ||
+              result?.reason?.message ||
+              "Unable to load this account trades.",
+          });
+          return;
+        }
+
+        const rows = result.value.rows;
+        const currentTarget = result.value.target;
+
+        rows.forEach((trade) => {
+          const commissions = Array.isArray(trade?.commissions)
+            ? trade.commissions
+            : [];
+
+          const levelToUse = explicitLevel || currentTarget?.level || null;
+
+          const matchedCommissions = levelToUse
+            ? commissions.filter(
+                (commission) => Number(commission?.level) === Number(levelToUse)
+              )
+            : commissions;
+
+          matchedCommissions.forEach((commission, index) => {
+            nextRows.push({
+              ...trade,
+              commission,
+              accountTarget: currentTarget,
+              _accountNumber: normalizeAccountNumber(
+                trade?.mt5Account || currentTarget?.accountNumber
+              ),
+              _rowKey: `${trade?._id || trade?.positionId || "trade"}-${
+                currentTarget?.accountNumber
+              }-${commission?.level || "level"}-${
+                commission?.ibAccountNumber || "ib"
+              }-${index}`,
+            });
+          });
+        });
+      });
+
+      setTradeRows(nextRows);
+      setAccountErrors(nextErrors);
       setLastUpdatedAt(new Date());
+
+      const nextExpanded = {};
+      accountTargets.forEach((target, index) => {
+        nextExpanded[target.accountNumber] = accountTargets.length <= 3 || index === 0;
+      });
+      setExpandedAccounts(nextExpanded);
     } catch (error) {
       console.error(error);
       setErrorText(
@@ -160,21 +316,21 @@ const UserReferralCloseTrades = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [id, normalizeTradeRows]);
+  }, [accountTargets, explicitLevel]);
 
   useEffect(() => {
     fetchCommissions();
   }, [fetchCommissions]);
 
-  const filteredData = useMemo(() => {
+  const filteredRows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
-    const searched = commissionsData.filter((row) => {
+    const searched = tradeRows.filter((row) => {
       const status = getStatusText(row);
-
       const matchesStatus = statusFilter === "all" || status === statusFilter;
 
       const searchableText = [
+        row?._accountNumber,
         row?.mt5Account,
         row?.ticket,
         row?.symbol,
@@ -194,13 +350,13 @@ const UserReferralCloseTrades = () => {
       return matchesStatus && matchesSearch;
     });
 
-    const sorted = [...searched].sort((a, b) => {
+    return [...searched].sort((a, b) => {
       let aValue;
       let bValue;
 
       if (sortBy === "account") {
-        aValue = String(a?.mt5Account || "");
-        bValue = String(b?.mt5Account || "");
+        aValue = String(a?._accountNumber || "");
+        bValue = String(b?._accountNumber || "");
       } else if (sortBy === "symbol") {
         aValue = String(a?.symbol || "");
         bValue = String(b?.symbol || "");
@@ -222,26 +378,87 @@ const UserReferralCloseTrades = () => {
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       return 0;
     });
+  }, [searchTerm, sortBy, sortDirection, statusFilter, tradeRows]);
 
-    return sorted;
-  }, [commissionsData, searchTerm, sortBy, sortDirection, statusFilter]);
+  const accountGroups = useMemo(() => {
+    const map = new Map();
+
+    accountTargets.forEach((target) => {
+      if (!target?.accountNumber) return;
+
+      map.set(target.accountNumber, {
+        accountNumber: target.accountNumber,
+        level: target.level,
+        name: target.name || pageUserName,
+        email: target.email || pageUserEmail,
+        country: target.country || pageUserCountry,
+        expectedLot: safeNumber(target.totalLot),
+        expectedCommission: safeNumber(target.totalCommission),
+        rows: [],
+      });
+    });
+
+    filteredRows.forEach((row) => {
+      const accountNumber = normalizeAccountNumber(row?._accountNumber || row?.mt5Account);
+
+      if (!map.has(accountNumber)) {
+        map.set(accountNumber, {
+          accountNumber,
+          level: row?.commission?.level || null,
+          name: pageUserName,
+          email: pageUserEmail,
+          country: pageUserCountry,
+          expectedLot: 0,
+          expectedCommission: 0,
+          rows: [],
+        });
+      }
+
+      map.get(accountNumber).rows.push(row);
+    });
+
+    return Array.from(map.values()).map((group) => {
+      const totalProfit = group.rows.reduce(
+        (sum, row) => sum + safeNumber(row?.profit),
+        0
+      );
+
+      const totalLot = group.rows.reduce(
+        (sum, row) => sum + safeNumber(row?.lotSize),
+        0
+      );
+
+      const totalRebate = group.rows.reduce(
+        (sum, row) => sum + safeNumber(row?.commission?.commissionAmount),
+        0
+      );
+
+      const completed = group.rows.filter(
+        (row) => row?.commission?.isCalculated === true
+      ).length;
+
+      return {
+        ...group,
+        totalProfit,
+        totalLot,
+        totalRebate,
+        completed,
+        pending: group.rows.length - completed,
+      };
+    });
+  }, [accountTargets, filteredRows, pageUserCountry, pageUserEmail, pageUserName]);
 
   const totals = useMemo(() => {
-    const base = filteredData.reduce(
+    return filteredRows.reduce(
       (acc, row) => {
-        const profit = safeNumber(row?.profit);
-        const lotSize = safeNumber(row?.lotSize);
-        const rebate = safeNumber(row?.commission?.commissionAmount);
-        const status = getStatusText(row);
+        acc.profit += safeNumber(row?.profit);
+        acc.lotSize += safeNumber(row?.lotSize);
+        acc.rebate += safeNumber(row?.commission?.commissionAmount);
 
-        acc.profit += profit;
-        acc.lotSize += lotSize;
-        acc.rebate += rebate;
+        if (row?.commission?.isCalculated === true) acc.completed += 1;
+        else acc.pending += 1;
 
-        if (status === "completed") acc.completed += 1;
-        if (status === "pending") acc.pending += 1;
-
-        if (row?.mt5Account) acc.accounts.add(String(row.mt5Account));
+        if (row?._accountNumber) acc.accounts.add(String(row._accountNumber));
         if (row?.symbol) acc.symbols.add(String(row.symbol));
 
         return acc;
@@ -256,66 +473,50 @@ const UserReferralCloseTrades = () => {
         symbols: new Set(),
       }
     );
+  }, [filteredRows]);
 
-    return {
-      profit: base.profit,
-      lotSize: base.lotSize,
-      rebate: base.rebate,
-      completed: base.completed,
-      pending: base.pending,
-      accounts: base.accounts.size,
-      symbols: base.symbols.size,
-      rows: filteredData.length,
-      averageRebate: filteredData.length ? base.rebate / filteredData.length : 0,
-    };
-  }, [filteredData]);
+  const exportRows = useCallback(() => {
+    const data = filteredRows.map((row) => ({
+      "Account No": row?._accountNumber || row?.mt5Account || "-",
+      Ticket: row?.ticket || "-",
+      "Position ID": row?.positionId || "-",
+      Level: row?.commission?.level || "-",
+      "IB Account": row?.commission?.ibAccountNumber || "-",
+      Symbol: row?.symbol || "-",
+      Side: tradeSideLabel(row?.buySell),
+      "Open Time": normalizeDateText(row?.openTime),
+      "Close Time": normalizeDateText(row?.closeTime),
+      "Open Price": format4(row?.openPrice),
+      "Close Price": format4(row?.closePrice),
+      Profit: format4(row?.profit),
+      Volume: format4(row?.lotSize),
+      Rebate: format4(row?.commission?.commissionAmount),
+      Status: row?.commission?.isCalculated === true ? "Completed" : "Pending",
+    }));
 
-  const prepareExportData = useCallback(
-    (rows = filteredData) => {
-      const data = rows.map((row) => ({
-        "Account No": row?.mt5Account || "-",
-        Ticket: row?.ticket || "-",
-        "Position ID": row?.positionId || "-",
-        Level: row?.commission?.level || "-",
-        "IB Account": row?.commission?.ibAccountNumber || "-",
-        Symbol: row?.symbol || "-",
-        Side: tradeSideLabel(row?.buySell),
-        "Open Time": normalizeDateText(row?.openTime),
-        "Close Time": normalizeDateText(row?.closeTime),
-        "Open Price": format4(row?.openPrice),
-        "Close Price": format4(row?.closePrice),
-        Profit: format4(row?.profit),
-        Volume: format4(row?.lotSize),
-        Rebate: format4(row?.commission?.commissionAmount),
-        Status:
-          row?.commission?.isCalculated === true ? "Completed" : "Pending",
-      }));
+    data.push({
+      "Account No": "TOTAL",
+      Ticket: "",
+      "Position ID": "",
+      Level: explicitLevel ? `Level ${explicitLevel}` : "All",
+      "IB Account": "",
+      Symbol: "",
+      Side: "",
+      "Open Time": "",
+      "Close Time": "",
+      "Open Price": "",
+      "Close Price": "",
+      Profit: format4(totals.profit),
+      Volume: format4(totals.lotSize),
+      Rebate: format4(totals.rebate),
+      Status: "",
+    });
 
-      data.push({
-        "Account No": "TOTAL",
-        Ticket: "",
-        "Position ID": "",
-        Level: selectedLevel ? `Level ${selectedLevel}` : "All Levels",
-        "IB Account": "",
-        Symbol: "",
-        Side: "",
-        "Open Time": "",
-        "Close Time": "",
-        "Open Price": "",
-        "Close Price": "",
-        Profit: format4(totals.profit),
-        Volume: format4(totals.lotSize),
-        Rebate: format4(totals.rebate),
-        Status: "",
-      });
-
-      return data;
-    },
-    [filteredData, selectedLevel, totals.lotSize, totals.profit, totals.rebate]
-  );
+    return data;
+  }, [explicitLevel, filteredRows, totals.lotSize, totals.profit, totals.rebate]);
 
   const exportToExcel = () => {
-    const data = prepareExportData();
+    const data = exportRows();
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
 
@@ -330,23 +531,18 @@ const UserReferralCloseTrades = () => {
       ),
     }));
 
-    XLSX.writeFile(
-      wb,
-      `referral_close_trades_${selectedLevel ? `level_${selectedLevel}` : "all"}.xlsx`
-    );
+    XLSX.writeFile(wb, "referral_user_close_trades.xlsx");
   };
 
   const exportToCSV = () => {
-    const data = prepareExportData();
+    const data = exportRows();
     const ws = XLSX.utils.json_to_sheet(data);
     const csv = XLSX.utils.sheet_to_csv(ws);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
 
     link.href = URL.createObjectURL(blob);
-    link.download = `referral_close_trades_${
-      selectedLevel ? `level_${selectedLevel}` : "all"
-    }.csv`;
+    link.download = "referral_user_close_trades.csv";
     link.click();
 
     URL.revokeObjectURL(link.href);
@@ -354,19 +550,19 @@ const UserReferralCloseTrades = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF("l", "pt", "a4");
-    const data = prepareExportData();
+    const data = exportRows();
 
     const headers = Object.keys(data[0] || {});
     const rows = data.map((row) => headers.map((header) => row[header]));
 
     doc.setFontSize(16);
-    doc.text("Referral Close Trades Report", 40, 36);
+    doc.text("Referral User Close Trades Report", 40, 36);
 
     doc.setFontSize(9);
     doc.text(
-      `Level: ${selectedLevel ? `Level ${selectedLevel}` : "All Levels"} | Records: ${
-        filteredData.length
-      } | Rebate: ${format4(totals.rebate)}`,
+      `User: ${pageUserName} | Accounts: ${accountGroups.length} | Records: ${filteredRows.length} | Rebate: ${format4(
+        totals.rebate
+      )}`,
       40,
       54
     );
@@ -395,41 +591,62 @@ const UserReferralCloseTrades = () => {
       },
     });
 
-    doc.save(
-      `referral_close_trades_${selectedLevel ? `level_${selectedLevel}` : "all"}.pdf`
-    );
+    doc.save("referral_user_close_trades.pdf");
   };
 
-  const canExport = !isLoading && filteredData.length > 0;
+  const toggleAccount = (accountNumber) => {
+    setExpandedAccounts((prev) => ({
+      ...prev,
+      [accountNumber]: !prev[accountNumber],
+    }));
+  };
+
+  const expandAllAccounts = () => {
+    const next = {};
+    accountGroups.forEach((group) => {
+      next[group.accountNumber] = true;
+    });
+    setExpandedAccounts(next);
+  };
+
+  const collapseAllAccounts = () => {
+    const next = {};
+    accountGroups.forEach((group) => {
+      next[group.accountNumber] = false;
+    });
+    setExpandedAccounts(next);
+  };
+
+  const canExport = !isLoading && filteredRows.length > 0;
 
   const statCards = [
     {
       label: "Total Rebate",
       value: `$${format4(totals.rebate)}`,
-      sub: `Avg ${format4(totals.averageRebate)} / trade`,
+      sub: `${filteredRows.length} visible trade rows`,
       icon: BadgeDollarSign,
       tone: "emerald",
     },
     {
+      label: "Accounts",
+      value: accountGroups.length,
+      sub: `${totals.accounts.size} with visible trades`,
+      icon: Wallet,
+      tone: "cyan",
+    },
+    {
       label: "Total Volume",
       value: format4(totals.lotSize),
-      sub: `${totals.rows} close trades`,
+      sub: "Combined lot size",
       icon: Layers3,
-      tone: "cyan",
+      tone: "violet",
     },
     {
       label: "Total Profit",
       value: `$${format4(totals.profit)}`,
-      sub: `${totals.accounts} account(s)`,
+      sub: `${totals.symbols.size} symbol(s)`,
       icon: TrendingUp,
       tone: totals.profit >= 0 ? "emerald" : "rose",
-    },
-    {
-      label: "Completed",
-      value: totals.completed,
-      sub: `${totals.pending} pending`,
-      icon: CheckCheck,
-      tone: "violet",
     },
   ];
 
@@ -487,7 +704,7 @@ const UserReferralCloseTrades = () => {
                 )}
               >
                 <Activity className="h-3.5 w-3.5" />
-                IB Close Trades
+                Expandable Close Trades
               </div>
 
               <h2
@@ -496,17 +713,12 @@ const UserReferralCloseTrades = () => {
                   isDark ? "text-white" : "text-slate-950"
                 )}
               >
-                Commission Trade Ledger
+                {pageUserName || "IB User"} Trade Ledger
               </h2>
 
-              <p
-                className={cx(
-                  "mt-2 max-w-2xl text-sm leading-6",
-                  isDark ? "text-white/60" : "text-slate-600"
-                )}
-              >
-                Track all close trades connected with this IB user, review rebate
-                amounts, filter by status, and export the visible report.
+              <p className={cx("mt-2 max-w-3xl text-sm leading-6", isDark ? "text-white/60" : "text-slate-600")}>
+                Multiple accounts are grouped below. Expand each account to inspect
+                close trades, commission level, rebate, volume, price, and status.
               </p>
             </div>
           </div>
@@ -520,8 +732,8 @@ const UserReferralCloseTrades = () => {
                   : "border-sky-100 bg-white text-slate-700 shadow-sm"
               )}
             >
-              <Wallet className="h-4 w-4" />
-              {selectedLevel ? `Level ${selectedLevel}` : "All Levels"}
+              <UserRound className="h-4 w-4" />
+              {pageUserEmail || "User"}
             </div>
 
             <div
@@ -533,9 +745,7 @@ const UserReferralCloseTrades = () => {
               )}
             >
               <Clock3 className="h-4 w-4" />
-              {lastUpdatedAt
-                ? `Updated ${lastUpdatedAt.toLocaleTimeString()}`
-                : "Not refreshed yet"}
+              {lastUpdatedAt ? `Updated ${lastUpdatedAt.toLocaleTimeString()}` : "Not refreshed yet"}
             </div>
           </div>
         </div>
@@ -556,38 +766,18 @@ const UserReferralCloseTrades = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p
-                      className={cx(
-                        "text-xs font-bold uppercase tracking-[0.16em]",
-                        isDark ? "text-white/45" : "text-slate-500"
-                      )}
-                    >
+                    <p className={cx("text-xs font-bold uppercase tracking-[0.16em]", isDark ? "text-white/45" : "text-slate-500")}>
                       {card.label}
                     </p>
-                    <p
-                      className={cx(
-                        "mt-2 text-2xl font-black",
-                        isDark ? "text-white" : "text-slate-950"
-                      )}
-                    >
+                    <p className={cx("mt-2 text-2xl font-black", isDark ? "text-white" : "text-slate-950")}>
                       {card.value}
                     </p>
-                    <p
-                      className={cx(
-                        "mt-1 text-xs",
-                        isDark ? "text-white/45" : "text-slate-500"
-                      )}
-                    >
+                    <p className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
                       {card.sub}
                     </p>
                   </div>
 
-                  <div
-                    className={cx(
-                      "grid h-11 w-11 place-items-center rounded-2xl border",
-                      toneClasses[card.tone]
-                    )}
-                  >
+                  <div className={cx("grid h-11 w-11 place-items-center rounded-2xl border", toneClasses[card.tone])}>
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -600,9 +790,7 @@ const UserReferralCloseTrades = () => {
       <section
         className={cx(
           "rounded-[28px] border p-4 sm:p-5",
-          isDark
-            ? "border-white/10 bg-slate-950/50"
-            : "border-sky-100 bg-white shadow-sm"
+          isDark ? "border-white/10 bg-slate-950/50" : "border-sky-100 bg-white shadow-sm"
         )}
       >
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -610,14 +798,10 @@ const UserReferralCloseTrades = () => {
             <div
               className={cx(
                 "flex items-center gap-2 rounded-2xl border px-4 py-3",
-                isDark
-                  ? "border-white/10 bg-white/[0.04]"
-                  : "border-slate-200 bg-slate-50"
+                isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-slate-50"
               )}
             >
-              <Search
-                className={cx("h-4 w-4", isDark ? "text-white/45" : "text-slate-400")}
-              />
+              <Search className={cx("h-4 w-4", isDark ? "text-white/45" : "text-slate-400")} />
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
@@ -655,18 +839,16 @@ const UserReferralCloseTrades = () => {
               )}
             >
               <option value="closeTime">Sort: Close Time</option>
+              <option value="account">Sort: Account</option>
               <option value="rebate">Sort: Rebate</option>
               <option value="profit">Sort: Profit</option>
               <option value="lotSize">Sort: Volume</option>
-              <option value="account">Sort: Account</option>
               <option value="symbol">Sort: Symbol</option>
             </select>
 
             <button
               type="button"
-              onClick={() =>
-                setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
-              }
+              onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
               className={cx(
                 "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
                 isDark
@@ -680,6 +862,32 @@ const UserReferralCloseTrades = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={expandAllAccounts}
+              className={cx(
+                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
+                isDark
+                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+              )}
+            >
+              Expand all
+            </button>
+
+            <button
+              type="button"
+              onClick={collapseAllAccounts}
+              className={cx(
+                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
+                isDark
+                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+              )}
+            >
+              Collapse all
+            </button>
+
             <button
               type="button"
               onClick={exportToExcel}
@@ -756,20 +964,37 @@ const UserReferralCloseTrades = () => {
         </div>
       )}
 
+      {accountErrors.length > 0 && (
+        <div
+          className={cx(
+            "rounded-3xl border p-4 text-sm",
+            isDark
+              ? "border-amber-400/20 bg-amber-400/10 text-amber-100"
+              : "border-amber-100 bg-amber-50 text-amber-700"
+          )}
+        >
+          <p className="font-bold">Some accounts could not be loaded:</p>
+          <div className="mt-2 space-y-1">
+            {accountErrors.map((err) => (
+              <p key={err.accountNumber}>
+                {err.accountNumber}: {err.message}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
       <section
-        ref={tableRef}
         className={cx(
           "overflow-hidden rounded-[28px] border",
-          isDark
-            ? "border-white/10 bg-slate-950/50"
-            : "border-sky-100 bg-white shadow-sm"
+          isDark ? "border-white/10 bg-slate-950/50" : "border-sky-100 bg-white shadow-sm"
         )}
       >
         {isLoading ? (
           <div className="flex min-h-[360px] items-center justify-center">
             <DynamicLoder />
           </div>
-        ) : filteredData.length === 0 ? (
+        ) : accountGroups.length === 0 ? (
           <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 p-8 text-center">
             <div
               className={cx(
@@ -783,358 +1008,121 @@ const UserReferralCloseTrades = () => {
             </div>
 
             <div>
-              <h3
-                className={cx(
-                  "text-lg font-black",
-                  isDark ? "text-white" : "text-slate-950"
-                )}
-              >
-                No close trades found
+              <h3 className={cx("text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+                No accounts found
               </h3>
-              <p
-                className={cx(
-                  "mt-1 text-sm",
-                  isDark ? "text-white/50" : "text-slate-500"
-                )}
-              >
-                Try refreshing, changing filters, or checking the selected IB level.
+              <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+                Open this page from the IB users list or pass accounts in the URL.
               </p>
             </div>
           </div>
         ) : (
-          <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[1180px] border-collapse">
-                <thead
-                  className={cx(
-                    "border-b text-left text-xs font-black uppercase tracking-[0.14em]",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/45"
-                      : "border-slate-100 bg-slate-50 text-slate-500"
-                  )}
-                >
-                  <tr>
-                    <th className="px-5 py-4">Account</th>
-                    <th className="px-5 py-4">Trade</th>
-                    <th className="px-5 py-4">Timing</th>
-                    <th className="px-5 py-4 text-right">Prices</th>
-                    <th className="px-5 py-4 text-right">Profit</th>
-                    <th className="px-5 py-4 text-right">Volume</th>
-                    <th className="px-5 py-4 text-right">Rebate</th>
-                    <th className="px-5 py-4 text-center">Status</th>
-                  </tr>
-                </thead>
+          <div className="divide-y divide-slate-200/70 dark:divide-white/10">
+            {accountGroups.map((group) => {
+              const expanded = !!expandedAccounts[group.accountNumber];
 
-                <tbody
-                  className={cx(
-                    "divide-y",
-                    isDark ? "divide-white/10" : "divide-slate-100"
-                  )}
-                >
-                  {filteredData.map((row) => {
-                    const isCompleted = row?.commission?.isCalculated === true;
-                    const profit = safeNumber(row?.profit);
-
-                    return (
-                      <tr
-                        key={row._rowKey}
-                        className={cx(
-                          "transition-all",
-                          isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/60"
-                        )}
-                      >
-                        <td className="px-5 py-4">
-                          <div
-                            className={cx(
-                              "font-black",
-                              isDark ? "text-white" : "text-slate-950"
-                            )}
-                          >
-                            {row?.mt5Account || "-"}
-                          </div>
-
-                          <div
-                            className={cx(
-                              "mt-1 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500"
-                            )}
-                          >
-                            Ticket: {row?.ticket || "-"}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cx(
-                                "rounded-full border px-2.5 py-1 text-xs font-black",
-                                getTradeSideClass(row?.buySell, isDark)
-                              )}
-                            >
-                              {tradeSideLabel(row?.buySell)}
-                            </span>
-
-                            <span
-                              className={cx(
-                                "font-bold",
-                                isDark ? "text-white" : "text-slate-900"
-                              )}
-                            >
-                              {row?.symbol || "-"}
-                            </span>
-                          </div>
-
-                          <div
-                            className={cx(
-                              "mt-1 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500"
-                            )}
-                          >
-                            Position: {row?.positionId || "-"} · Level{" "}
-                            {row?.commission?.level || "-"}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div
-                            className={cx(
-                              "flex items-center gap-2 text-xs",
-                              isDark ? "text-white/75" : "text-slate-700"
-                            )}
-                          >
-                            <CalendarClock className="h-3.5 w-3.5" />
-                            Open: {normalizeDateText(row?.openTime)}
-                          </div>
-
-                          <div
-                            className={cx(
-                              "mt-1 flex items-center gap-2 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500"
-                            )}
-                          >
-                            <Clock3 className="h-3.5 w-3.5" />
-                            Close: {normalizeDateText(row?.closeTime)}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 text-right">
-                          <div
-                            className={cx(
-                              "font-bold",
-                              isDark ? "text-white" : "text-slate-900"
-                            )}
-                          >
-                            {format4(row?.closePrice)}
-                          </div>
-
-                          <div
-                            className={cx(
-                              "mt-1 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500"
-                            )}
-                          >
-                            Open {format4(row?.openPrice)}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 text-right">
-                          <span
-                            className={cx(
-                              "font-black",
-                              profit >= 0
-                                ? isDark
-                                  ? "text-emerald-300"
-                                  : "text-emerald-700"
-                                : isDark
-                                  ? "text-rose-300"
-                                  : "text-rose-700"
-                            )}
-                          >
-                            {format4(row?.profit)}
-                          </span>
-                        </td>
-
-                        <td
-                          className={cx(
-                            "px-5 py-4 text-right font-bold",
-                            isDark ? "text-white" : "text-slate-900"
-                          )}
-                        >
-                          {format4(row?.lotSize)}
-                        </td>
-
-                        <td className="px-5 py-4 text-right">
-                          <div
-                            className={cx(
-                              "text-lg font-black",
-                              isDark ? "text-cyan-200" : "text-cyan-700"
-                            )}
-                          >
-                            ${format4(row?.commission?.commissionAmount)}
-                          </div>
-
-                          <div
-                            className={cx(
-                              "text-xs",
-                              isDark ? "text-white/45" : "text-slate-500"
-                            )}
-                          >
-                            IB: {row?.commission?.ibAccountNumber || "-"}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 text-center">
-                          <span
-                            className={cx(
-                              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black",
-                              isCompleted
-                                ? isDark
-                                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
-                                : isDark
-                                  ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                                  : "border-rose-100 bg-rose-50 text-rose-700"
-                            )}
-                          >
-                            {isCompleted ? (
-                              <CheckCheck className="h-3.5 w-3.5" />
-                            ) : (
-                              <X className="h-3.5 w-3.5" />
-                            )}
-                            {isCompleted ? "Completed" : "Pending"}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-
-                <tfoot
-                  className={cx(
-                    "border-t text-sm font-black",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white"
-                      : "border-slate-100 bg-slate-50 text-slate-950"
-                  )}
-                >
-                  <tr>
-                    <td className="px-5 py-4" colSpan="4">
-                      Total Visible Records: {filteredData.length}
-                    </td>
-                    <td className="px-5 py-4 text-right">{format4(totals.profit)}</td>
-                    <td className="px-5 py-4 text-right">{format4(totals.lotSize)}</td>
-                    <td className="px-5 py-4 text-right">${format4(totals.rebate)}</td>
-                    <td className="px-5 py-4 text-center">
-                      {totals.completed}/{filteredData.length}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            <div className="space-y-3 p-3 lg:hidden">
-              {filteredData.map((row) => {
-                const isCompleted = row?.commission?.isCalculated === true;
-                const profit = safeNumber(row?.profit);
-
-                return (
-                  <div
-                    key={row._rowKey}
+              return (
+                <div key={group.accountNumber}>
+                  <button
+                    type="button"
+                    onClick={() => toggleAccount(group.accountNumber)}
                     className={cx(
-                      "rounded-3xl border p-4",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04]"
-                        : "border-slate-100 bg-slate-50"
+                      "flex w-full flex-col gap-4 p-4 text-left transition-all sm:p-5 lg:flex-row lg:items-center lg:justify-between",
+                      isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/60"
                     )}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p
-                          className={cx(
-                            "text-xs font-bold uppercase tracking-[0.14em]",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
-                          {row?.symbol || "-"} · Level {row?.commission?.level || "-"}
-                        </p>
-
-                        <h3
-                          className={cx(
-                            "mt-1 text-lg font-black",
-                            isDark ? "text-white" : "text-slate-950"
-                          )}
-                        >
-                          {row?.mt5Account || "-"}
-                        </h3>
-
-                        <p
-                          className={cx(
-                            "mt-1 text-xs",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
-                          Ticket: {row?.ticket || "-"} · Position:{" "}
-                          {row?.positionId || "-"}
-                        </p>
-                      </div>
-
-                      <span
+                    <div className="flex items-start gap-3">
+                      <div
                         className={cx(
-                          "rounded-full border px-2.5 py-1 text-xs font-black",
-                          getTradeSideClass(row?.buySell, isDark)
+                          "grid h-11 w-11 shrink-0 place-items-center rounded-2xl border",
+                          isDark
+                            ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+                            : "border-sky-100 bg-sky-50 text-sky-700"
                         )}
                       >
-                        {tradeSideLabel(row?.buySell)}
-                      </span>
+                        {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </div>
+
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className={cx("text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+                            Account {group.accountNumber}
+                          </h3>
+
+                          <span
+                            className={cx(
+                              "rounded-full border px-2.5 py-1 text-xs font-black",
+                              isDark
+                                ? "border-violet-400/20 bg-violet-400/10 text-violet-200"
+                                : "border-violet-100 bg-violet-50 text-violet-700"
+                            )}
+                          >
+                            Level {group.level || explicitLevel || "-"}
+                          </span>
+                        </div>
+
+                        <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+                          {group.email || pageUserEmail || "-"} · {group.country || "-"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[560px]">
                       <div
                         className={cx(
                           "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
                         )}
                       >
-                        <p
-                          className={cx(
-                            "text-xs",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
-                          Rebate
+                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                          Trades
                         </p>
-                        <p
-                          className={cx(
-                            "mt-1 font-black",
-                            isDark ? "text-cyan-200" : "text-cyan-700"
-                          )}
-                        >
-                          ${format4(row?.commission?.commissionAmount)}
+                        <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                          {group.rows.length}
                         </p>
                       </div>
 
                       <div
                         className={cx(
                           "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
                         )}
                       >
-                        <p
-                          className={cx(
-                            "text-xs",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
+                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                          Volume
+                        </p>
+                        <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                          {format4(group.totalLot)}
+                        </p>
+                      </div>
+
+                      <div
+                        className={cx(
+                          "rounded-2xl border p-3",
+                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                        )}
+                      >
+                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                          Rebate
+                        </p>
+                        <p className={cx("mt-1 font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                          ${format4(group.totalRebate)}
+                        </p>
+                      </div>
+
+                      <div
+                        className={cx(
+                          "rounded-2xl border p-3",
+                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                        )}
+                      >
+                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
                           Profit
                         </p>
                         <p
                           className={cx(
                             "mt-1 font-black",
-                            profit >= 0
+                            group.totalProfit >= 0
                               ? isDark
                                 ? "text-emerald-300"
                                 : "text-emerald-700"
@@ -1143,95 +1131,279 @@ const UserReferralCloseTrades = () => {
                                 : "text-rose-700"
                           )}
                         >
-                          {format4(row?.profit)}
-                        </p>
-                      </div>
-
-                      <div
-                        className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
-                        )}
-                      >
-                        <p
-                          className={cx(
-                            "text-xs",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
-                          Volume
-                        </p>
-                        <p
-                          className={cx(
-                            "mt-1 font-black",
-                            isDark ? "text-white" : "text-slate-950"
-                          )}
-                        >
-                          {format4(row?.lotSize)}
-                        </p>
-                      </div>
-
-                      <div
-                        className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
-                        )}
-                      >
-                        <p
-                          className={cx(
-                            "text-xs",
-                            isDark ? "text-white/45" : "text-slate-500"
-                          )}
-                        >
-                          Status
-                        </p>
-
-                        <p
-                          className={cx(
-                            "mt-1 inline-flex items-center gap-1.5 font-black",
-                            isCompleted
-                              ? isDark
-                                ? "text-emerald-300"
-                                : "text-emerald-700"
-                              : isDark
-                                ? "text-rose-300"
-                                : "text-rose-700"
-                          )}
-                        >
-                          {isCompleted ? (
-                            <CheckCheck className="h-4 w-4" />
-                          ) : (
-                            <X className="h-4 w-4" />
-                          )}
-                          {isCompleted ? "Done" : "Pending"}
+                          {format4(group.totalProfit)}
                         </p>
                       </div>
                     </div>
+                  </button>
 
-                    <div
-                      className={cx(
-                        "mt-4 rounded-2xl border p-3 text-xs leading-6",
-                        isDark
-                          ? "border-white/10 bg-slate-950/40 text-white/60"
-                          : "border-white bg-white text-slate-600"
+                  {expanded && (
+                    <div className="px-3 pb-4 sm:px-5">
+                      {group.rows.length === 0 ? (
+                        <div
+                          className={cx(
+                            "rounded-3xl border p-8 text-center text-sm",
+                            isDark
+                              ? "border-white/10 bg-white/[0.03] text-white/55"
+                              : "border-slate-100 bg-slate-50 text-slate-500"
+                          )}
+                        >
+                          No close trades found for this account with current filters.
+                        </div>
+                      ) : (
+                        <>
+                          <div className="hidden overflow-x-auto rounded-3xl border lg:block">
+                            <table className="w-full min-w-[1120px] border-collapse">
+                              <thead
+                                className={cx(
+                                  "border-b text-left text-xs font-black uppercase tracking-[0.14em]",
+                                  isDark
+                                    ? "border-white/10 bg-white/[0.04] text-white/45"
+                                    : "border-slate-100 bg-slate-50 text-slate-500"
+                                )}
+                              >
+                                <tr>
+                                  <th className="px-5 py-4">Trade</th>
+                                  <th className="px-5 py-4">Timing</th>
+                                  <th className="px-5 py-4 text-right">Prices</th>
+                                  <th className="px-5 py-4 text-right">Profit</th>
+                                  <th className="px-5 py-4 text-right">Volume</th>
+                                  <th className="px-5 py-4 text-right">Rebate</th>
+                                  <th className="px-5 py-4 text-center">Status</th>
+                                </tr>
+                              </thead>
+
+                              <tbody className={cx("divide-y", isDark ? "divide-white/10" : "divide-slate-100")}>
+                                {group.rows.map((row) => {
+                                  const isCompleted = row?.commission?.isCalculated === true;
+                                  const profit = safeNumber(row?.profit);
+
+                                  return (
+                                    <tr
+                                      key={row._rowKey}
+                                      className={cx(
+                                        "transition-all",
+                                        isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/60"
+                                      )}
+                                    >
+                                      <td className="px-5 py-4">
+                                        <div className="flex items-center gap-2">
+                                          <span className={cx("rounded-full border px-2.5 py-1 text-xs font-black", getTradeSideClass(row?.buySell, isDark))}>
+                                            {tradeSideLabel(row?.buySell)}
+                                          </span>
+
+                                          <span className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                            {row?.symbol || "-"}
+                                          </span>
+                                        </div>
+
+                                        <div className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                          Ticket: {row?.ticket || "-"} · Position: {row?.positionId || "-"} · Level{" "}
+                                          {row?.commission?.level || "-"}
+                                        </div>
+                                      </td>
+
+                                      <td className="px-5 py-4">
+                                        <div className={cx("flex items-center gap-2 text-xs", isDark ? "text-white/75" : "text-slate-700")}>
+                                          <CalendarClock className="h-3.5 w-3.5" />
+                                          Open: {normalizeDateText(row?.openTime)}
+                                        </div>
+
+                                        <div className={cx("mt-1 flex items-center gap-2 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                          <Clock3 className="h-3.5 w-3.5" />
+                                          Close: {normalizeDateText(row?.closeTime)}
+                                        </div>
+                                      </td>
+
+                                      <td className="px-5 py-4 text-right">
+                                        <div className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                          {format4(row?.closePrice)}
+                                        </div>
+
+                                        <div className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                          Open {format4(row?.openPrice)}
+                                        </div>
+                                      </td>
+
+                                      <td className="px-5 py-4 text-right">
+                                        <span
+                                          className={cx(
+                                            "font-black",
+                                            profit >= 0
+                                              ? isDark
+                                                ? "text-emerald-300"
+                                                : "text-emerald-700"
+                                              : isDark
+                                                ? "text-rose-300"
+                                                : "text-rose-700"
+                                          )}
+                                        >
+                                          {format4(row?.profit)}
+                                        </span>
+                                      </td>
+
+                                      <td className={cx("px-5 py-4 text-right font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                        {format4(row?.lotSize)}
+                                      </td>
+
+                                      <td className="px-5 py-4 text-right">
+                                        <div className={cx("text-lg font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                                          ${format4(row?.commission?.commissionAmount)}
+                                        </div>
+
+                                        <div className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                          IB: {row?.commission?.ibAccountNumber || "-"}
+                                        </div>
+                                      </td>
+
+                                      <td className="px-5 py-4 text-center">
+                                        <span
+                                          className={cx(
+                                            "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black",
+                                            isCompleted
+                                              ? isDark
+                                                ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                                                : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                                              : isDark
+                                                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                                                : "border-rose-100 bg-rose-50 text-rose-700"
+                                          )}
+                                        >
+                                          {isCompleted ? <CheckCheck className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                                          {isCompleted ? "Completed" : "Pending"}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className="space-y-3 lg:hidden">
+                            {group.rows.map((row) => {
+                              const isCompleted = row?.commission?.isCalculated === true;
+                              const profit = safeNumber(row?.profit);
+
+                              return (
+                                <div
+                                  key={row._rowKey}
+                                  className={cx(
+                                    "rounded-3xl border p-4",
+                                    isDark
+                                      ? "border-white/10 bg-white/[0.04]"
+                                      : "border-slate-100 bg-slate-50"
+                                  )}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                      <p className={cx("text-xs font-bold uppercase tracking-[0.14em]", isDark ? "text-white/45" : "text-slate-500")}>
+                                        {row?.symbol || "-"} · Level {row?.commission?.level || "-"}
+                                      </p>
+
+                                      <h3 className={cx("mt-1 text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+                                        {row?.ticket || row?.positionId || "-"}
+                                      </h3>
+
+                                      <p className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        Position: {row?.positionId || "-"}
+                                      </p>
+                                    </div>
+
+                                    <span className={cx("rounded-full border px-2.5 py-1 text-xs font-black", getTradeSideClass(row?.buySell, isDark))}>
+                                      {tradeSideLabel(row?.buySell)}
+                                    </span>
+                                  </div>
+
+                                  <div className="mt-4 grid grid-cols-2 gap-3">
+                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        Rebate
+                                      </p>
+                                      <p className={cx("mt-1 font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                                        ${format4(row?.commission?.commissionAmount)}
+                                      </p>
+                                    </div>
+
+                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        Profit
+                                      </p>
+                                      <p
+                                        className={cx(
+                                          "mt-1 font-black",
+                                          profit >= 0
+                                            ? isDark
+                                              ? "text-emerald-300"
+                                              : "text-emerald-700"
+                                            : isDark
+                                              ? "text-rose-300"
+                                              : "text-rose-700"
+                                        )}
+                                      >
+                                        {format4(row?.profit)}
+                                      </p>
+                                    </div>
+
+                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        Volume
+                                      </p>
+                                      <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                                        {format4(row?.lotSize)}
+                                      </p>
+                                    </div>
+
+                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        Status
+                                      </p>
+
+                                      <p
+                                        className={cx(
+                                          "mt-1 inline-flex items-center gap-1.5 font-black",
+                                          isCompleted
+                                            ? isDark
+                                              ? "text-emerald-300"
+                                              : "text-emerald-700"
+                                            : isDark
+                                              ? "text-rose-300"
+                                              : "text-rose-700"
+                                        )}
+                                      >
+                                        {isCompleted ? <CheckCheck className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                                        {isCompleted ? "Done" : "Pending"}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    className={cx(
+                                      "mt-4 rounded-2xl border p-3 text-xs leading-6",
+                                      isDark
+                                        ? "border-white/10 bg-slate-950/40 text-white/60"
+                                        : "border-white bg-white text-slate-600"
+                                    )}
+                                  >
+                                    <div>Open: {normalizeDateText(row?.openTime)}</div>
+                                    <div>Close: {normalizeDateText(row?.closeTime)}</div>
+                                    <div>
+                                      Price: {format4(row?.openPrice)} → {format4(row?.closePrice)}
+                                    </div>
+                                    <div>IB Account: {row?.commission?.ibAccountNumber || "-"}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
                       )}
-                    >
-                      <div>Open: {normalizeDateText(row?.openTime)}</div>
-                      <div>Close: {normalizeDateText(row?.closeTime)}</div>
-                      <div>
-                        Price: {format4(row?.openPrice)} → {format4(row?.closePrice)}
-                      </div>
-                      <div>IB Account: {row?.commission?.ibAccountNumber || "-"}</div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>

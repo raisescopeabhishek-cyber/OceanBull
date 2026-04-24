@@ -1,6 +1,18 @@
 import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { RefreshCw, Info, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Layers3,
+  RefreshCw,
+  Search,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 import {
   buttonSecondary,
@@ -16,6 +28,47 @@ import { formatMoney } from "./hooks/useReferralPanel";
 
 const ITEMS_PER_PAGE = 10;
 
+const safeNumber = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const format4 = (value) => safeNumber(value).toFixed(4);
+
+const getSafeEmailKey = (email) => email || "unknown";
+
+const buildAccountPairs = (rows = []) => {
+  return rows
+    .filter((row) => row?.accountNumber)
+    .map((row) => {
+      const account = String(row.accountNumber || "").trim();
+      const level = row?.level === undefined || row?.level === null ? "" : String(row.level);
+      return `${account}:${level}`;
+    })
+    .join(",");
+};
+
+const buildCloseTradePath = (email, rows = []) => {
+  const accountPairs = buildAccountPairs(rows);
+  const safeId = encodeURIComponent(email || rows?.[0]?.accountNumber || "unknown");
+
+  if (!accountPairs) {
+    return `/user/referral/ib-users/${safeId}/close-trades`;
+  }
+
+  return `/user/referral/ib-users/${safeId}/close-trades?accounts=${encodeURIComponent(
+    accountPairs
+  )}`;
+};
+
+const buildSingleAccountCloseTradePath = (row) => {
+  const emailOrAccount = encodeURIComponent(row?.email || row?.accountNumber || "unknown");
+  const accountPairs = buildAccountPairs([row]);
+  const level = row?.level === undefined || row?.level === null ? "" : String(row.level);
+
+  return `/user/referral/ib-users/${row?.accountNumber}/close-trades`;
+};
+
 const ReferralIbUsersTab = () => {
   const {
     isDark,
@@ -28,12 +81,150 @@ const ReferralIbUsersTab = () => {
   } = useOutletContext();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedEmails, setExpandedEmails] = useState({});
+  const [expandedUsers, setExpandedUsers] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  const groupedUsers = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const source = Array.isArray(commissionsData) ? commissionsData : [];
+
+    const filtered = source.filter((item) => {
+      if (!q) return true;
+
+      return (
+        String(item?.email || "").toLowerCase().includes(q) ||
+        String(item?.name || "").toLowerCase().includes(q) ||
+        String(item?.country || "").toLowerCase().includes(q) ||
+        String(item?.accountNumber || "").toLowerCase().includes(q) ||
+        String(item?.level || "").toLowerCase().includes(q)
+      );
+    });
+
+    const map = filtered.reduce((acc, item) => {
+      const key = getSafeEmailKey(item?.email);
+
+      if (!acc[key]) {
+        acc[key] = {
+          email: key,
+          name: item?.name || "-",
+          country: item?.country || "Unknown",
+          rows: [],
+          totalLot: 0,
+          totalCommission: 0,
+          accountCount: 0,
+          levels: new Set(),
+          countries: new Set(),
+          activeRows: 0,
+        };
+      }
+
+      acc[key].rows.push(item);
+      acc[key].totalLot += safeNumber(item?.totalLot);
+      acc[key].totalCommission += safeNumber(item?.totalCommission);
+      acc[key].levels.add(item?.level ?? "-");
+      acc[key].countries.add(item?.country || "Unknown");
+
+      if (safeNumber(item?.totalLot) > 0 || safeNumber(item?.totalCommission) > 0) {
+        acc[key].activeRows += 1;
+      }
+
+      return acc;
+    }, {});
+
+    return Object.values(map).map((group) => {
+      const uniqueAccounts = new Set(
+        group.rows
+          .map((row) => String(row?.accountNumber || "").trim())
+          .filter(Boolean)
+      );
+
+      return {
+        ...group,
+        accountCount: uniqueAccounts.size,
+        levelsText: Array.from(group.levels).join(", "),
+        countriesText: Array.from(group.countries).join(", "),
+        rows: group.rows.sort((a, b) =>
+          String(a?.accountNumber || "").localeCompare(String(b?.accountNumber || ""))
+        ),
+      };
+    });
+  }, [commissionsData, searchTerm]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return groupedUsers.slice(start, start + ITEMS_PER_PAGE);
+  }, [groupedUsers, currentPage]);
+
+  const totalPages = Math.max(1, Math.ceil(groupedUsers.length / ITEMS_PER_PAGE));
+
+  const stats = useMemo(() => {
+    const rows = Array.isArray(commissionsData) ? commissionsData : [];
+    const uniqueEmails = new Set(rows.map((item) => item?.email || "unknown")).size;
+    const uniqueAccounts = new Set(
+      rows.map((item) => String(item?.accountNumber || "").trim()).filter(Boolean)
+    ).size;
+
+    const totalCommission = rows.reduce(
+      (sum, item) => sum + safeNumber(item?.totalCommission),
+      0
+    );
+
+    const totalVolume = rows.reduce((sum, item) => sum + safeNumber(item?.totalLot), 0);
+
+    const activeAccounts = rows.filter(
+      (item) => safeNumber(item?.totalCommission) > 0 || safeNumber(item?.totalLot) > 0
+    ).length;
+
+    const countryDistribution = rows.reduce((acc, item) => {
+      const key = item?.country || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topCountry =
+      Object.entries(countryDistribution).sort((a, b) => b[1] - a[1])[0] || [
+        "Unknown",
+        0,
+      ];
+
+    return {
+      totalRows: rows.length,
+      uniqueEmails,
+      uniqueAccounts,
+      totalCommission,
+      totalVolume,
+      activeAccounts,
+      topCountry,
+      activeRate: rows.length ? (activeAccounts / rows.length) * 100 : 0,
+    };
+  }, [commissionsData]);
+
+  const toggleExpand = (email) => {
+    setExpandedUsers((prev) => ({
+      ...prev,
+      [email]: !prev[email],
+    }));
+  };
+
+  const expandAll = () => {
+    const next = {};
+    paginatedUsers.forEach((group) => {
+      next[group.email] = true;
+    });
+    setExpandedUsers((prev) => ({ ...prev, ...next }));
+  };
+
+  const collapseAll = () => {
+    const next = {};
+    paginatedUsers.forEach((group) => {
+      next[group.email] = false;
+    });
+    setExpandedUsers((prev) => ({ ...prev, ...next }));
+  };
 
   if (!hasReferralAccount) {
     return (
@@ -48,159 +239,104 @@ const ReferralIbUsersTab = () => {
     );
   }
 
-  const filteredData = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return commissionsData;
-
-    return commissionsData.filter((item) => {
-      return (
-        String(item?.email || "").toLowerCase().includes(q) ||
-        String(item?.name || "").toLowerCase().includes(q) ||
-        String(item?.country || "").toLowerCase().includes(q) ||
-        String(item?.accountNumber || "").toLowerCase().includes(q)
-      );
-    });
-  }, [commissionsData, searchTerm]);
-
-  const groupedData = useMemo(() => {
-    return filteredData.reduce((acc, item) => {
-      const key = item?.email || "unknown";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
-      return acc;
-    }, {});
-  }, [filteredData]);
-
-  const emails = useMemo(() => Object.keys(groupedData), [groupedData]);
-
-  const paginatedEmails = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return emails.slice(start, start + ITEMS_PER_PAGE);
-  }, [emails, currentPage]);
-
-  const totalPages = Math.max(1, Math.ceil(emails.length / ITEMS_PER_PAGE));
-
-  const stats = useMemo(() => {
-    const totalUsers = commissionsData.length;
-    const uniqueEmails = new Set(
-      commissionsData.map((item) => item?.email)
-    ).size;
-
-    const totalCommission = commissionsData.reduce(
-      (sum, item) => sum + Number(item?.totalCommission || 0),
-      0
-    );
-
-    const totalVolume = commissionsData.reduce(
-      (sum, item) => sum + Number(item?.totalLot || 0),
-      0
-    );
-
-    const activeUsers = commissionsData.filter(
-      (item) =>
-        Number(item?.totalCommission || 0) > 0 ||
-        Number(item?.totalLot || 0) > 0
-    ).length;
-
-    const countryDistribution = commissionsData.reduce((acc, item) => {
-      const key = item?.country || "Unknown";
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-
-    const topCountry =
-      Object.entries(countryDistribution).sort((a, b) => b[1] - a[1])[0] || [
-        "Unknown",
-        0,
-      ];
-
-    return {
-      totalUsers,
-      uniqueEmails,
-      totalCommission,
-      totalVolume,
-      activeUsers,
-      topCountry,
-      activeRate: totalUsers ? (activeUsers / totalUsers) * 100 : 0,
-    };
-  }, [commissionsData]);
-
-  const toggleExpand = (email) => {
-    setExpandedEmails((prev) => ({
-      ...prev,
-      [email]: !prev[email],
-    }));
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className={cx("text-2xl font-bold", titleText(isDark))}>
-            IB users
-          </h2>
-          <p className={cx("mt-2 text-sm", muted(isDark))}>
-            Search and inspect grouped IB users connected to your referral account.
-          </p>
-        </div>
+      <section
+        className={cx(
+          "relative overflow-hidden rounded-[28px] border p-5 sm:p-6",
+          isDark
+            ? "border-white/10 bg-slate-950/50"
+            : "border-sky-100 bg-gradient-to-br from-white via-sky-50/70 to-white"
+        )}
+      >
+        <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-8 h-52 w-52 rounded-full bg-violet-500/20 blur-3xl" />
 
-        <div className="flex w-full flex-col gap-3 md:flex-row lg:w-auto">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, email, country or account..."
-            className={inputBase(isDark, "min-w-[280px]")}
-          />
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div
+              className={cx(
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]",
+                isDark
+                  ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+                  : "border-cyan-100 bg-cyan-50 text-cyan-700"
+              )}
+            >
+              <Users className="h-3.5 w-3.5" />
+              IB Network
+            </div>
 
-          <button
-            type="button"
-            onClick={fetchCommissions}
-            className={buttonSecondary(isDark)}
-          >
-            <RefreshCw
-              size={16}
-              className={loadingCommissions ? "animate-spin" : ""}
-            />
-            Refresh
-          </button>
+            <h2 className={cx("mt-3 text-2xl font-black sm:text-3xl", titleText(isDark))}>
+              IB users
+            </h2>
+
+            <p className={cx("mt-2 max-w-2xl text-sm leading-6", muted(isDark))}>
+              Users are grouped by email. Expand a user to view all their trading
+              accounts, levels, lots, and commission. Open the trade ledger from the
+              parent row to see all accounts together.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 md:flex-row">
+            <div className="relative">
+              <Search
+                size={16}
+                className={cx(
+                  "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2",
+                  isDark ? "text-white/35" : "text-slate-400"
+                )}
+              />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search user, email, country, account..."
+                className={inputBase(isDark, "min-w-[290px] pl-10")}
+              />
+            </div>
+
+            <button type="button" onClick={fetchCommissions} className={buttonSecondary(isDark)}>
+              <RefreshCw size={16} className={loadingCommissions ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard
           isDark={isDark}
-          icon={Info}
-          title="Total Rows"
-          value={stats.totalUsers}
-          subtitle={`${stats.uniqueEmails} unique emails`}
+          icon={Users}
+          title="Users"
+          value={stats.uniqueEmails}
+          subtitle={`${stats.totalRows} total account rows`}
           tone="sky"
         />
 
         <StatCard
           isDark={isDark}
-          icon={Info}
-          title="Total Commission"
-          value={formatMoney(stats.totalCommission, 4)}
-          subtitle="Sum of user commission values"
-          tone="emerald"
-        />
-
-        <StatCard
-          isDark={isDark}
-          icon={Info}
-          title="Total Volume"
-          value={Number(stats.totalVolume || 0).toFixed(4)}
-          subtitle="Combined lot size"
+          icon={Wallet}
+          title="Accounts"
+          value={stats.uniqueAccounts}
+          subtitle="Unique MT5 accounts"
           tone="violet"
         />
 
         <StatCard
           isDark={isDark}
-          icon={Info}
-          title="Top Country"
-          value={String(stats.topCountry?.[0] || "Unknown")}
-          subtitle={`${stats.topCountry?.[1] || 0} users`}
+          icon={BadgeDollarSign}
+          title="Commission"
+          value={formatMoney(stats.totalCommission, 4)}
+          subtitle="Total IB earning"
+          tone="emerald"
+        />
+
+        <StatCard
+          isDark={isDark}
+          icon={BarChart3}
+          title="Volume"
+          value={format4(stats.totalVolume)}
+          subtitle="Combined lot size"
           tone="amber"
         />
 
@@ -208,152 +344,214 @@ const ReferralIbUsersTab = () => {
           isDark={isDark}
           icon={Info}
           title="Active Rate"
-          value={`${Number(stats.activeRate || 0).toFixed(0)}%`}
-          subtitle={`${stats.activeUsers} active users`}
+          value={`${safeNumber(stats.activeRate).toFixed(0)}%`}
+          subtitle={`${stats.activeAccounts} active rows`}
           tone="sky"
         />
       </div>
 
-      <section className={panelCard(isDark, "p-6")}>
-        <div className="overflow-x-auto">
-          <table className="min-w-[1080px] w-full">
+      <section className={panelCard(isDark, "overflow-hidden")}>
+        <div
+          className={cx(
+            "flex flex-col gap-3 border-b p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between",
+            isDark ? "border-white/10" : "border-sky-100"
+          )}
+        >
+          <div>
+            <h3 className={cx("text-lg font-black", titleText(isDark))}>
+              Grouped IB user accounts
+            </h3>
+            <p className={cx("mt-1 text-sm", muted(isDark))}>
+              Click a user row to expand all accounts. Use the arrow action to open close trades.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={expandAll} className={buttonSecondary(isDark)}>
+              Expand all
+            </button>
+            <button type="button" onClick={collapseAll} className={buttonSecondary(isDark)}>
+              Collapse all
+            </button>
+          </div>
+        </div>
+
+        <div className="hidden overflow-x-auto lg:block">
+          <table className="min-w-[1120px] w-full">
             <thead>
               <tr
                 className={cx(
                   "border-b text-left text-xs uppercase tracking-[0.16em]",
                   isDark
-                    ? "border-white/10 text-white/45"
-                    : "border-sky-100 text-slate-500"
+                    ? "border-white/10 bg-white/[0.03] text-white/45"
+                    : "border-sky-100 bg-sky-50/60 text-slate-500"
                 )}
               >
-                <th className="px-4 py-3">Name / Email</th>
-                <th className="px-4 py-3">Country</th>
-                <th className="px-4 py-3">Account</th>
-                <th className="px-4 py-3">Level</th>
-                <th className="px-4 py-3">Volume</th>
-                <th className="px-4 py-3">Earned</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-5 py-4">User</th>
+                <th className="px-5 py-4">Country</th>
+                <th className="px-5 py-4">Accounts</th>
+                <th className="px-5 py-4">Levels</th>
+                <th className="px-5 py-4 text-right">Volume</th>
+                <th className="px-5 py-4 text-right">Earned</th>
+                <th className="px-5 py-4 text-center">Action</th>
               </tr>
             </thead>
 
-            <tbody>
-              {paginatedEmails.length === 0 ? (
+            <tbody className={cx("divide-y", isDark ? "divide-white/5" : "divide-sky-100/80")}>
+              {paginatedUsers.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className={cx("px-4 py-12 text-center text-sm", muted(isDark))}
-                  >
+                  <td colSpan={7} className={cx("px-5 py-14 text-center text-sm", muted(isDark))}>
                     No IB user rows found.
                   </td>
                 </tr>
               ) : (
-                paginatedEmails.map((email) => {
-                  const rows = groupedData[email] || [];
-                  const first = rows[0] || {};
-                  const expanded = !!expandedEmails[email];
+                paginatedUsers.map((group) => {
+                  const expanded = !!expandedUsers[group.email];
+                  const canExpand = group.rows.length > 0;
 
                   return (
-                    <Fragment key={email}>
+                    <Fragment key={group.email}>
                       <tr
-                        onClick={() => rows.length > 1 && toggleExpand(email)}
+                        onClick={() => canExpand && toggleExpand(group.email)}
                         className={cx(
-                          "border-b cursor-pointer",
-                          isDark ? "border-white/5" : "border-sky-100/80"
+                          "cursor-pointer transition-all",
+                          isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/70"
                         )}
                       >
-                        <td className="px-4 py-4">
-                          <p className={cx("font-semibold", titleText(isDark))}>
-                            {first?.name || "-"}
-                          </p>
-                          <p className={cx("mt-1 text-xs", muted(isDark))}>
-                            {email}
-                          </p>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={cx(
+                                "grid h-9 w-9 place-items-center rounded-2xl border",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.05] text-cyan-200"
+                                  : "border-sky-100 bg-white text-sky-700"
+                              )}
+                            >
+                              {expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
+                            </div>
+
+                            <div>
+                              <p className={cx("font-black", titleText(isDark))}>
+                                {group.name || "-"}
+                              </p>
+                              <p className={cx("mt-1 text-xs", muted(isDark))}>
+                                {group.email}
+                              </p>
+                            </div>
+                          </div>
                         </td>
 
-                        <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                          {first?.country || "-"}
+                        <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
+                          {group.countriesText || "-"}
                         </td>
 
-                        <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                          {first?.accountNumber || "-"}
-                        </td>
-
-                        <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                          {first?.level ?? "-"}
-                        </td>
-
-                        <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                          {Number(first?.totalLot || 0).toFixed(4)}
-                        </td>
-
-                        <td className={cx("px-4 py-4 text-sm", titleText(isDark))}>
-                          {Number(first?.totalCommission || 0).toFixed(4)}
-                        </td>
-                        {/* user/referral/ib-users/:id/close-trades */}
-
-                        <td className="px-4 py-4">
-                          <Link
-                            to={`/user/referral/ib-users/${first?.accountNumber}/close-trades`}
+                        <td className={cx("px-5 py-4 text-sm", titleText(isDark))}>
+                          <span
                             className={cx(
-                              "inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-all",
+                              "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
                               isDark
-                                ? "border-white/10 bg-white/[0.05] text-cyan-200 hover:bg-white/[0.08]"
-                                : "border-sky-100 bg-white text-sky-700 hover:bg-sky-50"
+                                ? "border-violet-400/20 bg-violet-400/10 text-violet-200"
+                                : "border-violet-100 bg-violet-50 text-violet-700"
+                            )}
+                          >
+                            <Layers3 size={13} />
+                            {group.accountCount} account(s)
+                          </span>
+                        </td>
+
+                        <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
+                          {group.levelsText || "-"}
+                        </td>
+
+                        <td className={cx("px-5 py-4 text-right text-sm", muted(isDark))}>
+                          {format4(group.totalLot)}
+                        </td>
+
+                        <td className={cx("px-5 py-4 text-right text-sm font-black", titleText(isDark))}>
+                          {formatMoney(group.totalCommission, 4)}
+                        </td>
+
+                        <td className="px-5 py-4 text-center">
+                          <Link
+                            to={buildCloseTradePath(group.email, group.rows)}
+                            state={{
+                              userGroup: {
+                                email: group.email,
+                                name: group.name,
+                                country: group.countriesText,
+                                accounts: group.rows,
+                              },
+                            }}
+                            className={cx(
+                              "inline-flex h-10 w-10 items-center justify-center rounded-2xl border transition-all",
+                              isDark
+                                ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15"
+                                : "border-sky-100 bg-sky-50 text-sky-700 hover:bg-sky-100"
                             )}
                             onClick={(e) => e.stopPropagation()}
+                            title="View all account close trades"
                           >
-                            <ArrowRight size={16} />
+                            <ArrowRight size={17} />
                           </Link>
                         </td>
                       </tr>
 
                       {expanded &&
-                        rows.slice(1).map((row, idx) => (
+                        group.rows.map((row, idx) => (
                           <tr
-                            key={`${email}-${idx}`}
+                            key={`${group.email}-${row?.accountNumber || idx}-${row?.level || "level"}`}
                             className={cx(
-                              "border-b",
-                              isDark ? "border-white/5" : "border-sky-100/80"
+                              isDark ? "bg-white/[0.02]" : "bg-sky-50/40"
                             )}
                           >
-                            <td className="px-4 py-4 pl-10">
-                              <p className={cx("font-medium", titleText(isDark))}>
-                                {row?.name || "-"}
+                            <td className="px-5 py-4 pl-20">
+                              <p className={cx("font-semibold", titleText(isDark))}>
+                                Account #{idx + 1}
                               </p>
                               <p className={cx("mt-1 text-xs", muted(isDark))}>
-                                {row?.email || "-"}
+                                {row?.name || "-"} · {row?.email || "-"}
                               </p>
                             </td>
 
-                            <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
+                            <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
                               {row?.country || "-"}
                             </td>
 
-                            <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
+                            <td className={cx("px-5 py-4 text-sm font-bold", titleText(isDark))}>
                               {row?.accountNumber || "-"}
                             </td>
 
-                            <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                              {row?.level ?? "-"}
+                            <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
+                              Level {row?.level ?? "-"}
                             </td>
 
-                            <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
-                              {Number(row?.totalLot || 0).toFixed(4)}
+                            <td className={cx("px-5 py-4 text-right text-sm", muted(isDark))}>
+                              {format4(row?.totalLot)}
                             </td>
 
-                            <td className={cx("px-4 py-4 text-sm", titleText(isDark))}>
-                              {Number(row?.totalCommission || 0).toFixed(4)}
+                            <td className={cx("px-5 py-4 text-right text-sm font-bold", titleText(isDark))}>
+                              {formatMoney(row?.totalCommission || 0, 4)}
                             </td>
 
-                            <td className="px-4 py-4">
+                            <td className="px-5 py-4 text-center">
                               <Link
-                                to={`/user/referral-close-trades/${row?.accountNumber}?level=${row?.level}`}
+                                to={buildSingleAccountCloseTradePath(row)}
+                                state={{
+                                  userGroup: {
+                                    email: row?.email,
+                                    name: row?.name,
+                                    country: row?.country,
+                                    accounts: [row],
+                                  },
+                                }}
                                 className={cx(
                                   "inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-all",
                                   isDark
                                     ? "border-white/10 bg-white/[0.05] text-cyan-200 hover:bg-white/[0.08]"
                                     : "border-sky-100 bg-white text-sky-700 hover:bg-sky-50"
                                 )}
+                                title="View this account close trades"
                               >
                                 <ArrowRight size={16} />
                               </Link>
@@ -368,10 +566,157 @@ const ReferralIbUsersTab = () => {
           </table>
         </div>
 
+        <div className="space-y-3 p-3 lg:hidden">
+          {paginatedUsers.length === 0 ? (
+            <div className={cx("px-4 py-12 text-center text-sm", muted(isDark))}>
+              No IB user rows found.
+            </div>
+          ) : (
+            paginatedUsers.map((group) => {
+              const expanded = !!expandedUsers[group.email];
+
+              return (
+                <div
+                  key={group.email}
+                  className={cx(
+                    "rounded-3xl border p-4",
+                    isDark ? "border-white/10 bg-white/[0.04]" : "border-sky-100 bg-sky-50/60"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(group.email)}
+                    className="flex w-full items-start justify-between gap-3 text-left"
+                  >
+                    <div>
+                      <p className={cx("text-lg font-black", titleText(isDark))}>
+                        {group.name || "-"}
+                      </p>
+                      <p className={cx("mt-1 text-xs", muted(isDark))}>{group.email}</p>
+                    </div>
+
+                    <div
+                      className={cx(
+                        "grid h-9 w-9 place-items-center rounded-2xl border",
+                        isDark
+                          ? "border-white/10 bg-white/[0.05] text-cyan-200"
+                          : "border-sky-100 bg-white text-sky-700"
+                      )}
+                    >
+                      {expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
+                    </div>
+                  </button>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                      <p className={cx("text-xs", muted(isDark))}>Accounts</p>
+                      <p className={cx("mt-1 font-black", titleText(isDark))}>
+                        {group.accountCount}
+                      </p>
+                    </div>
+
+                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                      <p className={cx("text-xs", muted(isDark))}>Earned</p>
+                      <p className={cx("mt-1 font-black", titleText(isDark))}>
+                        {formatMoney(group.totalCommission, 4)}
+                      </p>
+                    </div>
+
+                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                      <p className={cx("text-xs", muted(isDark))}>Volume</p>
+                      <p className={cx("mt-1 font-black", titleText(isDark))}>
+                        {format4(group.totalLot)}
+                      </p>
+                    </div>
+
+                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
+                      <p className={cx("text-xs", muted(isDark))}>Levels</p>
+                      <p className={cx("mt-1 font-black", titleText(isDark))}>
+                        {group.levelsText || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={buildCloseTradePath(group.email, group.rows)}
+                    state={{
+                      userGroup: {
+                        email: group.email,
+                        name: group.name,
+                        country: group.countriesText,
+                        accounts: group.rows,
+                      },
+                    }}
+                    className={cx(
+                      "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
+                      isDark
+                        ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
+                        : "border-sky-100 bg-sky-50 text-sky-700"
+                    )}
+                  >
+                    View all close trades
+                    <ArrowRight size={16} />
+                  </Link>
+
+                  {expanded && (
+                    <div className="mt-4 space-y-3">
+                      {group.rows.map((row, idx) => (
+                        <div
+                          key={`${group.email}-mobile-${row?.accountNumber || idx}-${row?.level || "level"}`}
+                          className={cx(
+                            "rounded-2xl border p-3",
+                            isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white"
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className={cx("font-black", titleText(isDark))}>
+                                {row?.accountNumber || "-"}
+                              </p>
+                              <p className={cx("mt-1 text-xs", muted(isDark))}>
+                                Level {row?.level ?? "-"} · {row?.country || "-"}
+                              </p>
+                            </div>
+
+                            <Link
+                              to={buildSingleAccountCloseTradePath(row)}
+                              state={{
+                                userGroup: {
+                                  email: row?.email,
+                                  name: row?.name,
+                                  country: row?.country,
+                                  accounts: [row],
+                                },
+                              }}
+                              className={cx(
+                                "grid h-9 w-9 place-items-center rounded-xl border",
+                                isDark
+                                  ? "border-white/10 bg-white/[0.05] text-cyan-200"
+                                  : "border-sky-100 bg-sky-50 text-sky-700"
+                              )}
+                            >
+                              <ArrowRight size={16} />
+                            </Link>
+                          </div>
+
+                          <div className={cx("mt-3 text-xs leading-6", muted(isDark))}>
+                            Volume: {format4(row?.totalLot)} · Earned:{" "}
+                            {formatMoney(row?.totalCommission || 0, 4)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {totalPages > 1 ? (
           <div
             className={cx(
-              "mt-5 flex items-center justify-center gap-3 border-t pt-5",
+              "flex items-center justify-center gap-3 border-t p-5",
               isDark ? "border-white/10" : "border-sky-100"
             )}
           >
@@ -394,9 +739,7 @@ const ReferralIbUsersTab = () => {
             <button
               type="button"
               disabled={currentPage === totalPages}
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               className={buttonSecondary(
                 isDark,
                 currentPage === totalPages ? "pointer-events-none opacity-50" : ""

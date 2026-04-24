@@ -350,6 +350,8 @@ export default function UserDashboard() {
   const loggedUser = useSelector((store: any) => store.user?.loggedUser);
   const accountsData = useSelector((store: any) => store.user?.accountsData);
 
+  
+
   const isDark = mode === "dark";
 
   const [greeting, setGreeting] = useState("Welcome back");
@@ -390,6 +392,10 @@ export default function UserDashboard() {
     () => extractAccounts(accountsData, loggedUser),
     [accountsData, loggedUser]
   );
+
+
+   console.log("accountsData source:", accountsData);
+console.log("allAccounts used for balance:", allAccounts);
 
   const allServerNames = useMemo(() => {
     const names = allAccounts
@@ -826,6 +832,10 @@ export default function UserDashboard() {
         "USD";
 
       const accountOverview = aggregateAccountOverview(allAccounts, baseCurrency);
+      console.log(accountOverview);
+      console.log(allAccounts);
+
+      
 
       const [depositResult, withdrawalResult, ibResult] =
         await Promise.allSettled([

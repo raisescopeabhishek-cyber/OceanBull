@@ -1,150 +1,417 @@
 import React, { useMemo, useState } from "react";
-import { User, Mail, Phone, MapPin, Flag, Shield, Cpu, Sparkles } from "lucide-react";
+import {
+  BadgeCheck,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  CircleUserRound,
+  Flag,
+  Globe2,
+  Hash,
+  Home,
+  IdCard,
+  Loader2,
+  LockKeyhole,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  User,
+  UserCog,
+  Wallet,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import UseUserHook from "../../hooks/user/UseUserHook";
 import { userApi } from "../../utils/apiClients";
-import ModernHeading from "../lib/ModernHeading";
-import { FloatingParticles } from "../../utils/FloatingParticles";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
+/* -------------------- helpers -------------------- */
+const cx = (...classes) => classes.filter(Boolean).join(" ");
+
+const getInitials = (firstName = "", lastName = "", email = "") => {
+  const name = `${firstName || ""} ${lastName || ""}`.trim();
+
+  if (name) {
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((x) => x[0]?.toUpperCase())
+      .join("");
+  }
+
+  return email ? email[0]?.toUpperCase() : "U";
 };
 
-/* =========================== DECOR (DYNAMIC THEME) ============================ */
+const formatDate = (value) => {
+  if (!value) return "Not available";
 
-const AnimatedGrid = ({ theme }) => {
-  const grid = theme?.accent || theme?.ring || "34 197 94";
-  const stripe = theme?.info || theme?.gradientFrom || "34 211 238";
-  const effects = theme?.effectsEnabled !== false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not available";
 
-  return (
-    <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.1 }}>
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(${rgba(grid, 0.15)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(grid, 0.15)} 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-          maskImage: "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-        }}
-      />
-      {effects && (
-        <motion.div
-          className="absolute inset-0"
-          animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-          style={{
-            background: `repeating-linear-gradient(90deg,
-              ${rgba(stripe, 0.06)} 0px,
-              ${rgba(stripe, 0.06)} 2px,
-              transparent 2px,
-              transparent 6px
-            )`,
-          }}
-        />
-      )}
-    </div>
-  );
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
-const FloatingOrbs = ({ theme }) => {
-  const a = theme?.accent || "16 185 129";
-  const b = theme?.info || theme?.gradientFrom || "34 211 238";
-  const c = theme?.gradientTo || theme?.primary || "99 102 241";
-  const effects = theme?.effectsEnabled !== false;
+const getCompletion = (formData) => {
+  const keys = [
+    "firstName",
+    "lastName",
+    "email",
+    "mobileNumber",
+    "address",
+    "state",
+    "zipCode",
+    "city",
+    "country",
+  ];
 
-  if (!effects) return null;
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      {Array.from({ length: 12 }).map((_, i) => {
-        const color = i % 3 === 0 ? a : i % 3 === 1 ? b : c;
-        const alpha = i % 3 === 2 ? 0.22 : 0.25;
-
-        return (
-          <motion.div
-            key={i}
-            className="absolute rounded-full blur-2xl"
-            style={{
-              width: 140,
-              height: 140,
-              background: `radial-gradient(circle at center, ${rgba(color, alpha)}, transparent 60%)`,
-              left: `${(i * 83) % 100}%`,
-              top: `${(i * 47) % 100}%`,
-            }}
-            animate={{
-              y: [0, i % 2 ? -20 : 20, 0],
-              x: [0, i % 2 ? 10 : -10, 0],
-              opacity: [0.6, 1, 0.6],
-            }}
-            transition={{ duration: 6 + (i % 5), repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-          />
-        );
-      })}
-    </div>
-  );
+  const filled = keys.filter((key) => String(formData?.[key] || "").trim()).length;
+  return Math.round((filled / keys.length) * 100);
 };
 
-const GlassCard = ({ theme, children, className = "" }) => {
-  const cardBg = theme?.card || theme?.surface2 || "18 18 18";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  const a = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const b = theme?.gradientTo || theme?.info || "34 211 238";
-  const glow = theme?.glow || a;
+/* -------------------- pattern theme helpers -------------------- */
+const getPatternTheme = (isDark) => {
+  if (isDark) {
+    return {
+      shell: "border-white/10 bg-white/[0.035] shadow-[0_20px_70px_rgba(0,0,0,0.45)]",
+      card: "border-white/10 bg-white/[0.045] shadow-[0_25px_80px_rgba(0,0,0,0.35)]",
+      cardSoft: "border-white/10 bg-white/[0.035]",
+      input: "border-white/10 bg-white/[0.045] text-white placeholder:text-white/25",
+      text: "text-white",
+      muted: "text-white/55",
+      faint: "text-white/35",
+      accentText: "text-blue-300",
+      accentTextStrong: "text-cyan-300",
+      accentBg: "bg-blue-500/10",
+      accentBorder: "border-blue-400/20",
+      successText: "text-emerald-300",
+      successBg: "bg-emerald-500/10",
+      successBorder: "border-emerald-400/20",
+      warningText: "text-amber-300",
+      warningBg: "bg-amber-500/10",
+      warningBorder: "border-amber-400/20",
+      topLine: "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent",
+      divider: "bg-gradient-to-r from-transparent via-white/20 to-transparent",
+      heroBg:
+        "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]",
+      panelBg:
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))]",
+      glowOne: "bg-blue-500/10",
+      glowTwo: "bg-cyan-400/10",
+      button:
+        "bg-blue-500 text-white hover:bg-blue-400 shadow-[0_18px_45px_rgba(59,130,246,0.22)]",
+      buttonDisabled: "bg-slate-500 text-white/70",
+      progress: "bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300",
+      progressTrack: "bg-white/10",
+    };
+  }
+
+  return {
+    shell: "border-orange-100/80 bg-white/60 shadow-[0_16px_50px_rgba(251,146,60,0.10)]",
+    card: "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]",
+    cardSoft: "border-orange-100/80 bg-white/70",
+    input: "border-orange-100 bg-white/85 text-slate-900 placeholder:text-slate-400",
+    text: "text-slate-900",
+    muted: "text-slate-600",
+    faint: "text-slate-500",
+    accentText: "text-orange-700",
+    accentTextStrong: "text-orange-600",
+    accentBg: "bg-orange-50",
+    accentBorder: "border-orange-200",
+    successText: "text-emerald-700",
+    successBg: "bg-emerald-50",
+    successBorder: "border-emerald-200",
+    warningText: "text-amber-700",
+    warningBg: "bg-amber-50",
+    warningBorder: "border-amber-200",
+    topLine: "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent",
+    divider: "bg-gradient-to-r from-transparent via-orange-200 to-transparent",
+    heroBg:
+      "bg-[linear-gradient(135deg,rgba(255,255,255,0.85),rgba(255,247,240,0.80))]",
+    panelBg: "bg-white/45",
+    glowOne: "bg-orange-300/20",
+    glowTwo: "bg-amber-200/25",
+    button:
+      "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_18px_45px_rgba(251,146,60,0.25)]",
+    buttonDisabled: "bg-slate-300 text-slate-600",
+    progress: "bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500",
+    progressTrack: "bg-orange-100",
+  };
+};
+
+/* -------------------- shared ui -------------------- */
+const PatternCard = ({ children, className = "", isDark, hover = false }) => {
+  const t = getPatternTheme(isDark);
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      className={`relative rounded-2xl backdrop-blur-xl ${className}`}
-      style={{
-        border: `1px solid ${rgba(border, 0.14)}`,
-        background: `linear-gradient(135deg, ${rgba(cardBg, 0.62)}, ${rgba(cardBg, 0.32)}, ${rgba(cardBg, 0.62)})`,
-        boxShadow: `0 0 80px ${rgba(glow, 0.08)}`,
-      }}
+      whileHover={hover ? { y: -3 } : undefined}
+      className={cx(
+        "relative overflow-hidden rounded-[30px] border backdrop-blur-xl transition-all duration-300",
+        t.card,
+        className
+      )}
     >
+      <div className={cx("pointer-events-none absolute inset-x-0 top-0 h-px", t.topLine)} />
+
       <div
-        className="absolute inset-px rounded-[calc(1rem-1px)] pointer-events-none"
-        style={{
-          background: `linear-gradient(135deg, ${rgba(a, 0.06)}, ${rgba(b, 0.06)}, ${rgba(a, 0.06)})`,
-        }}
+        aria-hidden
+        className={cx(
+          "pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl",
+          t.glowOne
+        )}
       />
-      {children}
+
+      <div
+        aria-hidden
+        className={cx(
+          "pointer-events-none absolute -bottom-28 -left-24 h-72 w-72 rounded-full blur-3xl",
+          t.glowTwo
+        )}
+      />
+
+      <div className="relative z-[1]">{children}</div>
     </motion.div>
   );
 };
 
-/* =========================== MAIN COMPONENT ============================ */
+const SoftPanel = ({ children, className = "", isDark }) => {
+  const t = getPatternTheme(isDark);
 
+  return (
+    <div
+      className={cx(
+        "rounded-[24px] border backdrop-blur-md transition-all duration-300",
+        t.cardSoft,
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+const IconBox = ({ children, isDark, tint = "accent", className = "" }) => {
+  const t = getPatternTheme(isDark);
+
+  const tone =
+    tint === "success"
+      ? `${t.successBg} ${t.successText} ${t.successBorder}`
+      : tint === "warning"
+      ? `${t.warningBg} ${t.warningText} ${t.warningBorder}`
+      : `${t.accentBg} ${t.accentText} ${t.accentBorder}`;
+
+  return (
+    <div
+      className={cx(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl border",
+        tone,
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+const SectionTitle = ({ isDark, icon, eyebrow, title, subtitle }) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <div className="flex items-start gap-3">
+      <IconBox isDark={isDark}>{icon}</IconBox>
+
+      <div className="min-w-0">
+        {eyebrow ? (
+          <p
+            className={cx(
+              "text-[11px] font-semibold uppercase tracking-[0.22em]",
+              t.accentText
+            )}
+          >
+            {eyebrow}
+          </p>
+        ) : null}
+
+        <h2
+          className={cx("mt-1 text-xl font-bold tracking-tight", t.text)}
+          style={{ fontFamily: "'Poppins', sans-serif" }}
+        >
+          {title}
+        </h2>
+
+        {subtitle ? (
+          <p className={cx("mt-1 text-sm leading-6", t.muted)}>{subtitle}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+const StatusPill = ({ isDark, icon, label, tint = "accent" }) => {
+  const t = getPatternTheme(isDark);
+
+  const tone =
+    tint === "success"
+      ? `${t.successBg} ${t.successText} ${t.successBorder}`
+      : tint === "warning"
+      ? `${t.warningBg} ${t.warningText} ${t.warningBorder}`
+      : `${t.accentBg} ${t.accentText} ${t.accentBorder}`;
+
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em]",
+        tone
+      )}
+    >
+      {icon}
+      {label}
+    </span>
+  );
+};
+
+const MiniMetric = ({ isDark, icon, label, value, tint = "accent" }) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <SoftPanel isDark={isDark} className="p-4">
+      <div className="flex items-center gap-3">
+        <IconBox isDark={isDark} tint={tint} className="h-10 w-10 rounded-xl">
+          {icon}
+        </IconBox>
+
+        <div className="min-w-0">
+          <p className={cx("text-xs", t.muted)}>{label}</p>
+          <p className={cx("mt-1 truncate text-base font-bold", t.text)}>{value}</p>
+        </div>
+      </div>
+    </SoftPanel>
+  );
+};
+
+const NeonDivider = ({ isDark }) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <div className="relative my-5 w-full">
+      <div className={cx("h-px w-full", t.divider)} />
+    </div>
+  );
+};
+
+/* -------------------- form controls -------------------- */
+const LabelCaps = ({ isDark, children, required }) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <span className={cx("text-[11px] font-semibold uppercase tracking-[0.22em]", t.accentText)}>
+        {children}
+      </span>
+      {required ? <span className={t.accentTextStrong}>*</span> : null}
+    </div>
+  );
+};
+
+const InputField = ({
+  isDark,
+  label,
+  icon,
+  value,
+  onChange,
+  name,
+  required = false,
+  placeholder,
+  readOnly = false,
+}) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <div className="relative">
+      <LabelCaps isDark={isDark} required={required}>
+        {label}
+      </LabelCaps>
+
+      <div className="group relative">
+        <div
+          className={cx(
+            "pointer-events-none absolute inset-y-0 left-3 flex items-center",
+            readOnly ? t.faint : t.accentText
+          )}
+        >
+          {icon}
+        </div>
+
+        <motion.input
+          type="text"
+          name={name}
+          value={value ?? ""}
+          onChange={onChange}
+          required={required}
+          readOnly={readOnly}
+          placeholder={placeholder}
+          whileFocus={readOnly ? undefined : { scale: 1.01 }}
+          className={cx(
+            "w-full rounded-2xl border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-300",
+            t.input,
+            readOnly && "cursor-not-allowed opacity-80",
+            !readOnly &&
+              (isDark
+                ? "focus:border-blue-300/40 focus:bg-white/[0.06]"
+                : "focus:border-orange-300 focus:bg-white")
+          )}
+        />
+
+        {readOnly ? (
+          <div
+            className={cx(
+              "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
+              isDark ? "bg-white/5 text-white/35" : "bg-orange-50 text-slate-500"
+            )}
+          >
+            locked
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+const MetaRow = ({ isDark, label, value }) => {
+  const t = getPatternTheme(isDark);
+
+  return (
+    <div
+      className={cx(
+        "flex items-start justify-between gap-4 rounded-2xl border px-4 py-3",
+        t.cardSoft
+      )}
+    >
+      <span className={cx("text-xs uppercase tracking-[0.18em]", t.faint)}>
+        {label}
+      </span>
+      <span className={cx("max-w-[190px] break-words text-right text-sm font-semibold", t.text)}>
+        {value}
+      </span>
+    </div>
+  );
+};
+
+/* -------------------- main component -------------------- */
 const UserProfile = () => {
   const loggedUser = useSelector((store) => store?.user?.loggedUser) || {};
-
-  // ✅ dynamic theme
-  const themeConfig = useSelector((s) => s?.user?.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-
-  const bg = theme?.bg || "0 0 0";
-  const surface1 = theme?.surface1 || theme?.bg || "0 0 0";
-  const accent = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const accent2 = theme?.gradientTo || theme?.info || "34 211 238";
-  const fg = theme?.fg || "255 255 255";
-  const mutedFg = theme?.mutedFg || theme?.fg || "255 255 255";
+  const mode = useSelector((store) => store.userTheme?.mode || "light");
+  const isDark = mode === "dark";
+  const t = getPatternTheme(isDark);
 
   const [formData, setFormData] = useState({
     firstName: loggedUser.firstName || "",
@@ -161,6 +428,135 @@ const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { getUpdateLoggedUser } = UseUserHook();
 
+  const fullName =
+    `${formData.firstName || ""} ${formData.lastName || ""}`.trim() ||
+    loggedUser?.username ||
+    "User";
+
+  const initials = getInitials(formData.firstName, formData.lastName, formData.email);
+  const completion = useMemo(() => getCompletion(formData), [formData]);
+
+  const profileStats = [
+    {
+      label: "Profile Score",
+      value: `${completion}%`,
+      icon: <BadgeCheck size={17} />,
+      tint: "success",
+    },
+    {
+      label: "User Status",
+      value: loggedUser?.status || "Active",
+      icon: <ShieldCheck size={17} />,
+      tint: "accent",
+    },
+    {
+      label: "Joined",
+      value: formatDate(loggedUser?.createdAt),
+      icon: <CalendarDays size={17} />,
+      tint: "warning",
+    },
+  ];
+
+  const fields = [
+    {
+      section: "Identity Details",
+      icon: <CircleUserRound size={18} />,
+      description: "Your basic profile information visible across your account.",
+      items: [
+        {
+          name: "firstName",
+          label: "First Name",
+          icon: <User size={16} />,
+          required: true,
+          placeholder: "Enter first name",
+        },
+        {
+          name: "lastName",
+          label: "Last Name",
+          icon: <User size={16} />,
+          required: true,
+          placeholder: "Enter last name",
+        },
+        {
+          name: "email",
+          label: "E-mail Address",
+          icon: <Mail size={16} />,
+          readOnly: true,
+        },
+        {
+          name: "mobileNumber",
+          label: "Mobile Number",
+          icon: <Phone size={16} />,
+          readOnly: true,
+        },
+      ],
+    },
+    {
+      section: "Location Details",
+      icon: <MapPin size={18} />,
+      description: "Keep your billing and residential information updated.",
+      items: [
+        {
+          name: "address",
+          label: "Address",
+          icon: <Home size={16} />,
+          placeholder: "Enter address",
+        },
+        {
+          name: "state",
+          label: "State",
+          icon: <Building2 size={16} />,
+          placeholder: "Enter state",
+        },
+        {
+          name: "zipCode",
+          label: "Zip Code",
+          icon: <Hash size={16} />,
+          placeholder: "Enter zip code",
+        },
+        {
+          name: "city",
+          label: "City",
+          icon: <MapPin size={16} />,
+          placeholder: "Enter city",
+        },
+        {
+          name: "country",
+          label: "Country",
+          icon: <Flag size={16} />,
+          readOnly: true,
+        },
+      ],
+    },
+  ];
+
+  const securityItems = [
+    {
+      label: "Email Access",
+      value: formData.email ? "Connected" : "Missing",
+      icon: <Mail size={16} />,
+      tint: formData.email ? "success" : "warning",
+    },
+    {
+      label: "Phone Access",
+      value: formData.mobileNumber ? "Connected" : "Missing",
+      icon: <Phone size={16} />,
+      tint: formData.mobileNumber ? "success" : "warning",
+    },
+    {
+      label: "Country Lock",
+      value: formData.country || "Not set",
+      icon: <Globe2 size={16} />,
+      tint: "accent",
+    },
+    {
+      label: "User ID",
+      value: loggedUser?._id ? "Available" : "Pending",
+      icon: <IdCard size={16} />,
+      tint: loggedUser?._id ? "accent" : "warning",
+    },
+  ];
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((d) => ({ ...d, [name]: value }));
@@ -168,12 +564,15 @@ const UserProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!loggedUser?._id) {
       toast.error("Please sign in to update your profile.");
       return;
     }
-    const toastID = toast.loading("Syncing to chain…");
+
+    const toastID = toast.loading("Updating profile...");
     setIsLoading(true);
+
     try {
       await userApi.put("/update-user", {
         id: loggedUser._id,
@@ -184,7 +583,8 @@ const UserProfile = () => {
         city: formData.city,
         zipCode: formData.zipCode,
       });
-      toast.success("Profile updated ✨", { id: toastID });
+
+      toast.success("Profile updated successfully.", { id: toastID });
       getUpdateLoggedUser();
     } catch (error) {
       console.error("Error updating user data:", error);
@@ -194,373 +594,385 @@ const UserProfile = () => {
     }
   };
 
-  const fields = [
-    { name: "firstName", label: "First Name", icon: <User size={16} />, required: true },
-    { name: "lastName", label: "Last Name", icon: <User size={16} />, required: true },
-    { name: "email", label: "E-mail Address", icon: <Mail size={16} />, readOnly: true },
-    { name: "mobileNumber", label: "Mobile Number", icon: <Phone size={16} />, readOnly: true },
-    { name: "address", label: "Address", icon: <MapPin size={16} /> },
-    { name: "state", label: "State", icon: <MapPin size={16} /> },
-    { name: "zipCode", label: "Zip Code", icon: <MapPin size={16} /> },
-    { name: "city", label: "City", icon: <MapPin size={16} /> },
-    { name: "country", label: "Country", icon: <Flag size={16} />, readOnly: true },
-  ];
-
   return (
     <motion.div
-      className="relative min-h-screen overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{
-        background: `linear-gradient(135deg, ${rgb(bg)}, ${rgb(surface1)}, ${rgb(bg)})`,
-        color: rgba(fg, 0.92),
-      }}
+      className="relative w-full"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <AnimatedGrid theme={theme} />
-      <FloatingParticles />
-      <FloatingOrbs theme={theme} />
-
-      {/* soft corner glows */}
-      <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.18 }}>
+      <div className="relative overflow-hidden rounded-[28px]">
         <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(60% 70% at 10% 0%, ${rgba(accent, 0.45)}, transparent 60%),
-                         radial-gradient(60% 70% at 90% 100%, ${rgba(accent2, 0.35)}, transparent 60%)`,
-          }}
+          aria-hidden
+          className={cx(
+            "pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full blur-3xl",
+            t.glowOne
+          )}
         />
-      </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:px-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles style={{ color: rgba(accent, 0.9) }} size={20} />
-            <span
-              className="uppercase tracking-[0.25em] text-xs font-semibold"
-              style={{ color: rgba(accent, 0.75) }}
-            >
-              account · identity · wallet
-            </span>
-          </div>
+        <div
+          aria-hidden
+          className={cx(
+            "pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full blur-3xl",
+            t.glowTwo
+          )}
+        />
 
-          <motion.div
-            className="inline-block"
-            initial={{ scale: 0.98, rotateX: 10, opacity: 0 }}
-            animate={{ scale: 1, rotateX: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <ModernHeading text="⚡ Update Profile" />
-          </motion.div>
-        </div>
+        {isDark ? (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.10]"
+            aria-hidden
+            style={{
+              backgroundImage:
+                "radial-gradient(rgba(255,255,255,0.14) 1px, transparent 1px)",
+              backgroundSize: "16px 16px",
+            }}
+          />
+        ) : (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.50]"
+            aria-hidden
+            style={{
+              background:
+                "radial-gradient(circle at 15% 20%, rgba(251,146,60,0.12), transparent 24%), radial-gradient(circle at 85% 0%, rgba(255,255,255,0.85), transparent 30%)",
+            }}
+          />
+        )}
 
-        {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
-          {/* Left */}
-          <GlassCard theme={theme} className="p-6 lg:col-span-1">
-            <div className="relative flex flex-col items-center text-center gap-4">
-              <motion.div
-                className="relative"
-                whileHover={{ scale: 1.02, rotate: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 18 }}
-              >
-                <div
-                  className="w-28 h-28 rounded-2xl grid place-items-center"
-                  style={{
-                    background: `linear-gradient(135deg, ${rgba(accent, 0.2)}, ${rgba(accent2, 0.18)}, ${rgba(accent, 0.2)})`,
-                    border: `1px solid ${rgba(theme?.ring || accent, 0.28)}`,
-                    boxShadow: `0 0 60px ${rgba(theme?.glow || accent, 0.22)}`,
-                  }}
-                >
-                  <User style={{ color: rgba(accent, 0.85) }} size={40} />
+        <div className="relative z-[1] space-y-6 p-3 sm:p-4 md:p-5">
+          {/* Top hero */}
+          <PatternCard isDark={isDark} className="p-5 sm:p-6 lg:p-7">
+            <div className={cx("absolute inset-0 pointer-events-none", t.heroBg)} />
+
+            <div className="relative z-[1] flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <div className="mb-3 flex items-center gap-2">
+                  <Sparkles size={18} className={t.accentTextStrong} />
+                  <span
+                    className={cx(
+                      "text-[11px] font-semibold uppercase tracking-[0.25em]",
+                      t.accentText
+                    )}
+                  >
+                    account · identity · profile
+                  </span>
                 </div>
 
-                {theme?.effectsEnabled !== false && (
-                  <motion.div
-                    className="absolute -inset-2 -z-10 rounded-3xl"
-                    animate={{
-                      boxShadow: [
-                        `0 0 0 ${rgba(accent, 0)}`,
-                        `0 0 32px ${rgba(accent, 0.35)}`,
-                        `0 0 0 ${rgba(accent, 0)}`,
-                      ],
-                    }}
-                    transition={{ duration: 2.2, repeat: Infinity }}
-                  />
-                )}
-              </motion.div>
+                <h1
+                  className={cx("text-3xl font-bold tracking-tight sm:text-4xl", t.text)}
+                  style={{ fontFamily: "'Poppins', sans-serif" }}
+                >
+                  Profile Control Center
+                </h1>
 
-              <div>
-                <h3 className="text-xl font-semibold" style={{ color: rgba(fg, 0.95) }}>
-                  {formData.firstName || "First"} {formData.lastName || "Last"}
-                </h3>
-                <p className="text-sm font-mono" style={{ color: rgba(accent, 0.7) }}>
-                  {formData.email || "—"}
+                <p className={cx("mt-3 max-w-2xl text-sm leading-6 sm:text-[15px]", t.muted)}>
+                  Update your personal information, check account security status,
+                  and keep your profile details synced with your trading account.
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 w-full mt-2">
-                <BadgeStat theme={theme} icon={<Cpu size={14} />} label="Status" value="Verified" tint="success" />
-                <BadgeStat theme={theme} icon={<Shield size={14} />} label="2FA" value="Enabled" tint="info" />
-                <BadgeStat theme={theme} icon={<Flag size={14} />} label="Region" value={formData.country || "—"} tint="accent" />
-              </div>
-
-              <NeonDivider theme={theme} />
-            </div>
-          </GlassCard>
-
-          {/* Right */}
-          <GlassCard theme={theme} className="p-6 lg:col-span-2">
-            <motion.form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0, y: 10 },
-                visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.04 } },
-              }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {fields.map((f) => (
-                  <motion.div
-                    key={f.name}
-                    variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
-                  >
-                    {f.readOnly ? (
-                      <ReadOnlyField theme={theme} label={f.label} icon={f.icon} value={formData[f.name]} />
-                    ) : (
-                      <InputField
-                        theme={theme}
-                        label={f.label}
-                        icon={f.icon}
-                        value={formData[f.name]}
-                        onChange={handleInputChange}
-                        name={f.name}
-                        required={f.required}
-                      />
-                    )}
-                  </motion.div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+                {profileStats.map((item) => (
+                  <MiniMetric
+                    key={item.label}
+                    isDark={isDark}
+                    icon={item.icon}
+                    label={item.label}
+                    value={item.value}
+                    tint={item.tint}
+                  />
                 ))}
               </div>
+            </div>
+          </PatternCard>
 
-              <div className="flex justify-center pt-2">
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={isLoading}
-                  className="relative group inline-flex items-center gap-2 px-10 py-3 rounded-full font-semibold"
-                  style={{
-                    color: rgb(theme?.primaryFg || "0 0 0"),
-                    background: `linear-gradient(90deg,
-                      ${rgb(theme?.gradientFrom || accent)},
-                      ${rgb(theme?.accent || theme?.primary || accent)},
-                      ${rgb(theme?.gradientTo || accent2)}
-                    )`,
-                    boxShadow: `0 10px 40px ${rgba(theme?.glow || accent, 0.28)}`,
-                  }}
-                >
-                  <span className="relative z-10">{isLoading ? "Updating…" : "Update Profile"}</span>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
+            {/* Left profile rail */}
+            <motion.div
+              initial={{ opacity: 0, x: -18 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.05 }}
+              className="space-y-6"
+            >
+              <PatternCard isDark={isDark} className="overflow-hidden">
+                <div className={cx("relative px-6 py-7 text-center", t.heroBg)}>
+                  <div className={cx("absolute inset-x-0 top-0 h-px", t.topLine)} />
+
+                  <motion.div
+                    className={cx(
+                      "mx-auto grid h-32 w-32 place-items-center rounded-[34px] border text-4xl font-black",
+                      isDark
+                        ? "border-blue-300/25 bg-blue-500/10 text-blue-200 shadow-[0_0_70px_rgba(59,130,246,0.18)]"
+                        : "border-orange-200 bg-orange-50 text-orange-700 shadow-[0_0_70px_rgba(251,146,60,0.16)]"
+                    )}
+                    whileHover={{ scale: 1.03, rotate: 1 }}
+                    transition={{ type: "spring", stiffness: 180, damping: 16 }}
+                  >
+                    {initials}
+                  </motion.div>
+
+                  <h2
+                    className={cx("mt-5 truncate text-2xl font-bold", t.text)}
+                    style={{ fontFamily: "'Poppins', sans-serif" }}
+                  >
+                    {fullName}
+                  </h2>
+
+                  <p className={cx("mt-1 truncate font-mono text-sm", t.accentText)}>
+                    {formData.email || "No email available"}
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    <StatusPill
+                      isDark={isDark}
+                      icon={<CheckCircle2 size={13} />}
+                      label="Verified"
+                      tint="success"
+                    />
+                    <StatusPill
+                      isDark={isDark}
+                      icon={<Shield size={13} />}
+                      label="Secure"
+                      tint="accent"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <SoftPanel isDark={isDark} className="p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className={cx("text-sm font-semibold", t.text)}>
+                        Profile Completion
+                      </p>
+                      <p className={cx("text-sm font-bold", t.accentTextStrong)}>
+                        {completion}%
+                      </p>
+                    </div>
+
+                    <div className={cx("h-2 overflow-hidden rounded-full", t.progressTrack)}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${completion}%` }}
+                        transition={{ duration: 0.7, ease: "easeOut" }}
+                        className={cx("h-full rounded-full", t.progress)}
+                      />
+                    </div>
+
+                    <p className={cx("mt-3 text-xs leading-5", t.muted)}>
+                      Complete your personal and location details to keep your account
+                      profile clean and up to date.
+                    </p>
+                  </SoftPanel>
+
+                  <NeonDivider isDark={isDark} />
+
+                  <div className="grid grid-cols-1 gap-3">
+                    {securityItems.map((item) => (
+                      <div
+                        key={item.label}
+                        className={cx(
+                          "flex items-center justify-between gap-3 rounded-2xl border p-3",
+                          t.cardSoft
+                        )}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <IconBox
+                            isDark={isDark}
+                            tint={item.tint}
+                            className="h-9 w-9 rounded-xl"
+                          >
+                            {item.icon}
+                          </IconBox>
+
+                          <div className="min-w-0">
+                            <p className={cx("text-xs", t.muted)}>{item.label}</p>
+                            <p className={cx("truncate text-sm font-semibold", t.text)}>
+                              {item.value}
+                            </p>
+                          </div>
+                        </div>
+
+                        <ChevronRight size={16} className={t.faint} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PatternCard>
+
+              <PatternCard isDark={isDark} className="p-5">
+                <SectionTitle
+                  isDark={isDark}
+                  icon={<Wallet size={18} />}
+                  eyebrow="account snapshot"
+                  title="Profile Meta"
+                  subtitle="Basic locked metadata from your account session."
+                />
+
+                <div className="mt-5 space-y-3">
+                  <MetaRow
+                    isDark={isDark}
+                    label="User ID"
+                    value={loggedUser?._id || "Not available"}
+                  />
+                  <MetaRow
+                    isDark={isDark}
+                    label="Username"
+                    value={loggedUser?.username || "Not available"}
+                  />
+                  <MetaRow
+                    isDark={isDark}
+                    label="Last Updated"
+                    value={formatDate(loggedUser?.updatedAt)}
+                  />
+                </div>
+              </PatternCard>
+            </motion.div>
+
+            {/* Right form area */}
+            <motion.div
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.1 }}
+            >
+              <PatternCard isDark={isDark} className="overflow-hidden">
+                <div className={cx("border-b px-5 py-5 sm:px-6", isDark ? "border-white/10" : "border-orange-100/80")}>
+                  <SectionTitle
+                    isDark={isDark}
+                    icon={<UserCog size={18} />}
+                    eyebrow="editable information"
+                    title="Update Personal Profile"
+                    subtitle="Email, phone, and country are locked. You can update name and address details."
+                  />
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-5 sm:p-6">
+                  <div className="space-y-7">
+                    {fields.map((section, sectionIndex) => (
+                      <motion.div
+                        key={section.section}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: sectionIndex * 0.08 }}
+                      >
+                        <div className="mb-4 flex items-start gap-3">
+                          <IconBox
+                            isDark={isDark}
+                            tint={sectionIndex === 0 ? "accent" : "success"}
+                          >
+                            {section.icon}
+                          </IconBox>
+
+                          <div>
+                            <h3
+                              className={cx("text-lg font-semibold", t.text)}
+                              style={{ fontFamily: "'Poppins', sans-serif" }}
+                            >
+                              {section.section}
+                            </h3>
+                            <p className={cx("mt-1 text-sm", t.muted)}>
+                              {section.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                          {section.items.map((field) => (
+                            <InputField
+                              key={field.name}
+                              isDark={isDark}
+                              label={field.label}
+                              icon={field.icon}
+                              value={formData[field.name]}
+                              onChange={handleInputChange}
+                              name={field.name}
+                              required={field.required}
+                              readOnly={field.readOnly}
+                              placeholder={field.placeholder}
+                            />
+                          ))}
+                        </div>
+
+                        {sectionIndex !== fields.length - 1 ? (
+                          <NeonDivider isDark={isDark} />
+                        ) : null}
+                      </motion.div>
+                    ))}
+                  </div>
 
                   <div
-                    className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{
-                      background:
-                        "radial-gradient(120% 120% at 50% 10%, rgba(255,255,255,0.35), transparent 40%)",
-                    }}
-                  />
-                </motion.button>
-              </div>
-            </motion.form>
-
-            <AnimatePresence>
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-4 flex justify-center"
-                >
-                  <motion.div
-                    className="h-1 w-52 rounded-full overflow-hidden"
-                    style={{ background: rgba(accent, 0.18) }}
+                    className={cx(
+                      "mt-8 flex flex-col gap-4 rounded-[24px] border p-4 sm:flex-row sm:items-center sm:justify-between",
+                      isDark
+                        ? "border-white/10 bg-[linear-gradient(135deg,rgba(59,130,246,0.10),rgba(255,255,255,0.03),rgba(34,211,238,0.08))]"
+                        : "border-orange-100 bg-[linear-gradient(135deg,rgba(255,247,237,0.95),rgba(255,255,255,0.78),rgba(254,243,199,0.75))]"
+                    )}
                   >
-                    <motion.div
-                      className="h-full w-1/3"
-                      style={{ background: rgb(theme?.accent || accent) }}
-                      animate={{ x: ["0%", "200%"] }}
-                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </GlassCard>
+                    <div className="flex items-start gap-3">
+                      <IconBox isDark={isDark} tint="success">
+                        <LockKeyhole size={18} />
+                      </IconBox>
+
+                      <div>
+                        <p className={cx("text-sm font-semibold", t.text)}>
+                          Secure profile update
+                        </p>
+                        <p className={cx("mt-1 max-w-xl text-xs leading-5", t.muted)}>
+                          Changes will be saved to your account and synced after the
+                          update completes.
+                        </p>
+                      </div>
+                    </div>
+
+                    <motion.button
+                      type="submit"
+                      whileHover={{ scale: isLoading ? 1 : 1.03 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                      disabled={isLoading}
+                      className={cx(
+                        "relative inline-flex items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-bold transition disabled:cursor-not-allowed",
+                        isLoading ? t.buttonDisabled : t.button
+                      )}
+                    >
+                      {isLoading ? (
+                        <Loader2 size={17} className="animate-spin" />
+                      ) : (
+                        <Save size={17} />
+                      )}
+                      {isLoading ? "Updating..." : "Save Changes"}
+                    </motion.button>
+                  </div>
+
+                  <AnimatePresence>
+                    {isLoading ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        className="mt-5 flex justify-center"
+                      >
+                        <div
+                          className={cx("h-1.5 w-64 overflow-hidden rounded-full", t.progressTrack)}
+                        >
+                          <motion.div
+                            className={cx("h-full w-1/3 rounded-full", t.progress)}
+                            animate={{ x: ["-100%", "320%"] }}
+                            transition={{
+                              duration: 1.4,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          />
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </form>
+              </PatternCard>
+            </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>
-  );
-};
-
-/* =========================== SUB-COMPONENTS (DYNAMIC) ============================ */
-
-const LabelCaps = ({ theme, children, required }) => {
-  const accent = theme?.accent || theme?.gradientFrom || "16 185 129";
-  return (
-    <div className="flex items-center gap-2 mb-1">
-      <span
-        className="text-[11px] tracking-[0.25em] uppercase font-semibold"
-        style={{ color: rgba(accent, 0.65) }}
-      >
-        {children}
-      </span>
-      {required ? <span style={{ color: rgba(accent, 0.8) }}>*</span> : null}
-    </div>
-  );
-};
-
-const InputField = ({ theme, label, icon, value, onChange, name, required = false }) => {
-  const fg = theme?.fg || "255 255 255";
-  const accent = theme?.accent || theme?.ring || "16 185 129";
-  const inputBg = theme?.input || theme?.surface2 || theme?.card || "18 18 18";
-  const border = theme?.inputBorder || theme?.border || "255 255 255";
-  const effects = theme?.effectsEnabled !== false;
-
-  return (
-    <div className="relative">
-      <LabelCaps theme={theme} required={required}>
-        {label}
-      </LabelCaps>
-
-      <div className="relative">
-        <div
-          className="absolute inset-y-0 left-3 flex items-center pointer-events-none"
-          style={{ color: rgba(accent, 0.75) }}
-        >
-          {icon}
-        </div>
-
-        <motion.input
-          type="text"
-          name={name}
-          value={value}
-          onChange={onChange}
-          whileFocus={{ scale: 1.01 }}
-          className="w-full pl-10 pr-3 py-3 rounded-xl outline-none transition"
-          style={{
-            color: rgba(fg, 0.9),
-            background: `linear-gradient(135deg, ${rgba(inputBg, 0.72)}, ${rgba(inputBg, 0.35)})`,
-            border: `1px solid ${rgba(border, 0.16)}`,
-            boxShadow: `0 0 0 0 ${rgba(accent, 0)}`,
-          }}
-        />
-
-        {effects && (
-          <motion.div
-            className="pointer-events-none absolute inset-0 rounded-xl"
-            initial={false}
-            animate={{
-              boxShadow: [
-                `0 0 0px ${rgba(accent, 0)}`,
-                `0 0 16px ${rgba(accent, 0.22)}`,
-                `0 0 0px ${rgba(accent, 0)}`,
-              ],
-            }}
-            transition={{ duration: 2.2, repeat: Infinity }}
-          />
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ReadOnlyField = ({ theme, label, icon, value }) => {
-  const fg = theme?.fg || "255 255 255";
-  const accent = theme?.accent || theme?.ring || "16 185 129";
-  const inputBg = theme?.input || theme?.surface2 || theme?.card || "18 18 18";
-  const border = theme?.inputBorder || theme?.border || "255 255 255";
-
-  return (
-    <div className="relative">
-      <LabelCaps theme={theme}>{label}</LabelCaps>
-
-      <div className="relative">
-        <div className="absolute inset-y-0 left-3 flex items-center" style={{ color: rgba(accent, 0.55) }}>
-          {icon}
-        </div>
-
-        <input
-          type="text"
-          value={value ?? ""}
-          readOnly
-          className="w-full pl-10 pr-3 py-3 rounded-xl cursor-not-allowed"
-          style={{
-            color: rgba(fg, 0.6),
-            background: `linear-gradient(135deg, ${rgba(inputBg, 0.62)}, ${rgba(inputBg, 0.25)})`,
-            border: `1px solid ${rgba(border, 0.1)}`,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
-const BadgeStat = ({ theme, icon, label, value, tint = "accent" }) => {
-  const fg = theme?.fg || "255 255 255";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-
-  const colorMap = {
-    accent: theme?.accent || theme?.gradientFrom || "16 185 129",
-    success: theme?.success || "34 197 94",
-    info: theme?.info || theme?.gradientTo || "59 130 246",
-    warning: theme?.warning || "234 179 8",
-    danger: theme?.danger || "244 63 94",
-  };
-
-  const c = colorMap[tint] || colorMap.accent;
-
-  return (
-    <div
-      className="rounded-xl px-3 py-2 text-center border"
-      style={{
-        borderColor: rgba(border, 0.14),
-        background: `linear-gradient(135deg, ${rgba(c, 0.16)}, ${rgba(c, 0.08)})`,
-        color: rgba(fg, 0.9),
-      }}
-    >
-      <div className="flex items-center gap-1 justify-center text-xs opacity-80" style={{ color: rgba(c, 0.85) }}>
-        {icon}
-        <span>{label}</span>
-      </div>
-      <div className="font-semibold text-sm" style={{ color: rgba(fg, 0.92) }}>
-        {value}
-      </div>
-    </div>
-  );
-};
-
-const NeonDivider = ({ theme }) => {
-  const c = theme?.accent || theme?.ring || "16 185 129";
-  const effects = theme?.effectsEnabled !== false;
-
-  return (
-    <div className="relative w-full my-4">
-      <div
-        className="h-px w-full"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${rgba(c, 0.5)}, transparent)`,
-        }}
-      />
-      {effects && (
-        <motion.div
-          className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full blur-md"
-          style={{ background: rgba(c, 0.6) }}
-          animate={{ left: ["0%", "100%"] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-        />
-      )}
-    </div>
   );
 };
 

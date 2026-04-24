@@ -12,8 +12,7 @@ import { setAccountStats } from "../../redux/user/userSlice";
 
 export default function UseUserHook() {
   const dispatch = useDispatch();
-  const loggedUser = useSelector((store) => store.user.loggedUser);
-  console.log(loggedUser);
+  // const loggedUser = useSelector((store) => store.user.loggedUser);
   
   const ws = useRef(null);
   const isConnected = useRef(false);

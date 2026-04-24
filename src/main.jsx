@@ -16,9 +16,9 @@ const root = createRoot(rootElement);
 root.render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <UserPanelConfig />
-      <ThemePanel />
       <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+          <UserPanelConfig />
+      <ThemePanel />
         <App />
       </BrowserRouter>
     </PersistGate>

@@ -12,17 +12,14 @@ const RequireAuth = ({ children }) => {
   const lastToastKeyRef = useRef("");
   const dispatch = useDispatch();
 
-  // ✅ helper: me -> if 401 then refresh -> retry me
   const checkWithRefresh = async (meUrl, refreshUrl) => {
     try {
       await backendApi.get(meUrl);
       return true;
     } catch (err) {
-      const st = err?.status; // comes from your interceptor
+      const st = err?.status;
       if ((st === 401 || st === 403) && refreshUrl) {
-        // try refresh once
         await backendApi.post(refreshUrl);
-        // retry me
         await backendApi.get(meUrl);
         return true;
       }
@@ -40,20 +37,18 @@ const RequireAuth = ({ children }) => {
         if (location.pathname.startsWith("/admin")) {
           ok = await checkWithRefresh("/auth/admin-me", "/auth/admin/refresh");
         } else if (location.pathname.startsWith("/s-admin")) {
-          // ✅ no refresh for s-admin (as you said)
           await backendApi.get("/auth/s-admin-me");
           ok = true;
         } else if (location.pathname.startsWith("/user")) {
           ok = await checkWithRefresh("/auth/user-me", "/auth/refresh");
+
+          // sirf user side par
+          await dispatch(fetchCurrentUser());
         }
 
-         await dispatch(fetchCurrentUser());
-        
-
-        if (!cancelled) setState({ loading: false, ok });
-
-
-        // state({ loading: false, ok: true })
+        if (!cancelled) {
+          setState({ loading: false, ok });
+        }
       } catch (err) {
         if (!cancelled) setState({ loading: false, ok: false });
 
@@ -69,7 +64,7 @@ const RequireAuth = ({ children }) => {
     return () => {
       cancelled = true;
     };
-  }, [location.pathname]);
+  }, [location.pathname, dispatch]);
 
   if (state.loading) return <LoadingModal />;
 
@@ -77,7 +72,11 @@ const RequireAuth = ({ children }) => {
     return state.ok ? (
       children
     ) : (
-      <Navigate to="/auth/admin/login" replace state={{ from: location.pathname + location.search }} />
+      <Navigate
+        to="/auth/admin/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
     );
   }
 
@@ -85,7 +84,11 @@ const RequireAuth = ({ children }) => {
     return state.ok ? (
       children
     ) : (
-      <Navigate to="/auth/s-admin/login" replace state={{ from: location.pathname + location.search }} />
+      <Navigate
+        to="/auth/s-admin/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
     );
   }
 
@@ -93,7 +96,11 @@ const RequireAuth = ({ children }) => {
     return state.ok ? (
       children
     ) : (
-      <Navigate to="/auth/login" replace state={{ from: location.pathname + location.search }} />
+      <Navigate
+        to="/auth/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
     );
   }
 

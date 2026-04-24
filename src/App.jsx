@@ -10,6 +10,7 @@ import SuperAdminRoutes from "./routes/SuperAdminRoutes";
 import AdminRoutes from "./routes/AdminRoutes";
 import UserRoutes from "./routes/UserRoutes";
 import UserBonusRoutes from "./routes/UserBonusRoutes";
+import UserReferralRoutes from "./routes/UserReferralRoutes";
 
 const App = () => {
   return (
@@ -27,6 +28,9 @@ const App = () => {
           <Route path="/auth/*" element={<PublicRoutes />} />
           <Route path="/user/*" element={<UserRoutes />} />
           <Route path="/user/bonus/*" element={<UserBonusRoutes />} />
+
+          <Route path="/user/referral/*" element={<UserReferralRoutes />} />
+
 
           <Route path="/admin/*" element={<AdminRoutes />} />
           <Route path="/s-admin/*" element={<SuperAdminRoutes />} />

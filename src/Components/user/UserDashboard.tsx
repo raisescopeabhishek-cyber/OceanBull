@@ -1503,20 +1503,20 @@ export default function UserDashboard() {
                   )}
                 >
                   <p className="text-sm leading-7">
-                    If you click <span className="font-semibold">Yes</span>, you
+                    If you click <span className="font-semibold">Claim With Insurance</span>, you
                     will be redirected to the deposit page. That page will be
                     auto-filled with this claim amount, insurance will be applied
                     by default, and the user will only pay the insurance charge.
                   </p>
 
                   <p className="mt-3 text-sm leading-7">
-                    If you click <span className="font-semibold">No</span>, the
+                    If you click <span className="font-semibold">Claim Now</span>, the
                     insurance claim will be processed immediately from here.
                   </p>
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-                  <button
+                  {/* <button
                     type="button"
                     onClick={closeClaimDecision}
                     className={cx(
@@ -1527,7 +1527,7 @@ export default function UserDashboard() {
                     )}
                   >
                     Cancel
-                  </button>
+                  </button> */}
 
                   <button
                     type="button"
@@ -1542,7 +1542,7 @@ export default function UserDashboard() {
                         : "bg-blue-600 text-white hover:bg-blue-700"
                     )}
                   >
-                    {insuranceClaimLoading ? "Processing..." : "No, Claim Now"}
+                    {insuranceClaimLoading ? "Processing..." : "Claim Now"}
                   </button>
 
                   <button
@@ -1555,7 +1555,7 @@ export default function UserDashboard() {
                         : "bg-emerald-600 text-white hover:bg-emerald-700"
                     )}
                   >
-                    Yes, Continue to Deposit
+                    Claim With Insurance
                   </button>
                 </div>
               </div>

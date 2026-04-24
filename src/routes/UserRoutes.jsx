@@ -76,10 +76,6 @@ const UserRoutes = () => {
         />
 
         <Route path="forex-news" element={<UserForexNews />} />
-        <Route
-          path="referral-close-trades/:id"
-          element={<UserReferralCloseTrades />}
-        />
 
         <Route path="copy-trading" element={<UserCopyTrading />} />
         <Route

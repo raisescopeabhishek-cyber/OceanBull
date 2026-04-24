@@ -48,27 +48,42 @@ const money = (n: any) => {
     : "0";
 };
 
-const formatTime = (timeString: string) => {
+const formatTime = (timeString) => {
   if (!timeString) return "N/A";
-  const s = String(timeString);
-  const d = new Date(s.includes(" ") && !s.includes("T") ? s.replace(" ", "T") : s);
+
+  const s = String(timeString).trim();
+
+  // supports: "YYYY.MM.DD HH:mm:ss"
+  const match = s.match(/^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+
+  if (!match) return "N/A";
+
+  const [, year, month, day, hour, minute, second] = match;
+
+  // create date safely
+  const d = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  );
+
   if (Number.isNaN(d.getTime())) return "N/A";
 
-  const date = d.toLocaleDateString("en-GB", {
-    year: "numeric",
-    month: "2-digit",
+  return d.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit",
-  });
-
-  const time = d.toLocaleTimeString("en-US", {
+    month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hour12: true,
   });
-
-  return `${date}, ${time}`;
 };
+
 
 const getSymbolIcon = (symbol: string) => {
   if (!symbol) return "📈";
@@ -693,7 +708,7 @@ export default function UserTradeHistory() {
                             </td>
 
                             <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
-                              {formatTime(trade?.Open_Time)}
+                              {trade?.Open_Time}
                             </td>
 
                             {activeTab === "closed" && (
@@ -703,12 +718,12 @@ export default function UserTradeHistory() {
                             )}
 
                             <td className="px-4 py-4" style={{ color: colors.text }}>
-                              ${money(trade?.Open_Price)}
+                              {trade?.Open_Price}
                             </td>
 
                             {activeTab === "closed" && (
                               <td className="px-4 py-4" style={{ color: colors.text }}>
-                                ${money(trade?.Close_Price)}
+                                {trade?.Open_Price}
                               </td>
                             )}
 

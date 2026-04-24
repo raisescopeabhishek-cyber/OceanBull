@@ -47,25 +47,24 @@ export function useGetInfoByAccounts(accountIds = [], component) {
             0
           );
 
-          console.log("totalEquityyyyyyyy =------------>>" ,res );
           
-          // const dispatchStats = {
-          //   totalBalance: totalBalance,
-          //   totalEquity: totalEquity,
-          //   totalProfit: totalProfit,
-          // };
+          const dispatchStats = {
+            totalBalance: totalBalance,
+            totalEquity: totalEquity,
+            totalProfit: totalProfit,
+          };
 
-          // setStats({ totalBalance, totalEquity, totalProfit });
+          setStats({ totalBalance, totalEquity, totalProfit });
 
-          // // dispatch conditionally ---
-          // if (component === "accounts") {
-          //   dispatch(setAccountsData(res.data));
-          //   dispatch(setAccountStats(dispatchStats));
-          // }
-          // // dispatch conditionally ---
-          // if (component === "ib") {
-          //   dispatch(setIbAccountsData(res.data));
-          // }
+          // dispatch conditionally ---
+          if (component === "accounts") {
+            dispatch(setAccountsData(res.data));
+            dispatch(setAccountStats(dispatchStats));
+          }
+          // dispatch conditionally ---
+          if (component === "ib") {
+            dispatch(setIbAccountsData(res.data));
+          }
         }
       } catch (err) {
         console.error("Error fetching live data:", err);

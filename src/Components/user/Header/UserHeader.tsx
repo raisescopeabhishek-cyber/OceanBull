@@ -436,7 +436,7 @@ const UserHeader = () => {
             className="hidden cursor-pointer whitespace-nowrap text-sm font-semibold sm:block"
            onClick={() => dispatch(openNewChallengeModal())}
           >
-            Challenge
+            Create Account
           </p>
 
           <button

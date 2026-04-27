@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Info,
@@ -16,16 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   LayoutDashboard,
+  X,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -244,42 +237,6 @@ function DataRow({
   );
 }
 
-function InfoLine({
-  label,
-  value,
-  theme,
-  isDark,
-}: {
-  label: string;
-  value: React.ReactNode;
-  theme: any;
-  isDark: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <span
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.58)
-            : "rgba(100,116,139,0.96)",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        className="text-right"
-        style={{
-          color: isDark
-            ? rgba(theme?.fg || "255 255 255", 0.92)
-            : "rgba(30,41,59,0.96)",
-        }}
-      >
-        {value || "—"}
-      </span>
-    </div>
-  );
-}
-
 function ToolbarButton({
   children,
   onClick,
@@ -314,6 +271,475 @@ function ToolbarButton({
   );
 }
 
+function AccountInfoPortalModal({
+  open,
+  onClose,
+  selectedChallenge,
+  siteConfig,
+  theme,
+  isDark,
+  titleColor,
+  mutedTextColor,
+  accentColor,
+  tableBorder,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedChallenge: any;
+  siteConfig: any;
+  theme: any;
+  isDark: boolean;
+  titleColor: string;
+  mutedTextColor: string;
+  accentColor: string;
+  tableBorder: string;
+}) {
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && selectedChallenge && (
+        <motion.div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.button
+            type="button"
+            aria-label="Close account info modal"
+            className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-[4px]"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="account-info-title"
+            className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[28px] border"
+            onClick={(event) => event.stopPropagation()}
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            style={{
+              borderColor: isDark
+                ? rgba(theme?.border || "255 255 255", 0.14)
+                : "rgba(251,146,60,0.20)",
+              background: isDark
+                ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(10,15,23,0.99))"
+                : "linear-gradient(180deg, rgba(255,255,255,0.99), rgba(255,247,240,0.98))",
+              boxShadow: isDark
+                ? "0 30px 90px rgba(0,0,0,0.62)"
+                : "0 30px 90px rgba(251,146,60,0.24)",
+            }}
+          >
+            <div
+              className="border-b px-5 py-5 sm:px-6"
+              style={{ borderColor: tableBorder }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-3 flex items-center gap-2">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-2xl border"
+                      style={{
+                        borderColor: tableBorder,
+                        background: isDark
+                          ? "rgba(59,130,246,0.12)"
+                          : "rgba(249,115,22,0.10)",
+                        color: accentColor,
+                      }}
+                    >
+                      <Info className="h-5 w-5" />
+                    </div>
+
+                    <span
+                      className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+                      style={{ color: mutedTextColor }}
+                    >
+                      Trading Account
+                    </span>
+                  </div>
+
+                  <h2
+                    id="account-info-title"
+                    className="text-2xl font-bold"
+                    style={{
+                      color: titleColor,
+                      fontFamily: "'Poppins', sans-serif",
+                    }}
+                  >
+                    Account Info
+                  </h2>
+
+                  <p className="mt-1 text-sm" style={{ color: mutedTextColor }}>
+                    MT5 account credentials and live account snapshot.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div
+                    className="hidden rounded-2xl border px-4 py-2 text-right sm:block"
+                    style={{
+                      borderColor: tableBorder,
+                      background: isDark
+                        ? "rgba(255,255,255,0.035)"
+                        : "rgba(255,255,255,0.84)",
+                    }}
+                  >
+                    <p
+                      className="text-[10px] font-semibold uppercase tracking-[0.16em]"
+                      style={{ color: mutedTextColor }}
+                    >
+                      Account No.
+                    </p>
+                    <p
+                      className="mt-1 text-base font-bold"
+                      style={{ color: titleColor }}
+                    >
+                      {selectedChallenge?.accountNumber || "—"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border transition hover:scale-105"
+                    style={{
+                      borderColor: tableBorder,
+                      background: isDark
+                        ? "rgba(255,255,255,0.04)"
+                        : "rgba(255,255,255,0.88)",
+                      color: titleColor,
+                    }}
+                    aria-label="Close"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-h-[calc(92vh-96px)] overflow-y-auto px-5 py-5 sm:px-6">
+              <div
+                className="mb-4 rounded-2xl border px-4 py-3 sm:hidden"
+                style={{
+                  borderColor: tableBorder,
+                  background: isDark
+                    ? "rgba(255,255,255,0.035)"
+                    : "rgba(255,255,255,0.84)",
+                }}
+              >
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-[0.16em]"
+                  style={{ color: mutedTextColor }}
+                >
+                  Account No.
+                </p>
+                <p className="mt-1 text-base font-bold" style={{ color: titleColor }}>
+                  {selectedChallenge?.accountNumber || "—"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    label: "Platform",
+                    value: selectedChallenge?.platform || "—",
+                  },
+                  {
+                    label: "Server",
+                    value: siteConfig?.serverName || "—",
+                  },
+                  {
+                    label: "Account Type",
+                    value: selectedChallenge?.accountType || "Account",
+                  },
+                  {
+                    label: "Leverage",
+                    value: selectedChallenge?.leverage
+                      ? `1:${selectedChallenge.leverage}`
+                      : "—",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-2xl border p-4"
+                    style={{
+                      borderColor: tableBorder,
+                      background: isDark
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(255,255,255,0.82)",
+                    }}
+                  >
+                    <p
+                      className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: mutedTextColor }}
+                    >
+                      {item.label}
+                    </p>
+                    <p
+                      className="mt-1 break-all text-sm font-semibold"
+                      style={{ color: titleColor }}
+                    >
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                className="mt-4 rounded-2xl border p-4"
+                style={{
+                  borderColor: tableBorder,
+                  background: isDark
+                    ? "rgba(255,255,255,0.025)"
+                    : "rgba(255,255,255,0.70)",
+                }}
+              >
+                <p
+                  className="mb-3 text-sm font-semibold"
+                  style={{ color: titleColor }}
+                >
+                  Login Credentials
+                </p>
+
+                <div className="space-y-3">
+                  <div
+                    className="flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    style={{
+                      borderColor: isDark
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(251,146,60,0.12)",
+                      background: isDark
+                        ? "rgba(255,255,255,0.025)"
+                        : "rgba(255,255,255,0.76)",
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <p
+                        className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                        style={{ color: mutedTextColor }}
+                      >
+                        Master Password
+                      </p>
+                      <p
+                        className="mt-1 break-all text-sm font-semibold"
+                        style={{ color: titleColor }}
+                      >
+                        {selectedChallenge?.masterPassword || "—"}
+                      </p>
+                    </div>
+
+                    <Link
+                      to="/user/master-password"
+                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border px-3 text-sm font-medium transition hover:opacity-90"
+                      style={{
+                        borderColor: tableBorder,
+                        background: isDark
+                          ? "rgba(59,130,246,0.12)"
+                          : "rgba(249,115,22,0.10)",
+                        color: accentColor,
+                      }}
+                    >
+                      Change
+                    </Link>
+                  </div>
+
+                  <div
+                    className="flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    style={{
+                      borderColor: isDark
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(251,146,60,0.12)",
+                      background: isDark
+                        ? "rgba(255,255,255,0.025)"
+                        : "rgba(255,255,255,0.76)",
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <p
+                        className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                        style={{ color: mutedTextColor }}
+                      >
+                        Investor Password
+                      </p>
+                      <p
+                        className="mt-1 break-all text-sm font-semibold"
+                        style={{ color: titleColor }}
+                      >
+                        {selectedChallenge?.investorPassword || "—"}
+                      </p>
+                    </div>
+
+                    <Link
+                      to="/user/investor-password"
+                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border px-3 text-sm font-medium transition hover:opacity-90"
+                      style={{
+                        borderColor: tableBorder,
+                        background: isDark
+                          ? "rgba(59,130,246,0.12)"
+                          : "rgba(249,115,22,0.10)",
+                        color: accentColor,
+                      }}
+                    >
+                      Change
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="mt-4 rounded-2xl border p-4"
+                style={{
+                  borderColor: tableBorder,
+                  background: isDark
+                    ? "rgba(255,255,255,0.025)"
+                    : "rgba(255,255,255,0.70)",
+                }}
+              >
+                <p
+                  className="mb-3 text-sm font-semibold"
+                  style={{ color: titleColor }}
+                >
+                  Live Account Snapshot
+                </p>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {[
+                    {
+                      label: "Balance",
+                      value: <Money value={selectedChallenge?.balance} />,
+                    },
+                    {
+                      label: "Equity",
+                      value: <Money value={selectedChallenge?.equity} />,
+                    },
+                    {
+                      label: "P/L",
+                      value:
+                        typeof selectedChallenge?.profit === "number"
+                          ? `${selectedChallenge.profit >= 0 ? "+" : "-"}$${Math.abs(
+                              selectedChallenge.profit
+                            ).toLocaleString(undefined, {
+                              maximumFractionDigits: 2,
+                            })}`
+                          : "—",
+                      tone:
+                        typeof selectedChallenge?.profit === "number"
+                          ? selectedChallenge.profit >= 0
+                            ? "success"
+                            : "danger"
+                          : "default",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border p-3"
+                      style={{
+                        borderColor: isDark
+                          ? "rgba(255,255,255,0.08)"
+                          : "rgba(251,146,60,0.12)",
+                        background: isDark
+                          ? "rgba(255,255,255,0.025)"
+                          : "rgba(255,255,255,0.76)",
+                      }}
+                    >
+                      <p
+                        className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                        style={{ color: mutedTextColor }}
+                      >
+                        {item.label}
+                      </p>
+                      <p
+                        className="mt-1 text-sm font-bold"
+                        style={{
+                          color:
+                            item.tone === "success"
+                              ? isDark
+                                ? "rgba(52,211,153,0.95)"
+                                : "rgba(5,150,105,0.95)"
+                              : item.tone === "danger"
+                              ? isDark
+                                ? "rgba(248,113,113,0.95)"
+                                : "rgba(220,38,38,0.95)"
+                              : titleColor,
+                        }}
+                      >
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className="mt-4 rounded-2xl border px-4 py-3 text-xs"
+                style={{
+                  borderColor: tableBorder,
+                  background: isDark
+                    ? "rgba(255,255,255,0.025)"
+                    : "rgba(255,255,255,0.68)",
+                  color: mutedTextColor,
+                }}
+              >
+                Created: {CFformatDate(selectedChallenge?.createdDate)} ·{" "}
+                {CFcalculateTimeSinceJoined(selectedChallenge?.createdDate)}
+              </div>
+
+              <div
+                className="mt-5 flex justify-end border-t pt-4"
+                style={{ borderColor: tableBorder }}
+              >
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex h-10 items-center justify-center rounded-xl border px-5 text-sm font-medium transition hover:opacity-90"
+                  style={{
+                    background: isDark
+                      ? "rgba(255,255,255,0.04)"
+                      : "rgba(255,255,255,0.90)",
+                    borderColor: isDark
+                      ? rgba(theme?.border || "255 255 255", 0.12)
+                      : "rgba(251,146,60,0.16)",
+                    color: titleColor,
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 const UserChallenges = () => {
   const [selectedChallenge, setSelectedChallenge] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -337,6 +763,11 @@ const UserChallenges = () => {
   const handleMoreInfo = (value: any) => {
     setSelectedChallenge(value);
     setIsDialogOpen(true);
+  };
+
+  const handleCloseInfo = () => {
+    setIsDialogOpen(false);
+    setSelectedChallenge(null);
   };
 
   const titleColor = isDark
@@ -560,9 +991,12 @@ const UserChallenges = () => {
               }}
             >
               {typeof profit === "number" ? (
-                `${profit >= 0 ? "+" : "-"}$${Math.abs(profit).toLocaleString(undefined, {
-                  maximumFractionDigits: 2,
-                })}`
+                `${profit >= 0 ? "+" : "-"}$${Math.abs(profit).toLocaleString(
+                  undefined,
+                  {
+                    maximumFractionDigits: 2,
+                  }
+                )}`
               ) : (
                 <Loader2 className="inline animate-spin" size={16} />
               )}
@@ -704,7 +1138,6 @@ const UserChallenges = () => {
         </div>
 
         <div className="p-4 sm:p-5 md:p-6">
-          {/* Expandable Stats Section */}
           <SectionCard theme={theme} isDark={isDark} className="mb-6 overflow-hidden">
             <button
               type="button"
@@ -869,7 +1302,6 @@ const UserChallenges = () => {
                 </div>
               </div>
 
-              {/* Desktop Table */}
               <div className="hidden xl:block">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[1180px] border-separate border-spacing-0">
@@ -1000,7 +1432,6 @@ const UserChallenges = () => {
                 </div>
               </div>
 
-              {/* Tablet / Mobile Cards */}
               <div className="grid grid-cols-1 gap-4 p-4 xl:hidden">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row, index) => {
@@ -1197,120 +1628,18 @@ const UserChallenges = () => {
         </div>
       </SectionCard>
 
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AnimatePresence>
-          {isDialogOpen && selectedChallenge && (
-            <AlertDialogContent
-              as={motion.div as any}
-              initial={{ opacity: 0, y: 12, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.22 }}
-              className="max-w-lg"
-              style={{
-                borderRadius: "24px",
-                border: isDark
-                  ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-                  : "1px solid rgba(251,146,60,0.16)",
-                background: isDark
-                  ? "linear-gradient(180deg, rgba(17,24,39,0.96), rgba(10,15,23,0.98))"
-                  : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,240,0.96))",
-                boxShadow: isDark
-                  ? "0 20px 60px rgba(0,0,0,0.42)"
-                  : "0 20px 60px rgba(251,146,60,0.16)",
-              }}
-            >
-              <AlertDialogHeader>
-                <AlertDialogTitle
-                  className="text-xl font-bold"
-                  style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
-                >
-                  Account Info
-                </AlertDialogTitle>
-
-                <AlertDialogDescription className="mt-4 space-y-3">
-                  <InfoLine
-                    label="Trade Platform"
-                    value={selectedChallenge?.platform}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <InfoLine
-                    label="Server Name"
-                    value={siteConfig?.serverName}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <InfoLine
-                    label="Trading Account"
-                    value={selectedChallenge?.accountNumber}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <InfoLine
-                    label="Leverage"
-                    value={selectedChallenge?.leverage}
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <InfoLine
-                    label="Master Password"
-                    value={
-                      <div className="inline-flex items-center gap-2">
-                        <span>{selectedChallenge?.masterPassword || "—"}</span>
-                        <Link
-                          to="/user/master-password"
-                          style={{ color: accentColor }}
-                          className="hover:opacity-90"
-                        >
-                          change
-                        </Link>
-                      </div>
-                    }
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                  <InfoLine
-                    label="Investor Password"
-                    value={
-                      <div className="inline-flex items-center gap-2">
-                        <span>{selectedChallenge?.investorPassword || "—"}</span>
-                        <Link
-                          to="/user/investor-password"
-                          style={{ color: accentColor }}
-                          className="hover:opacity-90"
-                        >
-                          change
-                        </Link>
-                      </div>
-                    }
-                    theme={theme}
-                    isDark={isDark}
-                  />
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-
-              <AlertDialogFooter className="mt-5">
-                <AlertDialogCancel
-                  className="rounded-xl px-4 py-2"
-                  style={{
-                    borderRadius: "14px",
-                    background: isDark
-                      ? "rgba(255,255,255,0.04)"
-                      : "rgba(255,255,255,0.88)",
-                    border: isDark
-                      ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-                      : "1px solid rgba(251,146,60,0.16)",
-                    color: titleColor,
-                  }}
-                >
-                  Close
-                </AlertDialogCancel>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          )}
-        </AnimatePresence>
-      </AlertDialog>
+      <AccountInfoPortalModal
+        open={isDialogOpen}
+        onClose={handleCloseInfo}
+        selectedChallenge={selectedChallenge}
+        siteConfig={siteConfig}
+        theme={theme}
+        isDark={isDark}
+        titleColor={titleColor}
+        mutedTextColor={mutedTextColor}
+        accentColor={accentColor}
+        tableBorder={tableBorder}
+      />
     </motion.div>
   );
 };

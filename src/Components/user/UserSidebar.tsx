@@ -58,7 +58,7 @@ const modules = [
 
 
    {
-  name: "My Challenges",
+  name: "My Accounts",
   path: "/user/challenges",
   subtitle: "Track Your Progress",
   icon: <ShieldEllipsis className="w-5 h-5" />,

@@ -474,16 +474,17 @@ export default function UserDeposit() {
   const [showPreview, setShowPreview] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [showTxnModal, setShowTxnModal] = useState(true);
 
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnError, setTxnError] = useState<string | null>(null);
   const [txnQ, setTxnQ] = useState("");
   const [depositTransactions, setDepositTransactions] = useState<any[]>([]);
 
-  const [openStep, setOpenStep] = useState<1 | 2>(1);
+  const [openStep, setOpenStep] = useState<1 | 2 | 3>(1);
   const [step1Completed, setStep1Completed] = useState(false);
   const [step2Completed, setStep2Completed] = useState(false);
+  const [step3Completed, setStep3Completed] = useState(false);
   const [methodInteractionDone, setMethodInteractionDone] = useState(false);
   const [highlightSubmit, setHighlightSubmit] = useState(false);
 
@@ -578,7 +579,7 @@ export default function UserDeposit() {
 
         if (!quote?.eligible) {
           setWantInsurance(false);
-        } else if (isInsuranceClaimDeposit) {
+        } else {
           setWantInsurance(true);
         }
       } catch {
@@ -596,6 +597,7 @@ export default function UserDeposit() {
 
     if (!numAmount || numAmount <= 0) {
       setBonusQuote(null);
+      setWantBonus(false);
       return;
     }
 
@@ -622,7 +624,9 @@ export default function UserDeposit() {
   }, [formData.depositAmount, fetchInsuranceQuote]);
 
   useEffect(() => {
-    if (!bonusQuote?.eligible) {
+    if (bonusQuote?.eligible) {
+      setWantBonus(true);
+    } else {
       setWantBonus(false);
     }
   }, [bonusQuote]);
@@ -939,6 +943,16 @@ export default function UserDeposit() {
       return;
     }
 
+    if (!step2Completed) {
+      toast.error("Please confirm deposit bonus and insurance options.");
+      return;
+    }
+
+    if (!step3Completed) {
+      toast.error("Please complete payment method step.");
+      return;
+    }
+
     if (isInsuranceClaimDeposit && (!insuranceQuote?.eligible || !wantInsurance)) {
       toast.error("Insurance is required for this claim-funded deposit.");
       return;
@@ -1072,6 +1086,8 @@ export default function UserDeposit() {
     !isInsuranceClaimDeposit || (wantInsurance && !!insuranceQuote?.eligible);
 
   const ctaEnabled =
+    step2Completed &&
+    step3Completed &&
     selectedPayment &&
     agreeToTerms &&
     formData.depositAmount &&
@@ -1082,7 +1098,9 @@ export default function UserDeposit() {
     claimFlowReady;
 
   const canContinueStep1 = !!formData.accountNumber && !!formData.depositAmount;
-  const canContinueStep2 = !!selectedPayment;
+  const canContinueStep2 =
+    !bonusLoading && !insuranceLoading && (!isInsuranceClaimDeposit || claimFlowReady);
+  const canContinueStep3 = !!selectedPayment;
 
   const inrAmount =
     Number(formData.depositAmount || 0) *
@@ -1241,17 +1259,35 @@ export default function UserDeposit() {
       toast.error("Please select account and enter deposit amount.");
       return;
     }
+
     setStep1Completed(true);
     setOpenStep(2);
   };
 
+  const handleContinueStep2 = () => {
+    if (bonusLoading || insuranceLoading) {
+      toast.error("Please wait while we check bonus and insurance eligibility.");
+      return;
+    }
+
+    if (isInsuranceClaimDeposit && (!insuranceQuote?.eligible || !wantInsurance)) {
+      toast.error("Insurance is required for this claim-funded deposit.");
+      return;
+    }
+
+    setStep2Completed(true);
+    setOpenStep(3);
+  };
+
   const handleMethodSelect = (methodName: string) => {
     setSelectedPayment(methodName);
+    setMethodInteractionDone(false);
+    setStep3Completed(false);
     setShowPaymentModal(true);
   };
 
-  const handleContinueStep2 = () => {
-    if (!canContinueStep2) {
+  const handleContinueStep3 = () => {
+    if (!canContinueStep3) {
       toast.error("Please select a payment method.");
       return;
     }
@@ -1261,7 +1297,7 @@ export default function UserDeposit() {
       return;
     }
 
-    setStep2Completed(true);
+    setStep3Completed(true);
     scrollToSubmitRequest();
   };
 
@@ -1722,7 +1758,7 @@ export default function UserDeposit() {
                 Deposit Funds
               </div>
               <div className="mt-2 text-sm text-white/80">
-                Complete your deposit securely in 2 simple steps
+                Complete your deposit securely in 3 simple steps
               </div>
             </div>
 
@@ -1827,26 +1863,9 @@ export default function UserDeposit() {
                 onChange={() => setOpenStep(1)}
                 summary={
                   <div className="flex flex-wrap items-center gap-3">
+                    <span>Account: {formData.accountNumber || "—"}</span>
                     <span>Amount: ${money(baseAmount)}</span>
-
-                    {insuranceQuote?.eligible && wantInsurance ? (
-                      <span>
-                        Insurance: +${money(insuranceChargeAmount)} (
-                        {Number(insuranceQuote?.insuranceChargesPercent || 0)}%)
-                      </span>
-                    ) : (
-                      <span style={{ color: colors.muted }}>Insurance: No</span>
-                    )}
-
-                    {bonusQuote?.eligible && wantBonus ? (
-                      <span style={{ color: colors.success }}>
-                        Bonus: +${money(bonusAmount)} ({bonusPercent}%)
-                      </span>
-                    ) : (
-                      <span style={{ color: colors.muted }}>Bonus: No</span>
-                    )}
-
-                    <span>Total Payable: ${money(finalPayableAmount)}</span>
+                    <span>INR: ₹ {money(inrAmount)}</span>
                   </div>
                 }
               >
@@ -1975,11 +1994,291 @@ export default function UserDeposit() {
 
               <CheckoutStep
                 step={2}
-                title="Payment Method"
+                title="Bonus & Insurance"
                 isOpen={openStep === 2}
                 isCompleted={step2Completed}
                 colors={colors}
                 onChange={() => setOpenStep(2)}
+                summary={
+                  <div className="flex flex-wrap items-center gap-3">
+                    {bonusQuote?.eligible ? (
+                      <span style={{ color: wantBonus ? colors.success : colors.muted }}>
+                        Bonus: {wantBonus ? `Applied ${bonusPercent}%` : "Not applied"}
+                      </span>
+                    ) : (
+                      <span style={{ color: colors.muted }}>Bonus: Not available</span>
+                    )}
+
+                    {insuranceQuote?.eligible ? (
+                      <span style={{ color: wantInsurance ? colors.success : colors.muted }}>
+                        Insurance: {wantInsurance ? `Applied +$${money(insuranceChargeAmount)}` : "Not applied"}
+                      </span>
+                    ) : (
+                      <span style={{ color: colors.muted }}>Insurance: Not available</span>
+                    )}
+
+                    <span>Total Payable: ${money(finalPayableAmount)}</span>
+                  </div>
+                }
+              >
+                <div className="p-5">
+                  <div
+                    className="mb-5 rounded-[18px] border px-4 py-3 text-sm"
+                    style={{
+                      borderColor: colors.border,
+                      background: colors.surfaceSoft,
+                      color: colors.softText,
+                    }}
+                  >
+                    Applicable deposit bonus and insurance are selected by default. You can
+                    untick them before continuing, except insurance is locked for claim-funded deposits.
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <SectionCard
+                      className="p-4"
+                      style={{
+                        background: colors.surface,
+                        borderColor: bonusQuote?.eligible ? "rgba(16,185,129,0.25)" : colors.border,
+                        boxShadow: colors.cardShadow,
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border"
+                          style={{
+                            background: bonusQuote?.eligible
+                              ? isDark
+                                ? "rgba(16,185,129,0.12)"
+                                : "rgba(16,185,129,0.08)"
+                              : colors.surfaceSoft,
+                            borderColor: bonusQuote?.eligible
+                              ? "rgba(16,185,129,0.25)"
+                              : colors.border,
+                            color: bonusQuote?.eligible ? colors.success : colors.softText,
+                          }}
+                        >
+                          <Gift className="h-5 w-5" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="font-semibold" style={{ color: colors.text }}>
+                                Apply Deposit Bonus
+                              </div>
+                              <div className="mt-1 text-sm" style={{ color: colors.softText }}>
+                                Bonus will be added after deposit approval.
+                              </div>
+                            </div>
+
+                            {bonusQuote?.eligible ? (
+                              <input
+                                type="checkbox"
+                                checked={wantBonus}
+                                onChange={(e) => setWantBonus(e.target.checked)}
+                                className="mt-1 h-4 w-4"
+                                style={{ accentColor: colors.primaryBtn }}
+                              />
+                            ) : null}
+                          </div>
+
+                          {bonusLoading ? (
+                            <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: colors.muted }}>
+                              <LoaderIcon color={accentColor} />
+                              Checking bonus eligibility...
+                            </div>
+                          ) : bonusQuote?.eligible ? (
+                            <div
+                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              style={{
+                                borderColor: "rgba(16,185,129,0.22)",
+                                background: isDark
+                                  ? "rgba(16,185,129,0.10)"
+                                  : "rgba(16,185,129,0.07)",
+                                color: colors.success,
+                              }}
+                            >
+                              Eligible for <strong>{Number(bonusQuote?.bonusPercent || 0)}%</strong> bonus ={" "}
+                              <strong>${money(Number(bonusQuote?.bonusAmount || 0))}</strong>
+                            </div>
+                          ) : (
+                            <div
+                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surfaceSoft,
+                                color: colors.muted,
+                              }}
+                            >
+                              Deposit bonus is not available for this amount.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </SectionCard>
+
+                    <SectionCard
+                      className="p-4"
+                      style={{
+                        background: colors.surface,
+                        borderColor: insuranceQuote?.eligible ? "rgba(59,130,246,0.25)" : colors.border,
+                        boxShadow: colors.cardShadow,
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border"
+                          style={{
+                            background: insuranceQuote?.eligible
+                              ? isDark
+                                ? "rgba(59,130,246,0.12)"
+                                : "rgba(59,130,246,0.08)"
+                              : colors.surfaceSoft,
+                            borderColor: insuranceQuote?.eligible
+                              ? "rgba(59,130,246,0.25)"
+                              : colors.border,
+                            color: insuranceQuote?.eligible ? colors.accent : colors.softText,
+                          }}
+                        >
+                          <ShieldCheck className="h-5 w-5" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="font-semibold" style={{ color: colors.text }}>
+                                Apply Insurance
+                              </div>
+                              <div className="mt-1 text-sm" style={{ color: colors.softText }}>
+                                Insurance charge is added to the payable amount when selected.
+                              </div>
+                            </div>
+
+                            {insuranceQuote?.eligible ? (
+                              <input
+                                type="checkbox"
+                                checked={wantInsurance}
+                                onChange={(e) => setWantInsurance(e.target.checked)}
+                                className="mt-1 h-4 w-4"
+                                style={{ accentColor: colors.primaryBtn }}
+                                disabled={isInsuranceClaimDeposit}
+                              />
+                            ) : null}
+                          </div>
+
+                          {insuranceLoading ? (
+                            <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: colors.muted }}>
+                              <LoaderIcon color={accentColor} />
+                              Checking insurance eligibility...
+                            </div>
+                          ) : insuranceQuote?.eligible ? (
+                            <div
+                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              style={{
+                                borderColor: "rgba(59,130,246,0.22)",
+                                background: isDark
+                                  ? "rgba(59,130,246,0.10)"
+                                  : "rgba(59,130,246,0.07)",
+                                color: colors.accent,
+                              }}
+                            >
+                              Charge <strong>{Number(insuranceQuote?.insuranceChargesPercent || 0)}%</strong> ={" "}
+                              <strong>${money(insuranceQuote?.insuranceChargeAmount || 0)}</strong>
+                              {isInsuranceClaimDeposit ? (
+                                <span className="mt-2 block text-xs" style={{ color: colors.softText }}>
+                                  Insurance is mandatory for claim-funded deposits.
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <div
+                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surfaceSoft,
+                                color: colors.muted,
+                              }}
+                            >
+                              Insurance is not available for this amount.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </SectionCard>
+                  </div>
+
+                  <div
+                    className="mt-5 rounded-[18px] border p-4"
+                    style={{
+                      borderColor: colors.border,
+                      background: colors.surfaceSoft,
+                    }}
+                  >
+                    <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                      <div>
+                        <div style={{ color: colors.muted }}>Base Deposit</div>
+                        <div className="mt-1 font-bold" style={{ color: colors.text }}>
+                          ${money(baseAmount)}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ color: colors.muted }}>Insurance Charge</div>
+                        <div className="mt-1 font-bold" style={{ color: colors.text }}>
+                          {wantInsurance && insuranceQuote?.eligible ? `+$${money(insuranceChargeAmount)}` : "$0"}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ color: colors.muted }}>Total Payable</div>
+                        <div className="mt-1 font-bold" style={{ color: colors.primaryBtn }}>
+                          ${money(finalPayableAmount)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {bonusQuote?.eligible && wantBonus ? (
+                      <div
+                        className="mt-3 rounded-xl px-3 py-2 text-xs"
+                        style={{
+                          background: isDark
+                            ? "rgba(34,197,94,0.10)"
+                            : "rgba(34,197,94,0.08)",
+                          color: colors.success,
+                        }}
+                      >
+                        Bonus selected: <strong>${money(bonusAmount)}</strong> will be credited after approval.
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleContinueStep2}
+                      className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
+                      style={{
+                        background: colors.primaryBtn,
+                        color: "#fff",
+                        borderRadius: "14px",
+                        opacity: canContinueStep2 ? 1 : 0.7,
+                      }}
+                    >
+                      Continue
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </CheckoutStep>
+
+              <CheckoutStep
+                step={3}
+                title="Payment Method"
+                isOpen={openStep === 3}
+                isCompleted={step3Completed}
+                colors={colors}
+                onChange={() => setOpenStep(3)}
                 summary={
                   <>
                     <span className="font-semibold" style={{ color: colors.text }}>
@@ -2124,13 +2423,13 @@ export default function UserDeposit() {
                         <div className="mt-5 flex justify-end">
                           <button
                             type="button"
-                            onClick={handleContinueStep2}
+                            onClick={handleContinueStep3}
                             className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold uppercase"
                             style={{
                               background: colors.primaryBtn,
                               color: "#fff",
                               borderRadius: "14px",
-                              opacity: canContinueStep2 ? 1 : 0.7,
+                              opacity: canContinueStep3 ? 1 : 0.7,
                             }}
                           >
                             Continue
@@ -2227,39 +2526,29 @@ export default function UserDeposit() {
                             Checking bonus...
                           </div>
                         ) : bonusQuote?.eligible ? (
-                          <label
-                            className="flex items-start gap-3 rounded-2xl border p-4 cursor-pointer"
-                            style={{
-                              borderColor: colors.border,
-                              background: colors.surfaceSoft,
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={wantBonus}
-                              onChange={(e) => setWantBonus(e.target.checked)}
-                              className="mt-1 h-4 w-4"
-                            />
-
-                            <div>
-                              <div className="font-semibold flex items-center gap-2" style={{ color: colors.text }}>
-                                <Gift className="h-4 w-4" />
-                                Apply Deposit Bonus
-                              </div>
-
-                              <div className="text-sm mt-1" style={{ color: colors.softText }}>
-                                You are eligible for{" "}
-                                <span className="font-semibold" style={{ color: colors.success }}>
-                                  {bonusPercent}%
-                                </span>{" "}
-                                bonus ={" "}
-                                <span className="font-semibold" style={{ color: colors.success }}>
-                                  ${money(bonusAmount)}
+                          <div className="flex items-center justify-between gap-4">
+                            <span style={{ color: colors.softText }}>
+                              Deposit Bonus ({Number(bonusQuote?.bonusPercent || 0)}%)
+                              {wantBonus ? (
+                                <span className="ml-2 text-xs" style={{ color: colors.success }}>
+                                  Applied
                                 </span>
-                              </div>
-                            </div>
-                          </label>
-                        ) : null}
+                              ) : (
+                                <span className="ml-2 text-xs" style={{ color: colors.muted }}>
+                                  Not applied
+                                </span>
+                              )}
+                            </span>
+                            <span className="font-semibold" style={{ color: colors.text }}>
+                              {wantBonus ? `+$${money(bonusAmount)}` : "$0"}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span style={{ color: colors.softText }}>Deposit Bonus</span>
+                            <span style={{ color: colors.muted }}>Not available</span>
+                          </div>
+                        )}
 
                         <div
                           className="flex items-center justify-between border-t pt-3"
@@ -2306,66 +2595,6 @@ export default function UserDeposit() {
                           </div>
                         ) : null}
                       </div>
-                    </div>
-
-                    <div
-                      className="mt-4 text-base font-semibold"
-                      style={{ color: colors.success }}
-                    >
-                      {formData.depositAmount && insuranceQuote?.eligible ? (
-                        <div
-                          className="mt-4 rounded-[20px] border p-4"
-                          style={{
-                            borderColor: colors.border,
-                            background: colors.surfaceSoft,
-                          }}
-                        >
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                              <div
-                                className="text-sm font-semibold"
-                                style={{ color: colors.text }}
-                              >
-                                Insurance Availability
-                              </div>
-
-                              {insuranceLoading ? (
-                                <p className="mt-1 text-sm" style={{ color: colors.muted }}>
-                                  Checking insurance eligibility...
-                                </p>
-                              ) : insuranceQuote?.eligible ? (
-                                <p className="mt-1 text-sm" style={{ color: colors.success }}>
-                                  Insurance is available for this amount.
-                                </p>
-                              ) : (
-                                <p className="mt-1 text-sm" style={{ color: colors.warning }}>
-                                  Insurance is not available for this amount.
-                                </p>
-                              )}
-                            </div>
-
-                            {insuranceQuote?.eligible ? (
-                              <label className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  checked={wantInsurance}
-                                  onChange={(e) => setWantInsurance(e.target.checked)}
-                                  className="h-4 w-4"
-                                  disabled={isInsuranceClaimDeposit}
-                                />
-                                <span
-                                  className="text-sm font-medium"
-                                  style={{ color: colors.text }}
-                                >
-                                  {isInsuranceClaimDeposit
-                                    ? "Insurance applied for claim flow"
-                                    : "I want insurance"}
-                                </span>
-                              </label>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : null}
                     </div>
 
                     <div className="mt-6 border p-4" style={{ ...subtleCard() }}>

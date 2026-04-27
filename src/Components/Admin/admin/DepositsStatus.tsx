@@ -245,8 +245,37 @@ const DepositsStatus = () => {
     [allDepositData]
   );
 
-  const imgUrl = (p?: string) =>
-    p ? `${import.meta.env.VITE_API_BASE_URL}/${p}` : "";
+const getDepositProofUrl = (path?: string | null) => {
+  if (!path) return "";
+
+  const rawPath = String(path).trim().replace(/\\/g, "/");
+
+  if (/^https?:\/\//i.test(rawPath)) {
+    return rawPath;
+  }
+
+  const uploadsMatch = rawPath.match(/\/?uploads\/.+$/i);
+
+  const publicPath = uploadsMatch?.[0]
+    ? uploadsMatch[0].startsWith("/")
+      ? uploadsMatch[0]
+      : `/${uploadsMatch[0]}`
+    : rawPath.startsWith("/")
+      ? rawPath
+      : `/${rawPath}`;
+
+  const apiBase = String(import.meta.env.VITE_API_BASE_URL || "")
+    .replace(/\/api\/?$/i, "")
+    .replace(/\/$/, "");
+
+  // Localhost par /uploads frontend se nahi, backend se load hoga
+  if (window.location.hostname === "localhost") {
+    return `${apiBase}${publicPath}`;
+  }
+
+  // Production me agar Vercel rewrite /uploads configured hai to ye chalega
+  return publicPath;
+};
 
   const getStatusBadge = (value: string) => {
     if (value === "approved") {
@@ -847,18 +876,19 @@ const DepositsStatus = () => {
                       </td>
 
                       <td className="px-5 py-4">
-                        <button
-                          onClick={() => togglePreview(item)}
-                          className={[
-                            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
-                            isDark
-                              ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                              : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-                          ].join(" ")}
-                        >
-                          <Image size={16} />
-                          View
-                        </button>
+                       <button
+  onClick={() => item?.depositSS && togglePreview(item)}
+  disabled={!item?.depositSS}
+  className={[
+    "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+    isDark
+      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+      : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+  ].join(" ")}
+>
+  <Image size={16} />
+  {item?.depositSS ? "View" : "No Proof"}
+</button>
                       </td>
 
                       <td className="px-5 py-4">
@@ -1313,11 +1343,15 @@ const DepositsStatus = () => {
             <AlertDialogDescription asChild>
               <div>
                 {selectedDeposit?.depositSS ? (
-                  <img
-                    src={imgUrl(selectedDeposit?.depositSS)}
-                    alt="Deposit proof"
-                    className="max-h-[70vh] w-full rounded-xl object-contain"
-                  />
+                 <img
+  src={getDepositProofUrl(selectedDeposit?.depositSS)}
+  alt="Deposit proof"
+  className="max-h-[70vh] w-full rounded-xl object-contain"
+  onError={(e) => {
+    e.currentTarget.style.display = "none";
+    toast.error("Deposit proof image load nahi ho paayi");
+  }}
+/>
                 ) : (
                   <div
                     className={[

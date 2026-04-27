@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Pencil,
   X,
@@ -7,82 +7,61 @@ import {
   Save,
   CheckCircle2,
   Settings2,
+  UploadCloud,
+  Trash2,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { Switch } from "@/Components/ui/switch";
 import { superAdminApi } from "@/utils/apiClients";
 
-const cleanUrl = (val) => (typeof val === "string" ? val.trim() : "");
-
-const isDirectImageUrl = (url) => {
-  if (!url) return false;
-  const u = url.toLowerCase();
-  return (
-    u.includes("i.ibb.co/") ||
-    u.match(/\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i)
-  );
+const initialDetails = {
+  dollarDepositRate: 85,
+  dollarWithdrawalRate: 85,
+  serverName: "",
+  themeColor: "#6080FF",
+  mt5Digit: 6,
+  websiteName: "",
+  logo: "",
+  bgImage: "",
+  favicon: "",
+  tNcLink: "",
+  androidDL: "",
+  iosDL: "",
+  windowsDL: "",
+  webLink: "",
+  inrUi: true,
+  logoSize: 4,
 };
 
-const isIbbViewerLink = (url) => {
-  if (!url) return false;
+const imageFields = ["logo", "bgImage", "favicon"];
+
+const getApiOrigin = () => {
+  const baseURL = superAdminApi?.defaults?.baseURL || "";
+
   try {
-    const u = new URL(url);
-    const host = u.hostname.replace(/^www\./, "");
-    return host === "ibb.co" || host === "imgbb.com";
+    return new URL(baseURL, window.location.origin).origin;
   } catch {
-    return false;
+    return "";
   }
 };
 
-const extractDirectFromHtml = (html) => {
-  if (!html) return "";
-
-  const og =
-    html.match(
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
-    )?.[1] || "";
-
-  if (og) return og;
-
-  const tw =
-    html.match(
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
-    )?.[1] || "";
-
-  return tw || "";
-};
-
-const resolveIbbToDirect = async (url, { timeoutMs = 8000 } = {}) => {
-  const value = cleanUrl(url);
+const getPreviewUrl = (value) => {
   if (!value) return "";
-  if (isDirectImageUrl(value)) return value;
-  if (!isIbbViewerLink(value)) return value;
 
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(value, {
-      method: "GET",
-      signal: controller.signal,
-      headers: {
-        Accept: "text/html",
-      },
-    });
-
-    const html = await res.text();
-    const direct = extractDirectFromHtml(html);
-
-    return direct || value;
-  } catch (err) {
-    console.warn(
-      "Could not auto-resolve ImgBB viewer link. Please paste direct link like https://i.ibb.co/.../image.png",
-      err
-    );
+  if (
+    value.startsWith("blob:") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:")
+  ) {
     return value;
-  } finally {
-    clearTimeout(t);
   }
+
+  const apiOrigin = getApiOrigin();
+
+  if (!apiOrigin) return value;
+
+  return `${apiOrigin}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
 const SadminSiteConfiguration = () => {
@@ -97,31 +76,16 @@ const SadminSiteConfiguration = () => {
     "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
   ].join(" ");
 
-  const [details, setDetails] = useState({
-    serverName: "",
-    mt5Digit: "",
-    websiteName: "",
-    logo: "",
-    bgImage: "",
-    favicon: "",
-    inrUi: false,
-    bankDetailsUi: false,
-    kycForWithdrawal: false,
-    emailToAll: false,
-    ibZone: false,
-    logoSize: 4,
-  });
-
-  const [resolvedMedia, setResolvedMedia] = useState({
-    logo: "",
-    bgImage: "",
-    favicon: "",
-  });
-
-  const resolveTimersRef = useRef({
+  const [details, setDetails] = useState(initialDetails);
+  const [selectedFiles, setSelectedFiles] = useState({
     logo: null,
     bgImage: null,
     favicon: null,
+  });
+  const [localPreviews, setLocalPreviews] = useState({
+    logo: "",
+    bgImage: "",
+    favicon: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -129,41 +93,55 @@ const SadminSiteConfiguration = () => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const financialFields = [
+    {
+      name: "dollarDepositRate",
+      type: "number",
+      placeholder: "Enter dollar deposit rate",
+    },
+    {
+      name: "dollarWithdrawalRate",
+      type: "number",
+      placeholder: "Enter dollar withdrawal rate",
+    },
+  ];
+
   const generalSettingsFields = [
     { name: "serverName", type: "text", placeholder: "Enter server name" },
-    { name: "mt5Digit", type: "text", placeholder: "Enter MT5 digit" },
     { name: "websiteName", type: "text", placeholder: "Enter website name" },
+    { name: "themeColor", type: "color", placeholder: "Choose theme color" },
+    { name: "mt5Digit", type: "number", placeholder: "Enter MT5 digit" },
     { name: "logoSize", type: "number", placeholder: "Logo size in rem" },
   ];
 
-  const uiSettings = [
-    { name: "inrUi", description: "Enable or disable INR UI" },
-    { name: "bankDetailsUi", description: "Show bank details in account" },
-    { name: "kycForWithdrawal", description: "Require KYC for withdrawal" },
-    { name: "emailToAll", description: "Allow admin to email all users" },
-    { name: "ibZone", description: "Enable or disable IB panel" },
+  const linkFields = [
+    { name: "tNcLink", type: "text", placeholder: "Terms and conditions link" },
+    { name: "androidDL", type: "text", placeholder: "Android download link" },
+    { name: "iosDL", type: "text", placeholder: "iOS download link" },
+    { name: "windowsDL", type: "text", placeholder: "Windows download link" },
+    { name: "webLink", type: "text", placeholder: "Web platform link" },
   ];
 
   const mediaAssets = [
-    { name: "logo", placeholder: "Logo URL (ibb.co or i.ibb.co)", altText: "Logo" },
-    { name: "bgImage", placeholder: "Background Image URL (ibb.co or i.ibb.co)", altText: "Background Image" },
-    { name: "favicon", placeholder: "Favicon URL (ibb.co or i.ibb.co)", altText: "Favicon" },
+    { name: "logo", label: "Logo", altText: "Logo" },
+    { name: "bgImage", label: "Background Image", altText: "Background Image" },
+    { name: "favicon", label: "Favicon", altText: "Favicon" },
   ];
+
+  const hasChanges = useMemo(() => {
+    return imageFields.some((field) => selectedFiles[field]);
+  }, [selectedFiles]);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
+
       const res = await superAdminApi.get("/site-config");
       const incoming = res.data?.data || {};
-      setDetails((prev) => ({ ...prev, ...incoming }));
 
-      const nextLogo = await resolveIbbToDirect(incoming.logo || "");
-      const nextBgImage = await resolveIbbToDirect(incoming.bgImage || "");
-      const nextFav = await resolveIbbToDirect(incoming.favicon || "");
-
-      setResolvedMedia({
-        logo: nextLogo,
-        bgImage: nextBgImage,
-        favicon: nextFav,
+      setDetails({
+        ...initialDetails,
+        ...incoming,
       });
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -172,52 +150,133 @@ const SadminSiteConfiguration = () => {
     }
   };
 
+  const resetLocalFiles = () => {
+    Object.values(localPreviews).forEach((url) => {
+      if (url?.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    setSelectedFiles({
+      logo: null,
+      bgImage: null,
+      favicon: null,
+    });
+
+    setLocalPreviews({
+      logo: "",
+      bgImage: "",
+      favicon: "",
+    });
+  };
+
+  const handleCancel = () => {
+    resetLocalFiles();
+    setIsEditing(false);
+    fetchData();
+  };
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
 
     setDetails((prev) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: type === "number" ? value : value,
     }));
-
-    if (name === "logo" || name === "bgImage" || name === "favicon") {
-      if (resolveTimersRef.current[name]) {
-        clearTimeout(resolveTimersRef.current[name]);
-      }
-
-      resolveTimersRef.current[name] = setTimeout(async () => {
-        const direct = await resolveIbbToDirect(value);
-        setResolvedMedia((prev) => ({ ...prev, [name]: direct }));
-      }, 500);
-    }
   };
 
   const handleToggle = (name, value) => {
-    setDetails((prev) => ({ ...prev, [name]: value }));
+    setDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFileChange = (name, file) => {
+    if (!file) return;
+
+    if (!file.type?.startsWith("image/")) {
+      alert("Only image files are allowed.");
+      return;
+    }
+
+    const oldPreview = localPreviews[name];
+
+    if (oldPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(oldPreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setSelectedFiles((prev) => ({
+      ...prev,
+      [name]: file,
+    }));
+
+    setLocalPreviews((prev) => ({
+      ...prev,
+      [name]: previewUrl,
+    }));
+  };
+
+  const handleRemoveImage = (name) => {
+    const oldPreview = localPreviews[name];
+
+    if (oldPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(oldPreview);
+    }
+
+    setSelectedFiles((prev) => ({
+      ...prev,
+      [name]: null,
+    }));
+
+    setLocalPreviews((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    setDetails((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const appendValue = (formData, key, value) => {
+    if (value === undefined || value === null) {
+      formData.append(key, "");
+      return;
+    }
+
+    formData.append(key, String(value));
   };
 
   const handleSave = async () => {
     setSaving(true);
+
     try {
-      const normalizedLogo = await resolveIbbToDirect(details.logo);
-      const normalizedBgImage = await resolveIbbToDirect(details.bgImage);
-      const normalizedFavicon = await resolveIbbToDirect(details.favicon);
+      const formData = new FormData();
 
-      const payload = {
-        ...details,
-        logo: normalizedLogo,
-        bgImage: normalizedBgImage,
-        favicon: normalizedFavicon,
-      };
-
-      await superAdminApi.put("/site-config", payload);
-
-      setDetails(payload);
-      setResolvedMedia({
-        logo: normalizedLogo,
-        bgImage: normalizedBgImage,
-        favicon: normalizedFavicon,
+      Object.keys(initialDetails).forEach((key) => {
+        appendValue(formData, key, details[key]);
       });
+
+      imageFields.forEach((field) => {
+        if (selectedFiles[field]) {
+          formData.append(field, selectedFiles[field]);
+        }
+      });
+
+      const res = await superAdminApi.put("/site-config", formData);
+
+      const updated = res.data?.data || {};
+
+      setDetails({
+        ...initialDetails,
+        ...updated,
+      });
+
+      resetLocalFiles();
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2500);
@@ -233,14 +292,20 @@ const SadminSiteConfiguration = () => {
     fetchData();
 
     return () => {
-      Object.values(resolveTimersRef.current).forEach(
-        (t) => t && clearTimeout(t)
-      );
+      Object.values(localPreviews).forEach((url) => {
+        if (url?.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, []);
 
   const formatLabel = (key) =>
     key
+      .replace(/DL$/, " Download")
+      .replace(/Ui$/, " UI")
+      .replace(/tNc/, "T&C")
+      .replace(/mt5/, "MT5")
       .replace(/([A-Z])/g, " $1")
       .trim()
       .replace(/\b\w/g, (char) => char.toUpperCase());
@@ -276,7 +341,7 @@ const SadminSiteConfiguration = () => {
               isDark ? "text-white/50" : "text-slate-600",
             ].join(" ")}
           >
-            Manage website core settings, media assets, and interface behavior.
+            Manage website core settings, media assets, links, and interface behavior.
           </p>
         </div>
 
@@ -302,7 +367,7 @@ const SadminSiteConfiguration = () => {
               </button>
 
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancel}
                 disabled={saving}
                 className={[
                   "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
@@ -365,10 +430,25 @@ const SadminSiteConfiguration = () => {
         </div>
       ) : (
         <>
-          <Section
-            title="General Settings"
-            isDark={isDark}
-          >
+          <Section title="Financial Settings" isDark={isDark}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {financialFields.map((field) => (
+                <SettingCard
+                  key={field.name}
+                  field={field}
+                  details={details}
+                  isEditing={isEditing}
+                  saving={saving}
+                  handleChange={handleChange}
+                  formatLabel={formatLabel}
+                  inputClass={inputClass}
+                  isDark={isDark}
+                />
+              ))}
+            </div>
+          </Section>
+
+          <Section title="General Settings" isDark={isDark}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {generalSettingsFields.map((field) => (
                 <SettingCard
@@ -392,32 +472,28 @@ const SadminSiteConfiguration = () => {
             isDark={isDark}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {uiSettings.map((setting) => (
-                <ToggleCard
-                  key={setting.name}
-                  setting={setting}
-                  details={details}
-                  isEditing={isEditing}
-                  saving={saving}
-                  onToggle={handleToggle}
-                  formatLabel={formatLabel}
-                  isDark={isDark}
-                />
-              ))}
+              <ToggleCard
+                setting={{
+                  name: "inrUi",
+                  description: "Enable or disable INR UI",
+                }}
+                details={details}
+                isEditing={isEditing}
+                saving={saving}
+                onToggle={handleToggle}
+                formatLabel={formatLabel}
+                isDark={isDark}
+              />
             </div>
           </Section>
 
-          <Section
-            title="Media Assets"
-            isDark={isDark}
-          >
+          <Section title="Download & Web Links" isDark={isDark}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {mediaAssets.map((asset) => (
-                <MediaCard
-                  key={asset.name}
-                  asset={asset}
+              {linkFields.map((field) => (
+                <SettingCard
+                  key={field.name}
+                  field={field}
                   details={details}
-                  resolvedMedia={resolvedMedia}
                   isEditing={isEditing}
                   saving={saving}
                   handleChange={handleChange}
@@ -427,6 +503,39 @@ const SadminSiteConfiguration = () => {
                 />
               ))}
             </div>
+          </Section>
+
+          <Section
+            title="Media Assets"
+            subtitle="Upload logo, background image, and favicon directly from your computer"
+            isDark={isDark}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {mediaAssets.map((asset) => (
+                <MediaUploadCard
+                  key={asset.name}
+                  asset={asset}
+                  details={details}
+                  localPreviews={localPreviews}
+                  isEditing={isEditing}
+                  saving={saving}
+                  onFileChange={handleFileChange}
+                  onRemoveImage={handleRemoveImage}
+                  isDark={isDark}
+                />
+              ))}
+            </div>
+
+            {isEditing && hasChanges && (
+              <p
+                className={[
+                  "mt-4 text-xs",
+                  isDark ? "text-white/45" : "text-slate-500",
+                ].join(" ")}
+              >
+                Selected images will be uploaded after you click Save.
+              </p>
+            )}
           </Section>
         </>
       )}
@@ -452,6 +561,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
       >
         {title}
       </h3>
+
       {subtitle && (
         <p
           className={[
@@ -486,56 +596,81 @@ const SettingCard = ({
   formatLabel,
   inputClass,
   isDark,
-}) => (
-  <div
-    className={[
-      "rounded-[18px] border p-4",
-      isDark
-        ? "border-white/10 bg-white/[0.03]"
-        : "border-slate-200 bg-white/70",
-    ].join(" ")}
-  >
-    <p
+}) => {
+  const value = details[field.name] ?? "";
+
+  return (
+    <div
       className={[
-        "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
-        isDark ? "text-white/45" : "text-slate-500",
+        "rounded-[18px] border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.03]"
+          : "border-slate-200 bg-white/70",
       ].join(" ")}
     >
-      {formatLabel(field.name)}
-    </p>
-
-    {isEditing ? (
-      <input
-        type={field.type}
-        name={field.name}
-        value={details[field.name] ?? ""}
-        onChange={handleChange}
-        disabled={saving}
-        placeholder={field.placeholder}
-        className={inputClass}
-      />
-    ) : (
-      <div
+      <p
         className={[
-          "rounded-xl border px-4 py-3 text-sm",
-          isDark
-            ? "border-white/10 bg-white/[0.03]"
-            : "border-slate-200 bg-slate-50",
+          "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
+          isDark ? "text-white/45" : "text-slate-500",
         ].join(" ")}
       >
-        {details[field.name] !== "" && details[field.name] !== null ? (
-          <span className={isDark ? "text-white" : "text-slate-900"}>
-            {String(details[field.name])}
-          </span>
-        ) : (
-          <span className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}>
-            Not Set
-          </span>
-        )}
-      </div>
-    )}
-  </div>
-);
+        {formatLabel(field.name)}
+      </p>
+
+      {isEditing ? (
+        <input
+          type={field.type}
+          name={field.name}
+          value={value}
+          onChange={handleChange}
+          disabled={saving}
+          placeholder={field.placeholder}
+          className={
+            field.type === "color"
+              ? [
+                  inputClass,
+                  "h-[46px] cursor-pointer p-1",
+                ].join(" ")
+              : inputClass
+          }
+        />
+      ) : (
+        <div
+          className={[
+            "rounded-xl border px-4 py-3 text-sm min-h-[46px] flex items-center",
+            isDark
+              ? "border-white/10 bg-white/[0.03]"
+              : "border-slate-200 bg-slate-50",
+          ].join(" ")}
+        >
+          {value !== "" && value !== null ? (
+            field.type === "color" ? (
+              <div className="flex items-center gap-3">
+                <span
+                  className="h-6 w-10 rounded-lg border border-white/20"
+                  style={{ backgroundColor: value }}
+                />
+                <span className={isDark ? "text-white" : "text-slate-900"}>
+                  {String(value)}
+                </span>
+              </div>
+            ) : (
+              <span className={isDark ? "text-white" : "text-slate-900"}>
+                {String(value)}
+              </span>
+            )
+          ) : (
+            <span
+              className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}
+            >
+              Not Set
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ToggleCard = ({
   setting,
@@ -563,6 +698,7 @@ const ToggleCard = ({
       >
         {formatLabel(setting.name)}
       </p>
+
       <p
         className={[
           "mt-1 text-xs",
@@ -598,19 +734,18 @@ const ToggleCard = ({
   </div>
 );
 
-const MediaCard = ({
+const MediaUploadCard = ({
   asset,
   details,
-  resolvedMedia,
+  localPreviews,
   isEditing,
   saving,
-  handleChange,
-  formatLabel,
-  inputClass,
+  onFileChange,
+  onRemoveImage,
   isDark,
 }) => {
-  const rawUrl = details[asset.name] || "";
-  const previewUrl = resolvedMedia?.[asset.name] || rawUrl;
+  const existingUrl = details[asset.name] || "";
+  const previewUrl = localPreviews[asset.name] || getPreviewUrl(existingUrl);
 
   return (
     <div
@@ -627,86 +762,14 @@ const MediaCard = ({
           isDark ? "text-white/45" : "text-slate-500",
         ].join(" ")}
       >
-        {formatLabel(asset.name)}
+        {asset.label}
       </p>
 
-      {isEditing ? (
-        <>
-          {(previewUrl || rawUrl) && (
-            <div
-              className={[
-                "mb-4 flex items-center gap-4 rounded-[16px] border p-3",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-slate-200 bg-slate-50",
-              ].join(" ")}
-            >
-              <div
-                className={[
-                  "w-28 h-16 flex items-center justify-center rounded-xl overflow-hidden border",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-slate-200 bg-white",
-                ].join(" ")}
-              >
-                <img
-                  src={previewUrl}
-                  alt={asset.altText}
-                  className="max-w-full max-h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.opacity = "0.4";
-                  }}
-                />
-              </div>
-
-              <a
-                href={previewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={[
-                  "text-sm inline-flex items-center gap-1",
-                  isDark ? "text-blue-300" : "text-orange-600",
-                ].join(" ")}
-              >
-                <ExternalLink className="w-4 h-4" />
-                View
-              </a>
-            </div>
-          )}
-
-          <input
-            type="text"
-            name={asset.name}
-            value={rawUrl}
-            onChange={handleChange}
-            placeholder={asset.placeholder}
-            disabled={saving}
-            className={inputClass}
-          />
-
-          {rawUrl &&
-            (rawUrl.includes("ibb.co/") || rawUrl.includes("imgbb.com/")) && (
-              <p
-                className={[
-                  "mt-2 text-xs",
-                  isDark ? "text-white/45" : "text-slate-500",
-                ].join(" ")}
-              >
-                Tip: You can paste viewer link — we’ll try to auto-convert to a
-                direct link. If preview doesn’t load, use direct format like{" "}
-                <span
-                  className={isDark ? "text-blue-300" : "text-orange-600"}
-                >
-                  https://i.ibb.co/.../image.png
-                </span>
-              </p>
-            )}
-        </>
-      ) : previewUrl ? (
-        <div className="flex flex-col md:flex-row gap-4 items-start">
+      {previewUrl ? (
+        <div className="flex flex-col gap-4">
           <div
             className={[
-              "w-36 h-20 flex items-center justify-center rounded-xl p-2 border",
+              "h-32 w-full flex items-center justify-center rounded-xl overflow-hidden border p-3",
               isDark
                 ? "border-white/10 bg-white/[0.03]"
                 : "border-slate-200 bg-white",
@@ -715,42 +778,92 @@ const MediaCard = ({
             <img
               src={previewUrl}
               alt={asset.altText}
-              className="max-w-full max-h-full object-contain"
+              className="max-h-full max-w-full object-contain"
               onError={(e) => {
-                e.currentTarget.style.opacity = "0.4";
+                e.currentTarget.style.opacity = "0.35";
               }}
             />
           </div>
 
-          <div>
-            <p
-              className={[
-                "text-sm break-all",
-                isDark ? "text-blue-300" : "text-orange-600",
-              ].join(" ")}
-            >
-              {previewUrl}
-            </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {existingUrl && (
+              <a
+                href={getPreviewUrl(existingUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={[
+                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm border",
+                  isDark
+                    ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
+                    : "bg-orange-50 text-orange-700 border-orange-200",
+                ].join(" ")}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open
+              </a>
+            )}
 
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={[
-                "inline-flex items-center gap-1 mt-2 rounded-lg px-3 py-1.5 text-sm border",
-                isDark
-                  ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
-                  : "bg-orange-50 text-orange-700 border-orange-200",
-              ].join(" ")}
-            >
-              <ExternalLink className="w-4 h-4" />
-              Open
-            </a>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => onRemoveImage(asset.name)}
+                disabled={saving}
+                className={[
+                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm border disabled:opacity-50",
+                  isDark
+                    ? "bg-red-500/10 text-red-300 border-red-500/20"
+                    : "bg-red-50 text-red-600 border-red-200",
+                ].join(" ")}
+              >
+                <Trash2 className="w-4 h-4" />
+                Remove
+              </button>
+            )}
           </div>
         </div>
       ) : (
-        <p className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}>
-          No {formatLabel(asset.name)} Set
+        <div
+          className={[
+            "h-32 rounded-xl border border-dashed flex items-center justify-center text-sm",
+            isDark
+              ? "border-white/10 bg-white/[0.03] text-white/40"
+              : "border-slate-200 bg-slate-50 text-slate-400",
+          ].join(" ")}
+        >
+          No {asset.label} Uploaded
+        </div>
+      )}
+
+      {isEditing && (
+        <label
+          className={[
+            "mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300",
+            saving ? "pointer-events-none opacity-50" : "",
+            isDark
+              ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+              : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
+          ].join(" ")}
+        >
+          <UploadCloud className="h-4 w-4" />
+          Upload {asset.label}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={saving}
+            onChange={(e) => onFileChange(asset.name, e.target.files?.[0])}
+          />
+        </label>
+      )}
+
+      {existingUrl && (
+        <p
+          className={[
+            "mt-3 break-all text-xs",
+            isDark ? "text-white/40" : "text-slate-500",
+          ].join(" ")}
+        >
+          {existingUrl}
         </p>
       )}
     </div>

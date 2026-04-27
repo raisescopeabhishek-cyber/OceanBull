@@ -28,7 +28,7 @@ export const AlertDialog = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px]" />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px]" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -48,6 +48,8 @@ export const AlertDialogContent = ({
   children: React.ReactNode;
   className?: string;
 }) => {
+  const hasCustomClass = Boolean(className?.trim());
+
   return (
     <Transition.Child
       as={Fragment}
@@ -60,8 +62,10 @@ export const AlertDialogContent = ({
     >
       <Dialog.Panel
         className={cn(
-          "w-full max-w-md overflow-hidden rounded-2xl bg-neutral-900/95 p-6 text-left align-middle text-white shadow-xl transition-all",
-          className
+          "w-full overflow-hidden text-left align-middle shadow-xl transition-all",
+          hasCustomClass
+            ? className
+            : "max-w-md rounded-2xl bg-neutral-900/95 p-6 text-white"
         )}
       >
         {children}
@@ -76,7 +80,15 @@ export const AlertDialogHeader = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => <div className={cn("mb-4", className)}>{children}</div>;
+}) => {
+  const hasCustomClass = Boolean(className?.trim());
+
+  return (
+    <div className={hasCustomClass ? className : "mb-4"}>
+      {children}
+    </div>
+  );
+};
 
 export const AlertDialogTitle = ({
   children,
@@ -85,7 +97,7 @@ export const AlertDialogTitle = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Dialog.Title className={cn("text-2xl font-bold", className)}>
+  <Dialog.Title className={cn("font-bold", className || "text-2xl")}>
     {children}
   </Dialog.Title>
 );
@@ -104,11 +116,21 @@ export const AlertDialogFooter = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => (
-  <div className={cn("mt-4 flex flex-wrap items-center justify-end gap-3", className)}>
-    {children}
-  </div>
-);
+}) => {
+  const hasCustomClass = Boolean(className?.trim());
+
+  return (
+    <div
+      className={
+        hasCustomClass
+          ? className
+          : "mt-4 flex flex-wrap items-center justify-end gap-3"
+      }
+    >
+      {children}
+    </div>
+  );
+};
 
 export const AlertDialogCancel = ({
   children,

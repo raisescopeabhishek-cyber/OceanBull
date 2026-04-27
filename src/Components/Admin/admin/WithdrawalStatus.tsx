@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -13,16 +14,6 @@ import {
   ChevronUp,
   WalletCardsIcon,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../ui/alert-dialog";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
 import {
@@ -32,6 +23,193 @@ import {
 import { useSelector } from "react-redux";
 
 const PAGE_LIMIT = 10;
+
+const cn = (...classes: any[]) => classes.filter(Boolean).join(" ");
+
+/* -------------------------------------------------------------------------- */
+/* Local independent AlertDialog components for WithdrawalStatus only          */
+/* -------------------------------------------------------------------------- */
+
+const AlertDialog = ({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}) => {
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog
+        as="div"
+        className="relative z-[1000]"
+        onClose={() => onOpenChange(false)}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px]" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            {children}
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
+const AlertDialogContent = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <Transition.Child
+      as={Fragment}
+      enter="ease-out duration-200"
+      enterFrom="opacity-0 scale-95"
+      enterTo="opacity-100 scale-100"
+      leave="ease-in duration-150"
+      leaveFrom="opacity-100 scale-100"
+      leaveTo="opacity-0 scale-95"
+    >
+      <Dialog.Panel
+        className={cn(
+          "w-full overflow-hidden text-left align-middle shadow-2xl transition-all",
+          className
+        )}
+      >
+        {children}
+      </Dialog.Panel>
+    </Transition.Child>
+  );
+};
+
+const AlertDialogHeader = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return <div className={className || "mb-4"}>{children}</div>;
+};
+
+const AlertDialogTitle = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <Dialog.Title className={cn("font-bold", className || "text-2xl")}>
+      {children}
+    </Dialog.Title>
+  );
+};
+
+const AlertDialogDescription = ({
+  children,
+  className = "",
+  asChild = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  asChild?: boolean;
+}) => {
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+
+    return React.cloneElement(child, {
+      className: cn(child.props?.className, className),
+    });
+  }
+
+  return <div className={cn("text-sm", className)}>{children}</div>;
+};
+
+const AlertDialogFooter = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <div
+      className={
+        className || "mt-5 flex flex-wrap items-center justify-end gap-3"
+      }
+    >
+      {children}
+    </div>
+  );
+};
+
+const AlertDialogCancel = ({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        className
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};
+
+const AlertDialogAction = ({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        className
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};
 
 const WithdrawalStatus = () => {
   const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
@@ -52,10 +230,13 @@ const WithdrawalStatus = () => {
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any | null>(null);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"" | "approve" | "reject">("");
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [comment, setComment] = useState("");
 
   const totalPages = Math.max(
     1,
@@ -130,11 +311,22 @@ const WithdrawalStatus = () => {
   ) => {
     setSelectedWithdrawal(withdrawal);
     setActionType(action);
+    setComment("");
     setIsDialogOpen(true);
   };
 
   const handleConfirmAction = async (withdrawal: any) => {
     if (isActionLoading || !withdrawal) return;
+
+    if (actionType === "reject" && !comment.trim()) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+
+    const finalComment =
+      actionType === "approve"
+        ? comment.trim() || "Approved by admin"
+        : comment.trim();
 
     const toastId = toast.loading("Please wait...");
     setIsActionLoading(true);
@@ -147,6 +339,7 @@ const WithdrawalStatus = () => {
         amount: withdrawal.amount,
         email: withdrawal?.userData?.email,
         withdrawalData: withdrawal,
+        comment: finalComment,
       });
 
       toast.success(
@@ -157,9 +350,11 @@ const WithdrawalStatus = () => {
       );
 
       setIsDialogOpen(false);
+      setComment("");
       await fetchWithdrawalData();
       await fetchAllData();
     } catch (error) {
+      console.log("Withdrawal action error:", error);
       toast.error("Something went wrong", { id: toastId });
     } finally {
       setIsActionLoading(false);
@@ -257,10 +452,107 @@ const WithdrawalStatus = () => {
     );
   };
 
+  const getDecisionDate = (item: any) => {
+    if (item?.status === "approved" || item?.status === "rejected") {
+      return item?.updatedAt || item?.createdAt;
+    }
+
+    return item?.createdAt || item?.updatedAt;
+  };
+
+  const renderPaymentInfo = (withdrawal: any) => {
+    if (!withdrawal) return <div>—</div>;
+
+    if (withdrawal.method === "Bank Transfer") {
+      return (
+        <div className="space-y-1">
+          <div className="mb-2 flex items-center gap-2">
+            <WalletCardsIcon size={18} />
+            <span className="font-semibold">{withdrawal?.method}</span>
+          </div>
+
+          <p>
+            <span className="font-medium">Bank Name:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.bankName || "—"}
+          </p>
+          <p>
+            <span className="font-medium">Holder Name:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.holderName || "—"}
+          </p>
+          <p>
+            <span className="font-medium">Account Number:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.accountNumber || "—"}
+          </p>
+          <p>
+            <span className="font-medium">IFSC Code:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.ifscCode || "—"}
+          </p>
+          <p>
+            <span className="font-medium">Swift Code:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.swiftCode || "—"}
+          </p>
+          <p>
+            <span className="font-medium">UPI ID:</span>{" "}
+            {withdrawal?.userData?.bankDetails?.upiId || "—"}
+          </p>
+        </div>
+      );
+    }
+
+    if (withdrawal?.method === "USDT(Trc20)") {
+      return (
+        <div className="flex items-start gap-2 break-all">
+          <WalletCardsIcon size={18} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-medium">USDT-TRC20:</span>{" "}
+            {withdrawal?.userData?.walletDetails?.tetherAddress || "—"}
+          </p>
+        </div>
+      );
+    }
+
+    if (withdrawal?.method === "USDT(Bep20)") {
+      return (
+        <div className="flex items-start gap-2 break-all">
+          <WalletCardsIcon size={18} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-medium">USDT-BEP20:</span>{" "}
+            {withdrawal?.userData?.walletDetails?.ethAddress || "—"}
+          </p>
+        </div>
+      );
+    }
+
+    if (withdrawal?.method === "BinanceID") {
+      return (
+        <div className="flex items-start gap-2 break-all">
+          <WalletCardsIcon size={18} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-medium">Binance ID:</span>{" "}
+            {withdrawal?.userData?.walletDetails?.accountNumber || "—"}
+          </p>
+        </div>
+      );
+    }
+
+    if (withdrawal?.method === "BTCAddress") {
+      return (
+        <div className="flex items-start gap-2 break-all">
+          <WalletCardsIcon size={18} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-medium">BTC Address:</span>{" "}
+            {withdrawal?.userData?.walletDetails?.trxAddress || "—"}
+          </p>
+        </div>
+      );
+    }
+
+    return <div>—</div>;
+  };
+
   return (
     <div className="w-full">
       <div className="space-y-4 lg:space-y-5">
-        {/* Top Section */}
         <div
           className={[
             "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
@@ -304,7 +596,8 @@ const WithdrawalStatus = () => {
                       isDark ? "text-white/45" : "text-slate-500",
                     ].join(" ")}
                   >
-                    Search, filter and manage all withdrawal requests from one place.
+                    Search, filter and manage all withdrawal requests from one
+                    place.
                   </p>
                 </div>
               </div>
@@ -354,14 +647,17 @@ const WithdrawalStatus = () => {
                       : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
                   ].join(" ")}
                 >
-                  {isFiltersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {isFiltersOpen ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
                   {isFiltersOpen ? "Collapse" : "Expand"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Filter Row */}
           <div
             className={[
               "overflow-hidden transition-all duration-300 ease-in-out",
@@ -476,7 +772,6 @@ const WithdrawalStatus = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
@@ -539,7 +834,6 @@ const WithdrawalStatus = () => {
           ))}
         </div>
 
-        {/* Desktop Table */}
         <div
           className={[
             "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
@@ -697,11 +991,7 @@ const WithdrawalStatus = () => {
                             isDark ? "text-white" : "text-slate-900",
                           ].join(" ")}
                         >
-                          {CFformatDate(
-                            item?.status === "approved" || item?.status === "rejected"
-                              ? item?.updatedAt
-                              : item?.createdAt
-                          )}
+                          {CFformatDate(getDecisionDate(item))}
                         </p>
                         <p
                           className={[
@@ -709,11 +999,7 @@ const WithdrawalStatus = () => {
                             isDark ? "text-white/40" : "text-slate-500",
                           ].join(" ")}
                         >
-                          {CFcalculateTimeSinceJoined(
-                            item?.status === "approved" || item?.status === "rejected"
-                              ? item?.updatedAt
-                              : item?.createdAt
-                          )}
+                          {CFcalculateTimeSinceJoined(getDecisionDate(item))}
                         </p>
                       </td>
 
@@ -721,14 +1007,18 @@ const WithdrawalStatus = () => {
                         {item?.status === "pending" ? (
                           isActionLoading ? (
                             <span
-                              className={isDark ? "text-white/50" : "text-slate-500"}
+                              className={
+                                isDark ? "text-white/50" : "text-slate-500"
+                              }
                             >
                               Please wait...
                             </span>
                           ) : (
                             <div className="flex items-center gap-3">
                               <button
-                                onClick={() => handleActionClick(item, "approve")}
+                                onClick={() =>
+                                  handleActionClick(item, "approve")
+                                }
                                 className={[
                                   "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
                                   isDark
@@ -741,7 +1031,9 @@ const WithdrawalStatus = () => {
                               </button>
 
                               <button
-                                onClick={() => handleActionClick(item, "reject")}
+                                onClick={() =>
+                                  handleActionClick(item, "reject")
+                                }
                                 className={[
                                   "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
                                   isDark
@@ -766,7 +1058,6 @@ const WithdrawalStatus = () => {
           </div>
         </div>
 
-        {/* Mobile Cards */}
         <div className="grid grid-cols-1 gap-3 lg:hidden">
           {loading ? (
             <div
@@ -958,11 +1249,7 @@ const WithdrawalStatus = () => {
                       isDark ? "text-white" : "text-slate-900",
                     ].join(" ")}
                   >
-                    {CFformatDate(
-                      item?.status === "approved" || item?.status === "rejected"
-                        ? item?.updatedAt
-                        : item?.createdAt
-                    )}
+                    {CFformatDate(getDecisionDate(item))}
                   </p>
                   <p
                     className={[
@@ -970,11 +1257,7 @@ const WithdrawalStatus = () => {
                       isDark ? "text-white/40" : "text-slate-500",
                     ].join(" ")}
                   >
-                    {CFcalculateTimeSinceJoined(
-                      item?.status === "approved" || item?.status === "rejected"
-                        ? item?.updatedAt
-                        : item?.createdAt
-                    )}
+                    {CFcalculateTimeSinceJoined(getDecisionDate(item))}
                   </p>
 
                   {item?.status === "pending" && (
@@ -1012,7 +1295,6 @@ const WithdrawalStatus = () => {
           )}
         </div>
 
-        {/* Pagination */}
         <div
           className={[
             "rounded-[24px] border p-4 backdrop-blur-xl",
@@ -1058,8 +1340,8 @@ const WithdrawalStatus = () => {
                       ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
                       : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
                     : isDark
-                    ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                    : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
+                      ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                      : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50"
                 }`}
               >
                 <ChevronLeft size={16} />
@@ -1075,8 +1357,8 @@ const WithdrawalStatus = () => {
                       ? "cursor-not-allowed border border-white/10 bg-white/[0.03] text-white/25"
                       : "cursor-not-allowed border border-orange-100 bg-white/60 text-slate-300"
                     : isDark
-                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                    : "bg-orange-500 text-white hover:bg-orange-600"
+                      ? "bg-blue-500/90 text-white hover:bg-blue-500"
+                      : "bg-orange-500 text-white hover:bg-orange-600"
                 }`}
               >
                 Next
@@ -1087,11 +1369,15 @@ const WithdrawalStatus = () => {
         </div>
       </div>
 
-      {/* Action Dialog */}
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <AlertDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (!isActionLoading) setIsDialogOpen(open);
+        }}
+      >
         <AlertDialogContent
           className={[
-            "max-w-xl rounded-2xl backdrop-blur-xl",
+            "max-w-xl rounded-2xl border p-5 backdrop-blur-xl sm:p-6",
             isDark
               ? "border-white/10 bg-[#0b1220] text-white"
               : "border-orange-200 bg-white text-slate-900",
@@ -1104,162 +1390,149 @@ const WithdrawalStatus = () => {
                 : "Reject Withdrawal"}
             </AlertDialogTitle>
 
-            <AlertDialogDescription asChild>
-              {selectedWithdrawal && (
-                <div className={isDark ? "text-white/70" : "text-slate-600"}>
-                  <div className="space-y-4">
-                    <div
-                      className={[
-                        "rounded-xl border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-orange-50/40",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "mb-2 text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        User Info
-                      </p>
-                      <p>
-                        Name: {selectedWithdrawal.userData?.firstName}{" "}
-                        {selectedWithdrawal.userData?.lastName}
-                      </p>
-                      <p>Email: {selectedWithdrawal.userData?.email}</p>
-                      <p>
-                        Withdrawal Amount: $
-                        {Number(selectedWithdrawal?.amount || 0).toFixed(2)}
-                      </p>
-                      <p>Account: {selectedWithdrawal?.mt5Account}</p>
-                      <p>
-                        Date:{" "}
-                        {CFformatDate(
-                          selectedWithdrawal?.updatedAt ||
-                            selectedWithdrawal?.createdAt
-                        )}
-                      </p>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-orange-50/40",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "mb-2 text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        Payment Info
-                      </p>
-
-                      {selectedWithdrawal.method === "Bank Transfer" ? (
-                        <div className="space-y-1">
-                          <div className="my-2 flex items-center gap-2">
-                            <WalletCardsIcon size={20} />
-                            <h1 className="font-bold">{selectedWithdrawal?.method}</h1>
-                          </div>
-
-                          <p>
-                            Bank Name:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.bankName}
-                          </p>
-                          <p>
-                            Holder Name:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.holderName}
-                          </p>
-                          <p>
-                            Account Number:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.accountNumber}
-                          </p>
-                          <p>
-                            IFSC Code:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.ifscCode}
-                          </p>
-                          <p>
-                            Swift Code:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.swiftCode}
-                          </p>
-                          <p>
-                            UPI ID:{" "}
-                            {selectedWithdrawal?.userData?.bankDetails?.upiId}
-                          </p>
-                        </div>
-                      ) : selectedWithdrawal?.method === "USDT(Trc20)" ? (
-                        <div className="flex items-center gap-2">
-                          <WalletCardsIcon size={20} />
-                          <p>
-                            USDT-TRC20 —{" "}
-                            {selectedWithdrawal?.userData?.walletDetails?.tetherAddress}
-                          </p>
-                        </div>
-                      ) : selectedWithdrawal?.method === "USDT(Bep20)" ? (
-                        <div className="flex items-center gap-2">
-                          <WalletCardsIcon size={20} />
-                          <p>
-                            USDT-BEP20 —{" "}
-                            {selectedWithdrawal?.userData?.walletDetails?.ethAddress}
-                          </p>
-                        </div>
-                      ) : selectedWithdrawal?.method === "BinanceID" ? (
-                        <div className="flex items-center gap-2">
-                          <WalletCardsIcon size={20} />
-                          <p>
-                            Binance ID —{" "}
-                            {selectedWithdrawal?.userData?.walletDetails?.accountNumber}
-                          </p>
-                        </div>
-                      ) : selectedWithdrawal?.method === "BTCAddress" ? (
-                        <div className="flex items-center gap-2">
-                          <WalletCardsIcon size={20} />
-                          <p>
-                            BTC Address —{" "}
-                            {selectedWithdrawal?.userData?.walletDetails?.trxAddress}
-                          </p>
-                        </div>
-                      ) : (
-                        <div>—</div>
-                      )}
-                    </div>
-
-                    <p className="text-sm">
-                      Are you sure you want to{" "}
-                      <span
-                        className={
-                          actionType === "approve"
-                            ? isDark
-                              ? "font-bold text-emerald-300"
-                              : "font-bold text-emerald-700"
-                            : isDark
-                            ? "font-bold text-red-300"
-                            : "font-bold text-red-700"
-                        }
-                      >
-                        {actionType === "approve" ? "approve" : "reject"}
-                      </span>{" "}
-                      this withdrawal?
-                    </p>
-                  </div>
-                </div>
-              )}
+            <AlertDialogDescription
+              className={isDark ? "mt-1 text-white/60" : "mt-1 text-slate-500"}
+            >
+              {actionType === "approve"
+                ? "Comment is optional for approval."
+                : "Please enter a rejection reason before continuing."}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
+          {selectedWithdrawal && (
+            <div className="space-y-4">
+              <div
+                className={[
+                  "rounded-xl border p-4",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04]"
+                    : "border-orange-100 bg-orange-50/40",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "mb-2 text-base font-semibold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  User Info
+                </p>
+
+                <div
+                  className={[
+                    "space-y-1 text-sm",
+                    isDark ? "text-white/70" : "text-slate-600",
+                  ].join(" ")}
+                >
+                  <p>
+                    <span className="font-medium">Name:</span>{" "}
+                    {selectedWithdrawal.userData?.firstName || "Not found"}{" "}
+                    {selectedWithdrawal.userData?.lastName || ""}
+                  </p>
+                  <p>
+                    <span className="font-medium">Email:</span>{" "}
+                    {selectedWithdrawal.userData?.email || "Not found"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Withdrawal Amount:</span> $
+                    {Number(selectedWithdrawal?.amount || 0).toFixed(2)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Account:</span>{" "}
+                    {selectedWithdrawal?.mt5Account || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Date:</span>{" "}
+                    {CFformatDate(
+                      selectedWithdrawal?.updatedAt ||
+                        selectedWithdrawal?.createdAt
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={[
+                  "rounded-xl border p-4",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04]"
+                    : "border-orange-100 bg-orange-50/40",
+                ].join(" ")}
+              >
+                <p
+                  className={[
+                    "mb-2 text-base font-semibold",
+                    isDark ? "text-white" : "text-slate-900",
+                  ].join(" ")}
+                >
+                  Payment Info
+                </p>
+
+                <div
+                  className={[
+                    "text-sm",
+                    isDark ? "text-white/70" : "text-slate-600",
+                  ].join(" ")}
+                >
+                  {renderPaymentInfo(selectedWithdrawal)}
+                </div>
+              </div>
+
+              <div>
+                <textarea
+                  rows={4}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder={`Write reason for ${
+                    actionType === "approve" ? "approval" : "rejection"
+                  }...`}
+                  className={[
+                    "w-full resize-none rounded-xl border p-3 text-sm outline-none transition",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
+                      : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
+                  ].join(" ")}
+                />
+              </div>
+
+              <p
+                className={[
+                  "text-sm",
+                  isDark ? "text-white/60" : "text-slate-600",
+                ].join(" ")}
+              >
+                Are you sure you want to{" "}
+                <span
+                  className={
+                    actionType === "approve"
+                      ? isDark
+                        ? "font-bold text-emerald-300"
+                        : "font-bold text-emerald-700"
+                      : isDark
+                        ? "font-bold text-red-300"
+                        : "font-bold text-red-700"
+                  }
+                >
+                  {actionType === "approve" ? "approve" : "reject"}
+                </span>{" "}
+                this withdrawal?
+              </p>
+            </div>
+          )}
+
           <AlertDialogFooter>
             <AlertDialogCancel
+              disabled={isActionLoading}
               className={[
-                "rounded-xl border px-4 py-2",
+                "border",
                 isDark
                   ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
                   : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
               ].join(" ")}
+              onClick={() => {
+                setIsDialogOpen(false);
+                setComment("");
+              }}
             >
               Cancel
             </AlertDialogCancel>
@@ -1268,9 +1541,11 @@ const WithdrawalStatus = () => {
               onClick={() =>
                 selectedWithdrawal && handleConfirmAction(selectedWithdrawal)
               }
-              disabled={isActionLoading}
+              disabled={
+                isActionLoading || (actionType === "reject" && !comment.trim())
+              }
               className={[
-                "rounded-xl border px-4 py-2 text-white disabled:opacity-60",
+                "border text-white",
                 actionType === "approve"
                   ? "border-emerald-500 bg-emerald-600 hover:bg-emerald-700"
                   : "border-red-500 bg-red-600 hover:bg-red-700",
@@ -1278,7 +1553,9 @@ const WithdrawalStatus = () => {
             >
               {isActionLoading
                 ? "Processing..."
-                : `Confirm ${actionType === "approve" ? "Approval" : "Rejection"}`}
+                : `Confirm ${
+                    actionType === "approve" ? "Approval" : "Rejection"
+                  }`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

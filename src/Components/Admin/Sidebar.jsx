@@ -58,6 +58,12 @@ const modules = [
     subtitle: "Client Control",
     icon: <UserRoundCog className="w-5 h-5" />,
   },
+  {
+  name: "Insurance",
+  path: "/admin/insurance-report",
+  subtitle: "Coverage Reports",
+  icon: <ShieldCheck className="w-5 h-5" />,
+},
 
 
   {

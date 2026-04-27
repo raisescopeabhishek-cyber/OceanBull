@@ -15,12 +15,26 @@ import UserReferralRoutes from "./routes/UserReferralRoutes";
 const App = () => {
   return (
     <>
-      <Toaster position="top-right" />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+   <Toaster
+  position="top-right"
+  containerStyle={{
+    zIndex: 999999,
+  }}
+  toastOptions={{
+    style: {
+      zIndex: 999999,
+    },
+  }}
+/>
+
+<ToastContainer
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  style={{
+    zIndex: 999999,
+  }}
+/>
 
       <Suspense fallback={<LoadingModal />}>
         <Routes>

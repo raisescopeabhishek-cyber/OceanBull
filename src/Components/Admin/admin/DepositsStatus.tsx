@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
 import {
   ArrowLeftRight,
   CircleCheckBig,
@@ -15,16 +16,6 @@ import {
   Eye,
   Shield,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../ui/alert-dialog";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
 import { useSelector } from "react-redux";
@@ -32,6 +23,193 @@ import { useSelector } from "react-redux";
 import DepositDetailsModal from "../admin/DepositDetailsModal.jsx";
 
 const PAGE_LIMIT = 10;
+
+const cn = (...classes: any[]) => classes.filter(Boolean).join(" ");
+
+/* -------------------------------------------------------------------------- */
+/* Local independent AlertDialog components for DepositsStatus only            */
+/* -------------------------------------------------------------------------- */
+
+const AlertDialog = ({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}) => {
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog
+        as="div"
+        className="relative z-[1000]"
+        onClose={() => onOpenChange(false)}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px]" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            {children}
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
+const AlertDialogContent = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <Transition.Child
+      as={Fragment}
+      enter="ease-out duration-200"
+      enterFrom="opacity-0 scale-95"
+      enterTo="opacity-100 scale-100"
+      leave="ease-in duration-150"
+      leaveFrom="opacity-100 scale-100"
+      leaveTo="opacity-0 scale-95"
+    >
+      <Dialog.Panel
+        className={cn(
+          "w-full overflow-hidden text-left align-middle shadow-2xl transition-all",
+          className
+        )}
+      >
+        {children}
+      </Dialog.Panel>
+    </Transition.Child>
+  );
+};
+
+const AlertDialogHeader = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return <div className={className || "mb-4"}>{children}</div>;
+};
+
+const AlertDialogTitle = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <Dialog.Title className={cn("font-bold", className || "text-2xl")}>
+      {children}
+    </Dialog.Title>
+  );
+};
+
+const AlertDialogDescription = ({
+  children,
+  className = "",
+  asChild = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  asChild?: boolean;
+}) => {
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<any>;
+
+    return React.cloneElement(child, {
+      className: cn(child.props?.className, className),
+    });
+  }
+
+  return <div className={cn("text-sm", className)}>{children}</div>;
+};
+
+const AlertDialogFooter = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <div
+      className={
+        className || "mt-5 flex flex-wrap items-center justify-end gap-3"
+      }
+    >
+      {children}
+    </div>
+  );
+};
+
+const AlertDialogCancel = ({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        className
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};
+
+const AlertDialogAction = ({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        className
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};
 
 const DepositsStatus = () => {
   const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
@@ -150,7 +328,17 @@ const DepositsStatus = () => {
   };
 
   const handleConfirmAction = async (selected: any) => {
-    if (isActionLoading || !comment.trim()) return;
+    if (isActionLoading) return;
+
+    if (actionType === "reject" && !comment.trim()) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+
+    const finalComment =
+      actionType === "approve"
+        ? comment.trim() || "Approved by admin"
+        : comment.trim();
 
     const toastId = toast.loading("Please wait...");
     setIsActionLoading(true);
@@ -163,7 +351,7 @@ const DepositsStatus = () => {
         amount: selected.baseDepositAmount || selected.deposit,
         email: selected.user?.email,
         selectedDeposit: selected,
-        comment,
+        comment: finalComment,
       });
 
       toast.success(
@@ -189,6 +377,58 @@ const DepositsStatus = () => {
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev: number) => prev + 1);
+  };
+
+  const getValidDate = (value?: string | null) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date;
+  };
+
+  const formatDateTime = (value?: string | null) => {
+    const date = getValidDate(value);
+    if (!date) return "N/A";
+
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(date);
+  };
+
+  const getTimeAgo = (value?: string | null) => {
+    const date = getValidDate(value);
+    if (!date) return "N/A";
+
+    const diffMs = Date.now() - date.getTime();
+    if (diffMs < 0) return "Just now";
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (seconds < 60) return "Just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (weeks < 5) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+    if (months < 12) return `${months} month${months > 1 ? "s" : ""} ago`;
+
+    return `${years} year${years > 1 ? "s" : ""} ago`;
+  };
+
+  const getDepositTimeValue = (item: any) => {
+    return item?.createdAt || item?.updatedAt || item?.approvedAt || null;
   };
 
   useEffect(() => {
@@ -245,37 +485,35 @@ const DepositsStatus = () => {
     [allDepositData]
   );
 
-const getDepositProofUrl = (path?: string | null) => {
-  if (!path) return "";
+  const getDepositProofUrl = (path?: string | null) => {
+    if (!path) return "";
 
-  const rawPath = String(path).trim().replace(/\\/g, "/");
+    const rawPath = String(path).trim().replace(/\\/g, "/");
 
-  if (/^https?:\/\//i.test(rawPath)) {
-    return rawPath;
-  }
+    if (/^https?:\/\//i.test(rawPath)) {
+      return rawPath;
+    }
 
-  const uploadsMatch = rawPath.match(/\/?uploads\/.+$/i);
+    const uploadsMatch = rawPath.match(/\/?uploads\/.+$/i);
 
-  const publicPath = uploadsMatch?.[0]
-    ? uploadsMatch[0].startsWith("/")
-      ? uploadsMatch[0]
-      : `/${uploadsMatch[0]}`
-    : rawPath.startsWith("/")
-      ? rawPath
-      : `/${rawPath}`;
+    const publicPath = uploadsMatch?.[0]
+      ? uploadsMatch[0].startsWith("/")
+        ? uploadsMatch[0]
+        : `/${uploadsMatch[0]}`
+      : rawPath.startsWith("/")
+        ? rawPath
+        : `/${rawPath}`;
 
-  const apiBase = String(import.meta.env.VITE_API_BASE_URL || "")
-    .replace(/\/api\/?$/i, "")
-    .replace(/\/$/, "");
+    const apiBase = String(import.meta.env.VITE_API_BASE_URL || "")
+      .replace(/\/api\/?$/i, "")
+      .replace(/\/$/, "");
 
-  // Localhost par /uploads frontend se nahi, backend se load hoga
-  if (window.location.hostname === "localhost") {
-    return `${apiBase}${publicPath}`;
-  }
+    if (window.location.hostname === "localhost") {
+      return `${apiBase}${publicPath}`;
+    }
 
-  // Production me agar Vercel rewrite /uploads configured hai to ye chalega
-  return publicPath;
-};
+    return publicPath;
+  };
 
   const getStatusBadge = (value: string) => {
     if (value === "approved") {
@@ -440,7 +678,8 @@ const getDepositProofUrl = (path?: string | null) => {
                       isDark ? "text-white/45" : "text-slate-500",
                     ].join(" ")}
                   >
-                    Search, filter and manage all deposit requests from one place.
+                    Search, filter and manage all deposit requests from one
+                    place.
                   </p>
                 </div>
               </div>
@@ -686,7 +925,7 @@ const getDepositProofUrl = (path?: string | null) => {
           ].join(" ")}
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1500px]">
+            <table className="w-full min-w-[1650px]">
               <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
                 <tr
                   className={[
@@ -702,6 +941,7 @@ const getDepositProofUrl = (path?: string | null) => {
                     "Insurance",
                     "Details",
                     "Proof",
+                    "Time",
                     "Status / Action",
                   ].map((heading) => (
                     <th
@@ -754,188 +994,220 @@ const getDepositProofUrl = (path?: string | null) => {
                     </td>
                   </tr>
                 ) : (
-                  depositData.map((item) => (
-                    <tr
-                      key={item?._id}
-                      className={[
-                        "border-b transition",
-                        isDark
-                          ? "border-white/10 hover:bg-white/[0.03]"
-                          : "border-orange-200 hover:bg-orange-50/40",
-                      ].join(" ")}
-                    >
-                      <td className="px-5 py-4">
-                        <div>
-                          <p
-                            className={[
-                              "font-semibold",
-                              isDark ? "text-white" : "text-slate-900",
-                            ].join(" ")}
-                          >
-                            {item?.user?.fullName ||
-                              `${item?.user?.firstName || ""} ${
-                                item?.user?.lastName || ""
-                              }`.trim() ||
-                              "Not found"}
-                          </p>
-                          <p
-                            className={[
-                              "text-sm",
-                              isDark ? "text-blue-300" : "text-primary-600",
-                            ].join(" ")}
-                          >
-                            {item?.user?.email || "Not found"}
-                          </p>
-                        </div>
-                      </td>
+                  depositData.map((item) => {
+                    const timeValue = getDepositTimeValue(item);
 
-                      <td
+                    return (
+                      <tr
+                        key={item?._id}
                         className={[
-                          "px-5 py-4 font-medium",
-                          isDark ? "text-white/80" : "text-slate-700",
+                          "border-b transition",
+                          isDark
+                            ? "border-white/10 hover:bg-white/[0.03]"
+                            : "border-orange-200 hover:bg-orange-50/40",
                         ].join(" ")}
                       >
-                        {item?.mt5Account || "N/A"}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={[
-                            "inline-flex min-w-[44px] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold",
-                            isDark
-                              ? "bg-blue-500/10 text-blue-300"
-                              : "bg-orange-50 text-orange-700",
-                          ].join(" ")}
-                        >
-                          {item?.accountType || "--"}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-col">
-                          <span
-                            className={[
-                              "text-sm font-semibold",
-                              isDark ? "text-white" : "text-slate-900",
-                            ].join(" ")}
-                          >
-                            ${Number(item?.deposit || 0).toFixed(2)}
-                          </span>
-                          <span
-                            className={[
-                              "mt-1 text-xs",
-                              isDark ? "text-white/40" : "text-slate-500",
-                            ].join(" ")}
-                          >
-                            Base: $
-                            {Number(item?.baseDepositAmount || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-col gap-2">
-                          {getInsuranceBadge(item?.insuranceDetails)}
-                          {item?.insuranceDetails ? (
-                            <div
+                        <td className="px-5 py-4">
+                          <div>
+                            <p
                               className={[
-                                "space-y-1 text-xs",
-                                isDark ? "text-white/55" : "text-slate-500",
+                                "font-semibold",
+                                isDark ? "text-white" : "text-slate-900",
                               ].join(" ")}
                             >
-                              <p>
-                                Charge: $
-                                {Number(
-                                  item?.insuranceDetails?.insuranceChargeAmount || 0
-                                ).toFixed(2)}
-                              </p>
-                              <p>
-                                Claim: $
-                                {Number(
-                                  item?.insuranceDetails?.claimAmount || 0
-                                ).toFixed(2)}
-                              </p>
-                            </div>
-                          ) : null}
-                        </div>
-                      </td>
+                              {item?.user?.fullName ||
+                                `${item?.user?.firstName || ""} ${
+                                  item?.user?.lastName || ""
+                                }`.trim() ||
+                                "Not found"}
+                            </p>
+                            <p
+                              className={[
+                                "text-sm",
+                                isDark ? "text-blue-300" : "text-primary-600",
+                              ].join(" ")}
+                            >
+                              {item?.user?.email || "Not found"}
+                            </p>
+                          </div>
+                        </td>
 
-                      <td className="px-5 py-4">
-                        <button
-                          onClick={() => toggleDetails(item)}
+                        <td
                           className={[
-                            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
-                            isDark
-                              ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-                              : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
+                            "px-5 py-4 font-medium",
+                            isDark ? "text-white/80" : "text-slate-700",
                           ].join(" ")}
                         >
-                          <Eye size={16} />
-                          Details
-                        </button>
-                      </td>
+                          {item?.mt5Account || "N/A"}
+                        </td>
 
-                      <td className="px-5 py-4">
-                       <button
-  onClick={() => item?.depositSS && togglePreview(item)}
-  disabled={!item?.depositSS}
-  className={[
-    "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
-    isDark
-      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-      : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-  ].join(" ")}
->
-  <Image size={16} />
-  {item?.depositSS ? "View" : "No Proof"}
-</button>
-                      </td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={[
+                              "inline-flex min-w-[44px] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold",
+                              isDark
+                                ? "bg-blue-500/10 text-blue-300"
+                                : "bg-orange-50 text-orange-700",
+                            ].join(" ")}
+                          >
+                            {item?.accountType || "--"}
+                          </span>
+                        </td>
 
-                      <td className="px-5 py-4">
-                        {item?.status === "pending" ? (
-                          isActionLoading ? (
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col">
                             <span
-                              className={
-                                isDark ? "text-white/50" : "text-slate-500"
-                              }
+                              className={[
+                                "text-sm font-semibold",
+                                isDark ? "text-white" : "text-slate-900",
+                              ].join(" ")}
                             >
-                              Please wait...
+                              ${Number(item?.deposit || 0).toFixed(2)}
                             </span>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleActionClick(item, "approve")}
-                                className={[
-                                  "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                                  isDark
-                                    ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                                ].join(" ")}
-                              >
-                                <CircleCheckBig size={16} />
-                                Approve
-                              </button>
+                            <span
+                              className={[
+                                "mt-1 text-xs",
+                                isDark ? "text-white/40" : "text-slate-500",
+                              ].join(" ")}
+                            >
+                              Base: $
+                              {Number(item?.baseDepositAmount || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        </td>
 
-                              <button
-                                onClick={() => handleActionClick(item, "reject")}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-2">
+                            {getInsuranceBadge(item?.insuranceDetails)}
+                            {item?.insuranceDetails ? (
+                              <div
                                 className={[
-                                  "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                                  isDark
-                                    ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-                                    : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                                  "space-y-1 text-xs",
+                                  isDark ? "text-white/55" : "text-slate-500",
                                 ].join(" ")}
                               >
-                                <CircleX size={16} />
-                                Reject
-                              </button>
-                            </div>
-                          )
-                        ) : (
-                          getStatusBadge(item?.status)
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                                <p>
+                                  Charge: $
+                                  {Number(
+                                    item?.insuranceDetails
+                                      ?.insuranceChargeAmount || 0
+                                  ).toFixed(2)}
+                                </p>
+                                <p>
+                                  Claim: $
+                                  {Number(
+                                    item?.insuranceDetails?.claimAmount || 0
+                                  ).toFixed(2)}
+                                </p>
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <button
+                            onClick={() => toggleDetails(item)}
+                            className={[
+                              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
+                              isDark
+                                ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
+                                : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
+                            ].join(" ")}
+                          >
+                            <Eye size={16} />
+                            Details
+                          </button>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <button
+                            onClick={() =>
+                              item?.depositSS && togglePreview(item)
+                            }
+                            disabled={!item?.depositSS}
+                            className={[
+                              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+                              isDark
+                                ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
+                                : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
+                            ].join(" ")}
+                          >
+                            <Image size={16} />
+                            {item?.depositSS ? "View" : "No Proof"}
+                          </button>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="min-w-[155px]">
+                            <p
+                              className={[
+                                "text-sm font-semibold",
+                                isDark ? "text-white" : "text-slate-900",
+                              ].join(" ")}
+                            >
+                              {formatDateTime(timeValue)}
+                            </p>
+                            <p
+                              className={[
+                                "mt-1 text-xs font-medium",
+                                isDark ? "text-white/45" : "text-slate-500",
+                              ].join(" ")}
+                            >
+                              {getTimeAgo(timeValue)}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          {item?.status === "pending" ? (
+                            isActionLoading ? (
+                              <span
+                                className={
+                                  isDark ? "text-white/50" : "text-slate-500"
+                                }
+                              >
+                                Please wait...
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() =>
+                                    handleActionClick(item, "approve")
+                                  }
+                                  className={[
+                                    "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                                    isDark
+                                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
+                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                                  ].join(" ")}
+                                >
+                                  <CircleCheckBig size={16} />
+                                  Approve
+                                </button>
+
+                                <button
+                                  onClick={() =>
+                                    handleActionClick(item, "reject")
+                                  }
+                                  className={[
+                                    "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                                    isDark
+                                      ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                                      : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                                  ].join(" ")}
+                                >
+                                  <CircleX size={16} />
+                                  Reject
+                                </button>
+                              </div>
+                            )
+                          ) : (
+                            getStatusBadge(item?.status)
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -989,217 +1261,256 @@ const getDepositProofUrl = (path?: string | null) => {
               </p>
             </div>
           ) : (
-            depositData.map((item) => (
-              <div
-                key={item?._id}
-                className={[
-                  "rounded-[24px] border p-4 backdrop-blur-xl",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-orange-100/80 bg-white/65",
-                ].join(" ")}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3
-                      className={[
-                        "truncate text-base font-semibold",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {item?.user?.fullName ||
-                        `${item?.user?.firstName || ""} ${
-                          item?.user?.lastName || ""
-                        }`.trim() ||
-                        "Not found"}
-                    </h3>
-                    <p
-                      className={[
-                        "block truncate text-sm",
-                        isDark ? "text-blue-300" : "text-primary-600",
-                      ].join(" ")}
-                    >
-                      {item?.user?.email || "Not found"}
-                    </p>
-                  </div>
+            depositData.map((item) => {
+              const timeValue = getDepositTimeValue(item);
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleDetails(item)}
-                      className={[
-                        "shrink-0 rounded-xl border p-2",
-                        isDark
-                          ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                          : "border-blue-200 bg-blue-50 text-blue-600",
-                      ].join(" ")}
-                    >
-                      <Eye size={18} />
-                    </button>
-
-                    <button
-                      onClick={() => togglePreview(item)}
-                      className={[
-                        "shrink-0 rounded-xl border p-2",
-                        isDark
-                          ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                          : "border-blue-200 bg-blue-50 text-blue-600",
-                      ].join(" ")}
-                    >
-                      <Image size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div
-                    className={[
-                      "rounded-xl p-3",
-                      isDark ? "bg-white/[0.035]" : "bg-white/55",
-                    ].join(" ")}
-                  >
-                    <p
-                      className={[
-                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      MT5 Account
-                    </p>
-                    <p
-                      className={[
-                        "mt-1 text-sm font-semibold",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {item?.mt5Account || "N/A"}
-                    </p>
-                  </div>
-
-                  <div
-                    className={[
-                      "rounded-xl p-3",
-                      isDark ? "bg-white/[0.035]" : "bg-white/55",
-                    ].join(" ")}
-                  >
-                    <p
-                      className={[
-                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      Status
-                    </p>
-                    <div className="mt-1">{getStatusBadge(item?.status)}</div>
-                  </div>
-
-                  <div
-                    className={[
-                      "rounded-xl p-3",
-                      isDark ? "bg-white/[0.035]" : "bg-white/55",
-                    ].join(" ")}
-                  >
-                    <p
-                      className={[
-                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      Deposit
-                    </p>
-                    <p
-                      className={[
-                        "mt-1 text-sm font-semibold",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      ${Number(item?.deposit || 0).toFixed(2)}
-                    </p>
-                    <p
-                      className={[
-                        "mt-1 text-xs",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      Base: ${Number(item?.baseDepositAmount || 0).toFixed(2)}
-                    </p>
-                  </div>
-
-                  <div
-                    className={[
-                      "rounded-xl p-3",
-                      isDark ? "bg-white/[0.035]" : "bg-white/55",
-                    ].join(" ")}
-                  >
-                    <p
-                      className={[
-                        "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      Insurance
-                    </p>
-                    <div className="mt-1">
-                      {getInsuranceBadge(item?.insuranceDetails)}
-                    </div>
-                    {item?.insuranceDetails ? (
+              return (
+                <div
+                  key={item?._id}
+                  className={[
+                    "rounded-[24px] border p-4 backdrop-blur-xl",
+                    isDark
+                      ? "border-white/10 bg-white/[0.03]"
+                      : "border-orange-100/80 bg-white/65",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className={[
+                          "truncate text-base font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {item?.user?.fullName ||
+                          `${item?.user?.firstName || ""} ${
+                            item?.user?.lastName || ""
+                          }`.trim() ||
+                          "Not found"}
+                      </h3>
                       <p
                         className={[
-                          "mt-2 text-xs",
+                          "block truncate text-sm",
+                          isDark ? "text-blue-300" : "text-primary-600",
+                        ].join(" ")}
+                      >
+                        {item?.user?.email || "Not found"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleDetails(item)}
+                        className={[
+                          "shrink-0 rounded-xl border p-2",
+                          isDark
+                            ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                            : "border-blue-200 bg-blue-50 text-blue-600",
+                        ].join(" ")}
+                      >
+                        <Eye size={18} />
+                      </button>
+
+                      <button
+                        onClick={() => item?.depositSS && togglePreview(item)}
+                        disabled={!item?.depositSS}
+                        className={[
+                          "shrink-0 rounded-xl border p-2 disabled:cursor-not-allowed disabled:opacity-50",
+                          isDark
+                            ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+                            : "border-blue-200 bg-blue-50 text-blue-600",
+                        ].join(" ")}
+                      >
+                        <Image size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
                           isDark ? "text-white/45" : "text-slate-500",
                         ].join(" ")}
                       >
-                        Claim: $
-                        {Number(item?.insuranceDetails?.claimAmount || 0).toFixed(
-                          2
-                        )}
+                        MT5 Account
                       </p>
-                    ) : null}
+                      <p
+                        className={[
+                          "mt-1 text-sm font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {item?.mt5Account || "N/A"}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Status
+                      </p>
+                      <div className="mt-1">{getStatusBadge(item?.status)}</div>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Deposit
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        ${Number(item?.deposit || 0).toFixed(2)}
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-xs",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Base: ${Number(item?.baseDepositAmount || 0).toFixed(2)}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Time
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-sm font-semibold",
+                          isDark ? "text-white" : "text-slate-900",
+                        ].join(" ")}
+                      >
+                        {formatDateTime(timeValue)}
+                      </p>
+                      <p
+                        className={[
+                          "mt-1 text-xs font-medium",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        {getTimeAgo(timeValue)}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "rounded-xl p-3",
+                        isDark ? "bg-white/[0.035]" : "bg-white/55",
+                      ].join(" ")}
+                    >
+                      <p
+                        className={[
+                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500",
+                        ].join(" ")}
+                      >
+                        Insurance
+                      </p>
+                      <div className="mt-1">
+                        {getInsuranceBadge(item?.insuranceDetails)}
+                      </div>
+                      {item?.insuranceDetails ? (
+                        <p
+                          className={[
+                            "mt-2 text-xs",
+                            isDark ? "text-white/45" : "text-slate-500",
+                          ].join(" ")}
+                        >
+                          Claim: $
+                          {Number(
+                            item?.insuranceDetails?.claimAmount || 0
+                          ).toFixed(2)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    {item?.status === "pending" ? (
+                      isActionLoading ? (
+                        <span
+                          className={
+                            isDark ? "text-white/50" : "text-slate-500"
+                          }
+                        >
+                          Please wait...
+                        </span>
+                      ) : (
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            onClick={() => handleActionClick(item, "approve")}
+                            className={[
+                              "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                              isDark
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                            ].join(" ")}
+                          >
+                            <CircleCheckBig size={16} />
+                            Approve
+                          </button>
+
+                          <button
+                            onClick={() => handleActionClick(item, "reject")}
+                            className={[
+                              "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                              isDark
+                                ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                                : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+                            ].join(" ")}
+                          >
+                            <CircleX size={16} />
+                            Reject
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      <div>{getStatusBadge(item?.status)}</div>
+                    )}
                   </div>
                 </div>
-
-                <div className="mt-4">
-                  {item?.status === "pending" ? (
-                    isActionLoading ? (
-                      <span
-                        className={isDark ? "text-white/50" : "text-slate-500"}
-                      >
-                        Please wait...
-                      </span>
-                    ) : (
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          onClick={() => handleActionClick(item, "approve")}
-                          className={[
-                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                            isDark
-                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                          ].join(" ")}
-                        >
-                          <CircleCheckBig size={16} />
-                          Approve
-                        </button>
-
-                        <button
-                          onClick={() => handleActionClick(item, "reject")}
-                          className={[
-                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                            isDark
-                              ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-                              : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-                          ].join(" ")}
-                        >
-                          <CircleX size={16} />
-                          Reject
-                        </button>
-                      </div>
-                    )
-                  ) : (
-                    <div>{getStatusBadge(item?.status)}</div>
-                  )}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -1243,10 +1554,15 @@ const getDepositProofUrl = (path?: string | null) => {
         </div>
       </div>
 
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <AlertDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (!isActionLoading) setIsDialogOpen(open);
+        }}
+      >
         <AlertDialogContent
           className={[
-            "rounded-2xl backdrop-blur-xl",
+            "max-w-xl rounded-2xl border p-5 backdrop-blur-xl sm:p-6",
             isDark
               ? "border-white/10 bg-[#0b1220] text-white"
               : "border-orange-200 bg-white text-slate-900",
@@ -1257,22 +1573,24 @@ const getDepositProofUrl = (path?: string | null) => {
               Confirm {actionType === "approve" ? "Approval" : "Rejection"}
             </AlertDialogTitle>
             <AlertDialogDescription
-              className={isDark ? "text-white/60" : "text-slate-500"}
+              className={isDark ? "mt-1 text-white/60" : "mt-1 text-slate-500"}
             >
-              Please enter a comment before continuing.
+              {actionType === "approve"
+                ? "Comment is optional for approval."
+                : "Please enter a rejection reason before continuing."}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-3">
             <textarea
-              rows={4}
+              rows={5}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder={`Write reason for ${
                 actionType === "approve" ? "approval" : "rejection"
               }...`}
               className={[
-                "w-full rounded-xl border p-3 text-sm outline-none transition",
+                "w-full resize-none rounded-xl border p-3 text-sm outline-none transition",
                 isDark
                   ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
                   : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
@@ -1282,8 +1600,9 @@ const getDepositProofUrl = (path?: string | null) => {
 
           <AlertDialogFooter>
             <AlertDialogCancel
+              disabled={isActionLoading}
               className={[
-                "rounded-xl border px-4 py-2",
+                "border",
                 isDark
                   ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
                   : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
@@ -1297,12 +1616,14 @@ const getDepositProofUrl = (path?: string | null) => {
             </AlertDialogCancel>
 
             <AlertDialogAction
-              disabled={isActionLoading || !comment.trim()}
+              disabled={
+                isActionLoading || (actionType === "reject" && !comment.trim())
+              }
               onClick={() =>
                 selectedDeposit && handleConfirmAction(selectedDeposit)
               }
               className={[
-                "rounded-xl border px-4 py-2 text-white disabled:opacity-60",
+                "border text-white",
                 actionType === "approve"
                   ? "border-emerald-500 bg-emerald-600 hover:bg-emerald-700"
                   : "border-red-500 bg-red-600 hover:bg-red-700",
@@ -1330,7 +1651,7 @@ const getDepositProofUrl = (path?: string | null) => {
       <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
         <AlertDialogContent
           className={[
-            "max-w-3xl rounded-2xl backdrop-blur-xl",
+            "max-w-4xl rounded-2xl border p-5 backdrop-blur-xl sm:p-6",
             isDark
               ? "border-white/10 bg-[#0b1220] text-white"
               : "border-orange-200 bg-white text-slate-900",
@@ -1340,18 +1661,19 @@ const getDepositProofUrl = (path?: string | null) => {
             <AlertDialogTitle className="text-xl font-semibold">
               Proof Of Deposit
             </AlertDialogTitle>
+
             <AlertDialogDescription asChild>
-              <div>
+              <div className="mt-4">
                 {selectedDeposit?.depositSS ? (
-                 <img
-  src={getDepositProofUrl(selectedDeposit?.depositSS)}
-  alt="Deposit proof"
-  className="max-h-[70vh] w-full rounded-xl object-contain"
-  onError={(e) => {
-    e.currentTarget.style.display = "none";
-    toast.error("Deposit proof image load nahi ho paayi");
-  }}
-/>
+                  <img
+                    src={getDepositProofUrl(selectedDeposit?.depositSS)}
+                    alt="Deposit proof"
+                    className="max-h-[70vh] w-full rounded-xl object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      toast.error("Deposit proof image load nahi ho paayi");
+                    }}
+                  />
                 ) : (
                   <div
                     className={[

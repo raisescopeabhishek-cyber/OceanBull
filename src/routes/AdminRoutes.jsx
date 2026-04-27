@@ -22,6 +22,7 @@ import AdminCopyRequests from "@/Components/Admin/admin/AdminCopyRequests";
 import ManageUsers from "@/Components/Admin/admin/ManageUsers";
 import LoginLogs from "@/Components/Admin/admin/LoginLogs";
 import BonusReports from "@/Components/Admin/admin/BonusReport/Bonus-report-page";
+import InsuranceReport from "@/Components/Admin/admin/Insurance/InsuranceReport";
 
 
 const AdminRoutes = () => {
@@ -52,6 +53,8 @@ const AdminRoutes = () => {
                       path="/BonusReports"
                       element={<BonusReports />}
                     />
+
+                    <Route path="/insurance-report" element={<InsuranceReport />} />
         
                     <Route
                       path="/customerSupport/tickets"

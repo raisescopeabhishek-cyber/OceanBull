@@ -3,10 +3,14 @@ import React from "react";
 import { getStatusTone } from "../utils/bonusHelpers";
 
 const toneClasses = {
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  danger: "border-rose-200 bg-rose-50 text-rose-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
-  neutral: "border-slate-200 bg-slate-50 text-slate-700",
+  success:
+    "border-emerald-100 bg-emerald-50/80 text-emerald-700 shadow-[0_0_0_3px_rgba(16,185,129,0.04)]",
+  danger:
+    "border-rose-100 bg-rose-50/80 text-rose-700 shadow-[0_0_0_3px_rgba(244,63,94,0.04)]",
+  warning:
+    "border-amber-100 bg-amber-50/80 text-amber-700 shadow-[0_0_0_3px_rgba(245,158,11,0.04)]",
+  neutral:
+    "border-orange-100/80 bg-orange-50/45 text-slate-600 shadow-[0_0_0_3px_rgba(251,146,60,0.035)]",
 };
 
 const darkToneClasses = {

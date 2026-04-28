@@ -26,6 +26,7 @@ import {
   AlertCircle,
   ReceiptText,
   Copy,
+  Clock3,
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
@@ -56,7 +57,9 @@ const rgba = (v: any, a = 1) => {
 /* -------------------- helpers -------------------- */
 function formatDate(iso: any) {
   if (!iso) return "N/A";
+
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "N/A";
 
   const date = d.toLocaleDateString("en-GB", {
     year: "numeric",
@@ -72,6 +75,42 @@ function formatDate(iso: any) {
   });
 
   return `${date}, ${time}`;
+}
+
+function formatRelativeTime(iso: any) {
+  if (!iso) return "N/A";
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "N/A";
+
+  const diffMs = Date.now() - date.getTime();
+  const isFuture = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+
+  const seconds = Math.floor(absMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  let text = "Just now";
+
+  if (seconds < 45) text = "Just now";
+  else if (minutes < 60) text = `${minutes} ${minutes === 1 ? "min" : "mins"} ago`;
+  else if (hours < 24) text = `${hours} ${hours === 1 ? "hr" : "hrs"} ago`;
+  else if (days === 1) text = "Yesterday";
+  else if (days < 7) text = `${days} days ago`;
+  else if (weeks < 5) text = `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  else if (months < 12) text = `${months} ${months === 1 ? "month" : "months"} ago`;
+  else text = `${years} ${years === 1 ? "year" : "years"} ago`;
+
+  if (isFuture && text !== "Just now") {
+    return text.replace("ago", "from now");
+  }
+
+  return text;
 }
 
 function money(n: any) {
@@ -113,6 +152,68 @@ function SectionCard({
       }}
     >
       {children}
+    </div>
+  );
+}
+
+function TxnTime({
+  date,
+  label,
+  colors,
+  tone = "default",
+}: {
+  date: any;
+  label?: string;
+  colors: any;
+  tone?: "default" | "success" | "warning" | "danger";
+}) {
+  if (!date) {
+    return (
+      <span className="text-xs" style={{ color: colors.muted }}>
+        N/A
+      </span>
+    );
+  }
+
+  const toneColor =
+    tone === "success"
+      ? colors.success
+      : tone === "warning"
+      ? colors.warning
+      : tone === "danger"
+      ? colors.danger
+      : colors.accent;
+
+  return (
+    <div className="min-w-[135px] text-center">
+      {label ? (
+        <div
+          className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em]"
+          style={{ color: colors.muted }}
+        >
+          {label}
+        </div>
+      ) : null}
+
+      <div
+        className="inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold"
+        style={{
+          borderColor: colors.isDark
+            ? "rgba(255,255,255,0.10)"
+            : "rgba(249,115,22,0.22)",
+          background: colors.isDark
+            ? "rgba(255,255,255,0.04)"
+            : "rgba(249,115,22,0.08)",
+          color: toneColor,
+        }}
+      >
+        <Clock3 className="h-3.5 w-3.5" />
+        {formatRelativeTime(date)}
+      </div>
+
+      <div className="mt-1 text-[11px] leading-4" style={{ color: colors.muted }}>
+        {formatDate(date)}
+      </div>
     </div>
   );
 }
@@ -527,6 +628,7 @@ export default function UserWithdraw() {
     if (!account) return;
 
     setBalanceLoading(true);
+
     try {
       setAccountBalance("");
       const res = await userApi.get(`/server-logger-info?account=${account}`);
@@ -553,6 +655,7 @@ export default function UserWithdraw() {
         "USDT(Trc20)": loggedUser?.walletDetails?.tetherAddress,
         "USDT(Bep20)": loggedUser?.walletDetails?.ethAddress,
       };
+
       return mapping[walletType] || "Not configured";
     },
     [loggedUser?.walletDetails]
@@ -602,6 +705,14 @@ export default function UserWithdraw() {
             "—",
           createdAt: item.createdAt || item.created_at || item.created || null,
           updatedAt: item.updatedAt || item.updated_at || item.updated || null,
+          approvedAt:
+            item.approvedAt ||
+            item.completedAt ||
+            item.processedAt ||
+            item.approved_at ||
+            item.completed_at ||
+            item.processed_at ||
+            null,
           status: item.status || "unknown",
         }));
 
@@ -677,9 +788,30 @@ export default function UserWithdraw() {
 
     const term = txnQ.trim().toLowerCase();
 
-    return withdrawTransactions.filter((row) =>
-      Object.values(row).some((v) => String(v ?? "").toLowerCase().includes(term))
-    );
+    return withdrawTransactions.filter((row: any) => {
+      const searchable = [
+        row._id,
+        row.mt5Account,
+        row.accountType,
+        row.amount,
+        row.method,
+        row.walletAddress,
+        row.status,
+        row.createdAt,
+        row.updatedAt,
+        row.approvedAt,
+        formatDate(row.createdAt),
+        formatDate(row.updatedAt),
+        formatDate(row.approvedAt),
+        formatRelativeTime(row.createdAt),
+        formatRelativeTime(row.updatedAt),
+        formatRelativeTime(row.approvedAt),
+      ];
+
+      return searchable.some((v) =>
+        String(v ?? "").toLowerCase().includes(term)
+      );
+    });
   }, [txnQ, withdrawTransactions]);
 
   const txnStats = useMemo(() => {
@@ -751,6 +883,7 @@ export default function UserWithdraw() {
     const selectedAcc = loggedUser?.accounts?.find(
       (acc: any) => String(acc.accountNumber) === String(value)
     );
+
     setAccountType(selectedAcc?.accountType || "");
   };
 
@@ -877,6 +1010,7 @@ export default function UserWithdraw() {
       setOtpSent(false);
       setOtp("");
       fetchAccountInfo();
+      fetchWithdrawTransactions();
 
       window.setTimeout(() => {
         setOpenStep(1);
@@ -1065,6 +1199,7 @@ export default function UserWithdraw() {
                         value={`$${money(txnStats.total)}`}
                         tone="info"
                       />
+
                       <StatCard
                         colors={colors}
                         icon={<CircleDollarSign className="h-5 w-5" />}
@@ -1072,6 +1207,7 @@ export default function UserWithdraw() {
                         value={txnStats.approved}
                         tone="success"
                       />
+
                       <StatCard
                         colors={colors}
                         icon={<Gauge className="h-5 w-5" />}
@@ -1079,6 +1215,7 @@ export default function UserWithdraw() {
                         value={txnStats.pending}
                         tone="warning"
                       />
+
                       <StatCard
                         colors={colors}
                         icon={<TrendingUp className="h-5 w-5" />}
@@ -1094,10 +1231,11 @@ export default function UserWithdraw() {
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
                           style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
+
                         <input
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
-                          placeholder="Search by account, method, wallet, status..."
+                          placeholder="Search by account, method, wallet, status, just now..."
                           className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
                           style={{
                             borderColor: colors.inputBorder,
@@ -1129,6 +1267,7 @@ export default function UserWithdraw() {
                             >
                               <div className="py-8 text-center">
                                 <LoaderIcon color={accentColor} />
+
                                 <p
                                   className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]"
                                   style={{ color: mutedTextColor }}
@@ -1137,7 +1276,7 @@ export default function UserWithdraw() {
                                 </p>
                               </div>
 
-                              <SkeletonTable cols={7} colors={colors} />
+                              <SkeletonTable cols={8} colors={colors} />
                             </motion.div>
                           ) : txnError ? (
                             <motion.div
@@ -1190,6 +1329,7 @@ export default function UserWithdraw() {
                                       "Wallet / Address",
                                       "Requested",
                                       "Status",
+                                      "Timeline",
                                     ].map((head) => (
                                       <th
                                         key={head}
@@ -1259,11 +1399,8 @@ export default function UserWithdraw() {
                                         </span>
                                       </td>
 
-                                      <td
-                                        className="px-4 py-3 text-center text-xs"
-                                        style={{ color: mutedTextColor }}
-                                      >
-                                        {formatDate(item?.createdAt)}
+                                      <td className="px-4 py-3 text-center">
+                                        <TxnTime date={item?.createdAt} colors={colors} />
                                       </td>
 
                                       <td className="px-4 py-3 text-center">
@@ -1273,6 +1410,18 @@ export default function UserWithdraw() {
                                         >
                                           {(item?.status || "UNKNOWN").toString().toUpperCase()}
                                         </span>
+                                      </td>
+
+                                      <td className="px-4 py-4 align-top">
+                                        <div className="space-y-3">
+                                          <TxnTime
+                                            date={item.updatedAt}
+                                            label="Updated"
+                                            colors={colors}
+                                            tone="warning"
+                                          />
+
+                                        </div>
                                       </td>
                                     </tr>
                                   ))}
@@ -1306,6 +1455,7 @@ export default function UserWithdraw() {
               <div className="text-[28px] font-bold text-white sm:text-[32px]">
                 Withdraw Funds
               </div>
+
               <div className="mt-2 text-sm text-white/80">
                 Complete your withdrawal securely in 3 simple steps
               </div>
@@ -1342,6 +1492,7 @@ export default function UserWithdraw() {
               hint={accountType || "Choose account"}
               tone="default"
             />
+
             <StatCard
               colors={colors}
               icon={<DollarSign className="h-5 w-5" />}
@@ -1358,6 +1509,7 @@ export default function UserWithdraw() {
               hint="Live equity"
               tone="success"
             />
+
             <StatCard
               colors={colors}
               icon={<Landmark className="h-5 w-5" />}
@@ -1433,6 +1585,7 @@ export default function UserWithdraw() {
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
                           style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
+
                         <input
                           type="number"
                           placeholder="Enter amount"
@@ -1441,6 +1594,7 @@ export default function UserWithdraw() {
                           className="w-full py-[13px] pl-10 pr-10 text-sm font-semibold placeholder:text-orange-400"
                           style={inputStyle}
                         />
+
                         {amount && numericBalance && Number(amount) > numericBalance ? (
                           <AlertCircle
                             className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"

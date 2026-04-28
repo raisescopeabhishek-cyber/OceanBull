@@ -26,6 +26,7 @@ import {
   PencilLine,
   ArrowRight,
   Gift,
+  Clock3,
 } from "lucide-react";
 
 import UserNewChallengeHook from "../../../hooks/user/UseNewChallengeHook";
@@ -59,6 +60,8 @@ function formatDate(iso: any) {
   if (!iso) return "N/A";
   const d = new Date(iso);
 
+  if (Number.isNaN(d.getTime())) return "N/A";
+
   const date = d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "2-digit",
@@ -73,6 +76,42 @@ function formatDate(iso: any) {
   });
 
   return `${date}, ${time}`;
+}
+
+function formatRelativeTime(iso: any) {
+  if (!iso) return "N/A";
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "N/A";
+
+  const diffMs = Date.now() - date.getTime();
+  const isFuture = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+
+  const seconds = Math.floor(absMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  let text = "Just now";
+
+  if (seconds < 45) text = "Just now";
+  else if (minutes < 60) text = `${minutes} ${minutes === 1 ? "min" : "mins"} ago`;
+  else if (hours < 24) text = `${hours} ${hours === 1 ? "hr" : "hrs"} ago`;
+  else if (days === 1) text = "Yesterday";
+  else if (days < 7) text = `${days} days ago`;
+  else if (weeks < 5) text = `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  else if (months < 12) text = `${months} ${months === 1 ? "month" : "months"} ago`;
+  else text = `${years} ${years === 1 ? "year" : "years"} ago`;
+
+  if (isFuture && text !== "Just now") {
+    return text.replace("ago", "from now");
+  }
+
+  return text;
 }
 
 function money(n: any) {
@@ -121,6 +160,64 @@ function SectionCard({
       }}
     >
       {children}
+    </div>
+  );
+}
+
+function TxnTime({
+  date,
+  label,
+  colors,
+  tone = "default",
+}: {
+  date: any;
+  label?: string;
+  colors: any;
+  tone?: "default" | "success" | "warning" | "danger";
+}) {
+  if (!date) {
+    return (
+      <span className="text-xs" style={{ color: colors.muted }}>
+        N/A
+      </span>
+    );
+  }
+
+  const toneColor =
+    tone === "success"
+      ? colors.success
+      : tone === "warning"
+      ? colors.warning
+      : tone === "danger"
+      ? colors.danger
+      : colors.accent;
+
+  return (
+    <div className="min-w-[135px] text-center">
+      {label ? (
+        <div
+          className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em]"
+          style={{ color: colors.muted }}
+        >
+          {label}
+        </div>
+      ) : null}
+
+      <div
+        className="inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold"
+        style={{
+          borderColor: colors.isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.22)",
+          background: colors.isDark ? "rgba(255,255,255,0.04)" : "rgba(249,115,22,0.08)",
+          color: toneColor,
+        }}
+      >
+        <Clock3 className="h-3.5 w-3.5" />
+        {formatRelativeTime(date)}
+      </div>
+
+      <div className="mt-1 text-[11px] leading-4" style={{ color: colors.muted }}>
+        {formatDate(date)}
+      </div>
     </div>
   );
 }
@@ -1037,7 +1134,8 @@ export default function UserDeposit() {
       });
 
       toast.success("Deposit request submitted.", { id: toastID });
-      navigate("/user/dashboard");
+      setShowTxnModal(true);
+      fetchDepositTransactions();
     } catch {
       toast.error("Submission failed. Please try again.", { id: toastID });
     } finally {
@@ -1227,6 +1325,12 @@ export default function UserDeposit() {
         row.createdAt,
         row.updatedAt,
         row.approvedAt,
+        formatDate(row.createdAt),
+        formatDate(row.updatedAt),
+        formatDate(row.approvedAt),
+        formatRelativeTime(row.createdAt),
+        formatRelativeTime(row.updatedAt),
+        formatRelativeTime(row.approvedAt),
         row.insuranceOpted,
         row.bonusDetails?.depositAmount,
         row.bonusDetails?.bonusPercent,
@@ -1423,7 +1527,7 @@ export default function UserDeposit() {
                   </div>
 
                   <div className="flex-1 overflow-auto p-4 sm:p-5 md:p-6">
-                    <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                       <StatCard
                         colors={colors}
                         icon={<Wallet className="h-5 w-5" />}
@@ -1470,7 +1574,7 @@ export default function UserDeposit() {
                         <input
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
-                          placeholder="Search by account, method, txn id, status..."
+                          placeholder="Search by account, method, txn id, status, just now..."
                           className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
                           style={{
                             borderColor: colors.inputBorder,
@@ -1510,7 +1614,7 @@ export default function UserDeposit() {
                                 </p>
                               </div>
 
-                              <SkeletonTable cols={8} colors={colors} />
+                              <SkeletonTable cols={10} colors={colors} />
                             </motion.div>
                           ) : txnError ? (
                             <motion.div
@@ -1565,7 +1669,7 @@ export default function UserDeposit() {
                                       "Requested",
                                       "Proof",
                                       "Status",
-                                      "approvedAt",
+                                      "Timeline",
                                     ].map((head) => (
                                       <th
                                         key={head}
@@ -1684,11 +1788,8 @@ export default function UserDeposit() {
                                         </div>
                                       </td>
 
-                                      <td
-                                        className="px-4 py-3 text-center text-xs"
-                                        style={{ color: mutedTextColor }}
-                                      >
-                                        {formatDate(item?.createdAt)}
+                                      <td className="px-4 py-3 text-center">
+                                        <TxnTime date={item?.createdAt} colors={colors} />
                                       </td>
 
                                       <td className="px-4 py-3 text-center">
@@ -1699,7 +1800,7 @@ export default function UserDeposit() {
                                             href={
                                               String(item.depositSS).startsWith("http")
                                                 ? item.depositSS
-                                                : `${import.meta.env.VITE_BACKEND_BASE_URL}/${item.depositSS}`
+                                                : `${import.meta.env.VITE_API_BASE_URL}/${item.depositSS}`
                                             }
                                             className="inline-flex items-center gap-1 text-xs font-semibold underline"
                                             style={{ color: colors.link }}
@@ -1727,20 +1828,14 @@ export default function UserDeposit() {
                                       </td>
 
                                       <td className="px-4 py-4 align-top">
-                                        <div className="space-y-1">
-                                          <div className="text-sm" style={{ color: colors.text }}>
-                                            Created: {formatDate(item.createdAt)}
-                                          </div>
+                                        <div className="space-y-3">
+                                          <TxnTime
+                                            date={item.updatedAt}
+                                            // label="Updated"
+                                            colors={colors}
+                                            tone="warning"
+                                          />
 
-                                          <div className="text-xs" style={{ color: colors.muted }}>
-                                            Updated: {formatDate(item.updatedAt)}
-                                          </div>
-
-                                          {item.approvedAt ? (
-                                            <div className="text-xs" style={{ color: colors.success }}>
-                                              Approved: {formatDate(item.approvedAt)}
-                                            </div>
-                                          ) : null}
                                         </div>
                                       </td>
                                     </tr>

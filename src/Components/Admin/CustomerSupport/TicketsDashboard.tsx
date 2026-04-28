@@ -1,14 +1,19 @@
 // TicketsDashboard.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  PlusCircle,
-  MessageSquare,
-  Clock,
-  MessageCircle,
-  Loader2,
   AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  MessageCircle,
+  MessageSquare,
+  PlusCircle,
   RefreshCw,
   Search,
+  ShieldCheck,
+  Sparkles,
+  Ticket,
+  X,
 } from "lucide-react";
 import RaiseTicket from "./RaiseTicket";
 import TicketChat from "./TicketChat";
@@ -17,37 +22,264 @@ import { useSelector } from "react-redux";
 import { Switch } from "@headlessui/react";
 import { useLocation, useParams } from "react-router-dom";
 
-// ✨ ambient visuals (shared theme)
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0")
-    .trim()
-    .replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
+const getTheme = (isDark: boolean) => ({
+  pageText: isDark ? "text-white" : "text-slate-900",
+  text: isDark ? "text-white" : "text-slate-900",
+  muted: isDark ? "text-white/55" : "text-slate-500",
+  softText: isDark ? "text-white/70" : "text-slate-600",
+
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
+
+  header: isDark
+    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+
+  headerText: "text-white",
+  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerBadge: "border-white/20 bg-white/10 text-white",
+  headerIcon: "border-white/20 bg-white/10 text-white",
+  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
+  headerStatMuted: "text-white/75",
+
+  card: isDark
+    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+
+  cardSoft: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100/80 bg-white/70",
+
+  tableHead: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100 bg-orange-50/80",
+
+  tableRow: isDark
+    ? "border-white/10 hover:bg-white/[0.04]"
+    : "border-orange-100 hover:bg-orange-50/60",
+
+  input: isDark
+    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
+    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+
+  option: isDark ? "bg-slate-900 text-white" : "bg-orange-50 text-slate-900",
+
+  iconBox: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-200 bg-orange-50 text-orange-600",
+
+  badge: isDark
+    ? "border-white/10 bg-white/[0.05] text-white/60"
+    : "border-orange-100 bg-white/80 text-orange-600",
+
+  activeBadge: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-300 bg-orange-50 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)]",
+
+  successBadge: isDark
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+
+  warningBadge: isDark
+    ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
+    : "border-amber-200 bg-amber-50 text-amber-700",
+
+  dangerBadge: isDark
+    ? "border-red-400/20 bg-red-500/10 text-red-300"
+    : "border-red-200 bg-red-50 text-red-700",
+
+  closedBadge: isDark
+    ? "border-white/10 bg-white/[0.04] text-white/55"
+    : "border-slate-200 bg-slate-50 text-slate-600",
+
+  button: isDark
+    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
+    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+
+  outlineButton: isDark
+    ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
+    : "border-orange-200 bg-white/80 text-orange-700 hover:bg-orange-50",
+
+  modalOverlay: isDark ? "bg-black/70" : "bg-slate-900/45",
+});
+
+const HeaderCard = ({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div
+    className={cx(
+      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      theme.header
+    )}
+  >
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+      }}
+    />
+    <div className="relative z-[1]">{children}</div>
+  </div>
+);
+
+const Card = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div
+    className={cx(
+      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      theme.card,
+      className
+    )}
+  >
+    {children}
+  </div>
+);
+
+const HeaderIconBox = ({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div
+    className={cx(
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      theme.headerIcon
+    )}
+  >
+    {children}
+  </div>
+);
+
+const HeaderStatBox = ({
+  icon,
+  label,
+  value,
+  theme,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
+        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const IconBox = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div
+    className={cx(
+      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+      theme.iconBox,
+      className
+    )}
+  >
+    {children}
+  </div>
+);
+
+const StatusBadge = ({
+  status,
+  theme,
+}: {
+  status: string;
+  theme: ReturnType<typeof getTheme>;
+}) => {
+  const normalized = String(status || "").toLowerCase();
+
+  const className =
+    normalized === "open"
+      ? theme.dangerBadge
+      : normalized === "in-progress"
+      ? theme.warningBadge
+      : normalized === "resolved"
+      ? theme.successBadge
+      : normalized === "closed"
+      ? theme.closedBadge
+      : theme.badge;
+
+  return (
+    <span
+      className={cx(
+        "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold capitalize",
+        className
+      )}
+    >
+      {status || "unknown"}
+    </span>
   );
-  return { r, g, b };
 };
 
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
+const EmptyState = ({
+  theme,
+  title,
+  subtitle,
+}: {
+  theme: ReturnType<typeof getTheme>;
+  title: string;
+  subtitle: string;
+}) => (
+  <div className="flex min-h-[300px] items-center justify-center p-8 text-center">
+    <div>
+      <div
+        className={cx(
+          "mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border",
+          theme.iconBox
+        )}
+      >
+        <MessageSquare className="h-8 w-8" />
+      </div>
 
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
+      <h3 className={cx("mt-4 text-lg font-semibold", theme.text)}>{title}</h3>
+      <p className={cx("mt-2 max-w-md text-sm leading-6", theme.muted)}>
+        {subtitle}
+      </p>
+    </div>
+  </div>
+);
 
 export default function TicketsDashboard() {
-  // Theme from Redux
-  const themeConfig = useSelector((state: any) => state.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
-  const radius = theme?.radius || "14px";
+  const mode = useSelector(
+    (store: any) =>
+      store?.adminTheme?.mode || store?.userTheme?.mode || store?.theme?.mode || "light"
+  );
+
+  const isDark = mode === "dark";
+  const theme = useMemo(() => getTheme(isDark), [isDark]);
 
   const [autoReplyStatus, setAutoReplyStatus] = useState<Record<string, boolean>>({});
   const [showForm, setShowForm] = useState(false);
@@ -64,22 +296,22 @@ export default function TicketsDashboard() {
   const location = useLocation();
   const { id: routeTicketId, chatId: routeChatId } = useParams();
 
-  // Optional query params
   const queryParams = new URLSearchParams(location.search);
   const highlightedTicketId = queryParams.get("id");
   const queryChatId = queryParams.get("chatId");
 
   const fetchTickets = async () => {
     if (!AdminId) return;
+
     try {
       setLoading(true);
       setError(null);
 
       const res = await adminApi.get(`/ticket/admin/all-tickets/${AdminId}`);
-      const ticketsData = res.data || [];
+      const ticketsData = Array.isArray(res?.data) ? res.data : [];
 
-      // Auto-reply status
       const initialAutoReply: Record<string, boolean> = {};
+
       ticketsData.forEach((ticket: any) => {
         initialAutoReply[ticket._id] = !!ticket.autoReply;
       });
@@ -87,15 +319,15 @@ export default function TicketsDashboard() {
       setTickets(ticketsData);
       setAutoReplyStatus(initialAutoReply);
 
-      // ✅ Handle route params (open chat via URL)
       if (routeTicketId) {
         const ticketToOpen = ticketsData.find((t: any) => t._id === routeTicketId);
+
         if (ticketToOpen && (routeChatId || queryChatId)) {
           setActiveTicket(ticketToOpen);
         }
       }
     } catch (err: any) {
-      setError(err?.message || "Failed to load");
+      setError(err?.message || "Failed to load tickets");
       console.error("Error fetching tickets:", err);
     } finally {
       setLoading(false);
@@ -112,484 +344,492 @@ export default function TicketsDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [AdminId, routeTicketId, routeChatId, queryChatId]);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
+  };
 
   const handleToggleAutoReply = async (ticketId: string) => {
     const newStatus = !autoReplyStatus[ticketId];
-    setAutoReplyStatus((prev) => ({ ...prev, [ticketId]: newStatus }));
+
+    setAutoReplyStatus((prev) => ({
+      ...prev,
+      [ticketId]: newStatus,
+    }));
 
     try {
-      await adminApi.post(`/ticket/admin/${ticketId}/auto-reply`, { enabled: newStatus });
+      await adminApi.post(`/ticket/admin/${ticketId}/auto-reply`, {
+        enabled: newStatus,
+      });
     } catch (err) {
       console.error("Error updating auto-reply status:", err);
-      setAutoReplyStatus((prev) => ({ ...prev, [ticketId]: !newStatus }));
+
+      setAutoReplyStatus((prev) => ({
+        ...prev,
+        [ticketId]: !newStatus,
+      }));
     }
   };
 
   const handleNewTicket = async () => {
     await fetchTickets();
-  };
-
-  const statusColors: Record<string, React.CSSProperties> = {
-    open: {
-      background: rgba(theme?.danger || "244 63 94", 0.14),
-      border: `1px solid ${rgba(theme?.danger || "244 63 94", 0.26)}`,
-      color: rgba(theme?.danger || "244 63 94", 0.92),
-    },
-    "in-progress": {
-      background: rgba(theme?.warning || "234 179 8", 0.14),
-      border: `1px solid ${rgba(theme?.warning || "234 179 8", 0.26)}`,
-      color: rgba(theme?.warning || "234 179 8", 0.92),
-    },
-    resolved: {
-      background: rgba(theme?.success || "34 197 94", 0.14),
-      border: `1px solid ${rgba(theme?.success || "34 197 94", 0.26)}`,
-      color: rgba(theme?.success || "34 197 94", 0.92),
-    },
-    closed: {
-      background: rgba(theme?.muted || "148 163 184", 0.12),
-      border: `1px solid ${rgba(theme?.muted || "148 163 184", 0.22)}`,
-      color: rgba(theme?.mutedFg || theme?.fg || "203 213 225", 0.82),
-    },
+    setShowForm(false);
   };
 
   const filteredTickets = useMemo(() => {
     const byStatus =
-      filterStatus === "All" ? tickets : tickets.filter((t) => t.status === filterStatus);
+      filterStatus === "All"
+        ? tickets
+        : tickets.filter((t) => t.status === filterStatus);
+
     if (!debounced) return byStatus;
+
     return byStatus.filter((t) => {
       const who =
-        `${t?.user?.firstName || ""} ${t?.user?.lastName || ""} ${t?.user?.email || ""}`.toLowerCase();
-      const subj = `${t?.subject || ""} ${t?.description || ""}`.toLowerCase();
-      return who.includes(debounced) || subj.includes(debounced) || String(t?._id).includes(debounced);
+        `${t?.user?.firstName || ""} ${t?.user?.lastName || ""} ${
+          t?.user?.email || ""
+        }`.toLowerCase();
+
+      const subject = `${t?.subject || ""} ${t?.description || ""}`.toLowerCase();
+
+      return (
+        who.includes(debounced) ||
+        subject.includes(debounced) ||
+        String(t?._id || "").toLowerCase().includes(debounced)
+      );
     });
   }, [tickets, filterStatus, debounced]);
 
-  /* ------------------------------- styles -------------------------------- */
-  const pageBgStyle = {
-    minHeight: "100vh",
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(
-      theme?.glow || theme?.accent,
-      0.16
-    )}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(
-                   theme?.gradientTo || theme?.accent,
-                   0.12
-                 )}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(
-      theme?.surface1 || theme?.bg || "0 0 0"
-    )}, ${rgb(theme?.bg || "0 0 0")})`,
-    color: rgb(theme?.fg || "255 255 255"),
-  } as React.CSSProperties;
+  const stats = useMemo(() => {
+    const open = tickets.filter((ticket) => ticket.status === "open").length;
+    const progress = tickets.filter((ticket) => ticket.status === "in-progress").length;
+    const resolved = tickets.filter((ticket) => ticket.status === "resolved").length;
 
-  const stickyHeaderStyle = {
-    background: `linear-gradient(to bottom, ${rgba(theme?.bg || "0 0 0", 0.78)}, transparent)`,
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-  } as React.CSSProperties;
+    return {
+      total: tickets.length,
+      open,
+      progress,
+      resolved,
+    };
+  }, [tickets]);
 
-  const tableCardStyle = {
-    borderRadius: "24px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: `linear-gradient(135deg, ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.75)}, ${rgba(
-      theme?.surface1 || theme?.bg || "0 0 0",
-      0.88
-    )})`,
-    boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.5)}`,
-    overflow: "hidden",
-  } as React.CSSProperties;
-
-  const thStyle = {
-    color: rgba(theme?.fg || "255 255 255", 0.82),
-    borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-    background: rgba(theme?.headerRow || theme?.surface3 || "30 30 30", 0.55),
-  } as React.CSSProperties;
-
-  const inputStyle = {
-    borderRadius: "18px",
-    background: rgba(theme?.input || theme?.surface2 || "18 18 18", 0.35),
-    border: `1px solid ${rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18)}`,
-    color: rgba(theme?.fg || "255 255 255", 0.92),
-  } as React.CSSProperties;
-
-  const selectStyle = {
-    borderRadius: "18px",
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.28),
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-    color: rgba(theme?.fg || "255 255 255", 0.92),
-  } as React.CSSProperties;
-
-  const btnPrimaryStyle = {
-    borderRadius: "18px",
-    border: `1px solid ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.28)}`,
-    background: `linear-gradient(90deg, ${rgba(theme?.gradientFrom || theme?.accent || "59 130 246", 0.98)}, ${rgba(
-      theme?.gradientTo || "147 51 234",
-      0.98
-    )})`,
-    color: rgba(theme?.accentFg || "255 255 255", 0.98),
-    boxShadow: `0 14px 40px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
-  } as React.CSSProperties;
-
-  const btnGhostStyle = {
-    borderRadius: "18px",
-    border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.18)}`,
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
-    color: rgba(theme?.fg || "255 255 255", 0.9),
-  } as React.CSSProperties;
-
-  const titleGradientStyle = {
-    backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-      theme?.gradientTo || "147 51 234"
-    )})`,
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    color: "transparent",
-  } as React.CSSProperties;
-
-  // Loading / Error states
-  if (loading)
+  if (loading) {
     return (
-      <div className="relative text-white" style={pageBgStyle}>
-        <AnimatedGrid />
-        <FloatingParticles />
-        <div className="h-screen flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.72) }} className="text-lg">
-              Loading tickets...
-            </p>
-          </div>
-        </div>
+      <div
+        className={cx(
+          "flex min-h-screen w-full items-center justify-center p-4",
+          theme.pageBg,
+          theme.pageText
+        )}
+      >
+        <Card theme={theme} className="w-full max-w-md text-center">
+          <Loader2 className="mx-auto h-9 w-9 animate-spin text-orange-500" />
+          <p className={cx("mt-4 text-sm font-semibold", theme.muted)}>
+            Loading tickets...
+          </p>
+        </Card>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
-      <div className="relative text-white" style={pageBgStyle}>
-        <AnimatedGrid />
-        <FloatingParticles />
-        <div className="h-screen flex items-center justify-center px-4">
-          <div className="text-center p-6" style={tableCardStyle}>
-            <AlertCircle className="w-8 h-8 mx-auto mb-4" style={{ color: rgba(theme?.danger || "244 63 94", 0.9) }} />
-            <p className="text-lg mb-4" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
-              Error loading tickets: {error}
-            </p>
-            <button
-              onClick={fetchTickets}
-              className="px-4 py-2 transition-all"
-              style={btnPrimaryStyle}
-            >
-              Retry
-            </button>
+      <div
+        className={cx(
+          "flex min-h-screen w-full items-center justify-center p-4",
+          theme.pageBg,
+          theme.pageText
+        )}
+      >
+        <Card theme={theme} className="w-full max-w-md text-center">
+          <div
+            className={cx(
+              "mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border",
+              theme.dangerBadge
+            )}
+          >
+            <AlertCircle className="h-7 w-7" />
           </div>
-        </div>
+
+          <h3 className={cx("mt-4 text-lg font-semibold", theme.text)}>
+            Error loading tickets
+          </h3>
+
+          <p className={cx("mt-2 text-sm", theme.muted)}>{error}</p>
+
+          <button
+            type="button"
+            onClick={fetchTickets}
+            className={cx(
+              "mt-5 inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold transition",
+              theme.button
+            )}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </Card>
       </div>
     );
+  }
 
   return (
-    <div className="relative text-white" style={pageBgStyle}>
-      <AnimatedGrid />
-      <FloatingParticles />
+    <div className={cx("min-h-screen w-full p-4 sm:p-6", theme.pageBg, theme.pageText)}>
+      <div className="mx-auto max-w-7xl space-y-5">
+        {/* Header */}
+        <HeaderCard theme={theme}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <HeaderIconBox theme={theme}>
+                <MessageSquare className="h-6 w-6" />
+              </HeaderIconBox>
 
-      <div className="max-w-7xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Sticky controls */}
-        <div
-          className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md"
-          style={stickyHeaderStyle}
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-2xl md:text-3xl font-bold drop-shadow flex items-center gap-2" style={titleGradientStyle}>
-              <MessageSquare className="w-7 h-7" />
-              Customer Support Dashboard
-            </h1>
+              <div>
+                <div
+                  className={cx(
+                    "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+                    theme.headerBadge
+                  )}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Customer · Support · Tickets
+                </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              {/* search */}
-              <div className="relative w-full md:w-80">
+                <h1
+                  className={cx(
+                    "text-2xl font-bold tracking-tight sm:text-3xl",
+                    theme.headerText
+                  )}
+                >
+                  Customer Support Dashboard
+                </h1>
+
+                <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
+                  Manage support tickets, review user issues, and continue ticket chats from one clean workspace.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 lg:min-w-[620px]">
+              <HeaderStatBox
+                theme={theme}
+                icon={<Ticket className="h-4 w-4" />}
+                label="Total"
+                value={stats.total}
+              />
+
+              <HeaderStatBox
+                theme={theme}
+                icon={<AlertCircle className="h-4 w-4" />}
+                label="Open"
+                value={stats.open}
+              />
+
+              <HeaderStatBox
+                theme={theme}
+                icon={<Clock className="h-4 w-4" />}
+                label="Progress"
+                value={stats.progress}
+              />
+
+              <HeaderStatBox
+                theme={theme}
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                label="Resolved"
+                value={stats.resolved}
+              />
+            </div>
+          </div>
+        </HeaderCard>
+
+        {/* Controls */}
+        <Card theme={theme}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <IconBox theme={theme}>
+                <ShieldCheck className="h-5 w-5" />
+              </IconBox>
+
+              <div>
+                <h2 className={cx("text-lg font-semibold", theme.text)}>
+                  Ticket Controls
+                </h2>
+                <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                  Search by ticket ID, subject, description, or customer details.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+              <div className="relative w-full sm:min-w-[320px]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
+
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search id / subject / user"
-                  className="w-full pl-10 pr-3 py-2.5 focus:outline-none backdrop-blur"
-                  style={inputStyle}
-                  onFocus={(e) => {
-                    (e.currentTarget as HTMLInputElement).style.boxShadow = `0 0 0 3px ${rgba(
-                      theme?.ring || theme?.accent || "59 130 246",
-                      0.25
-                    )}`;
-                    (e.currentTarget as HTMLInputElement).style.borderColor = rgba(
-                      theme?.ring || theme?.accent || "59 130 246",
-                      0.45
-                    );
-                  }}
-                  onBlur={(e) => {
-                    (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
-                    (e.currentTarget as HTMLInputElement).style.borderColor = rgba(
-                      theme?.inputBorder || theme?.border || "255 255 255",
-                      0.18
-                    );
-                  }}
-                />
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: rgba(theme?.placeholder || theme?.mutedFg || theme?.fg, 0.6) }}
+                  className={cx(
+                    "w-full rounded-2xl border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:ring-4",
+                    theme.input
+                  )}
                 />
               </div>
 
-              {/* filter */}
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2.5 focus:outline-none"
-                style={selectStyle}
-                onFocus={(e) => {
-                  (e.currentTarget as HTMLSelectElement).style.boxShadow = `0 0 0 3px ${rgba(
-                    theme?.ring || theme?.accent || "59 130 246",
-                    0.22
-                  )}`;
-                  (e.currentTarget as HTMLSelectElement).style.borderColor = rgba(
-                    theme?.ring || theme?.accent || "59 130 246",
-                    0.4
-                  );
-                }}
-                onBlur={(e) => {
-                  (e.currentTarget as HTMLSelectElement).style.boxShadow = "none";
-                  (e.currentTarget as HTMLSelectElement).style.borderColor = rgba(
-                    theme?.border || theme?.inputBorder || "255 255 255",
-                    0.18
-                  );
-                }}
+                className={cx(
+                  "rounded-2xl border px-4 py-3 text-sm outline-none transition-all duration-200 focus:ring-4",
+                  theme.input
+                )}
               >
-                <option value="All">All</option>
-                <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-                <option value="closed">Closed</option>
+                <option value="All" className={theme.option}>
+                  All
+                </option>
+                <option value="open" className={theme.option}>
+                  Open
+                </option>
+                <option value="in-progress" className={theme.option}>
+                  In Progress
+                </option>
+                <option value="resolved" className={theme.option}>
+                  Resolved
+                </option>
+                <option value="closed" className={theme.option}>
+                  Closed
+                </option>
               </select>
 
               <button
+                type="button"
                 onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 px-5 py-2.5 transition-transform hover:scale-[1.02] font-medium"
-                style={btnPrimaryStyle}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(
-                    theme?.glow || theme?.accent || "59 130 246",
-                    0.22
-                  )}`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 14px 40px ${rgba(
-                    theme?.glow || theme?.accent || "59 130 246",
-                    0.18
-                  )}`;
-                }}
+                className={cx(
+                  "inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition focus:ring-4",
+                  theme.button
+                )}
               >
-                <PlusCircle className="w-5 h-5" />
+                <PlusCircle className="h-4 w-4" />
                 New Ticket
               </button>
 
               <button
+                type="button"
                 onClick={fetchTickets}
-                className="px-4 py-2.5 transition-all flex items-center gap-2"
-                style={btnGhostStyle}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(
-                    theme?.glow || theme?.accent || "59 130 246",
-                    0.18
-                  )}`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-                }}
+                className={cx(
+                  "inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition",
+                  theme.outlineButton
+                )}
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="h-4 w-4" />
                 Refresh
               </button>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Table Card */}
-        <div className="mt-6" style={tableCardStyle}>
-          <div className="overflow-x-auto relative">
-            <div className="max-h-[65vh] overflow-y-auto custom-scrollbar">
-              <table className="w-full min-w-[980px] whitespace-nowrap">
-                <thead className="sticky top-0 z-10">
-                  <tr style={thStyle}>
-                    <th className="p-3 px-4 text-left font-medium">ID</th>
-                    <th className="p-3 px-4 text-left font-medium">Subject</th>
-                    <th className="p-3 px-4 text-left font-medium">Customer</th>
-                    <th className="p-3 px-4 text-left font-medium">Status</th>
-                    <th className="p-3 px-4 text-left font-medium">Auto Reply</th>
-                    <th className="p-3 px-4 text-left font-medium">Created</th>
-                    <th className="p-3 px-4 text-left font-medium">Action</th>
-                  </tr>
-                </thead>
+        {/* Table */}
+        <Card theme={theme} className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] whitespace-nowrap text-sm">
+              <thead>
+                <tr className={cx("border-b", theme.tableHead)}>
+                  {[
+                    "ID",
+                    "Subject",
+                    "Customer",
+                    "Status",
+                    "Auto Reply",
+                    "Created",
+                    "Action",
+                  ].map((head) => (
+                    <th
+                      key={head}
+                      className={cx(
+                        "px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                        theme.muted
+                      )}
+                    >
+                      {head}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                <tbody>
-                  {filteredTickets.map((ticket: any) => {
-                    const isHighlighted =
-                      ticket._id === highlightedTicketId || ticket._id === routeTicketId;
+              <tbody>
+                {filteredTickets.map((ticket: any) => {
+                  const isHighlighted =
+                    ticket._id === highlightedTicketId || ticket._id === routeTicketId;
 
-                    return (
-                      <tr
-                        key={ticket._id}
-                        className="border-b transition-colors"
-                        style={{
-                          borderBottomColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12),
-                          background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.16),
-                          boxShadow: isHighlighted ? `inset 0 0 0 1px ${rgba(theme?.ring || theme?.accent, 0.28)}` : "none",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLTableRowElement).style.background = rgba(
-                            theme?.rowHover || theme?.surface3 || "30 30 30",
-                            0.26
-                          );
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLTableRowElement).style.background = rgba(
-                            theme?.surface2 || theme?.card || "18 18 18",
-                            0.16
-                          );
-                        }}
+                  return (
+                    <tr
+                      key={ticket._id}
+                      className={cx(
+                        "border-b transition-colors duration-200",
+                        theme.tableRow,
+                        isHighlighted &&
+                          (isDark ? "bg-blue-500/10" : "bg-orange-50")
+                      )}
+                    >
+                      <td
+                        className={cx(
+                          "max-w-[170px] truncate px-4 py-4 font-mono text-xs",
+                          theme.muted
+                        )}
                       >
-                        <td className="p-3 px-4 font-mono" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.7) }}>
-                          #{ticket._id}
-                        </td>
+                        #{ticket._id}
+                      </td>
 
-                        <td className="p-3 px-4">
-                          <div className="max-w-[320px]">
-                            <p className="font-medium truncate" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                              {ticket.subject}
+                      <td className="px-4 py-4">
+                        <div className="max-w-[320px]">
+                          <p className={cx("truncate font-semibold", theme.text)}>
+                            {ticket.subject || "No subject"}
+                          </p>
+
+                          {ticket.description ? (
+                            <p className={cx("mt-1 truncate text-xs", theme.muted)}>
+                              {ticket.description}
                             </p>
-                            {ticket.description && (
-                              <p className="text-xs truncate mt-1" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>
-                                {ticket.description}
-                              </p>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="p-3 px-4" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.75) }}>
-                          {ticket?.user?.firstName} {ticket?.user?.lastName}
-                          {ticket?.user?.email ? (
-                            <span className="block text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.6) }}>
-                              {ticket.user.email}
-                            </span>
                           ) : null}
-                        </td>
+                        </div>
+                      </td>
 
-                        <td className="p-3 px-4">
+                      <td className="px-4 py-4">
+                        <div className="max-w-[240px]">
+                          <p className={cx("truncate font-medium", theme.text)}>
+                            {ticket?.user?.firstName || ""}{" "}
+                            {ticket?.user?.lastName || ""}
+                          </p>
+
+                          {ticket?.user?.email ? (
+                            <p className={cx("mt-1 truncate text-xs", theme.muted)}>
+                              {ticket.user.email}
+                            </p>
+                          ) : null}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <StatusBadge status={ticket.status} theme={theme} />
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <Switch
+                          checked={!!autoReplyStatus[ticket._id]}
+                          onChange={() => handleToggleAutoReply(ticket._id)}
+                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                          style={{
+                            background: autoReplyStatus[ticket._id]
+                              ? isDark
+                                ? "#3b82f6"
+                                : "#f97316"
+                              : isDark
+                              ? "rgba(255,255,255,0.12)"
+                              : "#fed7aa",
+                          }}
+                        >
                           <span
-                            className="px-2 py-1 rounded-full text-xs font-semibold capitalize"
-                            style={statusColors[ticket.status] || {
-                              background: rgba(theme?.muted || "148 163 184", 0.12),
-                              border: `1px solid ${rgba(theme?.muted || "148 163 184", 0.22)}`,
-                              color: rgba(theme?.mutedFg || theme?.fg, 0.78),
-                            }}
-                          >
-                            {ticket.status}
-                          </span>
-                        </td>
+                            className={`${
+                              autoReplyStatus[ticket._id]
+                                ? "translate-x-6"
+                                : "translate-x-1"
+                            } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                          />
+                        </Switch>
+                      </td>
 
-                        <td className="p-3 px-4">
-                          <Switch
-                            checked={!!autoReplyStatus[ticket._id]}
-                            onChange={() => handleToggleAutoReply(ticket._id)}
-                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                            style={{
-                              background: autoReplyStatus[ticket._id]
-                                ? rgba(theme?.accent || "59 130 246", 0.95)
-                                : rgba(theme?.surface3 || theme?.rowHover || "30 30 30", 0.8),
-                              boxShadow: `inset 0 0 0 1px ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
-                            }}
-                          >
-                            <span
-                              className={`${
-                                autoReplyStatus[ticket._id] ? "translate-x-6" : "translate-x-1"
-                              } inline-block h-4 w-4 transform rounded-full transition-transform`}
-                              style={{
-                                background: rgba(theme?.accentFg || "255 255 255", 1),
-                              }}
-                            />
-                          </Switch>
-                        </td>
+                      <td className="px-4 py-4">
+                        <div className={cx("flex items-center gap-2", theme.muted)}>
+                          <Clock className="h-4 w-4" />
+                          <span>{formatDate(ticket.createdAt)}</span>
+                        </div>
+                      </td>
 
-                        <td className="p-3 px-4">
-                          <div className="flex items-center gap-2" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.72) }}>
-                            <Clock className="w-4 h-4" />
-                            <span className="text-sm">{formatDate(ticket.createdAt)}</span>
-                          </div>
-                        </td>
+                      <td className="px-4 py-4">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTicket(ticket)}
+                          className={cx(
+                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                            theme.successBadge
+                          )}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          View Chat
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
-                        <td className="p-3 px-4">
-                          <button
-                            onClick={() => setActiveTicket(ticket)}
-                            className="flex items-center gap-2 px-3 py-1.5 transition-all"
-                            style={{
-                              borderRadius: radius,
-                              border: `1px solid ${rgba(theme?.success || "34 197 94", 0.28)}`,
-                              background: rgba(theme?.success || "34 197 94", 0.08),
-                              color: rgba(theme?.success || "34 197 94", 0.92),
-                            }}
-                            onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 22px ${rgba(
-                                theme?.success || "34 197 94",
-                                0.16
-                              )}`;
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-                            }}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            View Chat
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              {!filteredTickets.length && (
-                <div className="py-16 text-center" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}>
-                  <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-60" />
-                  <p>No tickets match your filters.</p>
-                </div>
-              )}
-            </div>
+            {!filteredTickets.length ? (
+              <EmptyState
+                theme={theme}
+                title="No tickets found"
+                subtitle="No tickets match your current search or filter. Try changing the filter or refreshing the list."
+              />
+            ) : null}
           </div>
-        </div>
+        </Card>
 
         {/* Raise Ticket Modal */}
-        {showForm && (
+        {showForm ? (
           <div
-            className="fixed inset-0 flex items-center justify-center p-4 z-50"
-            style={{ background: rgba(theme?.bg || "0 0 0", 0.72), backdropFilter: "blur(6px)" }}
+            className={cx(
+              "fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm",
+              theme.modalOverlay
+            )}
           >
-            <div className="w-full max-w-lg p-6 relative" style={tableCardStyle}>
-              <button
-                onClick={() => setShowForm(false)}
-                className="absolute top-3 right-3"
-                style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.65) }}
-                aria-label="Close"
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.fg || "255 255 255", 0.9))}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = rgba(theme?.mutedFg || theme?.fg, 0.65))}
-              >
-                ✕
-              </button>
-              <RaiseTicket onCancel={() => setShowForm(false)} onSubmit={handleNewTicket} />
+            <div className={cx("relative w-full max-w-lg", theme.pageText)}>
+              <Card theme={theme}>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className={cx(
+                    "absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-xl border transition",
+                    theme.outlineButton
+                  )}
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+
+                <div className="pr-10">
+                  <div className="mb-5 flex items-start gap-3">
+                    <IconBox theme={theme}>
+                      <PlusCircle className="h-5 w-5" />
+                    </IconBox>
+
+                    <div>
+                      <h2 className={cx("text-lg font-semibold", theme.text)}>
+                        Raise New Ticket
+                      </h2>
+                      <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                        Create a support ticket for a user issue.
+                      </p>
+                    </div>
+                  </div>
+
+                  <RaiseTicket
+                    onCancel={() => setShowForm(false)}
+                    onSubmit={handleNewTicket}
+                  />
+                </div>
+              </Card>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Chat Modal */}
-        {activeTicket && <TicketChat ticket={activeTicket} onClose={() => setActiveTicket(null)} />}
+        {activeTicket ? (
+          <TicketChat ticket={activeTicket} onClose={() => setActiveTicket(null)} />
+        ) : null}
       </div>
     </div>
   );

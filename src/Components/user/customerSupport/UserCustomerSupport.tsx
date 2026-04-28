@@ -1,335 +1,559 @@
 import React, { useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mail, Clock, ArrowRight, TicketPlus, Sparkles, ShieldCheck } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Clock,
+  Copy,
+  LifeBuoy,
+  Mail,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  TicketPlus,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { FloatingParticles } from "../../../utils/FloatingParticles";
+import { useSelector } from "react-redux";
 
-/* ============================== DECOR =============================== */
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
 
-const AnimatedGrid = () => (
-  <div className="absolute inset-0 pointer-events-none">
+const getTheme = (isDark: boolean) => ({
+  pageText: isDark ? "text-white" : "text-slate-900",
+  text: isDark ? "text-white" : "text-slate-900",
+  muted: isDark ? "text-white/55" : "text-slate-500",
+  softText: isDark ? "text-white/70" : "text-slate-600",
+
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
+
+  header: isDark
+    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+
+  headerText: "text-white",
+  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerBadge: "border-white/20 bg-white/10 text-white",
+  headerIcon: "border-white/20 bg-white/10 text-white",
+  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
+  headerStatMuted: "text-white/75",
+
+  card: isDark
+    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+
+  cardSoft: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100/80 bg-white/70",
+
+  iconBox: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-200 bg-orange-50 text-orange-600",
+
+  badge: isDark
+    ? "border-white/10 bg-white/[0.05] text-white/60"
+    : "border-orange-100 bg-white/80 text-orange-600",
+
+  successBadge: isDark
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+
+  warningBadge: isDark
+    ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
+    : "border-amber-200 bg-amber-50 text-amber-700",
+
+  button: isDark
+    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
+    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+
+  outlineButton: isDark
+    ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
+    : "border-orange-200 bg-white/80 text-orange-700 hover:bg-orange-50",
+
+  primarySoft: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-300 bg-orange-50 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)]",
+});
+
+const HeaderCard = ({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: -14 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35 }}
+    className={cx(
+      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      theme.header
+    )}
+  >
     <div
-      className="absolute inset-0 opacity-10"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(34,197,94,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.2) 1px, transparent 1px)",
-        backgroundSize: "42px 42px",
-        maskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
-        WebkitMaskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
-      }}
-    />
-    <motion.div
-      className="absolute inset-0 opacity-20"
-      animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
       style={{
         background:
-          "repeating-linear-gradient(90deg, rgba(59,130,246,0.1) 0 2px, transparent 2px 8px)",
+          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
       }}
     />
-  </div>
-);
-
-const FloatingOrbs = () => (
-  <div className="absolute inset-0 pointer-events-none">
-    {Array.from({ length: 10 }).map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full blur-2xl"
-        style={{
-          width: 150,
-          height: 150,
-          left: `${(i * 97) % 100}%`,
-          top: `${(i * 53) % 100}%`,
-          background:
-            i % 3 === 0
-              ? "radial-gradient(circle at center, rgba(16,185,129,0.25), transparent 60%)"
-              : i % 3 === 1
-              ? "radial-gradient(circle at center, rgba(34,211,238,0.25), transparent 60%)"
-              : "radial-gradient(circle at center, rgba(99,102,241,0.25), transparent 60%)",
-        }}
-        animate={{
-          y: [0, i % 2 ? -22 : 22, 0],
-          x: [0, i % 2 ? 12 : -12, 0],
-          opacity: [0.6, 1, 0.6],
-        }}
-        transition={{ duration: 6 + (i % 5), repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-      />
-    ))}
-  </div>
-);
-
-const GlassCard: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = "", children }) => (
-  <motion.div
-    whileHover={{ y: -2 }}
-    transition={{ type: "spring", stiffness: 250, damping: 20 }}
-    className={`relative rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-slate-900/70 via-slate-900/30 to-slate-900/70 backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.08)] ${className}`}
-  >
-    <div className="absolute inset-px rounded-[calc(1rem-1px)] bg-gradient-to-br from-emerald-300/5 via-cyan-300/5 to-indigo-300/5 pointer-events-none" />
-    {children}
+    <div className="relative z-[1]">{children}</div>
   </motion.div>
 );
 
-const NeonDivider = () => (
-  <div className="relative w-full my-4">
-    <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
-    <motion.div
-      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-emerald-400/60 blur-md"
-      animate={{ left: ["0%", "100%"] }}
-      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-    />
+const Card = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div
+    className={cx(
+      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      theme.card,
+      className
+    )}
+  >
+    {children}
   </div>
 );
 
-/* ============================ ANIM VARS ============================== */
+const SoftCard = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div className={cx("rounded-2xl border p-4", theme.cardSoft, className)}>
+    {children}
+  </div>
+);
 
-const containerVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98, rotateX: 6 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    rotateX: 0,
-    transition: { duration: 0.8, when: "beforeChildren", staggerChildren: 0.06 },
-  },
-};
+const HeaderIconBox = ({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div
+    className={cx(
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      theme.headerIcon
+    )}
+  >
+    {children}
+  </div>
+);
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 18, rotateX: 6, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 190, damping: 20, duration: 0.5 },
-  },
-};
+const IconBox = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div
+    className={cx(
+      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+      theme.iconBox,
+      className
+    )}
+  >
+    {children}
+  </div>
+);
 
-/* ============================== PAGE ================================= */
+const HeaderStatBox = ({
+  icon,
+  label,
+  value,
+  theme,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
+        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const InfoCard = ({
+  theme,
+  icon,
+  title,
+  subtitle,
+  children,
+}: {
+  theme: ReturnType<typeof getTheme>;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  children?: React.ReactNode;
+}) => (
+  <SoftCard theme={theme}>
+    <div className="flex items-start gap-3">
+      <IconBox theme={theme} className="h-10 w-10 rounded-xl">
+        {icon}
+      </IconBox>
+
+      <div className="min-w-0 flex-1">
+        <h3 className={cx("text-sm font-semibold", theme.text)}>{title}</h3>
+        <p className={cx("mt-1 text-sm leading-6", theme.muted)}>{subtitle}</p>
+        {children ? <div className="mt-4">{children}</div> : null}
+      </div>
+    </div>
+  </SoftCard>
+);
 
 export default function UserCustomerSupport() {
   const navigate = useNavigate();
-  const email = useMemo(() => import.meta.env.VITE_EMAIL_EMAIL, []);
+  const mode = useSelector((store: any) => store.userTheme?.mode || "light");
+
+  const isDark = mode === "dark";
+  const theme = useMemo(() => getTheme(isDark), [isDark]);
+  const email = useMemo(() => import.meta.env.VITE_EMAIL_EMAIL || "", []);
+
+  const copyEmail = async () => {
+    if (!email) return;
+
+    try {
+      await navigator.clipboard?.writeText(email);
+    } catch {
+      // Clipboard may be blocked in some browsers.
+    }
+  };
+
+  const supportTips = [
+    "Provide a clear issue summary",
+    "Attach screenshots or exact error messages",
+    "Mention your account/email/ID, but never passwords",
+    "Add timestamps for time-sensitive issues",
+    "List the steps you have already tried",
+    "Mention browser, device, or platform details",
+  ];
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900"
-    >
-      <AnimatedGrid />
-      <FloatingOrbs />
- <FloatingParticles/>
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:px-10">
+    <div className={cx("min-h-screen w-full p-4 sm:p-6", theme.pageBg, theme.pageText)}>
+      <div className="mx-auto max-w-7xl space-y-5">
         {/* Header */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={18} className="text-emerald-400" />
-            <span className="uppercase tracking-[0.25em] text-xs text-emerald-300/80 font-semibold">
-              help · support · wallet
-            </span>
+        <HeaderCard theme={theme}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <HeaderIconBox theme={theme}>
+                <LifeBuoy className="h-6 w-6" />
+              </HeaderIconBox>
+
+              <div>
+                <div
+                  className={cx(
+                    "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+                    theme.headerBadge
+                  )}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Help · Support · Ticket
+                </div>
+
+                <h1
+                  className={cx(
+                    "text-2xl font-bold tracking-tight sm:text-3xl",
+                    theme.headerText
+                  )}
+                >
+                  Customer Support Center
+                </h1>
+
+                <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
+                  Get help with your account, wallet, banking, deposits, withdrawals, and trading platform questions.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+              <HeaderStatBox
+                theme={theme}
+                icon={<TicketPlus className="h-4 w-4" />}
+                label="Tickets"
+                value="Available"
+              />
+              <HeaderStatBox
+                theme={theme}
+                icon={<Clock className="h-4 w-4" />}
+                label="Reply Time"
+                value="2–6 hrs"
+              />
+              <HeaderStatBox
+                theme={theme}
+                icon={<ShieldCheck className="h-4 w-4" />}
+                label="Security"
+                value="Protected"
+              />
+            </div>
           </div>
-          <motion.h1
-            className="text-3xl md:text-4xl font-extrabold text-white"
-            initial={{ scale: 0.98, rotateX: 10, opacity: 0 }}
-            animate={{ scale: 1, rotateX: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            ⚡ Customer Support Center
-          </motion.h1>
-          <p className="text-white/70 mt-2 max-w-2xl">
-            Our dedicated team provides timely, transparent assistance for your account, wallet, and banking questions.
-          </p>
-        </motion.div>
+        </HeaderCard>
 
-        {/* Layout: Sidebar (left) + Main (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Sidebar */}
-          <GlassCard className="p-5 lg:col-span-4 xl:col-span-3">
-            <div className="flex flex-col gap-4">
-              {/* Quick Actions */}
-              <motion.button
+          <Card theme={theme} className="lg:col-span-4 xl:col-span-3">
+            <div className="mb-5">
+              <h2 className={cx("text-lg font-semibold", theme.text)}>
+                Quick Support
+              </h2>
+              <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                Choose the best way to contact the support team.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                type="button"
                 onClick={() => navigate("/user/ticketDashboard")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full font-semibold text-black
-                  bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 shadow-[0_10px_30px_rgba(16,185,129,0.35)]"
+                className={cx(
+                  "inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition focus:ring-4",
+                  theme.button
+                )}
               >
-                <TicketPlus className="w-5 h-5" />
+                <TicketPlus className="h-4 w-4" />
                 Raise Ticket
-                <motion.span
-                  className="absolute inset-0 rounded-full opacity-0"
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ background: "radial-gradient(120% 120% at 50% 10%, rgba(255,255,255,0.35), transparent 40%)" }}
-                />
-              </motion.button>
+              </button>
 
-              <NeonDivider />
+              <SoftCard theme={theme}>
+                <div className="flex items-start gap-3">
+                  <IconBox theme={theme} className="h-10 w-10 rounded-xl">
+                    <Mail className="h-5 w-5" />
+                  </IconBox>
 
-              {/* Contact Card */}
-              <div className="rounded-xl border border-emerald-400/10 bg-white/5 p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-emerald-400/15 border border-emerald-400/30">
-                    <Mail className="w-5 h-5 text-emerald-300" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-white/80">Support Email</div>
-                    <div className="text-emerald-300 font-mono text-sm truncate">{email}</div>
+                  <div className="min-w-0 flex-1">
+                    <p className={cx("text-sm font-semibold", theme.text)}>
+                      Support Email
+                    </p>
+                    <p className="mt-1 truncate font-mono text-sm text-orange-500">
+                      {email || "Not configured"}
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <a
+                        href={`mailto:${email}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cx(
+                          "inline-flex items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                          theme.primarySoft
+                        )}
+                      >
+                        Write Email
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={copyEmail}
+                        className={cx(
+                          "inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                          theme.outlineButton
+                        )}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <a
-                    href={`mailto:${email}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-center rounded-lg border border-emerald-400/20 bg-emerald-400/10 text-emerald-200 py-2 hover:bg-emerald-400/20 transition"
-                  >
-                    Write Email
-                  </a>
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(email)}
-                    className="px-3 rounded-lg border border-white/10 text-white/80 hover:bg-white/10 transition"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
+              </SoftCard>
 
-              {/* SLA / Response Times */}
-              <div className="rounded-xl border border-emerald-400/10 bg-white/5 p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-cyan-400/15 border border-cyan-400/30">
-                    <Clock className="w-5 h-5 text-cyan-300" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-white/80">Response Times</div>
-                    <div className="text-cyan-300 text-sm">Mon–Sat: 8:00 AM – 8:00 PM</div>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{ background: "linear-gradient(90deg, #22c55e, #06b6d4)" }}
-                      animate={{ width: ["30%", "70%", "50%"] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </div>
-                  <div className="text-xs text-white/60 mt-2">Typical first reply within 2–6 hours</div>
-                </div>
-              </div>
-
-              {/* Trust */}
-              <div className="rounded-xl border border-emerald-400/10 bg-white/5 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-indigo-400/15 border border-indigo-400/30">
-                    <ShieldCheck className="w-5 h-5 text-indigo-300" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-white/80">Secure & Transparent</div>
-                    <div className="text-indigo-300 text-xs">We’ll never ask for your password or OTP.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-
-          {/* Main Content */}
-          <GlassCard className="p-6 lg:col-span-8 xl:col-span-9">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Intro / Hero */}
-              <motion.div variants={itemVariants} className="rounded-2xl border border-emerald-400/10 bg-gradient-to-br from-slate-900/50 to-slate-900/20 p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-400/30">
-                    <Mail className="w-7 h-7 text-emerald-300" />
-                  </div>
-                  <h3 className="text-white text-xl font-semibold">Email Support</h3>
-                </div>
-                <p className="text-white/70">
-                  Reach us anytime via email. Include a brief summary, screenshots, and steps to reproduce for the fastest resolution.
-                </p>
-                <a
-                  href={`mailto:${email}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-emerald-300 hover:text-emerald-200"
-                >
-                  Compose Email <ArrowRight className="w-4 h-4" />
-                </a>
-              </motion.div>
-
-              {/* Ticket CTA */}
-              <motion.div variants={itemVariants} className="rounded-2xl border border-emerald-400/10 bg-gradient-to-br from-slate-900/50 to-slate-900/20 p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-400/30">
-                    <TicketPlus className="w-7 h-7 text-indigo-300" />
-                  </div>
-                  <h3 className="text-white text-xl font-semibold">Raise a Ticket</h3>
-                </div>
-                <p className="text-white/70">
-                  Track progress, share attachments, and get structured updates through our ticket desk.
-                </p>
-                <motion.button
-                  onClick={() => navigate("/user/ticketDashboard")}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-black
-                    bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 shadow-[0_10px_30px_rgba(16,185,129,0.35)]"
-                >
-                  Open Desk <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </motion.div>
-              
-
-              {/* Tips */}
-              <motion.div variants={itemVariants} className="md:col-span-2 rounded-2xl border border-emerald-400/10 bg-white/5 p-5">
-                <h3 className="text-white text-lg font-semibold mb-3">How to Get Effective Support</h3>
-                <ul className="grid sm:grid-cols-2 gap-2 text-sm">
-                  {[
-                    "Provide a clear, concise issue summary",
-                    "Attach screenshots or exact error messages",
-                    "List steps you’ve already tried",
-                    "Mention device, browser, or platform details",
-                    "Share your account/email/ID (no passwords)",
-                    "Add timestamps for time-sensitive issues",
-                  ].map((tip) => (
-                    <li key={tip} className="text-white/70 flex items-start gap-2">
-                      <span className="mt-1 inline-block h-2 w-2 rounded-full bg-emerald-400" />
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-
-              {/* Big CTA */}
-              <motion.div
-                variants={itemVariants}
-                className="md:col-span-2"
+              <InfoCard
+                theme={theme}
+                icon={<Clock className="h-5 w-5" />}
+                title="Response Time"
+                subtitle="Support is generally available Monday to Saturday, 8:00 AM – 8:00 PM."
               >
-                <a
-                  href={`mailto:${email}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative w-full py-4 bg-gradient-to-r from-emerald-500 via-cyan-500 to-indigo-500 text-black font-bold rounded-xl shadow-lg flex items-center justify-center overflow-hidden group"
-                >
-                  <span className="absolute left-0 w-full h-full bg-white opacity-0 transform -translate-x-full group-hover:translate-x-0 group-hover:opacity-10 transition-all duration-500" />
-                  <Send className="w-6 h-6 mr-3 transform transition-transform duration-300 group-hover:-translate-x-1" />
-                  Send Support Email
-                  <ArrowRight className="w-6 h-6 ml-2 transform transition-transform duration-300 opacity-0 group-hover:translate-x-1 group-hover:opacity-100" />
-                </a>
+                <div className={cx("rounded-xl border px-3 py-2 text-xs", theme.warningBadge)}>
+                  Typical first reply within 2–6 hours.
+                </div>
+              </InfoCard>
+
+              <InfoCard
+                theme={theme}
+                icon={<ShieldCheck className="h-5 w-5" />}
+                title="Security Notice"
+                subtitle="Our support team will never ask for your password, OTP, or private wallet keys."
+              />
+            </div>
+          </Card>
+
+          {/* Main */}
+          <Card theme={theme} className="lg:col-span-8 xl:col-span-9">
+            <div className="mb-5 flex items-start gap-3">
+              <IconBox theme={theme}>
+                <LifeBuoy className="h-5 w-5" />
+              </IconBox>
+
+              <div>
+                <h2 className={cx("text-lg font-semibold", theme.text)}>
+                  How can we help?
+                </h2>
+                <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                  Use email for simple questions and ticket support for issues that need tracking or attachments.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                <SoftCard theme={theme} className="h-full">
+                  <div className="flex h-full flex-col">
+                    <div className="flex items-start gap-3">
+                      <IconBox theme={theme} className="h-12 w-12">
+                        <Mail className="h-6 w-6" />
+                      </IconBox>
+
+                      <div>
+                        <h3 className={cx("text-lg font-semibold", theme.text)}>
+                          Email Support
+                        </h3>
+                        <p className={cx("mt-2 text-sm leading-6", theme.muted)}>
+                          Best for simple account, wallet, or banking questions. Include screenshots and short details for faster help.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-5">
+                      <a
+                        href={`mailto:${email}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cx(
+                          "inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition",
+                          theme.button
+                        )}
+                      >
+                        <Send className="h-4 w-4" />
+                        Send Email
+                        <ArrowRight className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                </SoftCard>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.06 }}
+              >
+                <SoftCard theme={theme} className="h-full">
+                  <div className="flex h-full flex-col">
+                    <div className="flex items-start gap-3">
+                      <IconBox theme={theme} className="h-12 w-12">
+                        <TicketPlus className="h-6 w-6" />
+                      </IconBox>
+
+                      <div>
+                        <h3 className={cx("text-lg font-semibold", theme.text)}>
+                          Raise a Ticket
+                        </h3>
+                        <p className={cx("mt-2 text-sm leading-6", theme.muted)}>
+                          Best for issues that need tracking, attachments, or follow-up updates from the support team.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-5">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/user/ticketDashboard")}
+                        className={cx(
+                          "inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition",
+                          theme.button
+                        )}
+                      >
+                        <TicketPlus className="h-4 w-4" />
+                        Open Ticket Desk
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </SoftCard>
               </motion.div>
             </div>
-          </GlassCard>
+
+            <div className={cx("mt-5 rounded-[22px] border p-4 sm:p-5", theme.cardSoft)}>
+              <div className="mb-4 flex items-center gap-3">
+                <IconBox theme={theme} className="h-10 w-10 rounded-xl">
+                  <ShieldCheck className="h-5 w-5" />
+                </IconBox>
+
+                <div>
+                  <h3 className={cx("text-base font-semibold", theme.text)}>
+                    How to get effective support
+                  </h3>
+                  <p className={cx("mt-1 text-sm", theme.muted)}>
+                    Share the right details so your issue can be resolved quickly.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {supportTips.map((tip) => (
+                  <div
+                    key={tip}
+                    className={cx(
+                      "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm",
+                      theme.cardSoft
+                    )}
+                  >
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-orange-500" />
+                    <span className={theme.softText}>{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <a
+                href={`mailto:${email}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cx(
+                  "inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-sm font-bold transition focus:ring-4",
+                  theme.button
+                )}
+              >
+                <Send className="h-5 w-5" />
+                Send Support Email
+                <ArrowRight className="h-5 w-5" />
+              </a>
+            </div>
+          </Card>
         </div>
 
-        {/* Footer */}
-        <motion.div variants={itemVariants} className="text-center text-white/50 mt-8 mb-10 text-sm">
-          We strive to provide the most helpful support possible.
-          <div className="text-xs mt-2 text-white/40">Your satisfaction is our top priority.</div>
-        </motion.div>
+        <div className={cx("pb-4 text-center text-sm", theme.muted)}>
+          We strive to provide helpful and transparent support for every user.
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

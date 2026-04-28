@@ -15,7 +15,6 @@ import {
   BarChart3,
   CircleDollarSign,
   Gauge,
-  Landmark,
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
@@ -48,19 +47,18 @@ const money = (n: any) => {
     : "0";
 };
 
-const formatTime = (timeString) => {
+const formatTime = (timeString: any) => {
   if (!timeString) return "N/A";
 
   const s = String(timeString).trim();
-
-  // supports: "YYYY.MM.DD HH:mm:ss"
-  const match = s.match(/^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  const match = s.match(
+    /^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
+  );
 
   if (!match) return "N/A";
 
   const [, year, month, day, hour, minute, second] = match;
 
-  // create date safely
   const d = new Date(
     Number(year),
     Number(month) - 1,
@@ -84,12 +82,14 @@ const formatTime = (timeString) => {
   });
 };
 
-
 const getSymbolIcon = (symbol: string) => {
   if (!symbol) return "📈";
+
   const s = String(symbol).toUpperCase();
+
   if (s.includes("XAU") || s.includes("GOLD")) return "🥇";
   if (s.includes("OIL") || s.includes("CRUDE")) return "🛢️";
+
   if (
     s.includes("USD") ||
     s.includes("EUR") ||
@@ -98,6 +98,7 @@ const getSymbolIcon = (symbol: string) => {
   ) {
     return "💱";
   }
+
   return "📈";
 };
 
@@ -112,7 +113,10 @@ function SectionCard({
 }) {
   return (
     <div
-      className={["overflow-hidden border transition-all duration-300", className].join(" ")}
+      className={[
+        "overflow-hidden border transition-all duration-300",
+        className,
+      ].join(" ")}
       style={{
         borderRadius: "20px",
         ...style,
@@ -134,30 +138,48 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(16,185,129,0.14)"
+            : "rgba(16,185,129,0.1)",
           iconColor: colors.success,
-          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
+          border: colors.isDark
+            ? "rgba(16,185,129,0.22)"
+            : "rgba(16,185,129,0.18)",
         }
       : tone === "info"
       ? {
-          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconBg: colors.isDark
+            ? "rgba(59,130,246,0.14)"
+            : "rgba(249,115,22,0.1)",
           iconColor: colors.accent,
-          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
+          border: colors.isDark
+            ? "rgba(59,130,246,0.22)"
+            : "rgba(249,115,22,0.22)",
         }
       : tone === "warning"
       ? {
-          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(245,158,11,0.14)"
+            : "rgba(245,158,11,0.1)",
           iconColor: colors.warning,
-          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
+          border: colors.isDark
+            ? "rgba(245,158,11,0.22)"
+            : "rgba(245,158,11,0.16)",
         }
       : tone === "danger"
       ? {
-          iconBg: colors.isDark ? "rgba(239,68,68,0.14)" : "rgba(239,68,68,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(239,68,68,0.14)"
+            : "rgba(239,68,68,0.1)",
           iconColor: colors.danger,
-          border: colors.isDark ? "rgba(239,68,68,0.22)" : "rgba(239,68,68,0.16)",
+          border: colors.isDark
+            ? "rgba(239,68,68,0.22)"
+            : "rgba(239,68,68,0.16)",
         }
       : {
-          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconBg: colors.isDark
+            ? "rgba(255,255,255,0.05)"
+            : "rgba(249,115,22,0.08)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -216,6 +238,7 @@ function EmptyState({
           borderColor: colors.border,
           background: colors.surfaceSoft,
           color: colors.softText,
+          boxShadow: !colors.isDark ? colors.inputShadow : "none",
         }}
       >
         ⚪
@@ -243,35 +266,42 @@ export default function UserTradeHistory() {
   const colors = useMemo(() => {
     const accent = isDark
       ? rgba(theme?.accent || "96 165 250", 0.95)
-      : rgb(theme?.accent || "37 99 235");
+      : rgb(theme?.accent || "249 115 22");
 
     return {
       isDark,
-      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      pageBg: isDark ? "#0b1120" : "#fff7ed",
       heroBg: isDark
         ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
-      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
-      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
-      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+        : "linear-gradient(135deg, #f97316, #ea580c)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,237,213,0.75)",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,247,237,0.95)",
       text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
       muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
       softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(249,115,22,0.10)",
       success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
       warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
       danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(15,23,42,0.08)",
+        : "rgba(249,115,22,0.22)",
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(15,23,42,0.06)",
+        : "rgba(249,115,22,0.14)",
+      inputBorder: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(249,115,22,0.48)",
+      inputShadow: isDark
+        ? "0 0 0 1px rgba(255,255,255,0.03)"
+        : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 10px 30px rgba(15,23,42,0.06)",
-      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+        : "0 16px 38px rgba(249,115,22,0.12)",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.85)",
+      rowHover: isDark ? "rgba(255,255,255,0.035)" : "rgba(255,237,213,0.42)",
     };
   }, [isDark, theme]);
 
@@ -346,7 +376,9 @@ export default function UserTradeHistory() {
             );
           } else {
             res = await userApi.get(
-              `/server-fetch-open-trade?Manager_Index=${import.meta.env.VITE_MANAGER_INDEX}&MT5Accont=${acc}`,
+              `/server-fetch-open-trade?Manager_Index=${
+                import.meta.env.VITE_MANAGER_INDEX
+              }&MT5Accont=${acc}`,
               signal ? { signal } : undefined
             );
           }
@@ -391,7 +423,8 @@ export default function UserTradeHistory() {
   }, [activeTab, accountsKey, loggedUser?._id, fetchTradeData]);
 
   const renderTradeType = (trade: any) => {
-    const isBuy = activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
+    const isBuy =
+      activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
 
     return (
       <span
@@ -493,6 +526,7 @@ export default function UserTradeHistory() {
             hint="Combined trade result"
             tone={Number(tradeStats.totalProfit) >= 0 ? "success" : "danger"}
           />
+
           <StatCard
             colors={colors}
             icon={<Activity className="h-5 w-5" />}
@@ -501,6 +535,7 @@ export default function UserTradeHistory() {
             hint={activeTab === "open" ? "Live open trades" : "Closed trade records"}
             tone="info"
           />
+
           <StatCard
             colors={colors}
             icon={<CircleDollarSign className="h-5 w-5" />}
@@ -509,6 +544,7 @@ export default function UserTradeHistory() {
             hint="Profitable positions"
             tone="success"
           />
+
           <StatCard
             colors={colors}
             icon={<Gauge className="h-5 w-5" />}
@@ -528,33 +564,34 @@ export default function UserTradeHistory() {
           }}
         >
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => handleTab("open")}
-              disabled={isPending}
-              className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
-              style={{
-                borderColor: activeTab === "open" ? colors.accent : colors.border,
-                background: activeTab === "open" ? colors.accentSoft : colors.surface,
-                color: activeTab === "open" ? colors.accent : colors.text,
-              }}
-            >
-              Open Trades
-            </button>
+            {[
+              { key: "open", label: "Open Trades" },
+              { key: "closed", label: "Closed Trades" },
+            ].map((tab) => {
+              const active = activeTab === tab.key;
 
-            <button
-              type="button"
-              onClick={() => handleTab("closed")}
-              disabled={isPending}
-              className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
-              style={{
-                borderColor: activeTab === "closed" ? colors.accent : colors.border,
-                background: activeTab === "closed" ? colors.accentSoft : colors.surface,
-                color: activeTab === "closed" ? colors.accent : colors.text,
-              }}
-            >
-              Closed Trades
-            </button>
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => handleTab(tab.key as "open" | "closed")}
+                  disabled={isPending}
+                  className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
+                  style={{
+                    borderColor: active ? colors.accent : colors.inputBorder,
+                    background: active ? colors.accentSoft : colors.surfaceSoft,
+                    color: active ? colors.accent : colors.text,
+                    boxShadow: active
+                      ? colors.inputShadow
+                      : !isDark
+                      ? "0 8px 18px rgba(249,115,22,0.06)"
+                      : "none",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </SectionCard>
 
@@ -565,7 +602,13 @@ export default function UserTradeHistory() {
             boxShadow: colors.cardShadow,
           }}
         >
-          <div className="border-b px-5 py-4 sm:px-6" style={{ borderColor: colors.border }}>
+          <div
+            className="border-b px-5 py-4 sm:px-6"
+            style={{
+              borderColor: colors.border,
+              background: colors.isDark ? "transparent" : colors.surfaceMuted,
+            }}
+          >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="mb-2 flex items-center gap-2">
@@ -580,7 +623,10 @@ export default function UserTradeHistory() {
 
                 <h2
                   className="text-2xl font-bold"
-                  style={{ color: colors.text, fontFamily: "'Poppins', sans-serif" }}
+                  style={{
+                    color: colors.text,
+                    fontFamily: "'Poppins', sans-serif",
+                  }}
                 >
                   {activeTab === "open" ? "Open Trades" : "Closed Trades"}
                 </h2>
@@ -607,6 +653,7 @@ export default function UserTradeHistory() {
                     style={{
                       background: colors.accentSoft,
                       color: colors.accent,
+                      boxShadow: !isDark ? colors.inputShadow : "none",
                     }}
                   >
                     <Loader2 size={30} className="animate-spin" />
@@ -643,9 +690,11 @@ export default function UserTradeHistory() {
                     >
                       <AlertTriangle size={24} />
                     </div>
+
                     <h3 className="text-lg font-bold" style={{ color: colors.text }}>
                       Unable to load trades
                     </h3>
+
                     <p className="mt-2 text-sm" style={{ color: colors.muted }}>
                       {error}
                     </p>
@@ -675,20 +724,31 @@ export default function UserTradeHistory() {
                   <div className="hidden overflow-x-auto xl:block">
                     <table className="min-w-full text-sm">
                       <thead>
-                        <tr style={{ background: colors.tableHead, borderBottom: `1px solid ${colors.border}` }}>
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Account</th>
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Symbol</th>
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Open Time</th>
-                          {activeTab === "closed" && (
-                            <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Close Time</th>
-                          )}
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Open Price</th>
-                          {activeTab === "closed" && (
-                            <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Close Price</th>
-                          )}
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Type</th>
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>Volume</th>
-                          <th className="px-4 py-4 text-left font-semibold" style={{ color: colors.muted }}>P/L</th>
+                        <tr
+                          style={{
+                            background: colors.tableHead,
+                            borderBottom: `1px solid ${colors.border}`,
+                          }}
+                        >
+                          {[
+                            "Account",
+                            "Symbol",
+                            "Open Time",
+                            ...(activeTab === "closed" ? ["Close Time"] : []),
+                            "Open Price",
+                            ...(activeTab === "closed" ? ["Close Price"] : []),
+                            "Type",
+                            "Volume",
+                            "P/L",
+                          ].map((head) => (
+                            <th
+                              key={head}
+                              className="px-4 py-4 text-left font-semibold"
+                              style={{ color: colors.muted }}
+                            >
+                              {head}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
 
@@ -696,19 +756,34 @@ export default function UserTradeHistory() {
                         {tradeData.map((trade, index) => (
                           <tr
                             key={`${trade?.MT5Account || "acc"}-${index}`}
-                            style={{ borderBottom: `1px solid ${colors.borderSoft}` }}
+                            className="transition-all duration-200"
+                            style={{
+                              borderBottom: `1px solid ${colors.borderSoft}`,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = colors.rowHover;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
                           >
-                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
+                            <td
+                              className="px-4 py-4 font-medium"
+                              style={{ color: colors.text }}
+                            >
                               #{trade?.MT5Account}
                             </td>
 
-                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
+                            <td
+                              className="px-4 py-4 font-medium"
+                              style={{ color: colors.text }}
+                            >
                               <span className="mr-2">{getSymbolIcon(trade?.Symbol)}</span>
                               {trade?.Symbol}
                             </td>
 
                             <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
-                              {trade?.Open_Time}
+                              {formatTime(trade?.Open_Time)}
                             </td>
 
                             {activeTab === "closed" && (
@@ -723,19 +798,24 @@ export default function UserTradeHistory() {
 
                             {activeTab === "closed" && (
                               <td className="px-4 py-4" style={{ color: colors.text }}>
-                                {trade?.Open_Price}
+                                {trade?.Close_Price}
                               </td>
                             )}
 
                             <td className="px-4 py-4">{renderTradeType(trade)}</td>
 
-                            <td className="px-4 py-4 font-medium" style={{ color: colors.text }}>
+                            <td
+                              className="px-4 py-4 font-medium"
+                              style={{ color: colors.text }}
+                            >
                               {activeTab === "open"
                                 ? (Number(trade?.Volume ?? 0) / 10000).toFixed(2)
                                 : Number(trade?.Lot ?? 0).toFixed(2)}
                             </td>
 
-                            <td className="px-4 py-4">{renderProfit(Number(trade?.Profit))}</td>
+                            <td className="px-4 py-4">
+                              {renderProfit(Number(trade?.Profit))}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -744,15 +824,19 @@ export default function UserTradeHistory() {
 
                   <div className="grid grid-cols-1 gap-4 xl:hidden">
                     {tradeData.map((trade, index) => {
-                      const isBuy = activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0;
+                      const isBuy =
+                        activeTab === "closed"
+                          ? trade?.OrderType === 1
+                          : trade?.BUY_SELL === 0;
 
                       return (
                         <div
                           key={`${trade?.MT5Account || "acc"}-${index}`}
                           className="rounded-[24px] border p-4"
                           style={{
-                            borderColor: colors.border,
+                            borderColor: colors.inputBorder,
                             background: colors.surfaceSoft,
+                            boxShadow: !isDark ? colors.inputShadow : "none",
                           }}
                         >
                           <div className="mb-4 flex items-start justify-between gap-3">
@@ -779,37 +863,74 @@ export default function UserTradeHistory() {
                                   color: isBuy ? colors.success : colors.danger,
                                 }}
                               >
-                                {isBuy ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                                {isBuy ? (
+                                  <ArrowUpRight size={18} />
+                                ) : (
+                                  <ArrowDownLeft size={18} />
+                                )}
                               </span>
                               {renderTradeType(trade)}
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                            <div
+                              className="rounded-2xl border px-4 py-3"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surface,
+                              }}
+                            >
+                              <p
+                                className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                style={{ color: colors.muted }}
+                              >
                                 Open Time
                               </p>
-                              <p className="flex items-start gap-2 text-sm font-medium" style={{ color: colors.text }}>
+                              <p
+                                className="flex items-start gap-2 text-sm font-medium"
+                                style={{ color: colors.text }}
+                              >
                                 <Clock3 size={14} className="mt-0.5" />
                                 <span>{formatTime(trade?.Open_Time)}</span>
                               </p>
                             </div>
 
                             {activeTab === "closed" && (
-                              <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                                <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                              <div
+                                className="rounded-2xl border px-4 py-3"
+                                style={{
+                                  borderColor: colors.border,
+                                  background: colors.surface,
+                                }}
+                              >
+                                <p
+                                  className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                  style={{ color: colors.muted }}
+                                >
                                   Close Time
                                 </p>
-                                <p className="flex items-start gap-2 text-sm font-medium" style={{ color: colors.text }}>
+                                <p
+                                  className="flex items-start gap-2 text-sm font-medium"
+                                  style={{ color: colors.text }}
+                                >
                                   <Clock3 size={14} className="mt-0.5" />
                                   <span>{formatTime(trade?.Close_Time)}</span>
                                 </p>
                               </div>
                             )}
 
-                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                            <div
+                              className="rounded-2xl border px-4 py-3"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surface,
+                              }}
+                            >
+                              <p
+                                className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                style={{ color: colors.muted }}
+                              >
                                 Open Price
                               </p>
                               <p className="text-sm font-semibold" style={{ color: colors.text }}>
@@ -818,8 +939,17 @@ export default function UserTradeHistory() {
                             </div>
 
                             {activeTab === "closed" && (
-                              <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                                <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                              <div
+                                className="rounded-2xl border px-4 py-3"
+                                style={{
+                                  borderColor: colors.border,
+                                  background: colors.surface,
+                                }}
+                              >
+                                <p
+                                  className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                  style={{ color: colors.muted }}
+                                >
                                   Close Price
                                 </p>
                                 <p className="text-sm font-semibold" style={{ color: colors.text }}>
@@ -828,8 +958,17 @@ export default function UserTradeHistory() {
                               </div>
                             )}
 
-                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                            <div
+                              className="rounded-2xl border px-4 py-3"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surface,
+                              }}
+                            >
+                              <p
+                                className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                style={{ color: colors.muted }}
+                              >
                                 Volume
                               </p>
                               <p className="text-sm font-semibold" style={{ color: colors.text }}>
@@ -839,8 +978,17 @@ export default function UserTradeHistory() {
                               </p>
                             </div>
 
-                            <div className="rounded-2xl border px-4 py-3" style={{ borderColor: colors.border, background: colors.surface }}>
-                              <p className="mb-1 text-xs uppercase tracking-[0.12em]" style={{ color: colors.muted }}>
+                            <div
+                              className="rounded-2xl border px-4 py-3"
+                              style={{
+                                borderColor: colors.border,
+                                background: colors.surface,
+                              }}
+                            >
+                              <p
+                                className="mb-1 text-xs uppercase tracking-[0.12em]"
+                                style={{ color: colors.muted }}
+                              >
                                 Profit / Loss
                               </p>
                               <div>{renderProfit(Number(trade?.Profit))}</div>

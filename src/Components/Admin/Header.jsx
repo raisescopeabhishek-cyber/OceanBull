@@ -244,6 +244,11 @@ const AdminDropdown = ({ isOpen, onClose, admin, colors }) => {
               </div>
 
 
+                  <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/RulesManagement")}}>
+                Rules
+              </div>
+
+
               <button
                 onClick={logoutHandler}
                 className="flex items-center w-full px-4 py-2 text-sm font-semibold transition-all"

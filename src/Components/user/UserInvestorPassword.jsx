@@ -1,574 +1,653 @@
-import { useState } from "react";
-import { Lock, CheckCircle, AlertCircle, Sparkles, Shield } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Lock,
+  CheckCircle,
+  AlertCircle,
+  Sparkles,
+  Shield,
+  KeyRound,
+  Loader2,
+  ChevronDown,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { backendApi,  userApi } from "../../utils/apiClients";
-import ModernHeading from "../lib/ModernHeading";
-import { FloatingParticles } from "../../utils/FloatingParticles";
+import { backendApi, userApi } from "../../utils/apiClients";
 
-/* =========================== DECOR / THEME (same as above) ============================ */
+const cx = (...classes) => classes.filter(Boolean).join(" ");
 
-const AnimatedGrid = () => (
-  <div className="absolute inset-0 pointer-events-none opacity-10">
+const getTheme = (isDark) => ({
+  pageText: isDark ? "text-white" : "text-slate-900",
+  text: isDark ? "text-white" : "text-slate-900",
+  muted: isDark ? "text-white/55" : "text-slate-500",
+  softText: isDark ? "text-white/70" : "text-slate-600",
+
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
+
+  header: isDark
+    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+
+  headerText: "text-white",
+  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerBadge: "border-white/20 bg-white/10 text-white",
+  headerIcon: "border-white/20 bg-white/10 text-white",
+  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
+  headerStatMuted: "text-white/75",
+
+  card: isDark
+    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+
+  cardSoft: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100/80 bg-white/70",
+
+  input: isDark
+    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
+    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+
+  option: isDark ? "bg-slate-900 text-white" : "bg-orange-50 text-slate-900",
+
+  iconBox: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-200 bg-orange-50 text-orange-600",
+
+  badge: isDark
+    ? "border-white/10 bg-white/[0.05] text-white/60"
+    : "border-orange-100 bg-white/80 text-orange-600",
+
+  successBadge: isDark
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+
+  dangerBadge: isDark
+    ? "border-red-400/20 bg-red-500/10 text-red-300"
+    : "border-red-200 bg-red-50 text-red-700",
+
+  warningBadge: isDark
+    ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
+    : "border-amber-200 bg-amber-50 text-amber-700",
+
+  button: isDark
+    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
+    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+
+  ghostButton: isDark
+    ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
+    : "border-orange-100 bg-white/75 text-slate-600 hover:bg-orange-50",
+
+  buttonDisabled: isDark
+    ? "bg-slate-600 text-white/60"
+    : "bg-slate-300 text-slate-600",
+
+  progressTrack: isDark ? "bg-white/10" : "bg-orange-100",
+});
+
+const HeaderCard = ({ children, theme }) => (
+  <div
+    className={cx(
+      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      theme.header
+    )}
+  >
     <div
-      className="absolute inset-0"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(34,197,94,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.15) 1px, transparent 1px)",
-        backgroundSize: "40px 40px",
-        maskImage: "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-        WebkitMaskImage: "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-      }}
-    />
-    <motion.div
-      className="absolute inset-0"
-      animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-      transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
       style={{
         background:
-          "repeating-linear-gradient(90deg, rgba(0,255,200,0.06) 0px, rgba(0,255,200,0.06) 2px, transparent 2px, transparent 6px)",
+          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
       }}
     />
+    <div className="relative z-[1]">{children}</div>
   </div>
 );
 
-const FloatingOrbs = () => (
-  <div className="absolute inset-0 pointer-events-none">
-    {Array.from({ length: 12 }).map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full blur-2xl"
-        style={{
-          width: 140,
-          height: 140,
-          background:
-            i % 3 === 0
-              ? "radial-gradient(circle at center, rgba(16,185,129,0.25), transparent 60%)"
-              : i % 3 === 1
-              ? "radial-gradient(circle at center, rgba(34,211,238,0.25), transparent 60%)"
-              : "radial-gradient(circle at center, rgba(99,102,241,0.22), transparent 60%)",
-          left: `${(i * 83) % 100}%`,
-          top: `${(i * 47) % 100}%`,
-        }}
-        animate={{
-          y: [0, i % 2 ? -20 : 20, 0],
-          x: [0, i % 2 ? 10 : -10, 0],
-          opacity: [0.6, 1, 0.6],
-        }}
-        transition={{ duration: 6 + (i % 5), repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-      />
-    ))}
-  </div>
-);
-
-const GlassCard = ({ children, className = "" }) => (
-  <motion.div
-    whileHover={{ y: -2 }}
-    className={`relative rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-slate-900/60 via-slate-900/30 to-slate-900/60 backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.08)] ${className}`}
+const Card = ({ children, theme, className = "" }) => (
+  <div
+    className={cx(
+      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      theme.card,
+      className
+    )}
   >
-    <div className="absolute inset-px rounded-[calc(1rem-1px)] bg-gradient-to-br from-emerald-300/5 via-cyan-300/5 to-indigo-300/5 pointer-events-none" />
     {children}
-  </motion.div>
-);
-
-const LabelCaps = ({ children, required }) => (
-  <div className="flex items-center gap-2 mb-1">
-    <span className="text-[11px] tracking-[0.25em] uppercase text-emerald-300/70">{children}</span>
-    {required ? <span className="text-emerald-300/80">*</span> : null}
   </div>
 );
 
-const InputField = ({ label, icon, value, onChange, name, type = "text", required = false, error }) => (
-  <div className="relative">
-    <LabelCaps required={required}>{label}</LabelCaps>
-    <div className="relative">
-      <div className="absolute inset-y-0 left-3 flex items-center text-emerald-300/80 pointer-events-none">
+const HeaderStatBox = ({ icon, label, value, theme }) => (
+  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
         {icon}
       </div>
-      <motion.input
-        type={type}
+      <div>
+        <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
+        <p className="mt-1 text-base font-bold text-white">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const PasswordInput = ({
+  theme,
+  label,
+  name,
+  value,
+  onChange,
+  show,
+  onToggle,
+  error,
+}) => (
+  <div>
+    <label
+      className={cx(
+        "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
+        theme.muted
+      )}
+    >
+      {label}
+    </label>
+
+    <div className="relative">
+      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
+
+      <input
+        type={show ? "text" : "password"}
         name={name}
         value={value}
         onChange={onChange}
-        whileFocus={{ scale: 1.01 }}
-        className={`w-full pl-10 pr-3 py-3 rounded-xl outline-none text-white/90
-        bg-gradient-to-br from-slate-900/70 to-slate-900/30 border border-emerald-400/20
-        focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400/50 transition
-        ${error ? "border-red-400/70 ring-1 ring-red-500/60" : ""}`}
+        required
+        placeholder={`Enter ${label.toLowerCase()}`}
+        className={cx(
+          "w-full rounded-2xl border py-3 pl-10 pr-12 text-sm outline-none transition-all duration-200 focus:ring-4",
+          theme.input,
+          error && "border-red-400 focus:border-red-400 focus:ring-red-400/20"
+        )}
       />
-      <motion.div
-        className="pointer-events-none absolute inset-0 rounded-xl"
-        initial={false}
-        animate={{
-          boxShadow: [
-            "0 0 0px rgba(16,185,129,0)",
-            "0 0 16px rgba(16,185,129,0.25)",
-            "0 0 0px rgba(16,185,129,0)",
-          ],
-        }}
-        transition={{ duration: 2.2, repeat: Infinity }}
-      />
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 transition hover:opacity-80"
+        aria-label="Toggle password visibility"
+      >
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
     </div>
   </div>
 );
-
-const BadgeStat = ({ icon, label, value }) => (
-  <div className="rounded-xl px-3 py-2 text-center border border-emerald-400/30 bg-gradient-to-br from-emerald-500/15 to-emerald-400/5 text-emerald-200">
-    <div className="flex items-center gap-1 justify-center text-xs opacity-80">
-      {icon}
-      <span>{label}</span>
-    </div>
-    <div className="font-semibold text-sm">{value}</div>
-  </div>
-);
-
-const NeonDivider = () => (
-  <div className="relative w-full my-4">
-    <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
-    <motion.div
-      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-emerald-400/60 blur-md"
-      animate={{ left: ["0%", "100%"] }}
-      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-    />
-  </div>
-);
-
-/* =========================== MAIN COMPONENT ============================ */
 
 const UserInvesterPassword = () => {
+  const mode = useSelector((store) => store.userTheme?.mode || "light");
+  const loggedUser = useSelector((store) => store.user?.loggedUser);
+
+  const isDark = mode === "dark";
+  const theme = useMemo(() => getTheme(isDark), [isDark]);
+
+  const navigate = useNavigate();
+
   const [passwords, setPasswords] = useState({
     new: "",
     confirm: "",
   });
+
+  const [showPasswords, setShowPasswords] = useState({
+    new: false,
+    confirm: false,
+  });
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const loggedUser = useSelector((store) => store.user.loggedUser);
-  
   const [currentAccount, setCurrentAccount] = useState(
-    loggedUser.accounts[0] || "000"
+    loggedUser?.accounts?.[0] || null
   );
-
-  const handleChange = (e) => {
-    setPasswords({ ...passwords, [e.target.name]: e.target.value });
-    setError("");
-  };
 
   const validatePassword = (password) => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?]).{8,}$/;
+
     return passwordRegex.test(password);
   };
 
+  const strength = useMemo(() => {
+    const value = passwords.new;
+    let score = 0;
+
+    if (value.length >= 8) score += 1;
+    if (/[A-Z]/.test(value)) score += 1;
+    if (/[0-9]/.test(value)) score += 1;
+    if (/[^A-Za-z0-9]/.test(value)) score += 1;
+
+    const labels = ["Very Weak", "Weak", "Good", "Strong", "Excellent"];
+
+    return {
+      score,
+      label: labels[score],
+      percent: (score / 4) * 100,
+    };
+  }, [passwords.new]);
+
+  const handleChange = (e) => {
+    setPasswords((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
   const customContent = `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Withdrawal Request Confirmation - Arena Trade</title>
-      <style>
-        body, html {
-          margin: 0;
-          padding: 0;
-          font-family: 'Arial', sans-serif;
-          line-height: 1.6;
-          color: #333;
-          background-color: #f4f4f4;
-        }
-        .container {
-          max-width: 600px;
-          margin: 0 auto;
-          padding: 5px;
-          background-color: #ffffff;
-        }
-        .header {
-          background-color: #19422df2;
-          color: #ffffff;
-          padding: 20px 15px;
-          text-align: center;
-          border-radius: 10px 10px 0 0;
-        }
-        .header h1 {
-          margin: 0;
-          font-size: 22px;
-          letter-spacing: 1px;
-        }
-        .content {
-          padding: 10px 20px;
-        }
-        .cta-button {
-          display: inline-block;
-          padding: 12px 24px;
-          background-color: #2d6a4f;
-          color: #FFFFFF;
-          text-decoration: none;
-          border-radius: 5px;
-          font-weight: bold;
-          margin: 10px 0;
-        }
-        .footer {
-          background-color: #19422df2;
-          color: #ffffff;
-          text-align: center;
-          padding: 5px 10px;
-          font-size: 12px;
-          border-radius: 0 0 10px 10px;
-        }
-        .footer-info {
-          margin-top: 6px;
-        }
-        .footer-info a {
-          color: #B6D0E2;
-          text-decoration: none;
-        }
-        .withdrawal-details {
-          background-color: #f8f8f8;
-          border-left: 4px solid #2d6a4f;
-          padding: 15px;
-          margin: 20px 0;
-        }
-        .withdrawal-details p {
-          margin: 5px 0;
-        }
-        .highlight {
-          font-weight: bold;
-          color: #0a2342;
-        }
-        .risk-warning {
-          color: #C70039;
-          padding: 5px;
-          font-size: 12px;
-          line-height: 1.4;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Investor Password Updated</h1>
-        </div>
-        <div class="content">
-          <p>Dear ${loggedUser?.firstName + " " + loggedUser?.lastName},</p>
-          <p>Your account's investor password has been successfully updated.</p>
-          <div class="withdrawal-details">
-            <p>Account No: <span class="highlight">${currentAccount.accountNumber}</span></p>
-            <p>Old password: <span class="highlight">${currentAccount.investorPassword}</span></p>
-            <p>New password: <span class="highlight">${passwords.confirm}</span></p>
-          </div>
-          <p>Thank you for choosing us.</p>
-          <p>Happy trading!</p>
-          <p>Best regards,<br>${import.meta.env.VITE_WEBSITE_NAME} Team</p>
-          <hr>
-          <div class="risk-warning">
-            <strong>Risk Warning:</strong> Trading CFDs carries high risk and may result in losses beyond your initial investment. Trade only with money you can afford to lose and understand the risks.  
-            <br><br>
-            ${import.meta.env.VITE_WEBSITE_NAME} Trade’s services are not for U.S. citizens or in jurisdictions where they violate local laws.
-          </div>
-        </div>
-        <div class="footer">
-          <div class="footer-info">
-            <p>Website: <a href="https://${import.meta.env.VITE_EMAIL_WEBSITE}"> ${
-    import.meta.env.VITE_EMAIL_WEBSITE
-  } </a> | E-mail: <a href="mailto:${import.meta.env.VITE_EMAIL_EMAIL || ""}">${
-    import.meta.env.VITE_EMAIL_EMAIL || ""
-  }</a></p>
-            <p>© 2025 ${import.meta.env.VITE_WEBSITE_NAME || ""}. All Rights Reserved</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>`;
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Investor Password Updated</title>
+</head>
+<body>
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <div style="background:#f97316;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
+      <h2 style="margin:0;">Investor Password Updated</h2>
+    </div>
+    <div style="padding:20px;border:1px solid #fed7aa;">
+      <p>Dear ${loggedUser?.firstName || ""} ${loggedUser?.lastName || ""},</p>
+      <p>Your trading account investor password has been updated successfully.</p>
+      <p><strong>Account No:</strong> ${currentAccount?.accountNumber || ""}</p>
+      <p>If this was not done by you, please contact support immediately.</p>
+      <p>Best regards,<br/>${import.meta.env.VITE_WEBSITE_NAME || "Forex"} Team</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const toastId = toast.loading("Please wait...");
-    setIsLoading(true);
+
+    if (!currentAccount?.accountNumber) {
+      toast.error("Please select an account.");
+      return;
+    }
 
     if (!validatePassword(passwords.new)) {
       setError(
-        "Password must be at least 8 characters long, including one uppercase letter, one lowercase letter, one number, and one special symbol."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special symbol."
       );
-      toast.error("Invalid password format", { id: toastId });
-      setIsLoading(false);
+      toast.error("Invalid password format");
       return;
     }
 
     if (passwords.new !== passwords.confirm) {
       setError("Passwords do not match. Please try again.");
-      toast.error("Passwords do not match", { id: toastId });
-      setIsLoading(false);
+      toast.error("Passwords do not match");
       return;
     }
+
+    const toastId = toast.loading("Please wait...");
+    setIsLoading(true);
 
     try {
       const res = await userApi.get(
         `/server-master-password-change?Account=${currentAccount.accountNumber}&password=${passwords.confirm}`
       );
 
-      const backendRes = await backendApi.post(`/update-investor-password`, {
+      await backendApi.post("/update-investor-password", {
         userId: loggedUser._id,
         accountId: currentAccount._id,
         newPassword: passwords.confirm,
       });
-      console.log("backendRes--", backendRes);
 
-      await backendApi.post(`/custom-mail`, {
+      await backendApi.post("/custom-mail", {
         email: loggedUser.email,
         content: customContent,
         subject: "Investor Password Changed",
       });
 
-      toast.success(res.data.MESSAGE, { id: toastId });
+      toast.success(
+        res?.data?.MESSAGE ||
+          res?.data?.data?.MESSAGE ||
+          "Investor password changed",
+        { id: toastId }
+      );
+
+      setPasswords({
+        new: "",
+        confirm: "",
+      });
+      setError("");
       navigate("/user/dashboard");
     } catch (error) {
       toast.error("An error occurred. Please try again.", { id: toastId });
     } finally {
       setIsLoading(false);
     }
-
-    setPasswords({ new: "", confirm: "" });
-    setError("");
   };
 
-  const fields = [
-    { name: "new", label: "New Investor Password" },
-    { name: "confirm", label: "Confirm Investor Password" },
-  ];
+  const ruleClass = (ok) => (ok ? theme.successBadge : theme.badge);
 
   return (
-    <motion.div
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
+      className={cx(
+        "min-h-screen w-full p-4 sm:p-6",
+        theme.pageBg,
+        theme.pageText
+      )}
     >
-      <AnimatedGrid />
-      <FloatingParticles />
-      <FloatingOrbs />
+      <div className="mx-auto max-w-6xl space-y-5">
+        <HeaderCard theme={theme}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div
+                className={cx(
+                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+                  theme.headerIcon
+                )}
+              >
+                <KeyRound className="h-6 w-6" />
+              </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-10 md:px-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between gap-6 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="text-emerald-400" size={20} />
-              <span className="uppercase tracking-[0.25em] text-xs text-emerald-400/80 font-semibold">
-                security · view-only · shield
-              </span>
-            </div>
-            <motion.div
-              className="inline-block"
-              initial={{ scale: 0.98, rotateX: 10, opacity: 0 }}
-              animate={{ scale: 1, rotateX: 0, opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <ModernHeading text="Change Investor Password" />
-            </motion.div>
-          </div>
-
-          {/* Account Select */}
-          <div className="md:w-64">
-            {loggedUser?.accounts.length > 0 && (
               <div>
-                <LabelCaps required>Select Account</LabelCaps>
+                <div
+                  className={cx(
+                    "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+                    theme.headerBadge
+                  )}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Trading Security
+                </div>
+
+                <h1
+                  className={cx(
+                    "text-2xl font-bold tracking-tight sm:text-3xl",
+                    theme.headerText
+                  )}
+                >
+                  Change Investor Password
+                </h1>
+
+                <p
+                  className={cx(
+                    "mt-2 max-w-2xl text-sm leading-6",
+                    theme.headerMuted
+                  )}
+                >
+                  Update the investor password for your selected trading account.
+                  Investor access is generally used for read-only monitoring.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+              <HeaderStatBox
+                theme={theme}
+                icon={<Shield className="h-4 w-4" />}
+                label="Access"
+                value="View-only"
+              />
+              <HeaderStatBox
+                theme={theme}
+                icon={<Lock className="h-4 w-4" />}
+                label="Mode"
+                value="Investor"
+              />
+              <HeaderStatBox
+                theme={theme}
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                label="Status"
+                value="Active"
+              />
+            </div>
+          </div>
+        </HeaderCard>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <Card theme={theme} className="lg:col-span-4">
+            <div className="mb-5 flex items-start gap-3">
+              <div
+                className={cx(
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+                  theme.iconBox
+                )}
+              >
+                <Lock className="h-5 w-5" />
+              </div>
+
+              <div>
+                <h2 className={cx("text-lg font-semibold", theme.text)}>
+                  Selected Account
+                </h2>
+                <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                  Choose the trading account where the investor password should
+                  be changed.
+                </p>
+              </div>
+            </div>
+
+            {loggedUser?.accounts?.length > 0 ? (
+              <div>
+                <label
+                  className={cx(
+                    "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
+                    theme.muted
+                  )}
+                >
+                  Select Account
+                </label>
+
                 <div className="relative">
                   <select
+                    value={currentAccount?.accountNumber || ""}
                     onChange={(e) => {
                       const selectedValue = loggedUser.accounts?.find(
                         (value) => value.accountNumber === e.target.value
                       );
-                      setCurrentAccount(selectedValue);
+                      setCurrentAccount(selectedValue || null);
                     }}
-                    id="accountNumber"
-                    name="accountNumber"
-                    className="w-full py-2.5 text-sm rounded-xl bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-emerald-400/30 text-white/90 px-3 outline-none focus:ring-2 focus:ring-emerald-400/40"
+                    className={cx(
+                      "w-full appearance-none rounded-2xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-200 focus:ring-4",
+                      theme.input
+                    )}
                   >
-                    <option
-                      disabled
-                      className="bg-slate-900 text-gray-500"
-                      value=""
-                    >
+                    <option value="" disabled className={theme.option}>
                       Select Account
                     </option>
+
                     {loggedUser.accounts?.map((value, index) => (
                       <option
                         key={index}
-                        className="bg-slate-900 font-semibold text-white"
                         value={value.accountNumber}
+                        className={theme.option}
                       >
                         {value.accountNumber}
                       </option>
                     ))}
                   </select>
+
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
                 </div>
+
+                <div
+                  className={cx("mt-5 rounded-2xl border p-4", theme.cardSoft)}
+                >
+                  <p
+                    className={cx(
+                      "text-xs uppercase tracking-[0.14em]",
+                      theme.muted
+                    )}
+                  >
+                    Active Account
+                  </p>
+                  <p
+                    className={cx(
+                      "mt-1 font-mono text-lg font-bold",
+                      theme.text
+                    )}
+                  >
+                    #{currentAccount?.accountNumber || "—"}
+                  </p>
+                </div>
+
+                <div
+                  className={cx(
+                    "mt-4 rounded-2xl border px-4 py-3 text-sm leading-6",
+                    theme.successBadge
+                  )}
+                >
+                  Investor password gives read-only access for account monitoring.
+                </div>
+              </div>
+            ) : (
+              <div
+                className={cx(
+                  "rounded-2xl border px-4 py-3 text-sm",
+                  theme.dangerBadge
+                )}
+              >
+                No trading account found.
               </div>
             )}
-          </div>
-        </div>
+          </Card>
 
-        {/* Layout: Info card + Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
-          {/* Left: Account / security snapshot */}
-          <GlassCard className="p-6 lg:col-span-1">
-            <div className="relative flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl border border-emerald-400/40 bg-gradient-to-br from-emerald-400/20 via-cyan-400/20 to-indigo-400/20 grid place-items-center shadow-[0_0_40px_rgba(16,185,129,0.35)]">
-                  <Lock className="text-emerald-300" size={22} />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-300/70">
-                    active account
-                  </p>
-                  <p className="text-sm text-emerald-100/90 font-mono">
-                    {currentAccount?.accountNumber || "—"}
-                  </p>
-                </div>
-              </div>
+          <Card theme={theme} className="lg:col-span-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <PasswordInput
+                theme={theme}
+                label="New Investor Password"
+                name="new"
+                value={passwords.new}
+                onChange={handleChange}
+                show={showPasswords.new}
+                onToggle={() => togglePasswordVisibility("new")}
+                error={!!error}
+              />
 
-              <NeonDivider />
-
-              <div className="space-y-2 text-sm">
-                <p className="text-slate-300/80">
-                  You’re updating the{" "}
-                  <span className="text-emerald-300 font-semibold">
-                    investor password
-                  </span>{" "}
-                  for this account.
-                </p>
-                <p className="text-slate-400 text-xs">
-                  Investor password is typically <span className="font-semibold">read-only</span>,
-                  ideal for sharing with auditors, partners, or monitoring tools.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mt-3">
-                <BadgeStat
-                  icon={<Shield size={14} />}
-                  label="Access"
-                  value="View-only"
+              <div>
+                <PasswordInput
+                  theme={theme}
+                  label="Confirm Investor Password"
+                  name="confirm"
+                  value={passwords.confirm}
+                  onChange={handleChange}
+                  show={showPasswords.confirm}
+                  onToggle={() => togglePasswordVisibility("confirm")}
+                  error={!!error}
                 />
-                <BadgeStat
-                  icon={<CheckCircle size={14} />}
-                  label="Status"
-                  value="Active"
-                />
-                <BadgeStat
-                  icon={<Lock size={14} />}
-                  label="Mode"
-                  value="Investor"
-                />
-              </div>
-            </div>
-          </GlassCard>
 
-          {/* Right: Form */}
-          <GlassCard className="p-6 lg:col-span-2">
-            <motion.form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0, y: 10 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { staggerChildren: 0.04 },
-                },
-              }}
-            >
-              <div className="grid grid-cols-1 gap-5">
-                {fields.map((field, idx) => (
-                  <motion.div
-                    key={field.name}
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
+                <div className="mt-3">
+                  <div
+                    className={cx(
+                      "h-2 overflow-hidden rounded-full",
+                      theme.progressTrack
+                    )}
                   >
-                    <InputField
-                      label={field.label}
-                      icon={<Lock size={16} />}
-                      type="password"
-                      name={field.name}
-                      value={passwords[field.name]}
-                      onChange={handleChange}
-                      required
-                      error={!!error}
+                    <motion.div
+                      className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600"
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${strength.percent}%` }}
+                      transition={{ type: "spring", stiffness: 120, damping: 18 }}
                     />
-                  </motion.div>
-                ))}
+                  </div>
+
+                  <p className={cx("mt-2 text-xs font-semibold", theme.muted)}>
+                    Password strength:{" "}
+                    <span className="text-orange-500">{strength.label}</span>
+                  </p>
+                </div>
               </div>
 
-              {error && (
-                <motion.div
-                  className="text-red-400 flex items-center mt-1 text-sm"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div
+                  className={cx(
+                    "rounded-2xl border px-4 py-3 text-sm",
+                    ruleClass(passwords.new.length >= 8)
+                  )}
                 >
-                  <AlertCircle className="mr-2" size={18} />
-                  {error}
-                </motion.div>
-              )}
+                  Minimum 8 characters
+                </div>
+                <div
+                  className={cx(
+                    "rounded-2xl border px-4 py-3 text-sm",
+                    ruleClass(/[A-Z]/.test(passwords.new))
+                  )}
+                >
+                  At least one uppercase letter
+                </div>
+                <div
+                  className={cx(
+                    "rounded-2xl border px-4 py-3 text-sm",
+                    ruleClass(/[0-9]/.test(passwords.new))
+                  )}
+                >
+                  At least one number
+                </div>
+                <div
+                  className={cx(
+                    "rounded-2xl border px-4 py-3 text-sm",
+                    ruleClass(/[^A-Za-z0-9]/.test(passwords.new))
+                  )}
+                >
+                  At least one special symbol
+                </div>
+              </div>
 
-              <div className="flex flex-col-reverse gap-4 sm:flex-row justify-between items-center pt-2">
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className={cx(
+                      "flex items-start gap-2 rounded-2xl border px-4 py-3 text-sm",
+                      theme.dangerBadge
+                    )}
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
                 <Link
-                  to={"/user/dashboard"}
-                  type="button"
-                  className="w-full text-center sm:w-auto px-8 py-2.5 rounded-full border border-red-400/40 bg-red-500/10 text-red-100 hover:bg-red-500/20 hover:border-red-400/70 transition"
+                  to="/user/dashboard"
+                  className={cx(
+                    "inline-flex items-center justify-center rounded-2xl border px-6 py-3 text-sm font-semibold transition",
+                    theme.ghostButton
+                  )}
                 >
                   Cancel
                 </Link>
 
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                disabled={isLoading}
-                className="relative group inline-flex items-center gap-2 px-10 py-2.5 rounded-full font-semibold text-black
-                  bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400
-                  shadow-[0_10px_40px_rgba(16,185,129,0.35)] disabled:opacity-70"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <CheckCircle size={18} />
-                  {isLoading ? "Updating…" : "Change Password"}
-                </span>
-                <div
-                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity
-                  bg-[radial-gradient(120%_120%_at_50%_10%,rgba(255,255,255,0.35),transparent_40%)]"
-                />
-              </motion.button>
-              </div>
-            </motion.form>
-
-            {/* Loading shimmer */}
-            <AnimatePresence>
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-4 flex justify-center"
+                <motion.button
+                  type="submit"
+                  disabled={isLoading}
+                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                  className={cx(
+                    "inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70",
+                    isLoading ? theme.buttonDisabled : theme.button
+                  )}
                 >
-                  <motion.div
-                    className="h-1 w-52 rounded-full bg-emerald-500/20 overflow-hidden"
-                    animate={{}}
-                  >
-                    <motion.div
-                      className="h-full w-1/3 bg-emerald-400"
-                      animate={{ x: ["0%", "200%"] }}
-                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </GlassCard>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                  {isLoading ? "Updating..." : "Change Password"}
+                </motion.button>
+              </div>
+            </form>
+          </Card>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

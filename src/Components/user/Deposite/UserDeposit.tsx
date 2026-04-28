@@ -142,9 +142,9 @@ function StatCard({
         }
       : tone === "info"
       ? {
-          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(249,115,22,0.1)",
           iconColor: colors.accent,
-          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
+          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(249,115,22,0.22)",
         }
       : tone === "warning"
       ? {
@@ -153,7 +153,7 @@ function StatCard({
           border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
         }
       : {
-          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(249,115,22,0.08)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -274,7 +274,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(17,24,39,0.06)",
+                        : "rgba(249,115,22,0.10)",
                     }}
                   />
                 </td>
@@ -310,10 +310,10 @@ function CheckoutStep({
     <div
       className="overflow-hidden border"
       style={{
-        borderColor: colors.border,
+        borderColor: isOpen && !colors.isDark ? colors.inputBorder : colors.border,
         background: colors.surface,
         borderRadius: "20px",
-        boxShadow: colors.cardShadow,
+        boxShadow: isOpen && !colors.isDark ? colors.inputShadow : colors.cardShadow,
       }}
     >
       <div
@@ -410,40 +410,54 @@ export default function UserDeposit() {
   const colors = useMemo(() => {
     const accent = isDark
       ? rgba(theme?.accent || "96 165 250", 0.95)
-      : rgb(theme?.accent || "37 99 235");
+      : "#f97316";
 
     return {
       isDark,
-      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      pageBg: isDark ? "#0b1120" : "#fff7ed",
       heroBg: isDark
         ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
-      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
-      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
-      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+        : "linear-gradient(135deg, #f97316, #ea580c)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,237,213,0.75)",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,247,237,0.95)",
       text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
       muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
       softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(249,115,22,0.10)",
       success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
       warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
       danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
-      link: isDark ? "rgba(147,197,253,1)" : "#2563eb",
+      link: isDark ? "rgba(147,197,253,1)" : "#f97316",
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(15,23,42,0.08)",
+        : "rgba(249,115,22,0.22)",
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(15,23,42,0.06)",
+        : "rgba(249,115,22,0.14)",
+      inputBg: isDark
+        ? "rgba(15,23,42,0.92)"
+        : "linear-gradient(180deg, rgba(255,247,237,0.98), rgba(255,255,255,0.98))",
+      inputBorder: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(249,115,22,0.48)",
+      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#fb923c",
+      inputShadow: isDark
+        ? "0 0 0 1px rgba(255,255,255,0.03)"
+        : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
+      inputFocusShadow: isDark
+        ? "0 0 0 4px rgba(96,165,250,0.18)"
+        : "0 0 0 5px rgba(249,115,22,0.16), 0 14px 32px rgba(249,115,22,0.16)",
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 10px 30px rgba(15,23,42,0.06)",
+        : "0 16px 38px rgba(249,115,22,0.12)",
       primaryBtn: "#f97316",
       primaryBtnHover: "#ea580c",
       primaryBtnText: "#ffffff",
-      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.05)",
-      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(249,115,22,0.09)",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.85)",
       modalOverlay: "rgba(2,6,23,0.72)",
     };
   }, [isDark, theme]);
@@ -1044,28 +1058,31 @@ export default function UserDeposit() {
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    background: colors.surface,
-    color: colors.text,
-    border: `1px solid ${colors.border}`,
+    background: colors.inputBg,
+    color: colors.inputText,
+    border: `1.5px solid ${colors.inputBorder}`,
+    boxShadow: colors.inputShadow,
   };
 
   const inputStyle: React.CSSProperties = {
-    background: colors.surface,
-    color: titleColor,
-    border: `1px solid ${colors.border}`,
+    background: colors.inputBg,
+    color: colors.inputText,
+    border: `1.5px solid ${colors.inputBorder}`,
     borderRadius: "14px",
     outline: "none",
+    boxShadow: colors.inputShadow,
   };
 
   const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#ffffff",
+    background: isDark ? "#111827" : "#fff7ed",
     color: isDark ? "#ffffff" : "#0f172a",
   };
 
   const subtleCard = (): React.CSSProperties => ({
-    background: colors.surfaceSoft,
-    border: `1px solid ${colors.border}`,
+    background: colors.isDark ? colors.surfaceSoft : "rgba(255,247,237,0.92)",
+    border: `1.5px solid ${colors.isDark ? colors.border : colors.inputBorder}`,
     borderRadius: "16px",
+    boxShadow: colors.isDark ? "none" : colors.inputShadow,
   });
 
   const panelStyle: React.CSSProperties = {
@@ -1134,19 +1151,19 @@ export default function UserDeposit() {
     textSoft: colors.softText,
     badgeText: colors.accent,
     C: {
-      accent: theme?.accent || "37 99 235",
+      accent: theme?.accent || "249 115 22",
       primary: theme?.primary || theme?.accent || "249 115 22",
       fg: theme?.fg || "255 255 255",
       mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
-      border: theme?.border || theme?.inputBorder || "209 213 219",
+      border: theme?.border || theme?.inputBorder || "249 115 22",
       surface1: theme?.surface1 || theme?.bg || "255 255 255",
-      surface2: theme?.surface2 || theme?.card || "243 244 246",
+      surface2: theme?.surface2 || theme?.card || "255 237 213",
       primaryFg: theme?.primaryFg || "255 255 255",
       success: theme?.success || "34 197 94",
       warning: theme?.warning || "234 179 8",
       danger: theme?.danger || "244 63 94",
-      ring: theme?.ring || theme?.accent || "37 99 235",
-      glow: theme?.accent || "37 99 235",
+      ring: theme?.ring || theme?.accent || "249 115 22",
+      glow: theme?.accent || "249 115 22",
       radius: theme?.radius || "16px",
       accentFg: theme?.accentFg || "255 255 255",
     },
@@ -1328,7 +1345,7 @@ export default function UserDeposit() {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(15,23,42,0.18)",
+                      : "0 30px 80px rgba(249,115,22,0.24)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -1448,18 +1465,19 @@ export default function UserDeposit() {
                       <div className="relative max-w-md">
                         <Search
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                         <input
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, method, txn id, status..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
                           style={{
-                            borderColor: colors.border,
-                            background: colors.surface,
+                            borderColor: colors.inputBorder,
+                            background: colors.inputBg,
                             color: titleColor,
                             borderRadius: "14px",
+                            boxShadow: colors.inputShadow,
                           }}
                         />
                       </div>
@@ -1621,12 +1639,12 @@ export default function UserDeposit() {
                                             className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                             style={{
                                               borderColor: item.insuranceDetails
-                                                ? "rgba(59,130,246,0.25)"
+                                                ? "rgba(249,115,22,0.28)"
                                                 : colors.border,
                                               background: item.insuranceDetails
                                                 ? isDark
                                                   ? "rgba(59,130,246,0.12)"
-                                                  : "rgba(59,130,246,0.08)"
+                                                  : "rgba(249,115,22,0.08)"
                                                 : colors.surfaceSoft,
                                               color: item.insuranceDetails ? colors.accent : colors.softText,
                                             }}
@@ -1884,7 +1902,10 @@ export default function UserDeposit() {
                           name="accountNumber"
                           value={formData.accountNumber}
                           onChange={handleInputChange}
-                          style={selectStyle}
+                          style={{
+                            ...selectStyle,
+                            opacity: isInsuranceClaimDeposit ? 0.78 : 1,
+                          }}
                           disabled={isInsuranceClaimDeposit}
                         >
                           <option value="" style={optionStyle}>
@@ -1904,7 +1925,7 @@ export default function UserDeposit() {
 
                         <ChevronDown
                           className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                       </div>
                     </div>
@@ -1920,7 +1941,7 @@ export default function UserDeposit() {
                       <div className="relative">
                         <DollarSign
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                         <input
                           type="number"
@@ -1928,8 +1949,11 @@ export default function UserDeposit() {
                           placeholder="Enter amount"
                           value={formData.depositAmount}
                           onChange={handleInputChange}
-                          className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold"
-                          style={inputStyle}
+                          className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold placeholder:text-orange-400"
+                          style={{
+                            ...inputStyle,
+                            opacity: isInsuranceClaimDeposit ? 0.78 : 1,
+                          }}
                           disabled={isInsuranceClaimDeposit}
                         />
                       </div>
@@ -1956,12 +1980,14 @@ export default function UserDeposit() {
                               onClick={() => handleQuickAmountSelect(amount)}
                               className="border px-4 py-4 text-center text-sm font-semibold transition-all duration-300"
                               style={{
-                                borderColor: isActive ? colors.accent : colors.border,
+                                borderColor: isActive ? colors.accent : colors.inputBorder,
                                 background: isActive ? colors.accentSoft : colors.surfaceSoft,
                                 color: isActive ? accentColor : titleColor,
                                 borderRadius: "16px",
                                 boxShadow: isActive
-                                  ? "0 10px 20px rgba(37,99,235,0.08)"
+                                  ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 24px rgba(249,115,22,0.14)"
+                                  : !isDark
+                                  ? "0 8px 18px rgba(249,115,22,0.06)"
                                   : "none",
                               }}
                             >
@@ -2122,7 +2148,7 @@ export default function UserDeposit() {
                       className="p-4"
                       style={{
                         background: colors.surface,
-                        borderColor: insuranceQuote?.eligible ? "rgba(59,130,246,0.25)" : colors.border,
+                        borderColor: insuranceQuote?.eligible ? "rgba(249,115,22,0.28)" : colors.border,
                         boxShadow: colors.cardShadow,
                       }}
                     >
@@ -2133,10 +2159,10 @@ export default function UserDeposit() {
                             background: insuranceQuote?.eligible
                               ? isDark
                                 ? "rgba(59,130,246,0.12)"
-                                : "rgba(59,130,246,0.08)"
+                                : "rgba(249,115,22,0.08)"
                               : colors.surfaceSoft,
                             borderColor: insuranceQuote?.eligible
-                              ? "rgba(59,130,246,0.25)"
+                              ? "rgba(249,115,22,0.28)"
                               : colors.border,
                             color: insuranceQuote?.eligible ? colors.accent : colors.softText,
                           }}
@@ -2176,10 +2202,10 @@ export default function UserDeposit() {
                             <div
                               className="mt-4 rounded-2xl border p-3 text-sm"
                               style={{
-                                borderColor: "rgba(59,130,246,0.22)",
+                                borderColor: "rgba(249,115,22,0.26)",
                                 background: isDark
                                   ? "rgba(59,130,246,0.10)"
-                                  : "rgba(59,130,246,0.07)",
+                                  : "rgba(249,115,22,0.08)",
                                 color: colors.accent,
                               }}
                             >
@@ -2316,10 +2342,14 @@ export default function UserDeposit() {
                             onClick={() => handleMethodSelect(method.name)}
                             className="w-full border px-4 py-4 text-left transition-all duration-300"
                             style={{
-                              borderColor: active ? colors.accent : colors.border,
+                              borderColor: active ? colors.accent : colors.inputBorder,
                               background: active ? colors.accentSoft : colors.surface,
                               borderRadius: "18px",
-                              boxShadow: active ? "0 10px 20px rgba(37,99,235,0.08)" : "none",
+                              boxShadow: active
+                                ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 26px rgba(249,115,22,0.14)"
+                                : !isDark
+                                ? "0 8px 18px rgba(249,115,22,0.06)"
+                                : "none",
                             }}
                           >
                             <div className="flex items-center gap-3">
@@ -2364,8 +2394,9 @@ export default function UserDeposit() {
                       className="mb-5 border px-4 py-3"
                       style={{
                         borderRadius: "16px",
-                        borderColor: colors.border,
+                        borderColor: colors.inputBorder,
                         background: colors.surfaceSoft,
+                        boxShadow: !isDark ? colors.inputShadow : "none",
                       }}
                     >
                       <div className="flex items-center justify-between gap-4">
@@ -2383,7 +2414,7 @@ export default function UserDeposit() {
                           onClick={() => setShowPaymentModal(true)}
                           className="inline-flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase"
                           style={{
-                            borderColor: colors.border,
+                            borderColor: colors.inputBorder,
                             background: colors.surface,
                             color: colors.accent,
                             borderRadius: "12px",
@@ -2410,6 +2441,7 @@ export default function UserDeposit() {
                             borderColor: colors.accent,
                             background: colors.accentSoft,
                             borderRadius: "16px",
+                            boxShadow: !isDark ? colors.inputShadow : "none",
                           }}
                         >
                           <p className="text-sm font-medium" style={{ color: colors.accent }}>
@@ -2586,7 +2618,7 @@ export default function UserDeposit() {
                             style={{
                               background: isDark
                                 ? "rgba(59,130,246,0.10)"
-                                : "rgba(59,130,246,0.08)",
+                                : "rgba(249,115,22,0.08)",
                               color: colors.accent,
                             }}
                           >

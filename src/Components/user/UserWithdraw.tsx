@@ -14,22 +14,17 @@ import {
   Search,
   RefreshCcw,
   X,
-  Eye,
   Activity,
   CircleDollarSign,
   Gauge,
   ShieldCheck,
   Percent,
-  PencilLine,
   ArrowRight,
   CreditCard,
-  Banknote,
   Shield,
   Loader2,
   AlertCircle,
   ReceiptText,
-  Zap,
-  BadgeDollarSign,
   Copy,
 } from "lucide-react";
 
@@ -108,7 +103,10 @@ function SectionCard({
 }) {
   return (
     <div
-      className={["overflow-hidden border transition-all duration-300", className].join(" ")}
+      className={[
+        "overflow-hidden border transition-all duration-300",
+        className,
+      ].join(" ")}
       style={{
         borderRadius: "20px",
         ...style,
@@ -130,30 +128,48 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(16,185,129,0.14)"
+            : "rgba(16,185,129,0.1)",
           iconColor: colors.success,
-          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
+          border: colors.isDark
+            ? "rgba(16,185,129,0.22)"
+            : "rgba(16,185,129,0.18)",
         }
       : tone === "info"
       ? {
-          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(59,130,246,0.09)",
+          iconBg: colors.isDark
+            ? "rgba(59,130,246,0.14)"
+            : "rgba(249,115,22,0.1)",
           iconColor: colors.accent,
-          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(59,130,246,0.16)",
+          border: colors.isDark
+            ? "rgba(59,130,246,0.22)"
+            : "rgba(249,115,22,0.22)",
         }
       : tone === "warning"
       ? {
-          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(245,158,11,0.14)"
+            : "rgba(245,158,11,0.1)",
           iconColor: colors.warning,
-          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
+          border: colors.isDark
+            ? "rgba(245,158,11,0.22)"
+            : "rgba(245,158,11,0.16)",
         }
       : tone === "danger"
       ? {
-          iconBg: colors.isDark ? "rgba(239,68,68,0.14)" : "rgba(239,68,68,0.1)",
+          iconBg: colors.isDark
+            ? "rgba(239,68,68,0.14)"
+            : "rgba(239,68,68,0.1)",
           iconColor: colors.danger,
-          border: colors.isDark ? "rgba(239,68,68,0.22)" : "rgba(239,68,68,0.16)",
+          border: colors.isDark
+            ? "rgba(239,68,68,0.22)"
+            : "rgba(239,68,68,0.16)",
         }
       : {
-          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(17,24,39,0.04)",
+          iconBg: colors.isDark
+            ? "rgba(255,255,255,0.05)"
+            : "rgba(249,115,22,0.08)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -201,8 +217,20 @@ function StatCard({
 
 function LoaderIcon({ color }: { color: string }) {
   return (
-    <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color }}>
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <svg
+      className="h-5 w-5 animate-spin"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={{ color }}
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
       <path
         className="opacity-75"
         fill="currentColor"
@@ -274,7 +302,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(17,24,39,0.06)",
+                        : "rgba(249,115,22,0.10)",
                     }}
                   />
                 </td>
@@ -310,10 +338,10 @@ function CheckoutStep({
     <div
       className="overflow-hidden border"
       style={{
-        borderColor: colors.border,
+        borderColor: isOpen && !colors.isDark ? colors.inputBorder : colors.border,
         background: colors.surface,
         borderRadius: "20px",
-        boxShadow: colors.cardShadow,
+        boxShadow: isOpen && !colors.isDark ? colors.inputShadow : colors.cardShadow,
       }}
     >
       <div
@@ -343,7 +371,10 @@ function CheckoutStep({
                 {title}
               </span>
               {isCompleted && !isOpen ? (
-                <CheckCircle2 className="h-4 w-4" style={{ color: colors.success }} />
+                <CheckCircle2
+                  className="h-4 w-4"
+                  style={{ color: colors.success }}
+                />
               ) : null}
             </div>
 
@@ -390,40 +421,51 @@ export default function UserWithdraw() {
   const colors = useMemo(() => {
     const accent = isDark
       ? rgba(theme?.accent || "96 165 250", 0.95)
-      : rgb(theme?.accent || "37 99 235");
+      : rgb(theme?.accent || "249 115 22");
 
     return {
       isDark,
-      pageBg: isDark ? "#0b1120" : "#f8fafc",
+      pageBg: isDark ? "#0b1120" : "#fff7ed",
       heroBg: isDark
         ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #2563eb, #1d4ed8)",
-      surface: isDark ? "rgba(15,23,42,0.92)" : "#ffffff",
-      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc",
-      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+        : "linear-gradient(135deg, #f97316, #ea580c)",
+      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,237,213,0.75)",
+      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,247,237,0.95)",
       text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
       muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
       softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(37,99,235,0.08)",
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(249,115,22,0.10)",
       success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
       warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
       danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
-      link: isDark ? "rgba(147,197,253,1)" : "#2563eb",
+      link: isDark ? "rgba(147,197,253,1)" : "#f97316",
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(15,23,42,0.08)",
+        : "rgba(249,115,22,0.22)",
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(15,23,42,0.06)",
+        : "rgba(249,115,22,0.14)",
+      inputBg: isDark
+        ? "rgba(15,23,42,0.92)"
+        : "linear-gradient(180deg, rgba(255,247,237,0.98), rgba(255,255,255,0.98))",
+      inputBorder: isDark
+        ? rgba(theme?.border || "255 255 255", 0.12)
+        : "rgba(249,115,22,0.48)",
+      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#fb923c",
+      inputShadow: isDark
+        ? "0 0 0 1px rgba(255,255,255,0.03)"
+        : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 10px 30px rgba(15,23,42,0.06)",
+        : "0 16px 38px rgba(249,115,22,0.12)",
       primaryBtn: "#f97316",
       primaryBtnHover: "#ea580c",
       primaryBtnText: "#ffffff",
-      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.05)",
-      tableHead: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc",
+      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(249,115,22,0.09)",
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.85)",
       modalOverlay: "rgba(2,6,23,0.72)",
     };
   }, [isDark, theme]);
@@ -603,7 +645,11 @@ export default function UserWithdraw() {
   }, [amount, dollarRate]);
 
   const canContinueStep1 =
-    !!account && !!amount && Number(amount) > 0 && Number(amount) <= Number(accountBalance || 0);
+    !!account &&
+    !!amount &&
+    Number(amount) > 0 &&
+    Number(amount) <= Number(accountBalance || 0);
+
   const canContinueStep2 = !!selectedGateway && !!selectWallet;
   const canRequestOtp = step1Completed && step2Completed && canContinueStep1 && canContinueStep2;
   const canSubmitOtp = !!otp && otp.length >= 4 && otpSent && !apiLoader && !isWithdrawing;
@@ -664,7 +710,9 @@ export default function UserWithdraw() {
     if (tone === "approved") {
       return {
         background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
-        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(22,163,74,0.16)",
+        border: isDark
+          ? "1px solid rgba(16,185,129,0.22)"
+          : "1px solid rgba(22,163,74,0.16)",
         color: colors.success,
       };
     }
@@ -672,7 +720,9 @@ export default function UserWithdraw() {
     if (tone === "pending") {
       return {
         background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
-        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.16)",
+        border: isDark
+          ? "1px solid rgba(245,158,11,0.22)"
+          : "1px solid rgba(245,158,11,0.16)",
         color: colors.warning,
       };
     }
@@ -680,7 +730,9 @@ export default function UserWithdraw() {
     if (tone === "rejected") {
       return {
         background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
-        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.16)",
+        border: isDark
+          ? "1px solid rgba(239,68,68,0.22)"
+          : "1px solid rgba(239,68,68,0.16)",
         color: colors.danger,
       };
     }
@@ -859,28 +911,31 @@ export default function UserWithdraw() {
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    background: colors.surface,
-    color: colors.text,
-    border: `1px solid ${colors.border}`,
+    background: colors.inputBg,
+    color: colors.inputText,
+    border: `1.5px solid ${colors.inputBorder}`,
+    boxShadow: colors.inputShadow,
   };
 
   const inputStyle: React.CSSProperties = {
-    background: colors.surface,
-    color: titleColor,
-    border: `1px solid ${colors.border}`,
+    background: colors.inputBg,
+    color: colors.inputText,
+    border: `1.5px solid ${colors.inputBorder}`,
     borderRadius: "14px",
     outline: "none",
+    boxShadow: colors.inputShadow,
   };
 
   const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#ffffff",
+    background: isDark ? "#111827" : "#fff7ed",
     color: isDark ? "#ffffff" : "#0f172a",
   };
 
   const subtleCard = (): React.CSSProperties => ({
-    background: colors.surfaceSoft,
-    border: `1px solid ${colors.border}`,
+    background: colors.isDark ? colors.surfaceSoft : "rgba(255,247,237,0.92)",
+    border: `1.5px solid ${colors.isDark ? colors.border : colors.inputBorder}`,
     borderRadius: "16px",
+    boxShadow: colors.isDark ? "none" : colors.inputShadow,
   });
 
   const primaryButtonStyle: React.CSSProperties = {
@@ -921,7 +976,7 @@ export default function UserWithdraw() {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(15,23,42,0.18)",
+                      : "0 30px 80px rgba(249,115,22,0.24)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -947,7 +1002,10 @@ export default function UserWithdraw() {
 
                         <h2
                           className="text-2xl font-bold sm:text-3xl"
-                          style={{ color: titleColor, fontFamily: "'Poppins', sans-serif" }}
+                          style={{
+                            color: titleColor,
+                            fontFamily: "'Poppins', sans-serif",
+                          }}
                         >
                           Withdrawal Transactions
                         </h2>
@@ -1034,18 +1092,19 @@ export default function UserWithdraw() {
                       <div className="relative max-w-md">
                         <Search
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                         <input
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, method, wallet, status..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
                           style={{
-                            borderColor: colors.border,
-                            background: colors.surface,
+                            borderColor: colors.inputBorder,
+                            background: colors.inputBg,
                             color: titleColor,
                             borderRadius: "14px",
+                            boxShadow: colors.inputShadow,
                           }}
                         />
                       </div>
@@ -1334,7 +1393,10 @@ export default function UserWithdraw() {
                 <div className="p-5">
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div>
-                      <label className="mb-2 block text-sm font-semibold" style={{ color: titleColor }}>
+                      <label
+                        className="mb-2 block text-sm font-semibold"
+                        style={{ color: titleColor }}
+                      >
                         Select Trading Account
                       </label>
 
@@ -1353,27 +1415,30 @@ export default function UserWithdraw() {
 
                         <ChevronDown
                           className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm font-semibold" style={{ color: titleColor }}>
+                      <label
+                        className="mb-2 block text-sm font-semibold"
+                        style={{ color: titleColor }}
+                      >
                         Withdrawal Amount (USD)
                       </label>
 
                       <div className="relative">
                         <DollarSign
                           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                          style={{ color: mutedTextColor }}
+                          style={{ color: isDark ? mutedTextColor : colors.primaryBtn }}
                         />
                         <input
                           type="number"
                           placeholder="Enter amount"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          className="w-full py-[13px] pl-10 pr-10 text-sm font-semibold"
+                          className="w-full py-[13px] pl-10 pr-10 text-sm font-semibold placeholder:text-orange-400"
                           style={inputStyle}
                         />
                         {amount && numericBalance && Number(amount) > numericBalance ? (
@@ -1393,7 +1458,7 @@ export default function UserWithdraw() {
                   </div>
 
                   <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="border p-4" style={{ borderColor: colors.border, background: colors.surfaceSoft, borderRadius: "16px" }}>
+                    <div className="border p-4" style={subtleCard()}>
                       <div className="text-xs" style={{ color: colors.muted }}>
                         Account Type
                       </div>
@@ -1402,7 +1467,7 @@ export default function UserWithdraw() {
                       </div>
                     </div>
 
-                    <div className="border p-4" style={{ borderColor: colors.border, background: colors.surfaceSoft, borderRadius: "16px" }}>
+                    <div className="border p-4" style={subtleCard()}>
                       <div className="text-xs" style={{ color: colors.muted }}>
                         Live Balance
                       </div>
@@ -1411,7 +1476,7 @@ export default function UserWithdraw() {
                       </div>
                     </div>
 
-                    <div className="border p-4" style={{ borderColor: colors.border, background: colors.surfaceSoft, borderRadius: "16px" }}>
+                    <div className="border p-4" style={subtleCard()}>
                       <div className="text-xs" style={{ color: colors.muted }}>
                         INR Conversion
                       </div>
@@ -1462,7 +1527,10 @@ export default function UserWithdraw() {
               >
                 <div className="p-5">
                   <div className="mb-5">
-                    <div className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]" style={{ color: mutedTextColor }}>
+                    <div
+                      className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
+                      style={{ color: mutedTextColor }}
+                    >
                       Select Withdrawal Method
                     </div>
 
@@ -1481,10 +1549,14 @@ export default function UserWithdraw() {
                             onClick={() => setSelectedGateway(method.name)}
                             className="w-full border px-4 py-4 text-left transition-all duration-300"
                             style={{
-                              borderColor: active ? colors.accent : colors.border,
+                              borderColor: active ? colors.accent : colors.inputBorder,
                               background: active ? colors.accentSoft : colors.surface,
                               borderRadius: "18px",
-                              boxShadow: active ? "0 10px 20px rgba(37,99,235,0.08)" : "none",
+                              boxShadow: active
+                                ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 26px rgba(249,115,22,0.14)"
+                                : !isDark
+                                ? "0 8px 18px rgba(249,115,22,0.06)"
+                                : "none",
                             }}
                           >
                             <div className="flex items-center gap-3">
@@ -1500,7 +1572,10 @@ export default function UserWithdraw() {
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <div className="text-sm font-semibold" style={{ color: active ? accentColor : titleColor }}>
+                                <div
+                                  className="text-sm font-semibold"
+                                  style={{ color: active ? accentColor : titleColor }}
+                                >
                                   {method.name}
                                 </div>
                                 <div className="mt-1 text-xs" style={{ color: mutedTextColor }}>
@@ -1508,7 +1583,9 @@ export default function UserWithdraw() {
                                 </div>
                               </div>
 
-                              {active ? <CheckCircle2 className="h-4 w-4" style={{ color: accentColor }} /> : null}
+                              {active ? (
+                                <CheckCircle2 className="h-4 w-4" style={{ color: accentColor }} />
+                              ) : null}
                             </div>
                           </motion.button>
                         );
@@ -1519,7 +1596,10 @@ export default function UserWithdraw() {
                   {selectedGateway === "Wallet Transfer" ? (
                     <>
                       <div className="mb-5">
-                        <div className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]" style={{ color: mutedTextColor }}>
+                        <div
+                          className="mb-3 text-sm font-semibold uppercase tracking-[0.08em]"
+                          style={{ color: mutedTextColor }}
+                        >
                           Select Wallet Type
                         </div>
 
@@ -1535,9 +1615,14 @@ export default function UserWithdraw() {
                                 onClick={() => setSelectWallet(option.value)}
                                 className="w-full border px-4 py-4 text-left transition-all duration-300"
                                 style={{
-                                  borderColor: active ? colors.accent : colors.border,
+                                  borderColor: active ? colors.accent : colors.inputBorder,
                                   background: active ? colors.accentSoft : colors.surface,
                                   borderRadius: "18px",
+                                  boxShadow: active
+                                    ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 26px rgba(249,115,22,0.14)"
+                                    : !isDark
+                                    ? "0 8px 18px rgba(249,115,22,0.06)"
+                                    : "none",
                                 }}
                               >
                                 <div className="flex items-center gap-3">
@@ -1552,7 +1637,10 @@ export default function UserWithdraw() {
                                     {option.icon}
                                   </div>
                                   <div>
-                                    <div className="text-sm font-semibold" style={{ color: active ? accentColor : titleColor }}>
+                                    <div
+                                      className="text-sm font-semibold"
+                                      style={{ color: active ? accentColor : titleColor }}
+                                    >
                                       {option.label}
                                     </div>
                                     <div className="mt-1 text-xs" style={{ color: mutedTextColor }}>
@@ -1576,12 +1664,27 @@ export default function UserWithdraw() {
                               This address will receive the withdrawal.
                             </div>
                           </div>
-                          <span className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold" style={{ background: colors.accentSoft, borderColor: colors.border, color: colors.accent }}>
+                          <span
+                            className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
+                            style={{
+                              background: colors.accentSoft,
+                              borderColor: colors.border,
+                              color: colors.accent,
+                            }}
+                          >
                             {selectWallet}
                           </span>
                         </div>
 
-                        <div className="rounded-xl border px-3 py-3 font-mono text-xs" style={{ borderColor: colors.border, background: colors.surface, color: colors.text }}>
+                        <div
+                          className="rounded-xl border px-3 py-3 font-mono text-xs"
+                          style={{
+                            borderColor: colors.inputBorder,
+                            background: colors.inputBg,
+                            color: colors.text,
+                            boxShadow: !isDark ? colors.inputShadow : "none",
+                          }}
+                        >
                           {walletAddress}
                         </div>
 
@@ -1591,7 +1694,7 @@ export default function UserWithdraw() {
                             onClick={() => copyText(walletAddress)}
                             className="inline-flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase"
                             style={{
-                              borderColor: colors.border,
+                              borderColor: colors.inputBorder,
                               background: colors.surface,
                               color: colors.accent,
                               borderRadius: "12px",
@@ -1634,7 +1737,11 @@ export default function UserWithdraw() {
                 summary={
                   <>
                     <span className="font-semibold" style={{ color: colors.text }}>
-                      {step3Completed ? "Withdrawal request submitted" : otpSent ? "OTP sent to email" : "Verification pending"}
+                      {step3Completed
+                        ? "Withdrawal request submitted"
+                        : otpSent
+                        ? "OTP sent to email"
+                        : "Verification pending"}
                     </span>
                   </>
                 }
@@ -1666,7 +1773,11 @@ export default function UserWithdraw() {
                           cursor: canRequestOtp && !isWithdrawing ? "pointer" : "not-allowed",
                         }}
                       >
-                        {isWithdrawing ? <LoaderIcon color="#fff" /> : <ShieldCheck className="h-4 w-4" />}
+                        {isWithdrawing ? (
+                          <LoaderIcon color="#fff" />
+                        ) : (
+                          <ShieldCheck className="h-4 w-4" />
+                        )}
                         {otpSent ? "Resend OTP" : "Send OTP"}
                       </button>
                     </div>
@@ -1685,7 +1796,7 @@ export default function UserWithdraw() {
                         onChange={(e) => setOtp(e.target.value)}
                         maxLength={6}
                         placeholder="000000"
-                        className="w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none"
+                        className="w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none placeholder:text-orange-400"
                         style={inputStyle}
                       />
 
@@ -1703,7 +1814,11 @@ export default function UserWithdraw() {
                             cursor: canSubmitOtp ? "pointer" : "not-allowed",
                           }}
                         >
-                          {apiLoader ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                          {apiLoader ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4" />
+                          )}
                           Verify & Submit
                         </button>
                       </div>
@@ -1711,7 +1826,16 @@ export default function UserWithdraw() {
                   </div>
 
                   {step3Completed ? (
-                    <div className="mt-5 border px-4 py-4" style={{ borderRadius: "16px", borderColor: "rgba(16,185,129,0.18)", background: isDark ? "rgba(16,185,129,0.08)" : "rgba(240,253,244,0.85)" }}>
+                    <div
+                      className="mt-5 border px-4 py-4"
+                      style={{
+                        borderRadius: "16px",
+                        borderColor: "rgba(16,185,129,0.18)",
+                        background: isDark
+                          ? "rgba(16,185,129,0.08)"
+                          : "rgba(240,253,244,0.85)",
+                      }}
+                    >
                       <div className="flex items-center gap-3">
                         <CheckCircle2 className="h-5 w-5" style={{ color: colors.success }} />
                         <div>
@@ -1727,7 +1851,18 @@ export default function UserWithdraw() {
                   ) : null}
 
                   {error ? (
-                    <div className="mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm" style={{ borderColor: isDark ? "rgba(239,68,68,0.18)" : "rgba(239,68,68,0.16)", background: isDark ? "rgba(239,68,68,0.08)" : "rgba(254,242,242,0.92)", color: colors.danger }}>
+                    <div
+                      className="mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm"
+                      style={{
+                        borderColor: isDark
+                          ? "rgba(239,68,68,0.18)"
+                          : "rgba(239,68,68,0.16)",
+                        background: isDark
+                          ? "rgba(239,68,68,0.08)"
+                          : "rgba(254,242,242,0.92)",
+                        color: colors.danger,
+                      }}
+                    >
                       <AlertCircle size={18} className="flex-shrink-0" />
                       <p>{error}</p>
                     </div>
@@ -1746,11 +1881,14 @@ export default function UserWithdraw() {
                   }}
                 >
                   <div className="p-5">
-                    <div className="mb-4 text-[28px] font-semibold leading-none" style={{ color: titleColor }}>
+                    <div
+                      className="mb-4 text-[28px] font-semibold leading-none"
+                      style={{ color: titleColor }}
+                    >
                       Withdrawal Details
                     </div>
 
-                    <div className="space-y-4 border p-4" style={{ background: colors.surfaceSoft, borderColor: colors.border, borderRadius: "16px" }}>
+                    <div className="space-y-4 border p-4" style={subtleCard()}>
                       <div className="flex items-center justify-between">
                         <span style={{ color: titleColor }}>Amount</span>
                         <span style={{ color: titleColor }}>${money(amount || 0)}</span>
@@ -1794,7 +1932,18 @@ export default function UserWithdraw() {
                       Available Balance ${money(accountBalance || 0)}
                     </div>
 
-                    <div className="mt-4 border px-4 py-3" style={{ background: isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)", borderColor: isDark ? "rgba(245,158,11,0.16)" : "rgba(245,158,11,0.14)", borderRadius: "16px" }}>
+                    <div
+                      className="mt-4 border px-4 py-3"
+                      style={{
+                        background: isDark
+                          ? "rgba(245,158,11,0.08)"
+                          : "rgba(245,158,11,0.06)",
+                        borderColor: isDark
+                          ? "rgba(245,158,11,0.16)"
+                          : "rgba(245,158,11,0.14)",
+                        borderRadius: "16px",
+                      }}
+                    >
                       <div className="flex items-start gap-2">
                         <Percent className="mt-0.5 h-4 w-4" style={{ color: colors.warning }} />
                         <div className="text-sm" style={{ color: titleColor }}>
@@ -1836,7 +1985,11 @@ export default function UserWithdraw() {
                             : primaryButtonStyle.boxShadow,
                         }}
                       >
-                        {apiLoader || isWithdrawing ? <LoaderIcon color="#ffffff" /> : <CheckCircle2 className="h-4 w-4" />}
+                        {apiLoader || isWithdrawing ? (
+                          <LoaderIcon color="#ffffff" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
                         <span>SUBMIT WITHDRAWAL</span>
                       </motion.button>
                     </motion.div>
@@ -1852,7 +2005,10 @@ export default function UserWithdraw() {
                 >
                   <div className="p-5">
                     <div className="mb-4 flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: colors.accentSoft, color: accentColor }}>
+                      <div
+                        className="flex h-11 w-11 items-center justify-center rounded-xl"
+                        style={{ background: colors.accentSoft, color: accentColor }}
+                      >
                         <CreditCard size={20} />
                       </div>
                       <div>
@@ -1867,14 +2023,20 @@ export default function UserWithdraw() {
 
                     {selectedGateway ? (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between rounded-2xl border px-4 py-3" style={subtleCard()}>
+                        <div
+                          className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                          style={subtleCard()}
+                        >
                           <span style={{ color: mutedTextColor }}>Method</span>
                           <span className="font-medium" style={{ color: titleColor }}>
                             {selectedGateway}
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between rounded-2xl border px-4 py-3" style={subtleCard()}>
+                        <div
+                          className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                          style={subtleCard()}
+                        >
                           <span style={{ color: mutedTextColor }}>Wallet Type</span>
                           <span className="font-medium" style={{ color: titleColor }}>
                             {selectWallet}
@@ -1885,7 +2047,15 @@ export default function UserWithdraw() {
                           <p className="mb-2 text-sm" style={{ color: mutedTextColor }}>
                             Address
                           </p>
-                          <p className="break-all rounded-xl px-3 py-2 text-xs font-medium" style={{ background: colors.surface, color: titleColor }}>
+                          <p
+                            className="break-all rounded-xl px-3 py-2 text-xs font-medium"
+                            style={{
+                              background: colors.inputBg,
+                              color: titleColor,
+                              border: `1px solid ${colors.inputBorder}`,
+                              boxShadow: !isDark ? colors.inputShadow : "none",
+                            }}
+                          >
                             {walletAddress}
                           </p>
                           <div className="mt-3 flex justify-end">
@@ -1894,7 +2064,7 @@ export default function UserWithdraw() {
                               onClick={() => copyText(walletAddress)}
                               className="inline-flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase"
                               style={{
-                                borderColor: colors.border,
+                                borderColor: colors.inputBorder,
                                 background: colors.surface,
                                 color: colors.accent,
                                 borderRadius: "12px",
@@ -1919,7 +2089,10 @@ export default function UserWithdraw() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm" style={{ color: colors.muted }}>
+          <div
+            className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm"
+            style={{ color: colors.muted }}
+          >
             <div className="flex flex-wrap items-center gap-4">
               <span>Policies: Returns Policy</span>
               <span>Terms of use</span>

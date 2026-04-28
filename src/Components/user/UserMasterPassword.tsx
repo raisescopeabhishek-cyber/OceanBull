@@ -1,466 +1,384 @@
-import { useState, useMemo } from "react";
-import { Lock, CheckCircle, AlertCircle, Sparkles, Shield } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Lock,
+  CheckCircle,
+  AlertCircle,
+  Sparkles,
+  Shield,
+  KeyRound,
+  Loader2,
+  ChevronDown,
+  CheckCircle2,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { backendApi,  userApi } from "../../utils/apiClients";
-import ModernHeading from "../lib/ModernHeading";
-import { FloatingParticles } from "../../utils/FloatingParticles";
+import { backendApi, userApi } from "../../utils/apiClients";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v: any) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v: any, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
 
-/* =========================== DECOR / THEME (DYNAMIC) ============================ */
+const getTheme = (isDark: boolean) => ({
+  pageText: isDark ? "text-white" : "text-slate-900",
+  text: isDark ? "text-white" : "text-slate-900",
+  muted: isDark ? "text-white/55" : "text-slate-500",
+  softText: isDark ? "text-white/70" : "text-slate-600",
 
-const AnimatedGrid = ({ theme }: { theme: any }) => {
-  const grid = theme?.accent || theme?.ring || "34 197 94";
-  const stripe = theme?.info || theme?.gradientFrom || "0 255 200";
-  const effects = theme?.effectsEnabled !== false;
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
 
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          opacity: 0.1,
-          backgroundImage: `linear-gradient(${rgba(grid, 0.15)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(grid, 0.15)} 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at center, black 60%, transparent 100%)",
-        }}
-      />
-      {effects && (
-        <motion.div
-          className="absolute inset-0"
-          animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-          style={{
-            background: `repeating-linear-gradient(90deg, ${rgba(
-              stripe,
-              0.06
-            )} 0px, ${rgba(stripe, 0.06)} 2px, transparent 2px, transparent 6px)`,
-          }}
-        />
-      )}
-    </div>
-  );
-};
+  header: isDark
+    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
 
-const FloatingOrbs = ({ theme }: { theme: any }) => {
-  const a = theme?.accent || "16 185 129";
-  const b = theme?.info || theme?.gradientFrom || "34 211 238";
-  const c = theme?.gradientTo || theme?.primary || "99 102 241";
-  const effects = theme?.effectsEnabled !== false;
+  headerText: "text-white",
+  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerBadge: "border-white/20 bg-white/10 text-white",
+  headerIcon: "border-white/20 bg-white/10 text-white",
+  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
+  headerStatMuted: "text-white/75",
 
-  if (!effects) return null;
+  card: isDark
+    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
 
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      {Array.from({ length: 12 }).map((_, i) => {
-        const color = i % 3 === 0 ? a : i % 3 === 1 ? b : c;
-        return (
-          <motion.div
-            key={i}
-            className="absolute rounded-full blur-2xl"
-            style={{
-              width: 140,
-              height: 140,
-              background: `radial-gradient(circle at center, ${rgba(
-                color,
-                0.25
-              )}, transparent 60%)`,
-              left: `${(i * 83) % 100}%`,
-              top: `${(i * 47) % 100}%`,
-            }}
-            animate={{
-              y: [0, i % 2 ? -20 : 20, 0],
-              x: [0, i % 2 ? 10 : -10, 0],
-              opacity: [0.6, 1, 0.6],
-            }}
-            transition={{
-              duration: 6 + (i % 5),
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.2,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
+  cardSoft: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100/80 bg-white/70",
 
-const GlassCard = ({
-  theme,
+  input: isDark
+    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
+    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+
+  option: isDark ? "bg-slate-900 text-white" : "bg-orange-50 text-slate-900",
+
+  iconBox: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-200 bg-orange-50 text-orange-600",
+
+  badge: isDark
+    ? "border-white/10 bg-white/[0.05] text-white/60"
+    : "border-orange-100 bg-white/80 text-orange-600",
+
+  successBadge: isDark
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+
+  dangerBadge: isDark
+    ? "border-red-400/20 bg-red-500/10 text-red-300"
+    : "border-red-200 bg-red-50 text-red-700",
+
+  button: isDark
+    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
+    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+
+  ghostButton: isDark
+    ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
+    : "border-orange-100 bg-white/75 text-slate-600 hover:bg-orange-50",
+});
+
+const HeaderCard = ({
   children,
-  className = "",
-}: {
-  theme: any;
-  children: any;
-  className?: string;
-}) => {
-  const card = theme?.card || theme?.surface2 || "18 18 18";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  const glow = theme?.glow || theme?.accent || "59 130 246";
-
-  return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className={`relative rounded-2xl backdrop-blur-xl ${className}`}
-      style={{
-        border: `1px solid ${rgba(border, 0.14)}`,
-        background: `linear-gradient(135deg, ${rgba(card, 0.66)}, ${rgba(
-          card,
-          0.32
-        )}, ${rgba(card, 0.66)})`,
-        boxShadow: `0 0 80px ${rgba(glow, 0.08)}`,
-      }}
-    >
-      <div
-        className="absolute inset-px rounded-[calc(1rem-1px)] pointer-events-none"
-        style={{
-          background: `linear-gradient(135deg, ${rgba(
-            theme?.gradientFrom || theme?.accent || "59 130 246",
-            0.06
-          )}, ${rgba(theme?.gradientTo || theme?.info || "34 211 238", 0.06)})`,
-        }}
-      />
-      {children}
-    </motion.div>
-  );
-};
-
-const LabelCaps = ({
-  children,
-  required,
   theme,
 }: {
-  children: any;
-  required?: boolean;
-  theme: any;
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
 }) => (
-  <div className="flex items-center gap-2 mb-1">
-    <span
-      className="text-[11px] tracking-[0.25em] uppercase"
-      style={{ color: rgba(theme?.accent || "59 130 246", 0.7) }}
-    >
-      {children}
-    </span>
-    {required ? (
-      <span style={{ color: rgba(theme?.accent || "59 130 246", 0.85) }}>*</span>
-    ) : null}
+  <div
+    className={cx(
+      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      theme.header
+    )}
+  >
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+      }}
+    />
+    <div className="relative z-[1]">{children}</div>
   </div>
 );
 
-const InputField = ({
+const Card = ({
+  children,
+  theme,
+  className = "",
+}: {
+  children: React.ReactNode;
+  theme: ReturnType<typeof getTheme>;
+  className?: string;
+}) => (
+  <div
+    className={cx(
+      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      theme.card,
+      className
+    )}
+  >
+    {children}
+  </div>
+);
+
+const HeaderStatBox = ({
+  icon,
+  label,
+  value,
+  theme,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  theme: ReturnType<typeof getTheme>;
+}) => (
+  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+        {icon}
+      </div>
+      <div>
+        <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
+        <p className="mt-1 text-base font-bold text-white">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const PasswordInput = ({
   theme,
   label,
-  icon,
+  name,
   value,
   onChange,
-  name,
-  type = "text",
-  required = false,
   error,
-}: any) => {
-  const bg = theme?.bg || "0 0 0";
-  const fg = theme?.fg || "255 255 255";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  const accent = theme?.accent || "59 130 246";
-  const danger = theme?.danger || "239 68 68";
-
-  return (
-    <div className="relative">
-      <LabelCaps theme={theme} required={required}>
-        {label}
-      </LabelCaps>
-
-      <div className="relative">
-        <div
-          className="absolute inset-y-0 left-3 flex items-center pointer-events-none"
-          style={{ color: rgba(accent, 0.75) }}
-        >
-          {icon}
-        </div>
-
-        <motion.input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          whileFocus={{ scale: 1.01 }}
-          className="w-full pl-10 pr-3 py-3 rounded-xl outline-none transition"
-          style={{
-            color: rgba(fg, 0.9),
-            background: `linear-gradient(135deg,
-              ${rgba(theme?.input || theme?.surface2 || "18 18 18", 0.62)},
-              ${rgba(theme?.surface1 || bg, 0.22)}
-            )`,
-            border: `1px solid ${rgba(border, error ? 0.35 : 0.14)}`,
-            boxShadow: error
-              ? `0 0 0 2px ${rgba(danger, 0.22)}`
-              : `0 0 0 0px transparent`,
-          }}
-          required={required}
-        />
-
-        <motion.div
-          className="pointer-events-none absolute inset-0 rounded-xl"
-          initial={false}
-          animate={{
-            boxShadow: [
-              `0 0 0px ${rgba(accent, 0)}`,
-              `0 0 16px ${rgba(accent, 0.14)}`,
-              `0 0 0px ${rgba(accent, 0)}`,
-            ],
-          }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-        />
-      </div>
-    </div>
-  );
-};
-
-const BadgeStat = ({ theme, icon, label, value }: any) => {
-  const accent = theme?.accent || "59 130 246";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  return (
-    <div
-      className="rounded-xl px-3 py-2 text-center"
-      style={{
-        border: `1px solid ${rgba(border, 0.16)}`,
-        background: `linear-gradient(135deg, ${rgba(accent, 0.14)}, ${rgba(
-          accent,
-          0.05
-        )})`,
-        color: rgba(theme?.fg || "255 255 255", 0.86),
-      }}
-    >
-      <div className="flex items-center gap-1 justify-center text-xs opacity-80">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <div className="font-semibold text-sm">{value}</div>
-    </div>
-  );
-};
-
-const NeonDivider = ({ theme }: any) => {
-  const accent = theme?.accent || "59 130 246";
-  const effects = theme?.effectsEnabled !== false;
-
-  return (
-    <div className="relative w-full my-4">
-      <div
-        className="h-px w-full"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${rgba(
-            accent,
-            0.5
-          )}, transparent)`,
-        }}
-      />
-      {effects && (
-        <motion.div
-          className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full blur-md"
-          style={{ background: rgba(accent, 0.6) }}
-          animate={{ left: ["0%", "100%"] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-        />
+}: {
+  theme: ReturnType<typeof getTheme>;
+  label: string;
+  name: "new" | "confirm";
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error: boolean;
+}) => (
+  <div>
+    <label
+      className={cx(
+        "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
+        theme.muted
       )}
-    </div>
-  );
-};
+    >
+      {label}
+    </label>
 
-/* =========================== MAIN COMPONENT ============================ */
+    <div className="relative">
+      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
+
+      <input
+        type="password"
+        name={name}
+        value={value}
+        onChange={onChange}
+        required
+        placeholder={`Enter ${label.toLowerCase()}`}
+        className={cx(
+          "w-full rounded-2xl border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:ring-4",
+          theme.input,
+          error && "border-red-400 focus:border-red-400 focus:ring-red-400/20"
+        )}
+      />
+    </div>
+  </div>
+);
 
 const UserMasterPassword = () => {
-  // ✅ dynamic theme
-  const themeConfig = useSelector((s: any) => s.user.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
+  const mode = useSelector((store: any) => store.userTheme?.mode || "light");
+  const loggedUser = useSelector((store: any) => store.user.loggedUser);
 
-  const [passwords, setPasswords] = useState({ new: "", confirm: "" });
+  const isDark = mode === "dark";
+  const theme = useMemo(() => getTheme(isDark), [isDark]);
+
+  const navigate = useNavigate();
+
+  const [passwords, setPasswords] = useState({
+    new: "",
+    confirm: "",
+  });
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const loggedUser = useSelector((store: any) => store.user.loggedUser);
-
   const [currentAccount, setCurrentAccount] = useState(
-    loggedUser?.accounts?.[0] || "000"
+    loggedUser?.accounts?.[0] || null
   );
-
-  const handleChange = (e: any) => {
-    setPasswords({ ...passwords, [e.target.name]: e.target.value });
-    setError("");
-  };
 
   const validatePassword = (password: string) => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?]).{8,}$/;
+
     return passwordRegex.test(password);
   };
 
-  const customContent = `<!DOCTYPE html>
-    <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Master Password Updated</title></head>
-    <body>
-      <p>Dear ${loggedUser?.firstName + " " + loggedUser?.lastName},</p>
-      <p>Your master password has been updated.</p>
-      <p>Account No: ${currentAccount.accountNumber}</p>
-      <p>Old password: ${currentAccount.masterPassword}</p>
-      <p>New password: ${passwords.confirm}</p>
-    </body></html>`;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswords((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
+  };
 
-  const handleSubmit = async (e: any) => {
+  const customContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Master Password Updated</title>
+</head>
+<body>
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <div style="background:#f97316;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
+      <h2 style="margin:0;">Master Password Updated</h2>
+    </div>
+    <div style="padding:20px;border:1px solid #fed7aa;">
+      <p>Dear ${loggedUser?.firstName || ""} ${loggedUser?.lastName || ""},</p>
+      <p>Your trading account master password has been updated.</p>
+      <p><strong>Account No:</strong> ${currentAccount?.accountNumber || ""}</p>
+      <p>If this was not done by you, please contact support immediately.</p>
+      <p>Best regards,<br/>${import.meta.env.VITE_WEBSITE_NAME || "Forex"} Team</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const toastId = toast.loading("Please wait...");
-    setIsLoading(true);
+
+    if (!currentAccount?.accountNumber) {
+      toast.error("Please select an account.");
+      return;
+    }
 
     if (!validatePassword(passwords.new)) {
       setError(
-        "Password must be at least 8 characters long, including one uppercase letter, one lowercase letter, one number, and one special symbol."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special symbol."
       );
-      toast.error("Invalid password format", { id: toastId });
-      setIsLoading(false);
+      toast.error("Invalid password format");
       return;
     }
 
     if (passwords.new !== passwords.confirm) {
       setError("Passwords do not match. Please try again.");
-      toast.error("Passwords do not match", { id: toastId });
-      setIsLoading(false);
+      toast.error("Passwords do not match");
       return;
     }
+
+    const toastId = toast.loading("Please wait...");
+    setIsLoading(true);
 
     try {
       const res = await userApi.get(
         `/server-master-password-change&Account=${currentAccount.accountNumber}&password=${passwords.confirm}`
       );
 
-      await backendApi.post(`/update-master-password`, {
+      await backendApi.post("/update-master-password", {
         userId: loggedUser._id,
         accountId: currentAccount._id,
         newPassword: passwords.confirm,
       });
 
-      await backendApi.post(`/custom-mail`, {
+      await backendApi.post("/custom-mail", {
         email: loggedUser.email,
         content: customContent,
         subject: "Master password changed",
       });
 
-      toast.success(res.data.data.MESSAGE, { id: toastId });
+      toast.success(res?.data?.data?.MESSAGE || "Master password changed", {
+        id: toastId,
+      });
+
+      setPasswords({ new: "", confirm: "" });
+      setError("");
       navigate("/user/dashboard");
     } catch (err) {
       toast.error("An error occurred. Please try again.", { id: toastId });
     } finally {
       setIsLoading(false);
     }
-
-    setPasswords({ new: "", confirm: "" });
-    setError("");
   };
 
-  const fields = [
-    { name: "new", label: "New Master Password" },
-    { name: "confirm", label: "Confirm Master Password" },
-  ];
-
-  // page tokens
-  const bg = theme?.bg || "0 0 0";
-  const surface1 = theme?.surface1 || theme?.bg || "0 0 0";
-  const fg = theme?.fg || "255 255 255";
-  const accent = theme?.accent || theme?.gradientFrom || "59 130 246";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  const danger = theme?.danger || "239 68 68";
-
   return (
-    <motion.div
-      className="relative min-h-screen overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{
-        background: `linear-gradient(135deg, ${rgb(bg)}, ${rgb(surface1)}, ${rgb(bg)})`,
-        color: rgba(fg, 0.92),
-      }}
-    >
-      <AnimatedGrid theme={theme} />
-      <FloatingParticles />
-      <FloatingOrbs theme={theme} />
+    <div className={cx("min-h-screen w-full p-4 sm:p-6", theme.pageBg, theme.pageText)}>
+      <div className="mx-auto max-w-6xl space-y-5">
+        <HeaderCard theme={theme}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className={cx("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border", theme.headerIcon)}>
+                <KeyRound className="h-6 w-6" />
+              </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-10 md:px-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between gap-6 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles style={{ color: rgba(accent, 0.9) }} size={20} />
-              <span
-                className="uppercase tracking-[0.25em] text-xs font-semibold"
-                style={{ color: rgba(accent, 0.7) }}
-              >
-                security · vault · control
-              </span>
+              <div>
+                <div className={cx("mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]", theme.headerBadge)}>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Trading Security
+                </div>
+
+                <h1 className={cx("text-2xl font-bold tracking-tight sm:text-3xl", theme.headerText)}>
+                  Change Master Password
+                </h1>
+
+                <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
+                  Update the master password for your selected trading account.
+                </p>
+              </div>
             </div>
 
-            <motion.div
-              className="inline-block"
-              initial={{ scale: 0.98, rotateX: 10, opacity: 0 }}
-              animate={{ scale: 1, rotateX: 0, opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <ModernHeading text="Change Master Password" />
-            </motion.div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+              <HeaderStatBox theme={theme} icon={<Shield className="h-4 w-4" />} label="Protection" value="High" />
+              <HeaderStatBox theme={theme} icon={<Lock className="h-4 w-4" />} label="Mode" value="Master" />
+              <HeaderStatBox theme={theme} icon={<CheckCircle2 className="h-4 w-4" />} label="Status" value="Active" />
+            </div>
           </div>
+        </HeaderCard>
 
-          {/* Account Select */}
-          <div className="md:w-64">
-            {loggedUser?.accounts?.length > 0 && (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <Card theme={theme} className="lg:col-span-4">
+            <div className="mb-5 flex items-start gap-3">
+              <div className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border", theme.iconBox)}>
+                <Lock className="h-5 w-5" />
+              </div>
+
               <div>
-                <LabelCaps theme={theme} required>
+                <h2 className={cx("text-lg font-semibold", theme.text)}>
+                  Selected Account
+                </h2>
+                <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                  Choose the trading account where the master password should be changed.
+                </p>
+              </div>
+            </div>
+
+            {loggedUser?.accounts?.length > 0 ? (
+              <div>
+                <label
+                  className={cx(
+                    "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
+                    theme.muted
+                  )}
+                >
                   Select Account
-                </LabelCaps>
+                </label>
 
                 <div className="relative">
                   <select
+                    value={currentAccount?.accountNumber || ""}
                     onChange={(e) => {
                       const selectedValue = loggedUser.accounts?.find(
                         (value: any) => value.accountNumber === e.target.value
                       );
-                      setCurrentAccount(selectedValue);
+                      setCurrentAccount(selectedValue || null);
                     }}
-                    id="accountNumber"
-                    name="accountNumber"
-                    className="w-full py-2.5 text-sm rounded-xl outline-none"
-                    style={{
-                      color: rgba(fg, 0.9),
-                      background: `linear-gradient(135deg,
-                        ${rgba(theme?.input || theme?.surface2 || "18 18 18", 0.62)},
-                        ${rgba(theme?.surface1 || bg, 0.22)}
-                      )`,
-                      border: `1px solid ${rgba(border, 0.16)}`,
-                    }}
+                    className={cx(
+                      "w-full appearance-none rounded-2xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-200 focus:ring-4",
+                      theme.input
+                    )}
                   >
-                    <option disabled value="" style={{ background: "#0b1220", color: "#64748b" }}>
+                    <option value="" disabled className={theme.option}>
                       Select Account
                     </option>
 
@@ -468,194 +386,94 @@ const UserMasterPassword = () => {
                       <option
                         key={index}
                         value={value.accountNumber}
-                        style={{ background: "#0b1220", color: "#fff" }}
+                        className={theme.option}
                       >
                         {value.accountNumber}
                       </option>
                     ))}
                   </select>
+
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
                 </div>
+
+                <div className={cx("mt-5 rounded-2xl border p-4", theme.cardSoft)}>
+                  <p className={cx("text-xs uppercase tracking-[0.14em]", theme.muted)}>
+                    Active Account
+                  </p>
+                  <p className={cx("mt-1 font-mono text-lg font-bold", theme.text)}>
+                    #{currentAccount?.accountNumber || "—"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className={cx("rounded-2xl border px-4 py-3 text-sm", theme.dangerBadge)}>
+                No trading account found.
               </div>
             )}
-          </div>
-        </div>
+          </Card>
 
-        {/* Layout: Info card + Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
-          {/* Left: Account / security snapshot */}
-          <GlassCard theme={theme} className="p-6 lg:col-span-1">
-            <div className="relative flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-11 h-11 rounded-xl grid place-items-center"
-                  style={{
-                    border: `1px solid ${rgba(border, 0.16)}`,
-                    background: `linear-gradient(135deg, ${rgba(accent, 0.16)}, ${rgba(
-                      theme?.gradientTo || accent,
-                      0.08
-                    )})`,
-                    boxShadow: `0 0 40px ${rgba(theme?.glow || accent, 0.22)}`,
-                  }}
-                >
-                  <Lock style={{ color: rgba(accent, 0.9) }} size={22} />
-                </div>
+          <Card theme={theme} className="lg:col-span-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <PasswordInput
+                theme={theme}
+                label="New Master Password"
+                name="new"
+                value={passwords.new}
+                onChange={handleChange}
+                error={!!error}
+              />
 
-                <div>
-                  <p
-                    className="text-[11px] uppercase tracking-[0.25em]"
-                    style={{ color: rgba(accent, 0.65) }}
-                  >
-                    active account
-                  </p>
-                  <p className="text-sm font-mono" style={{ color: rgba(fg, 0.9) }}>
-                    {currentAccount?.accountNumber || "—"}
-                  </p>
-                </div>
+              <PasswordInput
+                theme={theme}
+                label="Confirm Master Password"
+                name="confirm"
+                value={passwords.confirm}
+                onChange={handleChange}
+                error={!!error}
+              />
+
+              <div className={cx("rounded-2xl border px-4 py-3 text-sm leading-6", theme.successBadge)}>
+                Master password must include uppercase, lowercase, number, special symbol, and minimum 8 characters.
               </div>
 
-              <NeonDivider theme={theme} />
-
-              <div className="space-y-2 text-sm">
-                <p style={{ color: rgba(fg, 0.75) }}>
-                  You’re updating the{" "}
-                  <span style={{ color: rgba(accent, 0.92), fontWeight: 700 }}>
-                    master password
-                  </span>{" "}
-                  linked to this trading account.
-                </p>
-                <p style={{ color: rgba(fg, 0.6) }} className="text-xs">
-                  Keep this password private. It gives full control over trading operations.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mt-3">
-                <BadgeStat theme={theme} icon={<Shield size={14} />} label="Protection" value="High" />
-                <BadgeStat theme={theme} icon={<CheckCircle size={14} />} label="Status" value="Active" />
-                <BadgeStat theme={theme} icon={<Lock size={14} />} label="Mode" value="Master" />
-              </div>
-            </div>
-          </GlassCard>
-
-          {/* Right: Form */}
-          <GlassCard theme={theme} className="p-6 lg:col-span-2">
-            <motion.form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0, y: 10 },
-                visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.04 } },
-              }}
-            >
-              <div className="grid grid-cols-1 gap-5">
-                {fields.map((field) => (
+              <AnimatePresence>
+                {error && (
                   <motion.div
-                    key={field.name}
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className={cx("flex items-start gap-2 rounded-2xl border px-4 py-3 text-sm", theme.dangerBadge)}
                   >
-                    <InputField
-                      theme={theme}
-                      label={field.label}
-                      icon={<Lock size={16} />}
-                      type="password"
-                      name={field.name}
-                      value={(passwords as any)[field.name]}
-                      onChange={handleChange}
-                      required
-                      error={!!error}
-                    />
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    {error}
                   </motion.div>
-                ))}
-              </div>
+                )}
+              </AnimatePresence>
 
-              {error && (
-                <motion.div
-                  className="flex items-center mt-1 text-sm"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{ color: rgba(danger, 0.95) }}
-                >
-                  <AlertCircle className="mr-2" size={18} />
-                  {error}
-                </motion.div>
-              )}
-
-              <div className="flex flex-col-reverse gap-4 sm:flex-row justify-between items-center pt-2">
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
                 <Link
-                  to={"/user/dashboard"}
-                  className="w-full text-center sm:w-auto px-8 py-2.5 rounded-full transition"
-                  style={{
-                    color: rgba(fg, 0.85),
-                    border: `1px solid ${rgba(danger, 0.35)}`,
-                    background: rgba(danger, 0.10),
-                  }}
+                  to="/user/dashboard"
+                  className={cx("inline-flex items-center justify-center rounded-2xl border px-6 py-3 text-sm font-semibold transition", theme.ghostButton)}
                 >
                   Cancel
                 </Link>
 
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
                   disabled={isLoading}
-                  className="relative group inline-flex items-center gap-2 px-10 py-2.5 rounded-full font-semibold disabled:opacity-70"
-                  style={{
-                    color: rgb(theme?.primaryFg || "0 0 0"),
-                    background: `linear-gradient(90deg,
-                      ${rgb(theme?.gradientFrom || accent)},
-                      ${rgb(theme?.accent || theme?.primary || accent)},
-                      ${rgb(theme?.gradientTo || accent)}
-                    )`,
-                    boxShadow: `0 10px 40px ${rgba(theme?.glow || accent, 0.28)}`,
-                  }}
+                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                  className={cx("inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70", theme.button)}
                 >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <CheckCircle size={18} />
-                    {isLoading ? "Updating…" : "Change Password"}
-                  </span>
-
-                  <div
-                    className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{
-                      background:
-                        "radial-gradient(120% 120% at 50% 10%, rgba(255,255,255,0.35), transparent 40%)",
-                    }}
-                  />
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                  {isLoading ? "Updating..." : "Change Password"}
                 </motion.button>
               </div>
-            </motion.form>
-
-            {/* Loading shimmer */}
-            <AnimatePresence>
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-4 flex justify-center"
-                >
-                  <motion.div
-                    className="h-1 w-52 rounded-full overflow-hidden"
-                    style={{ background: rgba(accent, 0.18) }}
-                  >
-                    <motion.div
-                      className="h-full w-1/3"
-                      style={{ background: rgb(accent) }}
-                      animate={{ x: ["0%", "200%"] }}
-                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </GlassCard>
+            </form>
+          </Card>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

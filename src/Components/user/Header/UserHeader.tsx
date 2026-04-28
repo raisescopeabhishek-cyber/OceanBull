@@ -5,17 +5,22 @@ import {
   X,
   Sun,
   Moon,
-  Menu,
   LogOut,
   CheckCircle,
   Wallet,
   ShieldCheck,
   Copy,
   LifeBuoy,
+  Gift,
+  Users,
+  Monitor,
+  ScrollText,
+  CirclePlus,
+  Sparkles,
+  BadgeDollarSign,
 } from "lucide-react";
 
 import { openNewChallengeModal } from "../../../redux/user/userSlice";
-
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,6 +60,37 @@ const getThemeColors = (isDark) => {
       };
 };
 
+const getIconButtonStyle = (colors) => ({
+  width: 36,
+  height: 36,
+  borderRadius: "999px",
+  border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
+  background: rgba(...colors.surface.split(",").map(Number), 0.35),
+});
+
+const menuItemStyle = (colors) => ({
+  color: rgba(...colors.fg.split(",").map(Number), 0.92),
+});
+
+const menuItemHoverStyle = (colors) => ({
+  background: rgba(...colors.accent.split(",").map(Number), 0.08),
+});
+
+const DropdownIcon = ({ children, colors }) => {
+  return (
+    <span
+      className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border"
+      style={{
+        borderColor: rgba(...colors.border.split(",").map(Number), 0.12),
+        background: rgba(...colors.accent.split(",").map(Number), 0.08),
+        color: rgba(...colors.accent.split(",").map(Number), 1),
+      }}
+    >
+      {children}
+    </span>
+  );
+};
+
 const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
@@ -91,6 +127,7 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
   const handleNotificationClick = async (note) => {
     try {
       await backendApi.put(`/admin/mark-notification-read/${note._id}`);
+
       dispatch(
         setNotification(
           notifications.map((n) =>
@@ -122,7 +159,10 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
             transition={{ duration: 0.2 }}
             className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-2xl border backdrop-blur-xl"
             style={{
-              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
+              background: `linear-gradient(180deg, ${rgba(
+                ...colors.bg.split(",").map(Number),
+                0.96
+              )}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
               borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
               color: rgba(...colors.fg.split(",").map(Number), 1),
               boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
@@ -131,11 +171,18 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
             <div
               className="flex items-center justify-between border-b px-4 py-3"
               style={{
-                borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.12),
+                borderBottomColor: rgba(
+                  ...colors.border.split(",").map(Number),
+                  0.12
+                ),
               }}
             >
-              <p className="font-semibold">Notifications</p>
-              <button onClick={onClose}>
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                <p className="font-semibold">Notifications</p>
+              </div>
+
+              <button onClick={onClose} aria-label="Close notifications">
                 <X size={16} />
               </button>
             </div>
@@ -144,6 +191,7 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
               {notifications.length > 0 ? (
                 notifications.map((note, index) => {
                   const unread = !note.isRead;
+
                   return (
                     <motion.button
                       key={note._id}
@@ -153,27 +201,38 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
                       transition={{ delay: index * 0.05 }}
                       className="flex w-full flex-col border-b px-4 py-3 text-left transition-all"
                       style={{
-                        borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.08),
+                        borderBottomColor: rgba(
+                          ...colors.border.split(",").map(Number),
+                          0.08
+                        ),
                         background: unread
                           ? rgba(...colors.accent.split(",").map(Number), 0.08)
                           : "transparent",
                       }}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-medium">{note.title}</p>
+
                         <span
-                          className="text-[10px]"
+                          className="shrink-0 text-[10px]"
                           style={{
-                            color: rgba(...colors.muted.split(",").map(Number), 0.75),
+                            color: rgba(
+                              ...colors.muted.split(",").map(Number),
+                              0.75
+                            ),
                           }}
                         >
                           {new Date(note.createdAt).toLocaleTimeString()}
                         </span>
                       </div>
+
                       <p
                         className="mt-1 text-xs"
                         style={{
-                          color: rgba(...colors.muted.split(",").map(Number), 0.9),
+                          color: rgba(
+                            ...colors.muted.split(",").map(Number),
+                            0.9
+                          ),
                         }}
                       >
                         {note.message}
@@ -202,6 +261,55 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
 const UserDropdown = ({ isOpen, onClose, user, colors }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  const [hoveredItem, setHoveredItem] = useState(null);
+
+  const dropdownItems = [
+    {
+      key: "profile",
+      label: "Profile",
+      icon: <User className="h-4 w-4" />,
+      action: () => navigate("/user/profile"),
+    },
+    {
+      key: "account",
+      label: "Account Details",
+      icon: <Wallet className="h-4 w-4" />,
+      action: () => navigate("/user/account-details"),
+    },
+    {
+      key: "refer",
+      label: "Refer & Earn",
+      icon: <Users className="h-4 w-4" />,
+      action: () =>
+        window.open("/user/referral/dashboard", "_blank", "noopener,noreferrer"),
+    },
+    {
+      key: "bonus",
+      label: "Bonus Rewards",
+      icon: <Gift className="h-4 w-4" />,
+      action: () =>
+        window.open("/user/bonus/dashboard", "_blank", "noopener,noreferrer"),
+    },
+    {
+      key: "platform",
+      label: "Trading Platform",
+      icon: <Monitor className="h-4 w-4" />,
+      action: () => navigate("/user/account-details"),
+    },
+    {
+      key: "rules",
+      label: "Rules & Definitions",
+      icon: <ScrollText className="h-4 w-4" />,
+      action: () => navigate("/user/UserRules"),
+    },
+    {
+      key: "support",
+      label: "Support Center",
+      icon: <LifeBuoy className="h-4 w-4" />,
+      action: () => navigate("/user/customer-support"),
+    },
+  ];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -245,104 +353,99 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-2xl border backdrop-blur-xl"
+            className="absolute right-0 top-10 z-50 w-64 overflow-hidden rounded-2xl border backdrop-blur-xl"
             style={{
-              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
+              background: `linear-gradient(180deg, ${rgba(
+                ...colors.bg.split(",").map(Number),
+                0.96
+              )}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
               borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
               color: rgba(...colors.fg.split(",").map(Number), 1),
               boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
             }}
           >
-            <div className="py-2">
-              <div className="px-4 py-2 text-sm font-semibold">
+            <div
+              className="border-b px-4 py-3"
+              style={{
+                borderBottomColor: rgba(
+                  ...colors.border.split(",").map(Number),
+                  0.1
+                ),
+              }}
+            >
+              <p className="text-sm font-semibold">
                 {user?.firstName || "User"}
-              </div>
-
-              <button
-                onClick={() => {
-                  navigate("/user/profile");
-                  onClose();
+              </p>
+              <p
+                className="mt-0.5 truncate text-xs"
+                style={{
+                  color: rgba(...colors.muted.split(",").map(Number), 0.72),
                 }}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
               >
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </button>
+                Welcome to your trading workspace
+              </p>
+            </div>
 
-              <button
-                onClick={() => {
-                  navigate("/user/account-details");
-                  onClose();
+            <div className="p-2">
+              {dropdownItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    item.action();
+                    onClose();
+                  }}
+                  onMouseEnter={() => setHoveredItem(item.key)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className="flex w-full items-center rounded-xl px-2 py-2 text-sm font-semibold transition-all"
+                  style={{
+                    ...menuItemStyle(colors),
+                    ...(hoveredItem === item.key
+                      ? menuItemHoverStyle(colors)
+                      : {}),
+                  }}
+                >
+                  <DropdownIcon colors={colors}>{item.icon}</DropdownIcon>
+                  {item.label}
+                </button>
+              ))}
+
+              <div
+                className="my-2 h-px"
+                style={{
+                  background: rgba(...colors.border.split(",").map(Number), 0.1),
                 }}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Account Details
-              </button>
-
-
-
-   <button
-                 onClick={() => {
-    window.open("/user/referral/dashboard", "_blank", "noopener,noreferrer");
-    onClose();
-  }}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Reffer
-              </button>
-
-
-
-              
-   <button
-  onClick={() => {
-    window.open("/user/bonus/dashboard", "_blank", "noopener,noreferrer");
-    onClose();
-  }}
-  className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
->
-  <Wallet className="mr-2 h-4 w-4" />
-  Bonus
-</button>
-
-
-
-
-   <button
-                onClick={() => {
-                  navigate("/user/account-details");
-                  onClose();
-                }}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
-              >
-                <Wallet className="mr-2 h-4 w-4" />
-                Platform
-              </button>
-
-
-
-
-              <button
-                onClick={() => {
-                  navigate("/user/customer-support");
-                  onClose();
-                }}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
-              >
-                <LifeBuoy className="mr-2 h-4 w-4" />
-                Support
-              </button>
+              />
 
               <button
                 onClick={logoutHandler}
-                className="flex w-full items-center px-4 py-2 text-sm font-semibold transition-all"
+                onMouseEnter={() => setHoveredItem("logout")}
+                onMouseLeave={() => setHoveredItem(null)}
+                className="flex w-full items-center rounded-xl px-2 py-2 text-sm font-semibold transition-all"
                 style={{
                   color: rgba(...colors.danger.split(",").map(Number), 1),
+                  ...(hoveredItem === "logout"
+                    ? {
+                        background: rgba(
+                          ...colors.danger.split(",").map(Number),
+                          0.08
+                        ),
+                      }
+                    : {}),
                 }}
               >
-                <LogOut className="mr-2 h-4 w-4" />
+                <span
+                  className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border"
+                  style={{
+                    borderColor: rgba(
+                      ...colors.danger.split(",").map(Number),
+                      0.18
+                    ),
+                    background: rgba(...colors.danger.split(",").map(Number), 0.08),
+                    color: rgba(...colors.danger.split(",").map(Number), 1),
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                </span>
                 Logout
               </button>
             </div>
@@ -382,6 +485,7 @@ const UserHeader = () => {
         const { data } = await backendApi.get(
           `/get-all-notification/${loggedUser._id}`
         );
+
         if (data?.success) dispatch(setNotification(data.data));
       } catch (err) {
         console.error("Error fetching notifications:", err);
@@ -396,7 +500,13 @@ const UserHeader = () => {
       className="sticky top-0 z-50 h-16 w-full border-b backdrop-blur-xl"
       style={{
         color: rgba(...colors.fg.split(",").map(Number), 1),
-        background: `linear-gradient(90deg, ${rgba(...colors.bg.split(",").map(Number), 0.92)}, ${rgba(...colors.surface2.split(",").map(Number), 0.78)}, ${rgba(...colors.bg.split(",").map(Number), 0.92)})`,
+        background: `linear-gradient(90deg, ${rgba(
+          ...colors.bg.split(",").map(Number),
+          0.92
+        )}, ${rgba(...colors.surface2.split(",").map(Number), 0.78)}, ${rgba(
+          ...colors.bg.split(",").map(Number),
+          0.92
+        )})`,
         borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.14),
       }}
     >
@@ -432,26 +542,52 @@ const UserHeader = () => {
         </div>
 
         <div className="relative flex items-center gap-2 md:gap-3">
-          <p
-            className="hidden cursor-pointer whitespace-nowrap text-sm font-semibold sm:block"
-           onClick={() => dispatch(openNewChallengeModal())}
+          <button
+            type="button"
+            onClick={() => dispatch(openNewChallengeModal())}
+            className="hidden items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all sm:inline-flex"
+            style={{
+              borderColor: rgba(...colors.accent.split(",").map(Number), 0.28),
+              background: `linear-gradient(135deg, ${rgba(
+                ...colors.accent.split(",").map(Number),
+                0.16
+              )}, ${rgba(...colors.surface.split(",").map(Number), 0.42)})`,
+              color: rgba(...colors.accent.split(",").map(Number), 1),
+              boxShadow: `0 10px 30px ${rgba(
+                ...colors.accent.split(",").map(Number),
+                0.12
+              )}`,
+            }}
           >
-            Create Account
-          </p>
+            <CirclePlus className="h-4 w-4" />
+            New Trading Account
+          </button>
+
+          <button
+            type="button"
+            onClick={() => dispatch(openNewChallengeModal())}
+            className="flex items-center justify-center transition sm:hidden"
+            aria-label="New Trading Account"
+            style={{
+              ...getIconButtonStyle(colors),
+              color: rgba(...colors.accent.split(",").map(Number), 1),
+              background: rgba(...colors.accent.split(",").map(Number), 0.12),
+            }}
+          >
+            <CirclePlus className="h-5 w-5" />
+          </button>
 
           <button
             onClick={toggleThemeHandler}
             className="flex items-center justify-center transition"
             aria-label="Toggle theme"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
+            style={getIconButtonStyle(colors)}
           >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {isDark ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </button>
 
           <button
@@ -461,15 +597,10 @@ const UserHeader = () => {
             }}
             className="relative flex items-center justify-center transition"
             aria-label="Notifications"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
+            style={getIconButtonStyle(colors)}
           >
             <Bell className="h-5 w-5" />
+
             {unreadCount > 0 && (
               <span
                 className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px]"
@@ -497,6 +628,7 @@ const UserHeader = () => {
                 color: rgba(...colors.success.split(",").map(Number), 1),
               }}
             />
+
             <p className="max-w-[90px] truncate whitespace-nowrap text-sm font-semibold">
               {loggedUser?.firstName || "User"}
             </p>
@@ -509,13 +641,7 @@ const UserHeader = () => {
             }}
             className="flex items-center justify-center transition"
             aria-label="Open user menu"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
+            style={getIconButtonStyle(colors)}
           >
             <User className="h-4 w-4 md:h-5 md:w-5" />
           </button>

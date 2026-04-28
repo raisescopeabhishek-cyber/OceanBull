@@ -1,233 +1,176 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, User, Wallet, Sparkles } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { CreditCard, User, Wallet, ShieldCheck, Sparkles } from "lucide-react";
 import { useSelector } from "react-redux";
-import ModernHeading from "../lib/ModernHeading";
+import { AnimatePresence, motion } from "framer-motion";
 import UserBankDetails from "./accountDetails/UserBankDetails";
 import UserKycDetails from "./accountDetails/UserKycDetails";
 import UserWalletDetails from "./accountDetails/UserWalletDetails";
-import { FloatingParticles } from "../../utils/FloatingParticles";
 
-/* -------------------- theme helpers (RGB strings -> css) ------------------- */
-const safeRgbParts = (v) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) =>
-    Number.isFinite(n) ? n : 0
-  );
-  return { r, g, b };
-};
-const rgb = (v) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-const rgba = (v, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
+/* -------------------- helpers -------------------- */
+const cx = (...classes) => classes.filter(Boolean).join(" ");
 
-/* ============================== DECOR (DYNAMIC) =============================== */
+const getTheme = (isDark) => ({
+  pageText: isDark ? "text-white" : "text-slate-900",
+  text: isDark ? "text-white" : "text-slate-900",
+  muted: isDark ? "text-white/55" : "text-slate-500",
+  softText: isDark ? "text-white/70" : "text-slate-600",
 
-const AnimatedGrid = ({ theme }) => {
-  const grid = theme?.accent || theme?.ring || "34 197 94";
-  const stripe = theme?.info || theme?.gradientFrom || "59 130 246";
-  const effects = theme?.effectsEnabled !== false;
+  header: isDark
+    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
 
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          opacity: 0.1,
-          backgroundImage: `linear-gradient(${rgba(grid, 0.2)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(grid, 0.2)} 1px, transparent 1px)`,
-          backgroundSize: "42px 42px",
-          maskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
-        }}
-      />
-      {effects && (
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            opacity: 0.2,
-            background: `repeating-linear-gradient(90deg, ${rgba(stripe, 0.1)} 0 2px, transparent 2px 8px)`,
-          }}
-          animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-      )}
-    </div>
-  );
-};
+  headerText: "text-white",
+  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerBadge: "border-white/20 bg-white/10 text-white",
+  headerIcon: "border-white/20 bg-white/10 text-white",
+  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
+  headerStatMuted: "text-white/75",
 
-const FloatingOrbs = ({ theme }) => {
-  const a = theme?.accent || "16 185 129";
-  const b = theme?.info || theme?.gradientFrom || "34 211 238";
-  const c = theme?.gradientTo || theme?.primary || "99 102 241";
-  const effects = theme?.effectsEnabled !== false;
+  card: isDark
+    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
+    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
 
-  if (!effects) return null;
+  cardSoft: isDark
+    ? "border-white/10 bg-white/[0.035]"
+    : "border-orange-100/80 bg-white/70",
 
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      {Array.from({ length: 10 }).map((_, i) => {
-        const color = i % 3 === 0 ? a : i % 3 === 1 ? b : c;
-        return (
-          <motion.div
-            key={i}
-            className="absolute rounded-full blur-2xl"
-            style={{
-              width: 150,
-              height: 150,
-              left: `${(i * 97) % 100}%`,
-              top: `${(i * 53) % 100}%`,
-              background: `radial-gradient(circle at center, ${rgba(color, 0.25)}, transparent 60%)`,
-            }}
-            animate={{
-              y: [0, i % 2 ? -22 : 22, 0],
-              x: [0, i % 2 ? 12 : -12, 0],
-              opacity: [0.6, 1, 0.6],
-            }}
-            transition={{
-              duration: 6 + (i % 5),
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.2,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
+  tab: isDark
+    ? "border-white/10 bg-white/[0.035] text-white/70 hover:bg-white/[0.06]"
+    : "border-orange-100 bg-white/75 text-slate-600 hover:bg-orange-50",
 
-const GlassCard = ({ theme, className = "", children }) => {
-  const cardBg = theme?.card || theme?.surface2 || "18 18 18";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  const a = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const b = theme?.gradientTo || theme?.info || "34 211 238";
-  const glow = theme?.glow || a;
+  activeTab: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-300 bg-orange-50 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)]",
 
-  return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 250, damping: 20 }}
-      className={`relative rounded-2xl backdrop-blur-xl ${className}`}
-      style={{
-        border: `1px solid ${rgba(border, 0.14)}`,
-        background: `linear-gradient(135deg, ${rgba(cardBg, 0.7)}, ${rgba(cardBg, 0.32)}, ${rgba(cardBg, 0.7)})`,
-        boxShadow: `0 0 80px ${rgba(glow, 0.08)}`,
-      }}
-    >
-      <div
-        className="absolute inset-px rounded-[calc(1rem-1px)] pointer-events-none"
-        style={{
-          background: `linear-gradient(135deg, ${rgba(a, 0.06)}, ${rgba(b, 0.06)}, ${rgba(a, 0.06)})`,
-        }}
-      />
-      {children}
-    </motion.div>
-  );
-};
+  iconBox: isDark
+    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
+    : "border-orange-200 bg-orange-50 text-orange-600",
 
-/* ========================== TAB / CONTENT =========================== */
+  badge: isDark
+    ? "border-white/10 bg-white/[0.05] text-white/60"
+    : "border-orange-100 bg-white/80 text-orange-600",
 
-const TabButton = ({ theme, active, onClick, children, icon: Icon }) => {
-  const a = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const b = theme?.info || theme?.gradientTo || "34 211 238";
-  const c = theme?.gradientTo || theme?.primary || "99 102 241";
-  const fg = theme?.fg || "255 255 255";
-  const ring = theme?.ring || a;
+  successBadge: isDark
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+});
 
-  const activePill = {
-    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || a)}, ${rgb(theme?.accent || a)}, ${rgb(theme?.gradientTo || c)})`,
-    boxShadow: `0 10px 30px ${rgba(theme?.glow || a, 0.28)}`,
-  };
+/* -------------------- shared ui -------------------- */
+const HeaderCard = ({ children, theme }) => (
+  <div
+    className={cx(
+      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      theme.header
+    )}
+  >
+    {children}
+  </div>
+);
 
-  return (
-    <motion.button
-      onClick={onClick}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.97 }}
-      className="relative px-4 py-2 rounded-full font-semibold transition-colors"
-      style={{
-        color: active ? rgb(theme?.primaryFg || "0 0 0") : rgba(fg, 0.72),
-      }}
-    >
-      <div className="relative z-10 flex items-center gap-2">
-        <Icon className="w-4 h-4" style={{ color: active ? rgb(theme?.primaryFg || "0 0 0") : rgba(a, 0.75) }} />
-        <span className="hidden sm:inline">{children}</span>
-        <span className="sm:hidden">{children?.toString().split(" ")[0]}</span>
+const Card = ({ children, className = "", theme }) => (
+  <div
+    className={cx(
+      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      theme.card,
+      className
+    )}
+  >
+    {children}
+  </div>
+);
+
+const HeaderIconBox = ({ children, theme }) => (
+  <div
+    className={cx(
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      theme.headerIcon
+    )}
+  >
+    {children}
+  </div>
+);
+
+const HeaderStatBox = ({ icon, label, value, theme }) => (
+  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+        {icon}
       </div>
 
-      {active ? (
-        <motion.span
-          layoutId="tabBubble"
-          transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
-          className="absolute inset-0 -z-0 rounded-full"
-          style={activePill}
-        />
-      ) : (
-        <span
-          className="absolute inset-0 -z-0 rounded-full opacity-0 hover:opacity-100 transition-opacity"
-          style={{
-            background: rgba(theme?.sidebarHover || theme?.surface2 || "18 18 18", 0.22),
-            boxShadow: `inset 0 0 0 1px ${rgba(ring, 0.14)}`,
-          }}
-        />
+      <div className="min-w-0">
+        <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
+        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const TabButton = ({ active, onClick, icon: Icon, label, theme }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cx(
+      "flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200",
+      active ? theme.activeTab : theme.tab
+    )}
+  >
+    <span
+      className={cx(
+        "flex h-9 w-9 items-center justify-center rounded-xl border",
+        active ? theme.activeTab : theme.badge
       )}
-    </motion.button>
-  );
-};
+    >
+      <Icon className="h-4 w-4" />
+    </span>
 
-const contentVariants = {
-  enter: (dir) => ({
-    opacity: 0,
-    x: dir > 0 ? 40 : -40,
-    rotateX: 6,
-    scale: 0.98,
-  }),
-  center: {
-    opacity: 1,
-    x: 0,
-    rotateX: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 180, damping: 20, duration: 0.55 },
-  },
-  exit: (dir) => ({
-    opacity: 0,
-    x: dir < 0 ? 40 : -40,
-    rotateX: -6,
-    scale: 0.98,
-    transition: { duration: 0.35 },
-  }),
-};
+    <span>{label}</span>
+  </button>
+);
 
-/* ======================== MAIN COMPONENT ============================ */
+const Chip = ({ children, theme }) => (
+  <span
+    className={cx(
+      "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold",
+      theme.badge
+    )}
+  >
+    {children}
+  </span>
+);
 
+/* -------------------- main component -------------------- */
 const UserAccountDetails = () => {
-  // ✅ dynamic theme
-  const themeConfig = useSelector((s) => s?.user?.themeConfig);
-  const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
+  const mode = useSelector((store) => store.userTheme?.mode || "light");
+  const isDark = mode === "dark";
+  const theme = useMemo(() => getTheme(isDark), [isDark]);
 
   const tabs = useMemo(
     () => [
-      { id: "personal", label: "KYC Details", icon: User },
-      { id: "account", label: "Bank Details", icon: CreditCard },
-      { id: "wallet", label: "Wallet Details", icon: Wallet },
+      {
+        id: "personal",
+        label: "KYC Details",
+        icon: User,
+        description: "Manage your identity verification details.",
+      },
+      {
+        id: "account",
+        label: "Bank Details",
+        icon: CreditCard,
+        description: "Manage your bank account information.",
+      },
+      {
+        id: "wallet",
+        label: "Wallet Details",
+        icon: Wallet,
+        description: "Manage your crypto wallet addresses.",
+      },
     ],
     []
   );
 
   const [activeTab, setActiveTab] = useState("personal");
-  const prevIndexRef = useRef(0);
-  const currentIndex = tabs.findIndex((t) => t.id === activeTab);
-  const direction = currentIndex - prevIndexRef.current;
 
-  useEffect(() => {
-    prevIndexRef.current = currentIndex;
-  }, [currentIndex]);
+  const activeTabData = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   const renderContent = () => {
     if (activeTab === "personal") return <UserKycDetails />;
@@ -235,148 +178,175 @@ const UserAccountDetails = () => {
     return <UserWalletDetails />;
   };
 
-  const bg = theme?.bg || "0 0 0";
-  const surface1 = theme?.surface1 || theme?.bg || "0 0 0";
-  const accent = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const accent2 = theme?.gradientTo || theme?.info || "34 211 238";
-  const fg = theme?.fg || "255 255 255";
-
-  const chipsBg = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.32);
-  const chipsBorder = rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14);
-
   return (
-    <div
-      className="relative min-h-screen overflow-hidden"
-      style={{
-        background: `linear-gradient(135deg, ${rgb(bg)}, ${rgb(surface1)}, ${rgb(bg)})`,
-        color: rgba(fg, 0.92),
-      }}
-    >
-      <FloatingParticles />
-      <AnimatedGrid theme={theme} />
-      <FloatingOrbs theme={theme} />
-
-      {/* soft corner glows */}
-      <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.18 }}>
+    <div className={cx("w-full space-y-5", theme.pageText)}>
+      {/* Header */}
+      <HeaderCard theme={theme}>
         <div
-          className="absolute inset-0"
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(60% 70% at 10% 0%, ${rgba(accent, 0.45)}, transparent 60%),
-                         radial-gradient(60% 70% at 90% 100%, ${rgba(accent2, 0.35)}, transparent 60%)`,
+            background: isDark
+              ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
+              : "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
           }}
         />
-      </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:px-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={18} style={{ color: rgba(accent, 0.9) }} />
-            <span
-              className="uppercase tracking-[0.25em] text-xs font-semibold"
-              style={{ color: rgba(accent, 0.7) }}
-            >
-              profile · finance · wallet
-            </span>
+        <div className="relative z-[1] flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <HeaderIconBox theme={theme}>
+              <Wallet className="h-6 w-6" />
+            </HeaderIconBox>
+
+            <div>
+              <div
+                className={cx(
+                  "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+                  theme.headerBadge
+                )}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Profile · Finance · Wallet
+              </div>
+
+              <h1
+                className={cx(
+                  "text-2xl font-bold tracking-tight sm:text-3xl",
+                  theme.headerText
+                )}
+              >
+                Account Details
+              </h1>
+
+              <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
+                Update and review your KYC, bank, and wallet details from one secure place.
+              </p>
+            </div>
           </div>
 
-          <motion.div
-            initial={{ scale: 0.98, rotateX: 10, opacity: 0 }}
-            animate={{ scale: 1, rotateX: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            className="inline-block"
-          >
-            <ModernHeading text="⚡ Account Details" />
-          </motion.div>
-        </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+            <HeaderStatBox
+              theme={theme}
+              icon={<User className="h-4 w-4" />}
+              label="KYC"
+              value="Identity"
+            />
 
-        {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sidebar */}
-          <GlassCard theme={theme} className="p-4 lg:col-span-4 xl:col-span-3">
-            <div className="flex lg:flex-col items-center lg:items-stretch gap-3">
-              <div className="w-full">
-                <div
-                  className="relative flex lg:flex-col gap-2 rounded-2xl p-2"
-                  role="tablist"
-                  style={{
-                    background: `linear-gradient(135deg, ${chipsBg}, ${rgba(theme?.surface1 || bg, 0.18)})`,
-                    border: `1px solid ${chipsBorder}`,
-                  }}
-                >
-                  {tabs.map((t) => (
-                    <TabButton
-                      key={t.id}
-                      theme={theme}
-                      active={activeTab === t.id}
-                      onClick={() => setActiveTab(t.id)}
-                      icon={t.icon}
-                    >
-                      {t.label}
-                    </TabButton>
-                  ))}
-                </div>
+            <HeaderStatBox
+              theme={theme}
+              icon={<CreditCard className="h-4 w-4" />}
+              label="Bank"
+              value="Details"
+            />
+
+            <HeaderStatBox
+              theme={theme}
+              icon={<Wallet className="h-4 w-4" />}
+              label="Wallet"
+              value="Secure"
+            />
+          </div>
+        </div>
+      </HeaderCard>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        {/* Sidebar Tabs */}
+        <Card theme={theme} className="lg:col-span-4 xl:col-span-3">
+          <div className="mb-5">
+            <h2 className={cx("text-lg font-semibold", theme.text)}>
+              Account Sections
+            </h2>
+            <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+              Choose the section you want to update.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {tabs.map((tab) => (
+              <TabButton
+                key={tab.id}
+                theme={theme}
+                active={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                icon={tab.icon}
+                label={tab.label}
+              />
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Chip theme={theme}>Verified KYC</Chip>
+            <Chip theme={theme}>Bank Linked</Chip>
+            <Chip theme={theme}>Secure Wallet</Chip>
+          </div>
+
+          <div className={cx("mt-5 rounded-2xl border p-4", theme.cardSoft)}>
+            <div className="flex items-start gap-3">
+              <div
+                className={cx(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+                  theme.successBadge
+                )}
+              >
+                <ShieldCheck className="h-4 w-4" />
               </div>
 
-              {/* Quick chips */}
-              <div className="hidden lg:grid grid-cols-2 gap-2 w-full">
-                <Chip theme={theme} text="Verified KYC" />
-                <Chip theme={theme} text="Secure Wallet" />
-                <Chip theme={theme} text="Bank Linked" />
-                <Chip theme={theme} text="Encrypted" />
+              <div>
+                <p className={cx("text-sm font-semibold", theme.text)}>
+                  Secure Information
+                </p>
+                <p className={cx("mt-1 text-xs leading-5", theme.muted)}>
+                  Your financial details are used only for deposits, withdrawals, and verification.
+                </p>
               </div>
             </div>
-          </GlassCard>
+          </div>
+        </Card>
 
-          {/* Content */}
-          <GlassCard theme={theme} className="p-4 lg:col-span-8 xl:col-span-9">
-            <AnimatePresence mode="wait" custom={direction}>
+        {/* Content */}
+        <Card theme={theme} className="lg:col-span-8 xl:col-span-9">
+          <div className="mb-5 flex items-start gap-3">
+            <div
+              className={cx(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+                theme.iconBox
+              )}
+            >
+              <activeTabData.icon className="h-5 w-5" />
+            </div>
+
+            <div>
+              <h2 className={cx("text-lg font-semibold", theme.text)}>
+                {activeTabData.label}
+              </h2>
+              <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
+                {activeTabData.description}
+              </p>
+            </div>
+          </div>
+
+          <div
+            className={cx(
+              "rounded-[22px] border p-3 sm:p-4",
+              isDark
+                ? "border-white/10 bg-white/[0.025]"
+                : "border-orange-100 bg-orange-50/35"
+            )}
+          >
+            <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                custom={direction}
-                variants={contentVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="rounded-xl p-4 md:p-6"
-                style={{
-                  border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
-                  background: `linear-gradient(135deg,
-                    ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.55)},
-                    ${rgba(theme?.surface1 || bg, 0.22)}
-                  )`,
-                }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
               >
-                <motion.div
-                  whileHover={{ rotateX: 1, rotateY: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 18 }}
-                >
-                  {renderContent()}
-                </motion.div>
+                {renderContent()}
               </motion.div>
             </AnimatePresence>
-          </GlassCard>
-        </div>
+          </div>
+        </Card>
       </div>
-    </div>
-  );
-};
-
-/* ============================= SMALL UI ============================== */
-
-const Chip = ({ theme, text }) => {
-  const c = theme?.accent || theme?.gradientFrom || "16 185 129";
-  const border = theme?.border || theme?.inputBorder || "255 255 255";
-  return (
-    <div
-      className="text-xs font-semibold px-3 py-2 rounded-xl"
-      style={{
-        color: rgba(c, 0.8),
-        border: `1px solid ${rgba(border, 0.14)}`,
-        background: `linear-gradient(135deg, ${rgba(c, 0.10)}, ${rgba(c, 0.04)})`,
-      }}
-    >
-      {text}
     </div>
   );
 };

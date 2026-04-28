@@ -54,12 +54,21 @@ const AdminRoutes = () => {
                       element={<BonusReports />}
                     />
 
+                      <Route
+                      path="/RulesManagement"
+                      element={<RulesManagement />}
+                    />
+
+                    {/* RulesManagement */}
+
                     <Route path="/insurance-report" element={<InsuranceReport />} />
         
                     <Route
                       path="/customerSupport/tickets"
                       element={<TicketsDashboard />}
                     />
+
+                    
         
                     <Route
                       path="/customerSupport/tickets/:id"

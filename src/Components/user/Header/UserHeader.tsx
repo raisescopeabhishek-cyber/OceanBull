@@ -292,10 +292,10 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
         window.open("/user/bonus/dashboard", "_blank", "noopener,noreferrer"),
     },
     {
-      key: "platform",
-      label: "Trading Platform",
+      key: "insurance",
+      label: "Insurance",
       icon: <Monitor className="h-4 w-4" />,
-      action: () => navigate("/user/account-details"),
+      action: () => navigate("/user/insurance-report"),
     },
     {
       key: "rules",
@@ -303,6 +303,7 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
       icon: <ScrollText className="h-4 w-4" />,
       action: () => navigate("/user/UserRules"),
     },
+    // insurance-report
     {
       key: "support",
       label: "Support Center",
@@ -528,18 +529,6 @@ const UserHeader = () => {
           </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-center">
-          {siteConfig?.logo ? (
-            <img
-              src={siteConfig.logo}
-              alt={siteConfig?.siteName || "Logo"}
-              className="w-40 object-contain md:w-44"
-              style={{ height: `${baseHeight}rem` }}
-            />
-          ) : (
-            <h1 className="text-sm font-bold md:text-base">User Panel</h1>
-          )}
-        </div>
 
         <div className="relative flex items-center gap-2 md:gap-3">
           <button

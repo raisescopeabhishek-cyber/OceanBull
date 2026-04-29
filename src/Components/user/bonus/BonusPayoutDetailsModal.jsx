@@ -311,7 +311,7 @@ const PriceCell = ({ theme, type, value }) => {
           {isOpen ? "Open" : "Close"}
         </p>
         <p className="mt-0.5 font-mono text-sm font-bold">
-          {formatPrice(value)}
+          {value}
         </p>
       </div>
     </div>

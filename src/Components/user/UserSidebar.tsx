@@ -424,7 +424,7 @@ const SidebarContent = ({ close }) => {
           <div className="flex items-center gap-3">
             <div
               className={[
-                "grid h-11 w-11 place-items-center rounded-2xl border",
+                "grid h-16 w-16 place-items-center rounded-2xl border",
                 isDark
                   ? "border-white/10 bg-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
                   : "border-orange-100 bg-white/85 shadow-[0_10px_30px_rgba(251,146,60,0.12)]",

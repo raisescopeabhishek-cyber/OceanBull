@@ -36,6 +36,7 @@ import BonusLedgerTab from "@/Components/user/bonus/BonusLedgerTab";
 import BonusPayoutsTab from "@/Components/user/bonus/BonusPayoutsTab";
 import BonusTradesTab from "@/Components/user/bonus/BonusTradesTab";
 import UserRules from "@/Components/user/UserRules";
+import UserInsuranceReport from "@/Components/user/UserInsuranceReport";
 
 const UserRoutes = () => {
   return (
@@ -65,6 +66,8 @@ const UserRoutes = () => {
         <Route path="master-password" element={<UserMasterPassword />} />
         <Route path="investor-password" element={<UserInvesterPassword />} />
         <Route path="UserRules" element={<UserRules />} />
+
+        <Route path="insurance-report" element={<UserInsuranceReport />} />
 
         {/* UserRules */}
 

@@ -15,7 +15,9 @@ import {
   X,
 } from "lucide-react";
 import { userApi } from "@/utils/apiClients";
+import MonthlyTradeCommissionGraph from "./MonthlyTradeCommissionGraph";
 import AccountOpenTradesMarketSection from "./AccountOpenTradesMarketSection";
+import UserBonusUsageGauge from "./UserBonusUsageGauge";
 
 const CARD_LINKS = [
   "/user/dashboard",
@@ -1001,19 +1003,7 @@ console.log("allAccounts used for balance:", allAccounts);
           : userSiteconfig?.serverName || "Not Available",
       icon: <Server size={18} />,
       tone: "primary",
-    },
-    {
-      title: "Total Accounts",
-      value: String(summary.totalAccounts || 0),
-      icon: <Wallet size={18} />,
-      tone: "success",
-    },
-    {
-      title: "Last Updated",
-      value: lastUpdated || "Just now",
-      icon: <RefreshCw size={18} />,
-      tone: "warning",
-    },
+    }
   ];
 
   const selectedAccountSummary = useMemo(() => {
@@ -1577,7 +1567,7 @@ console.log("allAccounts used for balance:", allAccounts);
 
   return (
     <motion.div
-      className="relative overflow-hidden px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6"
+      className="relative overflow-hidden px-4 py-4 sm:px-5 sm:py-5 lg:px-4 lg:py-4"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
@@ -1604,7 +1594,7 @@ console.log("allAccounts used for balance:", allAccounts);
         <section className={cx("overflow-hidden", sectionShell)}>
           <div
             className={cx(
-              "relative px-5 py-5 sm:px-6 sm:py-6",
+              "relative px-5 py-5 sm:px-4 sm:py-4 ",
               isDark
                 ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
                 : "bg-[linear-gradient(135deg,rgba(255,255,255,0.90),rgba(255,247,240,0.82))]"
@@ -1639,15 +1629,15 @@ console.log("allAccounts used for balance:", allAccounts);
                     strongText
                   )}
                 >
-                  {greeting}, {loggedUser?.username || loggedUser?.name || "Trader"}
+                  {greeting}, {loggedUser?.username || loggedUser?.name || "Trader"} 
                 </h1>
 
-                <p className={cx("mt-2 max-w-2xl text-sm sm:text-[15px]", mutedText)}>
+                <p className={cx(" mb-2 max-w-2xl text-sm sm:text-[15px]", mutedText)}>
                   This dashboard gives you a complete overview of your trading
-                  accounts in one place. You can quickly check your total balance,
-                  equity, deposits, withdrawals, bonus wallet, and other earnings
-                  to stay updated with your account activity.
+                  accounts in one place.
                 </p>
+                
+
 
                 {summary.hasMixedCurrencies ? (
                   <p className="mt-3 text-sm text-amber-500">
@@ -1677,11 +1667,44 @@ console.log("allAccounts used for balance:", allAccounts);
                       size={16}
                       className={cx(refreshing && "animate-spin")}
                     />
-                    Refresh Summary
+                           {miniSummary.map((item) => (
+                    <div
+                      key={item.title}
+                      className={cx(
+                        "",
+                        
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cx(
+                            "flex h-8 w-8 items-center justify-center rounded-xl",
+                            getSummaryTone(item.tone)
+                          )}
+                        >
+                          {item.icon}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p
+                            className={cx(
+                              "text-[11px] uppercase tracking-[0.16em]",
+                              mutedText
+                            )}
+                          >
+                            {item.title}
+                          </p>
+                          <p className={cx("truncate text-sm font-semibold", strongText)}>
+                            {item.value}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                   </button>
                 </div>
 
-                <div className="grid w-full gap-2 sm:grid-cols-3 lg:max-w-[640px]">
+                {/* <div className="grid w-full gap-2 sm:grid-cols-3 lg:max-w-[640px]">
                   {miniSummary.map((item) => (
                     <div
                       key={item.title}
@@ -1718,13 +1741,13 @@ console.log("allAccounts used for balance:", allAccounts);
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
         </section>
 
-        <section className={cx(sectionShell, "p-5 sm:p-6")}>
+        <section className={cx(sectionShell, "p-5 sm:p-0")}>
           <div className={statsGridClass}>
             {stats.map((item, index) => {
               const sparklineWidth = 4000;
@@ -2004,11 +2027,12 @@ console.log("allAccounts used for balance:", allAccounts);
             })}
           </div>
         </section>
+        <UserBonusUsageGauge />
+        <MonthlyTradeCommissionGraph />
 
         {insurancePopupModal}
         {claimDecisionModal}
 
-        <AccountOpenTradesMarketSection />
       </div>
     </motion.div>
   );

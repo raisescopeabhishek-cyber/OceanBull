@@ -82,7 +82,7 @@ function StatCard({ icon, label, value, hint, tone = "default", isDark }) {
         : "border-rose-200 bg-rose-50 text-rose-700"
       : isDark
       ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-      : "border-orange-200 bg-orange-50 text-orange-700";
+      : "border-amber-200 bg-amber-50 text-amber-700";
 
   return (
     <div
@@ -90,7 +90,7 @@ function StatCard({ icon, label, value, hint, tone = "default", isDark }) {
         "rounded-[24px] border p-4 backdrop-blur-xl transition-all duration-300",
         isDark
           ? "border-white/10 bg-white/[0.045] shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
-          : "border-orange-100 bg-white/85 shadow-[0_16px_42px_rgba(251,146,60,0.12)]"
+          : "border-amber-100 bg-white/85 shadow-[0_16px_42px_rgba(245,158,11,0.08)]"
       )}
     >
       <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ function EmptyState({ isDark }) {
           "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border",
           isDark
             ? "border-white/10 bg-white/[0.04] text-white/50"
-            : "border-orange-100 bg-orange-50 text-orange-500"
+            : "border-amber-100 bg-amber-50 text-amber-500"
         )}
       >
         <ShieldCheck size={28} />
@@ -226,7 +226,7 @@ function DetailModal({ row, onClose, isDark }) {
             "max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-[28px] border shadow-2xl",
             isDark
               ? "border-white/10 bg-slate-950 text-white"
-              : "border-orange-100 bg-white text-slate-900"
+              : "border-amber-100 bg-white text-slate-900"
           )}
           initial={{ opacity: 0, y: 18, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -238,7 +238,7 @@ function DetailModal({ row, onClose, isDark }) {
               "border-b px-6 py-5",
               isDark
                 ? "border-white/10 bg-white/[0.03]"
-                : "border-orange-100 bg-orange-50/50"
+                : "border-amber-100 bg-amber-50/50"
             )}
           >
             <div className="flex items-start justify-between gap-4">
@@ -246,7 +246,7 @@ function DetailModal({ row, onClose, isDark }) {
                 <p
                   className={cx(
                     "text-xs font-bold uppercase tracking-[0.18em]",
-                    isDark ? "text-blue-300" : "text-orange-600"
+                    isDark ? "text-blue-300" : "text-amber-600"
                   )}
                 >
                   Insurance Coverage
@@ -268,7 +268,7 @@ function DetailModal({ row, onClose, isDark }) {
                   "flex h-10 w-10 items-center justify-center rounded-full border transition",
                   isDark
                     ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
-                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                    : "border-amber-100 bg-white text-slate-600 hover:bg-amber-50"
                 )}
               >
                 <X size={18} />
@@ -433,7 +433,7 @@ function InfoBlock({ label, value, isDark }) {
         "rounded-2xl border px-4 py-3",
         isDark
           ? "border-white/10 bg-white/[0.04]"
-          : "border-orange-100 bg-orange-50/35"
+          : "border-amber-100 bg-amber-50/35"
       )}
     >
       <p
@@ -463,7 +463,7 @@ function InfoMini({ label, value, isDark }) {
         "rounded-2xl border px-3 py-3",
         isDark
           ? "border-white/10 bg-white/[0.035]"
-          : "border-orange-100 bg-orange-50/40"
+          : "border-amber-100 bg-amber-50/40"
       )}
     >
       <p
@@ -649,15 +649,15 @@ export default function UserInsuranceReport() {
           "overflow-hidden rounded-[30px] border",
           isDark
             ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-            : "border-orange-100 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+            : "border-amber-100 bg-white/75 shadow-[0_20px_60px_rgba(245,158,11,0.08)]"
         )}
       >
         <div
           className={cx(
             "relative overflow-hidden px-5 py-6 sm:px-6",
             isDark
-              ? "bg-[linear-gradient(135deg,rgba(15,23,42,1),rgba(30,41,59,0.9))]"
-              : "bg-[linear-gradient(135deg,#f97316,#ea580c)]"
+              ? "bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))]"
+              : "bg-[linear-gradient(135deg,#fb923c,#f59e0b)]"
           )}
         >
           <div className="relative z-[1] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -688,7 +688,7 @@ export default function UserInsuranceReport() {
             </button>
           </div>
 
-          <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 left-20 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
         </div>
 
@@ -741,7 +741,7 @@ export default function UserInsuranceReport() {
               "mt-5 overflow-hidden rounded-[24px] border",
               isDark
                 ? "border-white/10 bg-white/[0.035]"
-                : "border-orange-100 bg-orange-50/35"
+                : "border-amber-100 bg-amber-50/35"
             )}
           >
             <button
@@ -749,7 +749,7 @@ export default function UserInsuranceReport() {
               onClick={() => setFiltersOpen((prev) => !prev)}
               className={cx(
                 "flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition",
-                isDark ? "hover:bg-white/[0.035]" : "hover:bg-orange-50"
+                isDark ? "hover:bg-white/[0.035]" : "hover:bg-amber-50"
               )}
             >
               <div className="flex items-center gap-3">
@@ -758,7 +758,7 @@ export default function UserInsuranceReport() {
                     "flex h-10 w-10 items-center justify-center rounded-2xl border",
                     isDark
                       ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                      : "border-orange-200 bg-white text-orange-600"
+                      : "border-amber-200 bg-white text-amber-600"
                   )}
                 >
                   <Filter size={17} />
@@ -799,7 +799,7 @@ export default function UserInsuranceReport() {
                   className={cx(
                     "transition-transform duration-300",
                     filtersOpen ? "rotate-180" : "rotate-0",
-                    isDark ? "text-white/60" : "text-orange-600"
+                    isDark ? "text-white/60" : "text-amber-600"
                   )}
                 />
               </div>
@@ -818,7 +818,7 @@ export default function UserInsuranceReport() {
                   <div
                     className={cx(
                       "border-t p-4",
-                      isDark ? "border-white/10" : "border-orange-100"
+                      isDark ? "border-white/10" : "border-amber-100"
                     )}
                   >
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
@@ -837,7 +837,7 @@ export default function UserInsuranceReport() {
                               size={16}
                               className={cx(
                                 "absolute left-3 top-1/2 -translate-y-1/2",
-                                isDark ? "text-white/40" : "text-orange-500"
+                                isDark ? "text-white/40" : "text-amber-500"
                               )}
                             />
                             <input
@@ -851,7 +851,7 @@ export default function UserInsuranceReport() {
                                 "w-full rounded-2xl border py-3 pl-10 pr-3 text-sm outline-none",
                                 isDark
                                   ? "border-white/10 bg-slate-950/70 text-white placeholder:text-white/30"
-                                  : "border-orange-200 bg-white text-slate-900 placeholder:text-orange-300"
+                                  : "border-amber-200 bg-white text-slate-900 placeholder:text-amber-300"
                               )}
                             />
                           </div>
@@ -859,7 +859,7 @@ export default function UserInsuranceReport() {
                           <button
                             type="button"
                             onClick={applySearch}
-                            className="rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
+                            className="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-amber-600"
                           >
                             Go
                           </button>
@@ -884,7 +884,7 @@ export default function UserInsuranceReport() {
                             "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
                             isDark
                               ? "border-white/10 bg-slate-950/70 text-white"
-                              : "border-orange-200 bg-white text-slate-900"
+                              : "border-amber-200 bg-white text-slate-900"
                           )}
                         >
                           <option value="">All</option>
@@ -911,7 +911,7 @@ export default function UserInsuranceReport() {
                             "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
                             isDark
                               ? "border-white/10 bg-slate-950/70 text-white"
-                              : "border-orange-200 bg-white text-slate-900"
+                              : "border-amber-200 bg-white text-slate-900"
                           )}
                         >
                           <option value="">All Accounts</option>
@@ -942,7 +942,7 @@ export default function UserInsuranceReport() {
                             "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
                             isDark
                               ? "border-white/10 bg-slate-950/70 text-white"
-                              : "border-orange-200 bg-white text-slate-900"
+                              : "border-amber-200 bg-white text-slate-900"
                           )}
                         />
                       </div>
@@ -966,7 +966,7 @@ export default function UserInsuranceReport() {
                             "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
                             isDark
                               ? "border-white/10 bg-slate-950/70 text-white"
-                              : "border-orange-200 bg-white text-slate-900"
+                              : "border-amber-200 bg-white text-slate-900"
                           )}
                         />
                       </div>
@@ -980,7 +980,7 @@ export default function UserInsuranceReport() {
                           "rounded-2xl border px-4 py-2.5 text-sm font-bold transition",
                           isDark
                             ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-                            : "border-orange-200 bg-white text-orange-600 hover:bg-orange-50"
+                            : "border-amber-200 bg-white text-amber-600 hover:bg-amber-50"
                         )}
                       >
                         Clear Filters
@@ -992,13 +992,12 @@ export default function UserInsuranceReport() {
             </AnimatePresence>
           </div>
 
-
           <div
             className={cx(
               "mt-5 overflow-hidden rounded-[24px] border",
               isDark
                 ? "border-white/10 bg-white/[0.035]"
-                : "border-orange-100 bg-white/85"
+                : "border-amber-100 bg-white/85"
             )}
           >
             <div
@@ -1006,7 +1005,7 @@ export default function UserInsuranceReport() {
               style={{
                 borderColor: isDark
                   ? "rgba(255,255,255,0.10)"
-                  : "rgba(251,146,60,0.14)",
+                  : "rgba(245,158,11,0.14)",
               }}
             >
               <div>
@@ -1027,7 +1026,7 @@ export default function UserInsuranceReport() {
                     "rounded-full border px-3 py-1 text-xs font-semibold",
                     isDark
                       ? "border-white/10 bg-white/[0.04] text-white/70"
-                      : "border-orange-200 bg-orange-50 text-orange-600"
+                      : "border-amber-200 bg-amber-50 text-amber-600"
                   )}
                 >
                   Search: {filters.search}
@@ -1038,7 +1037,7 @@ export default function UserInsuranceReport() {
             {loading ? (
               <div className="flex min-h-[280px] items-center justify-center">
                 <div className="text-center">
-                  <RefreshCcw className="mx-auto h-8 w-8 animate-spin text-orange-500" />
+                  <RefreshCcw className="mx-auto h-8 w-8 animate-spin text-amber-500" />
                   <p
                     className={cx(
                       "mt-3 text-sm font-semibold",
@@ -1055,7 +1054,7 @@ export default function UserInsuranceReport() {
                 <button
                   type="button"
                   onClick={fetchReport}
-                  className="mt-4 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-white"
+                  className="mt-4 rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white hover:bg-amber-600"
                 >
                   Retry
                 </button>
@@ -1068,7 +1067,7 @@ export default function UserInsuranceReport() {
                   <table className="w-full text-sm">
                     <thead
                       className={
-                        isDark ? "bg-white/[0.035]" : "bg-orange-50/80"
+                        isDark ? "bg-white/[0.035]" : "bg-amber-50/80"
                       }
                     >
                       <tr>
@@ -1101,7 +1100,7 @@ export default function UserInsuranceReport() {
                           key={row.coverageId || index}
                           className={cx(
                             "border-t",
-                            isDark ? "border-white/10" : "border-orange-100"
+                            isDark ? "border-white/10" : "border-amber-100"
                           )}
                         >
                           <td className="px-4 py-4 text-center font-mono font-bold">
@@ -1182,7 +1181,7 @@ export default function UserInsuranceReport() {
                               <Clock3
                                 size={14}
                                 className={
-                                  isDark ? "text-white/45" : "text-orange-500"
+                                  isDark ? "text-white/45" : "text-amber-500"
                                 }
                               />
                               <span>{formatDate(row.coverageCreatedAt)}</span>
@@ -1193,7 +1192,7 @@ export default function UserInsuranceReport() {
                             <button
                               type="button"
                               onClick={() => setSelectedRow(row)}
-                              className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-orange-600"
+                              className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-amber-600"
                             >
                               <Eye size={15} />
                               View
@@ -1213,7 +1212,7 @@ export default function UserInsuranceReport() {
                         "rounded-[22px] border p-4",
                         isDark
                           ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-white"
+                          : "border-amber-100 bg-white"
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -1263,7 +1262,7 @@ export default function UserInsuranceReport() {
                       <button
                         type="button"
                         onClick={() => setSelectedRow(row)}
-                        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold text-white"
+                        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold text-white hover:bg-amber-600"
                       >
                         <Eye size={16} />
                         View Details
@@ -1277,7 +1276,7 @@ export default function UserInsuranceReport() {
             <div
               className={cx(
                 "flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
-                isDark ? "border-white/10" : "border-orange-100"
+                isDark ? "border-white/10" : "border-amber-100"
               )}
             >
               <p
@@ -1298,7 +1297,7 @@ export default function UserInsuranceReport() {
                     "inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
                     isDark
                       ? "border-white/10 bg-white/[0.04] text-white"
-                      : "border-orange-200 bg-white text-orange-600"
+                      : "border-amber-200 bg-white text-amber-600"
                   )}
                 >
                   <ChevronLeft size={16} />
@@ -1313,7 +1312,7 @@ export default function UserInsuranceReport() {
                     "inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
                     isDark
                       ? "border-white/10 bg-white/[0.04] text-white"
-                      : "border-orange-200 bg-white text-orange-600"
+                      : "border-amber-200 bg-white text-amber-600"
                   )}
                 >
                   Next

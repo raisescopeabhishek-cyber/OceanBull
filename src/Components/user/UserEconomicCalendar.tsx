@@ -27,11 +27,6 @@ const safeRgbParts = (v: any) => {
   return { r, g, b };
 };
 
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
 const rgba = (v: any, a = 1) => {
   const { r, g, b } = safeRgbParts(v);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -58,13 +53,13 @@ function SectionCard({
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
+          : "rgba(245,158,11,0.14)",
         background: isDark
           ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
+          : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
         boxShadow: isDark
           ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(251,146,60,0.10)",
+          : "0 14px 40px rgba(245,158,11,0.08)",
         backdropFilter: "blur(10px)",
       }}
     >
@@ -91,9 +86,9 @@ function StatCard({
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(245,158,11,0.08)",
+          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(245,158,11,0.95)",
+          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(245,158,11,0.14)",
         }
       : tone === "warning"
       ? {
@@ -106,7 +101,7 @@ function StatCard({
           iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
           border: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
+            : "rgba(245,158,11,0.14)",
         };
 
   return (
@@ -184,18 +179,23 @@ export default function UserEconomicCalendar() {
 
   const accentColor = isDark
     ? "rgba(96,165,250,0.95)"
-    : "rgba(249,115,22,0.95)";
+    : "rgba(245,158,11,0.95)";
+
+  const heroBg = isDark
+    ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+    : "linear-gradient(135deg, #fb923c, #f59e0b)";
 
   const iframeCardStyle: React.CSSProperties = {
     borderRadius: "22px",
     border: isDark
       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(251,146,60,0.14)",
+      : "1px solid rgba(245,158,11,0.14)",
     background: isDark
       ? "rgba(255,255,255,0.03)"
       : "rgba(255,255,255,0.88)",
     overflow: "hidden",
     position: "relative",
+    boxShadow: isDark ? "none" : "0 10px 24px rgba(245,158,11,0.06)",
   };
 
   return (
@@ -207,39 +207,35 @@ export default function UserEconomicCalendar() {
     >
       <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
         <div
-          className="border-b px-5 py-4 sm:px-6"
+          className="relative overflow-hidden px-5 py-6 sm:px-6"
           style={{
-            borderColor: isDark
-              ? rgba(theme?.border || "255 255 255", 0.1)
-              : "rgba(251,146,60,0.12)",
-            background: isDark
-              ? "rgba(255,255,255,0.02)"
-              : "rgba(255,255,255,0.38)",
+            background: heroBg,
           }}
         >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-12 top-0 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+          </div>
+
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" style={{ color: accentColor }} />
-                <span
-                  className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                  style={{ color: mutedTextColor }}
-                >
+                <TrendingUp className="h-4 w-4 text-white" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
                   market · events · calendar
                 </span>
               </div>
 
               <h1
-                className="text-3xl font-bold sm:text-4xl"
+                className="text-3xl font-bold text-white sm:text-4xl"
                 style={{
-                  color: titleColor,
                   fontFamily: "'Poppins', sans-serif",
                 }}
               >
                 Economic Calendar
               </h1>
 
-              <p className="mt-2 text-sm sm:text-[15px]" style={{ color: mutedTextColor }}>
+              <p className="mt-2 max-w-3xl text-sm text-white/80 sm:text-[15px]">
                 Track high-impact economic events, market-moving announcements,
                 and trading schedule data in one clean view.
               </p>
@@ -256,10 +252,11 @@ export default function UserEconomicCalendar() {
               style={{
                 borderColor: isDark
                   ? rgba(theme?.border || "255 255 255", 0.1)
-                  : "rgba(251,146,60,0.14)",
+                  : "rgba(245,158,11,0.14)",
                 background: isDark
                   ? "rgba(255,255,255,0.03)"
                   : "rgba(255,255,255,0.84)",
+                boxShadow: isDark ? "none" : "0 8px 20px rgba(245,158,11,0.05)",
               }}
             >
               <div className="flex items-center gap-3">
@@ -268,10 +265,10 @@ export default function UserEconomicCalendar() {
                   style={{
                     borderColor: isDark
                       ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(251,146,60,0.14)",
+                      : "rgba(245,158,11,0.14)",
                     background: isDark
                       ? "rgba(59,130,246,0.10)"
-                      : "rgba(255,237,213,0.65)",
+                      : "rgba(255,251,235,0.75)",
                     color: accentColor,
                   }}
                 >
@@ -285,10 +282,7 @@ export default function UserEconomicCalendar() {
                   >
                     Calendar Overview
                   </div>
-                  <div
-                    className="text-xs"
-                    style={{ color: mutedTextColor }}
-                  >
+                  <div className="text-xs" style={{ color: mutedTextColor }}>
                     Event coverage, impact focus and live market visibility
                   </div>
                 </div>
@@ -378,7 +372,7 @@ export default function UserEconomicCalendar() {
                 style={{
                   background: isDark
                     ? "rgba(59,130,246,0.10)"
-                    : "rgba(255,237,213,0.72)",
+                    : "rgba(255,251,235,0.80)",
                   color: accentColor,
                 }}
               >
@@ -388,10 +382,7 @@ export default function UserEconomicCalendar() {
                 <h3 className="text-lg font-bold" style={{ color: titleColor }}>
                   Live Calendar Feed
                 </h3>
-                <p
-                  className="text-sm"
-                  style={{ color: mutedTextColor }}
-                >
+                <p className="text-sm" style={{ color: mutedTextColor }}>
                   Embedded economic events dashboard with real-time visibility
                 </p>
               </div>

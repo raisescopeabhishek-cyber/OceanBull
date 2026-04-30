@@ -56,11 +56,6 @@ const safeRgbParts = (v: any) => {
   return { r, g, b };
 };
 
-const rgb = (v: any) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
-
 const rgba = (v: any, a = 1) => {
   const { r, g, b } = safeRgbParts(v);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -176,11 +171,11 @@ function StatCard({ icon, label, value, hint, colors, tone = "default" }: any) {
       ? {
           iconBg: colors.isDark
             ? "rgba(59,130,246,0.14)"
-            : "rgba(249,115,22,0.1)",
+            : "rgba(245,158,11,0.08)",
           iconColor: colors.accent,
           border: colors.isDark
             ? "rgba(59,130,246,0.22)"
-            : "rgba(249,115,22,0.22)",
+            : "rgba(245,158,11,0.14)",
         }
       : tone === "warning"
       ? {
@@ -195,7 +190,7 @@ function StatCard({ icon, label, value, hint, colors, tone = "default" }: any) {
       : {
           iconBg: colors.isDark
             ? "rgba(255,255,255,0.05)"
-            : "rgba(249,115,22,0.08)",
+            : "rgba(245,158,11,0.06)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -329,7 +324,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(249,115,22,0.10)",
+                        : "rgba(245,158,11,0.08)",
                     }}
                   />
                 </td>
@@ -353,54 +348,70 @@ export default function UserTransfer() {
   const colors = useMemo(() => {
     const accent = isDark
       ? rgba(theme?.accent || "96 165 250", 0.95)
-      : rgb(theme?.accent || "249 115 22");
+      : "#f59e0b";
 
     return {
       isDark,
-      pageBg: isDark ? "#0b1120" : "#fff7ed",
+
+      pageBg: isDark ? "#0b1120" : "#fffaf5",
+
       heroBg: isDark
         ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #f97316, #ea580c)",
-      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+        : "linear-gradient(135deg, #fb923c, #f59e0b)",
+
+      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
       surfaceSoft: isDark
         ? "rgba(255,255,255,0.04)"
-        : "rgba(255,237,213,0.75)",
+        : "rgba(255,251,235,0.75)",
       surfaceMuted: isDark
         ? "rgba(255,255,255,0.03)"
-        : "rgba(255,247,237,0.95)",
+        : "rgba(255,250,245,0.95)",
+
       text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
       muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
       softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(249,115,22,0.10)",
+      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+
       success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
       warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
       danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(249,115,22,0.22)",
+        : "rgba(245,158,11,0.16)",
+
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(249,115,22,0.14)",
+        : "rgba(245,158,11,0.10)",
+
       inputBg: isDark
         ? "rgba(15,23,42,0.92)"
-        : "linear-gradient(180deg, rgba(255,247,237,0.98), rgba(255,255,255,0.98))",
+        : "linear-gradient(180deg, rgba(255,251,235,0.98), rgba(255,255,255,0.98))",
+
       inputBorder: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(249,115,22,0.48)",
+        : "rgba(245,158,11,0.30)",
+
       inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#fb923c",
+      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#f59e0b",
+
       inputShadow: isDark
         ? "0 0 0 1px rgba(255,255,255,0.03)"
-        : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
+        : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 16px 38px rgba(249,115,22,0.12)",
-      primaryBtn: "#f97316",
+        : "0 14px 30px rgba(245,158,11,0.07)",
+
+      primaryBtn: "#f59e0b",
+      primaryBtnHover: "#d97706",
       primaryBtnText: "#ffffff",
-      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.85)",
+
+      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
       modalOverlay: "rgba(2,6,23,0.72)",
-      rowHover: isDark ? "rgba(255,255,255,0.035)" : "rgba(255,237,213,0.42)",
+      rowHover: isDark ? "rgba(255,255,255,0.035)" : "rgba(255,251,235,0.55)",
     };
   }, [isDark, theme]);
 
@@ -429,7 +440,7 @@ export default function UserTransfer() {
 
   const subtleCard = useCallback(
     (): React.CSSProperties => ({
-      background: colors.isDark ? colors.surfaceSoft : "rgba(255,247,237,0.92)",
+      background: colors.isDark ? colors.surfaceSoft : "rgba(255,251,235,0.92)",
       border: `1.5px solid ${colors.isDark ? colors.border : colors.inputBorder}`,
       borderRadius: "16px",
       boxShadow: colors.isDark ? "none" : colors.inputShadow,
@@ -655,14 +666,6 @@ export default function UserTransfer() {
   const projectedSourceBalance = Number(fromAccountBalance || 0) - Number(amount || 0);
   const projectedDestinationBalance = Number(toAccountBalance || 0) + Number(amount || 0);
 
-  const ctaEnabled =
-    fromAccount &&
-    toAccount &&
-    amount &&
-    Number(amount) > 0 &&
-    Number(amount) <= Number(fromAccountBalance || 0) &&
-    !isTransferLoading;
-
   const statusStyle = (status: any) => {
     const tone = statusTone(status);
 
@@ -730,7 +733,7 @@ export default function UserTransfer() {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(249,115,22,0.24)",
+                      : "0 30px 80px rgba(245,158,11,0.16)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -849,7 +852,7 @@ export default function UserTransfer() {
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, direction, status..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-amber-400"
                           style={{
                             borderColor: colors.inputBorder,
                             background: colors.inputBg,
@@ -1306,7 +1309,7 @@ export default function UserTransfer() {
                   color: colors.text,
                   boxShadow: colors.isDark
                     ? "0 30px 80px rgba(0,0,0,0.45)"
-                    : "0 30px 80px rgba(249,115,22,0.24)",
+                    : "0 30px 80px rgba(245,158,11,0.16)",
                 }}
               >
                 <div

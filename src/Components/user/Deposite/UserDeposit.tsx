@@ -504,60 +504,77 @@ export default function UserDeposit() {
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
   const isDark = mode === "dark";
 
-  const colors = useMemo(() => {
-    const accent = isDark
-      ? rgba(theme?.accent || "96 165 250", 0.95)
-      : "#f97316";
+const colors = useMemo(() => {
+  const accent = isDark
+    ? rgba(theme?.accent || "96 165 250", 0.95)
+    : "#f59e0b";
 
-    return {
-      isDark,
-      pageBg: isDark ? "#0b1120" : "#fff7ed",
-      heroBg: isDark
-        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #f97316, #ea580c)",
-      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
-      surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,237,213,0.75)",
-      surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,247,237,0.95)",
-      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
-      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
-      accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(249,115,22,0.10)",
-      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
-      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
-      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
-      link: isDark ? "rgba(147,197,253,1)" : "#f97316",
-      border: isDark
-        ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(249,115,22,0.22)",
-      borderSoft: isDark
-        ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(249,115,22,0.14)",
-      inputBg: isDark
-        ? "rgba(15,23,42,0.92)"
-        : "linear-gradient(180deg, rgba(255,247,237,0.98), rgba(255,255,255,0.98))",
-      inputBorder: isDark
-        ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(249,115,22,0.48)",
-      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#fb923c",
-      inputShadow: isDark
-        ? "0 0 0 1px rgba(255,255,255,0.03)"
-        : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
-      inputFocusShadow: isDark
-        ? "0 0 0 4px rgba(96,165,250,0.18)"
-        : "0 0 0 5px rgba(249,115,22,0.16), 0 14px 32px rgba(249,115,22,0.16)",
-      cardShadow: isDark
-        ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 16px 38px rgba(249,115,22,0.12)",
-      primaryBtn: "#f97316",
-      primaryBtnHover: "#ea580c",
-      primaryBtnText: "#ffffff",
-      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(249,115,22,0.09)",
-      tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.85)",
-      modalOverlay: "rgba(2,6,23,0.72)",
-    };
-  }, [isDark, theme]);
+  return {
+    isDark,
+    pageBg: isDark ? "#0b1120" : "#fffaf5",
+
+    heroBg: isDark
+      ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+      : "linear-gradient(135deg, #fb923c, #f59e0b)",
+
+    surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
+    surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,251,235,0.75)",
+    surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,250,245,0.95)",
+
+    text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+    muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
+    softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+
+    accent,
+    accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+
+    success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
+    warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
+    danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+
+    link: isDark ? "rgba(147,197,253,1)" : "#d97706",
+
+    border: isDark
+      ? rgba(theme?.border || "255 255 255", 0.12)
+      : "rgba(245,158,11,0.16)",
+
+    borderSoft: isDark
+      ? rgba(theme?.border || "255 255 255", 0.08)
+      : "rgba(245,158,11,0.10)",
+
+    inputBg: isDark
+      ? "rgba(15,23,42,0.92)"
+      : "linear-gradient(180deg, rgba(255,251,235,0.98), rgba(255,255,255,0.98))",
+
+    inputBorder: isDark
+      ? rgba(theme?.border || "255 255 255", 0.12)
+      : "rgba(245,158,11,0.30)",
+
+    inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
+    inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#f59e0b",
+
+    inputShadow: isDark
+      ? "0 0 0 1px rgba(255,255,255,0.03)"
+      : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+
+    inputFocusShadow: isDark
+      ? "0 0 0 4px rgba(96,165,250,0.18)"
+      : "0 0 0 5px rgba(245,158,11,0.09), 0 12px 26px rgba(245,158,11,0.09)",
+
+    cardShadow: isDark
+      ? "0 20px 45px rgba(0,0,0,0.28)"
+      : "0 14px 30px rgba(245,158,11,0.07)",
+
+    primaryBtn: "#f59e0b",
+    primaryBtnHover: "#d97706",
+    primaryBtnText: "#ffffff",
+
+    stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(245,158,11,0.06)",
+    tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
+
+    modalOverlay: "rgba(2,6,23,0.72)",
+  };
+}, [isDark, theme]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const submitRequestRef = useRef<HTMLDivElement | null>(null);
@@ -1754,9 +1771,7 @@ export default function UserDeposit() {
                                             }}
                                           >
                                             {item.insuranceDetails
-                                              ? `Insurance: $${money(item.insuranceDetails.insuranceChargeAmount)} (${money(
-                                                  item.insuranceDetails.insuranceChargesPercent
-                                                )}%)`
+                                              ? `Insurance: $${money(item.insuranceDetails.insuranceChargeAmount)}`
                                               : "Insurance: No"}
                                           </div>
 

@@ -81,10 +81,10 @@ const getTheme = (isDark) => ({
 
   header: isDark
     ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
 
   headerText: "text-white",
-  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerMuted: "text-white/80",
   headerBadge: "border-white/20 bg-white/10 text-white",
   headerIcon: "border-white/20 bg-white/10 text-white",
   headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
@@ -92,27 +92,27 @@ const getTheme = (isDark) => ({
 
   card: isDark
     ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
 
   cardSoft: isDark
     ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100/80 bg-white/70",
+    : "border-amber-100/80 bg-white/70",
 
   input: isDark
     ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
-    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+    : "border-amber-300 bg-amber-50/80 text-slate-900 placeholder:text-amber-400 shadow-[0_0_0_3px_rgba(245,158,11,0.06)] focus:border-amber-500 focus:bg-white focus:ring-amber-300/60",
 
   readOnlyInput: isDark
     ? "border-white/10 bg-white/[0.035] text-white/65 placeholder:text-white/25"
-    : "border-orange-200 bg-orange-50/55 text-slate-600 placeholder:text-slate-400",
+    : "border-amber-200 bg-amber-50/55 text-slate-600 placeholder:text-slate-400",
 
   iconBox: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+    : "border-amber-200 bg-amber-50 text-amber-600",
 
   badge: isDark
     ? "border-white/10 bg-white/[0.05] text-white/60"
-    : "border-orange-100 bg-white/80 text-orange-600",
+    : "border-amber-100 bg-white/80 text-amber-600",
 
   successBadge: isDark
     ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
@@ -124,16 +124,16 @@ const getTheme = (isDark) => ({
 
   button: isDark
     ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+    : "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300/70",
 
   buttonDisabled: isDark
     ? "bg-slate-600 text-white/60"
     : "bg-slate-300 text-slate-600",
 
-  progressTrack: isDark ? "bg-white/10" : "bg-orange-100",
+  progressTrack: isDark ? "bg-white/10" : "bg-amber-100",
   progress: isDark
     ? "bg-gradient-to-r from-blue-400 to-cyan-300"
-    : "bg-gradient-to-r from-orange-400 to-orange-600",
+    : "bg-gradient-to-r from-amber-400 to-amber-500",
 });
 
 /* -------------------- shared ui -------------------- */
@@ -268,14 +268,14 @@ const InputField = ({
       )}
     >
       {label}
-      {required ? <span className="ml-1 text-orange-500">*</span> : null}
+      {required ? <span className="ml-1 text-amber-500">*</span> : null}
     </label>
 
     <div className="relative">
       <div
         className={cx(
           "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
-          readOnly ? theme.muted : "text-orange-500"
+          readOnly ? theme.muted : "text-amber-500"
         )}
       >
         {icon}
@@ -549,7 +549,7 @@ const UserProfile = () => {
           style={{
             background: isDark
               ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
-              : "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+              : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
           }}
         />
 
@@ -642,7 +642,7 @@ const UserProfile = () => {
                 <p className={cx("text-sm font-semibold", theme.text)}>
                   Profile Completion
                 </p>
-                <p className="text-sm font-bold text-orange-500">{completion}%</p>
+                <p className="text-sm font-bold text-amber-500">{completion}%</p>
               </div>
 
               <div className={cx("h-2 overflow-hidden rounded-full", theme.progressTrack)}>
@@ -778,7 +778,7 @@ const UserProfile = () => {
                     <div
                       className={cx(
                         "my-7 h-px w-full",
-                        isDark ? "bg-white/10" : "bg-orange-100"
+                        isDark ? "bg-white/10" : "bg-amber-100"
                       )}
                     />
                   ) : null}

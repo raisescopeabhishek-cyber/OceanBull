@@ -23,14 +23,14 @@ const getTheme = (isDark: boolean) => ({
   muted: isDark ? "text-white/55" : "text-slate-500",
   softText: isDark ? "text-white/70" : "text-slate-600",
 
-  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-[#fffaf5]",
 
   header: isDark
     ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
 
   headerText: "text-white",
-  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerMuted: "text-white/80",
   headerBadge: "border-white/20 bg-white/10 text-white",
   headerIcon: "border-white/20 bg-white/10 text-white",
   headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
@@ -38,19 +38,19 @@ const getTheme = (isDark: boolean) => ({
 
   card: isDark
     ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
 
   cardSoft: isDark
     ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100/80 bg-white/70",
+    : "border-amber-100/80 bg-white/70",
 
   iconBox: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+    : "border-amber-200 bg-amber-50 text-amber-600",
 
   badge: isDark
     ? "border-white/10 bg-white/[0.05] text-white/60"
-    : "border-orange-100 bg-white/80 text-orange-600",
+    : "border-amber-100 bg-white/80 text-amber-600",
 
   successBadge: isDark
     ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
@@ -62,23 +62,25 @@ const getTheme = (isDark: boolean) => ({
 
   button: isDark
     ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+    : "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300/70",
 
   outlineButton: isDark
     ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-    : "border-orange-200 bg-white/80 text-orange-700 hover:bg-orange-50",
+    : "border-amber-200 bg-white/80 text-amber-700 hover:bg-amber-50",
 
   primarySoft: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-300 bg-orange-50 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)]",
+    : "border-amber-300 bg-amber-50 text-amber-700 shadow-[0_0_0_3px_rgba(245,158,11,0.06)]",
 });
 
 const HeaderCard = ({
   children,
   theme,
+  isDark,
 }: {
   children: React.ReactNode;
   theme: ReturnType<typeof getTheme>;
+  isDark: boolean;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: -14 }}
@@ -93,8 +95,9 @@ const HeaderCard = ({
       aria-hidden
       className="pointer-events-none absolute inset-0"
       style={{
-        background:
-          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+        background: isDark
+          ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
+          : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
       }}
     />
     <div className="relative z-[1]">{children}</div>
@@ -253,10 +256,15 @@ export default function UserCustomerSupport() {
   ];
 
   return (
-    <div className={cx("min-h-screen w-full p-4 sm:p-6", theme.pageBg, theme.pageText)}>
+    <div
+      className={cx(
+        "min-h-screen w-full p-4 sm:p-6",
+        theme.pageBg,
+        theme.pageText
+      )}
+    >
       <div className="mx-auto max-w-7xl space-y-5">
-        {/* Header */}
-        <HeaderCard theme={theme}>
+        <HeaderCard theme={theme} isDark={isDark}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <HeaderIconBox theme={theme}>
@@ -283,8 +291,14 @@ export default function UserCustomerSupport() {
                   Customer Support Center
                 </h1>
 
-                <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
-                  Get help with your account, wallet, banking, deposits, withdrawals, and trading platform questions.
+                <p
+                  className={cx(
+                    "mt-2 max-w-2xl text-sm leading-6",
+                    theme.headerMuted
+                  )}
+                >
+                  Get help with your account, wallet, banking, deposits,
+                  withdrawals, and trading platform questions.
                 </p>
               </div>
             </div>
@@ -313,7 +327,6 @@ export default function UserCustomerSupport() {
         </HeaderCard>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          {/* Sidebar */}
           <Card theme={theme} className="lg:col-span-4 xl:col-span-3">
             <div className="mb-5">
               <h2 className={cx("text-lg font-semibold", theme.text)}>
@@ -347,7 +360,7 @@ export default function UserCustomerSupport() {
                     <p className={cx("text-sm font-semibold", theme.text)}>
                       Support Email
                     </p>
-                    <p className="mt-1 truncate font-mono text-sm text-orange-500">
+                    <p className="mt-1 truncate font-mono text-sm text-amber-500">
                       {email || "Not configured"}
                     </p>
 
@@ -386,7 +399,12 @@ export default function UserCustomerSupport() {
                 title="Response Time"
                 subtitle="Support is generally available Monday to Saturday, 8:00 AM – 8:00 PM."
               >
-                <div className={cx("rounded-xl border px-3 py-2 text-xs", theme.warningBadge)}>
+                <div
+                  className={cx(
+                    "rounded-xl border px-3 py-2 text-xs",
+                    theme.warningBadge
+                  )}
+                >
                   Typical first reply within 2–6 hours.
                 </div>
               </InfoCard>
@@ -400,7 +418,6 @@ export default function UserCustomerSupport() {
             </div>
           </Card>
 
-          {/* Main */}
           <Card theme={theme} className="lg:col-span-8 xl:col-span-9">
             <div className="mb-5 flex items-start gap-3">
               <IconBox theme={theme}>
@@ -412,7 +429,8 @@ export default function UserCustomerSupport() {
                   How can we help?
                 </h2>
                 <p className={cx("mt-1 text-sm leading-6", theme.muted)}>
-                  Use email for simple questions and ticket support for issues that need tracking or attachments.
+                  Use email for simple questions and ticket support for issues
+                  that need tracking or attachments.
                 </p>
               </div>
             </div>
@@ -431,11 +449,19 @@ export default function UserCustomerSupport() {
                       </IconBox>
 
                       <div>
-                        <h3 className={cx("text-lg font-semibold", theme.text)}>
+                        <h3
+                          className={cx("text-lg font-semibold", theme.text)}
+                        >
                           Email Support
                         </h3>
-                        <p className={cx("mt-2 text-sm leading-6", theme.muted)}>
-                          Best for simple account, wallet, or banking questions. Include screenshots and short details for faster help.
+                        <p
+                          className={cx(
+                            "mt-2 text-sm leading-6",
+                            theme.muted
+                          )}
+                        >
+                          Best for simple account, wallet, or banking questions.
+                          Include screenshots and short details for faster help.
                         </p>
                       </div>
                     </div>
@@ -472,11 +498,19 @@ export default function UserCustomerSupport() {
                       </IconBox>
 
                       <div>
-                        <h3 className={cx("text-lg font-semibold", theme.text)}>
+                        <h3
+                          className={cx("text-lg font-semibold", theme.text)}
+                        >
                           Raise a Ticket
                         </h3>
-                        <p className={cx("mt-2 text-sm leading-6", theme.muted)}>
-                          Best for issues that need tracking, attachments, or follow-up updates from the support team.
+                        <p
+                          className={cx(
+                            "mt-2 text-sm leading-6",
+                            theme.muted
+                          )}
+                        >
+                          Best for issues that need tracking, attachments, or
+                          follow-up updates from the support team.
                         </p>
                       </div>
                     </div>
@@ -500,7 +534,12 @@ export default function UserCustomerSupport() {
               </motion.div>
             </div>
 
-            <div className={cx("mt-5 rounded-[22px] border p-4 sm:p-5", theme.cardSoft)}>
+            <div
+              className={cx(
+                "mt-5 rounded-[22px] border p-4 sm:p-5",
+                theme.cardSoft
+              )}
+            >
               <div className="mb-4 flex items-center gap-3">
                 <IconBox theme={theme} className="h-10 w-10 rounded-xl">
                   <ShieldCheck className="h-5 w-5" />
@@ -511,7 +550,8 @@ export default function UserCustomerSupport() {
                     How to get effective support
                   </h3>
                   <p className={cx("mt-1 text-sm", theme.muted)}>
-                    Share the right details so your issue can be resolved quickly.
+                    Share the right details so your issue can be resolved
+                    quickly.
                   </p>
                 </div>
               </div>
@@ -525,7 +565,7 @@ export default function UserCustomerSupport() {
                       theme.cardSoft
                     )}
                   >
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-orange-500" />
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" />
                     <span className={theme.softText}>{tip}</span>
                   </div>
                 ))}

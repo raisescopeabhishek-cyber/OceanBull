@@ -27,14 +27,14 @@ const getTheme = (isDark: boolean) => ({
   muted: isDark ? "text-white/55" : "text-slate-500",
   softText: isDark ? "text-white/70" : "text-slate-600",
 
-  pageBg: isDark ? "bg-[#0b1120]" : "bg-orange-50",
+  pageBg: isDark ? "bg-[#0b1120]" : "bg-[#fffaf5]",
 
   header: isDark
     ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
 
   headerText: "text-white",
-  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerMuted: "text-white/80",
   headerBadge: "border-white/20 bg-white/10 text-white",
   headerIcon: "border-white/20 bg-white/10 text-white",
   headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
@@ -42,23 +42,23 @@ const getTheme = (isDark: boolean) => ({
 
   card: isDark
     ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
 
   cardSoft: isDark
     ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100/80 bg-white/70",
+    : "border-amber-100/80 bg-white/70",
 
   input: isDark
     ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
-    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+    : "border-amber-300 bg-amber-50/80 text-slate-900 placeholder:text-amber-400 shadow-[0_0_0_3px_rgba(245,158,11,0.06)] focus:border-amber-500 focus:bg-white focus:ring-amber-300/60",
 
   iconBox: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+    : "border-amber-200 bg-amber-50 text-amber-600",
 
   badge: isDark
     ? "border-white/10 bg-white/[0.05] text-white/60"
-    : "border-orange-100 bg-white/80 text-orange-600",
+    : "border-amber-100 bg-white/80 text-amber-600",
 
   successBadge: isDark
     ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
@@ -74,21 +74,23 @@ const getTheme = (isDark: boolean) => ({
 
   button: isDark
     ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+    : "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300/70",
 
   ghostButton: isDark
     ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-    : "border-orange-100 bg-white/75 text-slate-600 hover:bg-orange-50",
+    : "border-amber-100 bg-white/75 text-slate-600 hover:bg-amber-50",
 
-  progressTrack: isDark ? "bg-white/10" : "bg-orange-100",
+  progressTrack: isDark ? "bg-white/10" : "bg-amber-100",
 });
 
 const HeaderCard = ({
   children,
   theme,
+  isDark,
 }: {
   children: React.ReactNode;
   theme: ReturnType<typeof getTheme>;
+  isDark: boolean;
 }) => (
   <div
     className={cx(
@@ -100,8 +102,9 @@ const HeaderCard = ({
       aria-hidden
       className="pointer-events-none absolute inset-0"
       style={{
-        background:
-          "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+        background: isDark
+          ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
+          : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
       }}
     />
     <div className="relative z-[1]">{children}</div>
@@ -181,7 +184,7 @@ const PasswordField = ({
     </label>
 
     <div className="relative">
-      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
+      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500" />
 
       <input
         id={name}
@@ -200,7 +203,7 @@ const PasswordField = ({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 transition hover:opacity-80"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 transition hover:opacity-80"
         aria-label="Toggle password visibility"
       >
         {show ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -269,10 +272,10 @@ const UserChnagePassword = () => {
 </head>
 <body>
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <div style="background:#f97316;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
+    <div style="background:#f59e0b;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
       <h2 style="margin:0;">Account Password Updated</h2>
     </div>
-    <div style="padding:20px;border:1px solid #fed7aa;">
+    <div style="padding:20px;border:1px solid #fde68a;">
       <p>Dear ${loggedUser?.firstName || ""} ${loggedUser?.lastName || ""},</p>
       <p>Your account password has been successfully updated.</p>
       <p>If this was not done by you, please contact support immediately.</p>
@@ -324,7 +327,7 @@ const UserChnagePassword = () => {
   return (
     <div className={cx("min-h-screen w-full p-4 sm:p-6", theme.pageBg, theme.pageText)}>
       <div className="mx-auto max-w-5xl space-y-5">
-        <HeaderCard theme={theme}>
+        <HeaderCard theme={theme} isDark={isDark}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <div className={cx("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border", theme.headerIcon)}>
@@ -414,7 +417,7 @@ const UserChnagePassword = () => {
                 <div className="mt-3">
                   <div className={cx("h-2 overflow-hidden rounded-full", theme.progressTrack)}>
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600"
+                      className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500"
                       initial={{ width: "0%" }}
                       animate={{ width: `${strength.percent}%` }}
                       transition={{ type: "spring", stiffness: 120, damping: 18 }}
@@ -423,7 +426,7 @@ const UserChnagePassword = () => {
 
                   <p className={cx("mt-2 text-xs font-semibold", theme.muted)}>
                     Password strength:{" "}
-                    <span className="text-orange-500">{strength.label}</span>
+                    <span className="text-amber-500">{strength.label}</span>
                   </p>
                 </div>
               </div>

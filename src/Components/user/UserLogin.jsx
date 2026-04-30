@@ -621,6 +621,7 @@ const UserLogin = () => {
       toast.error(message);
     } finally {
       setIsLoading(false);
+      
     }
   };
 
@@ -680,7 +681,6 @@ const UserLogin = () => {
       }}
     >
       <style>{customStyles}</style>
-      <Toaster position="top-right" />
 
       <ForexBackground isDark={isDark} />
       <ThemeToggle isDark={isDark} />

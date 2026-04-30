@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../../utils/apiClients";
 import { useSelector } from "react-redux";
@@ -57,7 +64,6 @@ type PayoutRow = {
   status?: "success" | "failed" | "skipped" | string;
   createdAt?: string;
   updatedAt?: string;
-  tradeIds?: any[];
   note?: string;
 };
 
@@ -95,7 +101,7 @@ type Pagination = {
 };
 
 type PayoutDetailResponse = {
-  payout?: PayoutRow & { tradeIds?: any[] };
+  payout?: PayoutRow;
   relatedLedger?: LedgerRow[];
 };
 
@@ -1099,7 +1105,11 @@ const PayoutTable = ({
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <MiniStat label="MT5" value={row.mt5Account || "--"} isDark={isDark} />
+                <MiniStat
+                  label="MT5"
+                  value={row.mt5Account || "--"}
+                  isDark={isDark}
+                />
                 <MiniStat
                   label="Lot"
                   value={number(row.totalLot)}
@@ -1167,20 +1177,26 @@ const LedgerTable = ({
                   isDark ? "border-white/10" : "border-orange-200",
                 ].join(" ")}
               >
-                {["User", "Type", "Amount", "Before", "After", "Reference", "Created"].map(
-                  (heading) => (
-                    <th
-                      key={heading}
-                      className={[
-                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
-                        heading !== "User" ? "text-center" : "",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      {heading}
-                    </th>
-                  )
-                )}
+                {[
+                  "User",
+                  "Type",
+                  "Amount",
+                  "Before",
+                  "After",
+                  "Reference",
+                  "Created",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    className={[
+                      "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
+                      heading !== "User" ? "text-center" : "",
+                      isDark ? "text-white/45" : "text-slate-500",
+                    ].join(" ")}
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
 
@@ -1530,11 +1546,7 @@ const UsersTable = ({
                   </tr>
                 ))
               ) : (
-                <EmptyRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="No users found"
-                />
+                <EmptyRow colSpan={7} isDark={isDark} text="No users found" />
               )}
             </tbody>
           </table>
@@ -1627,11 +1639,28 @@ const PayoutDetailModal = ({
   detail: PayoutDetailResponse | null;
   onClose: () => void;
 }) => {
+  const [mounted, setMounted] = useState(false);
+
   const payout = detail?.payout;
   const relatedLedger = detail?.relatedLedger || [];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+  useEffect(() => {
+    setMounted(true);
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  if (!mounted || typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
       <div
         className={[
           "max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border",
@@ -1833,58 +1862,12 @@ const PayoutDetailModal = ({
                   )}
                 </div>
               </div>
-
-              <div
-                className={[
-                  "rounded-[24px] border p-4",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-orange-100/80 bg-white/70",
-                ].join(" ")}
-              >
-                <div className="mb-4">
-                  <h4
-                    className={[
-                      "text-base font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    Trade IDs
-                  </h4>
-                </div>
-
-                {Array.isArray(payout.tradeIds) && payout.tradeIds.length ? (
-                  <div className="space-y-3">
-                    {payout.tradeIds.map((trade: any, index: number) => (
-                      <div
-                        key={trade?._id || index}
-                        className={[
-                          "rounded-2xl border p-4",
-                          isDark
-                            ? "border-white/10 bg-white/[0.02]"
-                            : "border-orange-100 bg-orange-50/40",
-                        ].join(" ")}
-                      >
-                        <pre
-                          className={[
-                            "overflow-x-auto whitespace-pre-wrap break-words text-xs leading-6",
-                            isDark ? "text-white/75" : "text-slate-700",
-                          ].join(" ")}
-                        >
-                          {JSON.stringify(trade, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyCard isDark={isDark} text="No trades attached" />
-                )}
-              </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -1966,7 +1949,9 @@ const FilterSelect = ({
           <option
             key={option.value}
             value={option.value}
-            className={isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"}
+            className={
+              isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"
+            }
           >
             {option.label}
           </option>
@@ -1982,7 +1967,7 @@ const MiniStat = ({
   isDark,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   isDark: boolean;
 }) => {
   return (
@@ -2124,10 +2109,7 @@ const EmptyCard = ({
   );
 };
 
-function fullName(user?: {
-  firstName?: string;
-  lastName?: string;
-}) {
+function fullName(user?: { firstName?: string; lastName?: string }) {
   const name = `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
   return name || "--";
 }

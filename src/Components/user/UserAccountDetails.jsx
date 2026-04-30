@@ -17,10 +17,10 @@ const getTheme = (isDark) => ({
 
   header: isDark
     ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-300/40 bg-[linear-gradient(135deg,#f97316,#ea580c)] shadow-[0_18px_45px_rgba(249,115,22,0.22)]",
+    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
 
   headerText: "text-white",
-  headerMuted: isDark ? "text-white/65" : "text-white/80",
+  headerMuted: "text-white/80",
   headerBadge: "border-white/20 bg-white/10 text-white",
   headerIcon: "border-white/20 bg-white/10 text-white",
   headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
@@ -28,27 +28,27 @@ const getTheme = (isDark) => ({
 
   card: isDark
     ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-100/90 bg-white/80 shadow-[0_18px_45px_rgba(251,146,60,0.12)]",
+    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
 
   cardSoft: isDark
     ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100/80 bg-white/70",
+    : "border-amber-100/80 bg-white/70",
 
   tab: isDark
     ? "border-white/10 bg-white/[0.035] text-white/70 hover:bg-white/[0.06]"
-    : "border-orange-100 bg-white/75 text-slate-600 hover:bg-orange-50",
+    : "border-amber-100 bg-white/75 text-slate-600 hover:bg-amber-50",
 
   activeTab: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-300 bg-orange-50 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)]",
+    : "border-amber-300 bg-amber-50 text-amber-700 shadow-[0_0_0_3px_rgba(245,158,11,0.06)]",
 
   iconBox: isDark
     ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+    : "border-amber-200 bg-amber-50 text-amber-600",
 
   badge: isDark
     ? "border-white/10 bg-white/[0.05] text-white/60"
-    : "border-orange-100 bg-white/80 text-orange-600",
+    : "border-amber-100 bg-white/80 text-amber-600",
 
   successBadge: isDark
     ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
@@ -188,7 +188,7 @@ const UserAccountDetails = () => {
           style={{
             background: isDark
               ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
-              : "radial-gradient(circle at top left, rgba(255,255,255,0.20), transparent 30%), radial-gradient(circle at bottom right, rgba(255,237,213,0.22), transparent 36%)",
+              : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
           }}
         />
 
@@ -330,7 +330,7 @@ const UserAccountDetails = () => {
               "rounded-[22px] border p-3 sm:p-4",
               isDark
                 ? "border-white/10 bg-white/[0.025]"
-                : "border-orange-100 bg-orange-50/35"
+                : "border-amber-100 bg-amber-50/35"
             )}
           >
             <AnimatePresence mode="wait">

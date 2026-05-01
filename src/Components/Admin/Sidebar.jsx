@@ -67,6 +67,14 @@ const modules = [
 
 
   {
+  name: "Copy Trading",
+  path: "/admin/copy-trading",
+  subtitle: "Coverage Reports",
+  icon: <ShieldCheck className="w-5 h-5" />,
+},
+
+
+  {
     name: "Referral",
     path: "/admin/manage-users/all-users",
     subtitle: "Partner Network",

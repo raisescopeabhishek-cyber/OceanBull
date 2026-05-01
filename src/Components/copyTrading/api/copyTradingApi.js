@@ -1,7 +1,6 @@
 import axios from "axios";
 
-
-const BASE = import.meta.env.VITE_API_BASE_URL; 
+const BASE = import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
   baseURL: `${BASE}/api`,
@@ -28,6 +27,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    const msg =
+      data?.message ||
+      data?.error ||
+      data?.msg ||
+      err?.message ||
+      "Request failed";
+
+    const e = new Error(msg);
+    e.status = status;
+    e.data = data;
+    e.response = err?.response;
+    return Promise.reject(e);
+  }
+);
+
 const toFormData = (payload = {}) => {
   const formData = new FormData();
 
@@ -51,8 +71,8 @@ const normalizeResponse = (response) => {
   if (body?.data !== undefined) return body;
 
   return {
-    success: true,
-    status: true,
+    success: body?.success ?? body?.status ?? true,
+    status: body?.status ?? body?.success ?? true,
     message: body?.message || body?.msg || "Request successful",
     data: body,
   };
@@ -64,7 +84,10 @@ export const copyTradingApi = {
     return normalizeResponse(res);
   },
 
+  // =========================
   // USER ROUTES
+  // =========================
+
   userGetMasters: async () => {
     const res = await api.get("/user/copy-trading/masters");
     return normalizeResponse(res);
@@ -92,10 +115,16 @@ export const copyTradingApi = {
     return normalizeResponse(res);
   },
 
-  userMyMasters: async ({ userId }) => {
+  userMyMasters: async ({ userId } = {}) => {
+    const payload = {};
+
+    if (userId) {
+      payload.userId = userId;
+    }
+
     const res = await api.post(
       "/user/copy-trading/my-masters",
-      toFormData({ userId })
+      toFormData(payload)
     );
     return normalizeResponse(res);
   },
@@ -115,6 +144,54 @@ export const copyTradingApi = {
         min_invest,
       })
     );
+    return normalizeResponse(res);
+  },
+
+  userStartCopySmart: async ({
+    userId,
+    mt5Account,
+    masterAccount,
+    min_invest = 0,
+    force = false,
+  }) => {
+    const res = await api.post(
+      "/user/copy-trading/start-copy-smart",
+      toFormData({
+        userId,
+        mt5Account,
+        masterAccount,
+        min_invest,
+        force,
+      })
+    );
+
+    return normalizeResponse(res);
+  },
+
+  userMakeMaster: async ({
+    userId,
+    mt5Account,
+    commission = 0,
+    nickname = "",
+    min_invest = 0,
+    description = "",
+    chat_link = "",
+    force = false,
+  }) => {
+    const res = await api.post(
+      "/user/copy-trading/make-master",
+      toFormData({
+        userId,
+        mt5Account,
+        commission,
+        nickname,
+        min_invest,
+        description,
+        chat_link,
+        force,
+      })
+    );
+
     return normalizeResponse(res);
   },
 
@@ -160,7 +237,10 @@ export const copyTradingApi = {
     return normalizeResponse(res);
   },
 
+  // =========================
   // ADMIN ROUTES
+  // =========================
+
   adminGetCopyUsers: async () => {
     const res = await api.get("/admin/copy-trading/copy-users");
     return normalizeResponse(res);

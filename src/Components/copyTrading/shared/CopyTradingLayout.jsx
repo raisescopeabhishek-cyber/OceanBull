@@ -6,7 +6,6 @@ import {
   Copy,
   LayoutDashboard,
   RadioTower,
-  ShieldCheck,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -14,37 +13,41 @@ import {
 import CopyTradingMiniSidebar from "./CopyTradingMiniSidebar";
 import { cx } from "../utils/copyTradingHelpers";
 
-const getTheme = (isDark) => ({
-  pageBg: isDark ? "#0b1120" : "#f7fffb",
-  pageText: isDark ? "text-white" : "text-slate-900",
+const titleMap = (role = "user") => [
+  [
+    role === "admin"
+      ? "/admin/copy-trading/dashboard"
+      : "/user/copy-trading/dashboard",
+    role === "admin" ? "Copy Trading Overview" : "Copy Trading Dashboard",
+  ],
+  [
+    role === "admin"
+      ? "/admin/copy-trading/masters"
+      : "/user/copy-trading/masters",
+    role === "admin" ? "Master Management" : "Explore Master Traders",
+  ],
+  [
+    role === "admin"
+      ? "/admin/copy-trading/copiers"
+      : "/user/copy-trading/my-accounts",
+    role === "admin" ? "Copier Management" : "My Copied Accounts",
+  ],
+  [
+    role === "admin"
+      ? "/admin/copy-trading/trades"
+      : "/user/copy-trading/trades",
+    role === "admin" ? "Trade Monitor" : "Copy Trade History",
+  ],
+];
 
-  shell: isDark
-    ? "border-white/10 bg-white/[0.035] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-emerald-100 bg-white/90 shadow-[0_14px_34px_rgba(16,185,129,0.08)]",
-
-  header: isDark
-    ? "border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,1),rgba(6,78,59,0.88))]"
-    : "border-emerald-200/70 bg-[linear-gradient(135deg,#10b981,#047857)]",
-
-  button: isDark
-    ? "border-white/10 bg-white/[0.05] text-white/80 hover:bg-white/[0.09]"
-    : "border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50",
-
-  badge: isDark
-    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700",
-
-  contentBg: isDark ? "bg-white/[0.015]" : "bg-emerald-50/20",
-});
-
-const getPageMeta = (pathname, role) => {
+const getPageMeta = (pathname, role = "user") => {
   if (pathname.includes("/masters")) {
     return {
       title: role === "admin" ? "Master Management" : "Explore Master Traders",
       subtitle:
         role === "admin"
-          ? "Add, update, and manage master accounts."
-          : "Choose a master trader and start copy trading after checking commission and minimum investment.",
+          ? "Add, update, and manage master trading accounts."
+          : "Choose a master trader and start copy trading after reviewing commission and minimum investment.",
       active: "Masters",
       icon: <TrendingUp className="h-6 w-6" />,
     };
@@ -55,8 +58,8 @@ const getPageMeta = (pathname, role) => {
       title: role === "admin" ? "Copier Management" : "My Copied Accounts",
       subtitle:
         role === "admin"
-          ? "Monitor copier accounts, mapping, and copy status."
-          : "Track master accounts currently linked with your MT5 accounts.",
+          ? "Monitor copier accounts, master mappings, and copy status."
+          : "Track the master accounts currently linked with your MT5 accounts.",
       active: role === "admin" ? "Copiers" : "Copied Accounts",
       icon: <Users className="h-6 w-6" />,
     };
@@ -67,8 +70,8 @@ const getPageMeta = (pathname, role) => {
       title: role === "admin" ? "Trade Monitor" : "Copy Trade History",
       subtitle:
         role === "admin"
-          ? "Monitor master and copier trade activity."
-          : "Review all, open, and closed copied trade history.",
+          ? "Monitor master and copier trade activity in one place."
+          : "Review all, open, and closed copy-trading history.",
       active: "Trades",
       icon: <RadioTower className="h-6 w-6" />,
     };
@@ -79,18 +82,26 @@ const getPageMeta = (pathname, role) => {
     subtitle:
       role === "admin"
         ? "Monitor masters, copiers, active mappings, and trade activity."
-        : "View your copy trading summary, copied accounts, and available masters.",
+        : "View your copy-trading summary, copied accounts, and available masters.",
     active: "Dashboard",
     icon: <LayoutDashboard className="h-6 w-6" />,
   };
 };
 
-const HeaderStat = ({ label, value }) => (
-  <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white backdrop-blur-xl">
-    <p className="text-xs text-white/75">{label}</p>
-    <p className="mt-1 truncate text-base font-bold">{value}</p>
-  </div>
-);
+const SoftHeaderCard = ({ label, value, isDark }) => {
+  const softCardStyle = {
+    borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.22)",
+    background: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.14)",
+    color: "rgba(255,255,255,0.92)",
+    backdropFilter: "blur(12px)",
+  };
+
+  return (
+    <div className="rounded-2xl border px-4 py-2 text-sm" style={softCardStyle}>
+      {label}: <span className="font-bold text-white">{value}</span>
+    </div>
+  );
+};
 
 const CopyTradingLayout = ({ role = "user" }) => {
   const navigate = useNavigate();
@@ -99,105 +110,103 @@ const CopyTradingLayout = ({ role = "user" }) => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
 
-  const theme = useMemo(() => getTheme(isDark), [isDark]);
   const pageMeta = useMemo(
     () => getPageMeta(location.pathname, role),
     [location.pathname, role]
   );
 
+  const currentTitle =
+    titleMap(role).find(([path]) => location.pathname.startsWith(path))?.[1] ||
+    pageMeta.title ||
+    "Copy Trading";
+
   const backPath = role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
+  const shellStyle = {
+    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(245,158,11,0.14)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.90))"
+      : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
+    boxShadow: isDark
+      ? "0 18px 55px rgba(0,0,0,0.34)"
+      : "0 14px 40px rgba(245,158,11,0.08)",
+    backdropFilter: "blur(10px)",
+  };
+
+  const headerStyle = {
+    background: isDark
+      ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
+      : "linear-gradient(135deg, #fb923c, #f59e0b)",
+  };
+
   return (
-    <div
-      className={cx("min-h-screen w-full p-3 sm:p-4", theme.pageText)}
-      style={{ background: theme.pageBg }}
-    >
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <CopyTradingMiniSidebar role={role} isDark={isDark} />
+    <div className="grid grid-cols-1 gap-4 p-3 sm:p-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <CopyTradingMiniSidebar role={role} isDark={isDark} />
+
+      <div
+        className="relative min-h-[780px] overflow-hidden rounded-[26px] border transition-all duration-300"
+        style={shellStyle}
+      >
+        <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-[-50px] h-52 w-52 rounded-full bg-orange-400/12 blur-3xl" />
 
         <div
-          className={cx(
-            "min-h-[720px] overflow-hidden rounded-[28px] border backdrop-blur-xl",
-            theme.shell
-          )}
+          className="relative overflow-hidden px-4 py-5 sm:px-6"
+          style={headerStyle}
         >
-          <div
-            className={cx(
-              "relative overflow-hidden border-b px-4 py-5 sm:px-6",
-              theme.header
-            )}
-          >
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at top left, rgba(255,255,255,0.16), transparent 30%), radial-gradient(circle at bottom right, rgba(209,250,229,0.14), transparent 38%)",
-              }}
-            />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-12 top-0 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+          </div>
 
-            <div className="relative z-[1] flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white">
-                  {pageMeta.icon}
+          <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(backPath)}
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
+                  <Copy size={13} />
+                  {role === "admin" ? "Admin Panel" : "Self Panel"}
                 </div>
 
-                <div>
-                  <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
-                    <Copy className="h-3.5 w-3.5" />
-                    Copy Trading · {role === "admin" ? "Admin" : "Client"}
-                  </div>
+                <h1
+                  className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                  style={{ fontFamily: "'Poppins', sans-serif" }}
+                >
+                  {currentTitle}
+                </h1>
 
-                  <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    {pageMeta.title}
-                  </h1>
-
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
-                    {pageMeta.subtitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
-                <HeaderStat label="Section" value={pageMeta.active} />
-                <HeaderStat label="Mode" value={role === "admin" ? "Admin" : "Client"} />
-                <HeaderStat label="Status" value="Synced" />
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
+                  {pageMeta.subtitle}
+                </p>
               </div>
             </div>
-          </div>
 
-          <div
-            className={cx(
-              "flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6",
-              isDark ? "border-white/10" : "border-emerald-100"
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => navigate(backPath)}
-              className={cx(
-                "inline-flex w-fit items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all",
-                theme.button
-              )}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <SoftHeaderCard
+                isDark={isDark}
+                label="Section"
+                value={pageMeta.active}
+              />
 
-            <div
-              className={cx(
-                "inline-flex w-fit items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-semibold",
-                theme.badge
-              )}
-            >
-              <ShieldCheck className="h-4 w-4" />
-              Copy trading module connected
+              <SoftHeaderCard
+                isDark={isDark}
+                label="Mode"
+                value={role === "admin" ? "Admin" : "Client"}
+              />
             </div>
           </div>
+        </div>
 
-          <div className={cx("min-h-[560px] p-3 sm:p-4", theme.contentBg)}>
-            <Outlet />
-          </div>
+        <div className="relative p-4 sm:p-6">
+          <Outlet context={{ isDark, role }} />
         </div>
       </div>
     </div>

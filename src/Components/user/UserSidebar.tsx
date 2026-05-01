@@ -470,7 +470,7 @@ const SidebarContent = ({ close }) => {
         <div className="px-4 pt-4">
           <button
             onClick={() => {
-              navigate("/user/new-challenge");
+              navigate("/user/copy-trading/dashboard");
               close?.();
             }}
             className={[

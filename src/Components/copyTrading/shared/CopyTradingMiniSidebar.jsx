@@ -36,6 +36,7 @@ const getLinks = (role) => {
         to: "/admin/copy-trading/trades",
         icon: RadioTower,
       },
+
     ];
   }
 
@@ -60,6 +61,16 @@ const getLinks = (role) => {
       to: "/user/copy-trading/trades",
       icon: BarChart3,
     },
+     {
+    label: "Master Trades",
+    to: "/user/copy-trading/master-trades",
+    icon: RadioTower,
+  },
+  {
+    label: "Copier Trades",
+    to: "/user/copy-trading/copier-trades",
+    icon: Users,
+  },
   ];
 };
 

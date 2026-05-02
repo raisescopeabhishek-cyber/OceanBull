@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -265,11 +265,15 @@ const UserExploreMasters = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
 
+  const copyAccountSelectRef = useRef(null);
+  const copyAccountNudgeTimerRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [masters, setMasters] = useState([]);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
+  const [copyAccountNudge, setCopyAccountNudge] = useState(false);
 
   const [makeMasterForm, setMakeMasterForm] = useState({
     mt5Account: "",
@@ -309,6 +313,14 @@ const UserExploreMasters = () => {
 
   useEffect(() => {
     load();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyAccountNudgeTimerRef.current) {
+        clearTimeout(copyAccountNudgeTimerRef.current);
+      }
+    };
   }, []);
 
   const accounts = getUserAccountsFromUser(user);
@@ -423,6 +435,52 @@ const UserExploreMasters = () => {
     });
   };
 
+  const openCopyAccountDropdown = () => {
+    const select = copyAccountSelectRef.current;
+
+    if (!select) return;
+
+    select.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    window.setTimeout(() => {
+      select.focus({ preventScroll: true });
+
+      if (typeof select.showPicker === "function") {
+        try {
+          select.showPicker();
+          return;
+        } catch (error) {
+          // Some browsers block showPicker when it is not allowed.
+        }
+      }
+
+      select.click();
+    }, 180);
+  };
+
+  const triggerCopyAccountRequired = () => {
+    toast.error("First choose your MT5 account.");
+    setCopyAccountNudge(true);
+    openCopyAccountDropdown();
+
+    if (copyAccountNudgeTimerRef.current) {
+      clearTimeout(copyAccountNudgeTimerRef.current);
+    }
+
+    copyAccountNudgeTimerRef.current = setTimeout(() => {
+      setCopyAccountNudge(false);
+    }, 3500);
+  };
+
+  const handleCopyAccountChange = (event) => {
+    setSelectedAccount(event.target.value);
+    setCopyAccountNudge(false);
+
+    if (copyAccountNudgeTimerRef.current) {
+      clearTimeout(copyAccountNudgeTimerRef.current);
+    }
+  };
+
   const handleCopy = async (master, force = false, forcedPayload = null) => {
     const masterAccount =
       forcedPayload?.masterAccount || pickMasterAccount(master);
@@ -443,7 +501,7 @@ const UserExploreMasters = () => {
     }
 
     if (!mt5Account) {
-      toast.error("Select your MT5 account first.");
+      triggerCopyAccountRequired();
       return;
     }
 
@@ -800,24 +858,45 @@ const UserExploreMasters = () => {
 
         <div>
           <FieldLabel isDark={isDark}>Copy From Account</FieldLabel>
-          <select
-            value={selectedAccount}
-            onChange={(event) => setSelectedAccount(event.target.value)}
-            className={getInputClass(isDark)}
-          >
-            <option value="">Select MT5 Account</option>
-            {accounts.map((account) => {
-              const accountNumber = pickAccountNumber(account);
+          <div className="relative">
+            <select
+              ref={copyAccountSelectRef}
+              value={selectedAccount}
+              onChange={handleCopyAccountChange}
+              className={getInputClass(
+                isDark,
+                copyAccountNudge
+                  ? "animate-pulse border-red-400 ring-4 ring-red-400/30 shadow-[0_0_0_4px_rgba(239,68,68,0.18),0_0_26px_rgba(239,68,68,0.28)]"
+                  : ""
+              )}
+            >
+              <option value="">Select MT5 Account</option>
+              {accounts.map((account) => {
+                const accountNumber = pickAccountNumber(account);
 
-              if (!accountNumber) return null;
+                if (!accountNumber) return null;
 
-              return (
-                <option key={accountNumber} value={accountNumber}>
-                  {accountNumber}
-                </option>
-              );
-            })}
-          </select>
+                return (
+                  <option key={accountNumber} value={accountNumber}>
+                    {accountNumber}
+                  </option>
+                );
+              })}
+            </select>
+
+            {copyAccountNudge && (
+              <div
+                className={cx(
+                  "absolute right-0 top-full z-20 mt-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-xl",
+                  isDark
+                    ? "border-red-400/30 bg-red-500 text-white"
+                    : "border-red-200 bg-red-50 text-red-700"
+                )}
+              >
+                First choose your account.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

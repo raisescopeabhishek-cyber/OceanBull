@@ -17,7 +17,7 @@ const CopyTradingTable = ({
           : "border-emerald-100 bg-white/90 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
       )}
     >
-      <div className="overflow-x-auto">
+      <div className="max-w-full overflow-x-auto">
         <table
           className="w-full text-left text-sm"
           style={{
@@ -34,7 +34,7 @@ const CopyTradingTable = ({
               )}
             >
               {columns.map((column) => (
-                <th key={column} className="px-4 py-3">
+                <th key={column} className="whitespace-nowrap px-4 py-3">
                   {column}
                 </th>
               ))}

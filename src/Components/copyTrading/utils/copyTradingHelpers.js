@@ -118,3 +118,173 @@ export const getLocalStoredUser = () => {
     return null;
   }
 };
+
+// ===============================
+// COPY TRADING TRADE HELPERS
+// ===============================
+
+export const normalizeAccount = (value) => {
+  return String(value || "").trim();
+};
+
+export const getTradeAccount = (row) => {
+  return normalizeAccount(
+    row?.MT5Account ||
+      row?.mt5Account ||
+      row?.account ||
+      row?.login ||
+      row?.Login ||
+      ""
+  );
+};
+
+export const getTradeTicket = (row) => {
+  return row?.Ticket || row?.ticket || row?.Deal || row?.id || "-";
+};
+
+export const getTradeSymbol = (row) => {
+  return row?.Symbol || row?.symbol || "-";
+};
+
+export const getTradeType = (row) => {
+  const value =
+    row?.Action ??
+    row?.type ??
+    row?.Type ??
+    row?.BUY_SELL ??
+    row?.buy_sell ??
+    row?.side;
+
+  if (value === 0 || value === "0") return "BUY";
+  if (value === 1 || value === "1") return "SELL";
+
+  return value || "-";
+};
+
+export const getTradeVolume = (row) => {
+  return row?.Lot ?? row?.lot ?? row?.Volume ?? row?.volume ?? "-";
+};
+
+export const getTradeOpenPrice = (row) => {
+  return (
+    row?.Open_Price ??
+    row?.OpenPrice ??
+    row?.PriceOpen ??
+    row?.Price ??
+    row?.openPrice ??
+    "-"
+  );
+};
+
+export const getTradeClosePrice = (row) => {
+  return (
+    row?.Close_Price ??
+    row?.ClosePrice ??
+    row?.PriceClose ??
+    row?.closePrice ??
+    "-"
+  );
+};
+
+export const getTradeProfit = (row) => {
+  return row?.Profit ?? row?.profit ?? "0";
+};
+
+export const getTradeTime = (row) => {
+  return (
+    row?.Open_Time ||
+    row?.Close_Time ||
+    row?.OpenTime ||
+    row?.CloseTime ||
+    row?.Time ||
+    row?.createdAt ||
+    ""
+  );
+};
+
+const uniqTrades = (rows = []) => {
+  const map = new Map();
+
+  rows.forEach((row, index) => {
+    if (!row) return;
+
+    const key = [
+      row?.id,
+      row?.Ticket,
+      row?.ticket,
+      row?.Deal,
+      row?.MasterTicket,
+      row?.MT5Account,
+      index,
+    ]
+      .filter((item) => item !== undefined && item !== null && item !== "")
+      .join("-");
+
+    map.set(key || String(index), row);
+  });
+
+  return Array.from(map.values());
+};
+
+export const normalizeTradeRows = ({
+  input,
+  account,
+  mode = "normal", // normal | master | copier
+}) => {
+  const targetAccount = normalizeAccount(account);
+  const rawRows = asArray(input);
+  const output = [];
+
+  rawRows.forEach((item) => {
+    if (!item) return;
+
+    // Nested Python closed-trade format:
+    // {
+    //   master_trade: {...},
+    //   associated_trades: [...]
+    // }
+    if (item.master_trade || item.associated_trades) {
+      if (mode === "master") {
+        if (item.master_trade) output.push(item.master_trade);
+        return;
+      }
+
+      if (mode === "copier") {
+        const associatedTrades = Array.isArray(item.associated_trades)
+          ? item.associated_trades
+          : [];
+
+        const matchedTrades = targetAccount
+          ? associatedTrades.filter(
+              (trade) => getTradeAccount(trade) === targetAccount
+            )
+          : associatedTrades;
+
+        // If exact copier account not found, still show associated trades.
+        // This helps when Python returns grouped copied trades but not filtered by copier.
+        if (matchedTrades.length > 0) {
+          output.push(...matchedTrades);
+        } else {
+          output.push(...associatedTrades);
+        }
+
+        return;
+      }
+    }
+
+    // Flat trade row format.
+    if (mode === "copier" && targetAccount) {
+      const rowAccount = getTradeAccount(item);
+
+      if (!rowAccount || rowAccount === targetAccount) {
+        output.push(item);
+      }
+
+      return;
+    }
+
+    output.push(item);
+  });
+
+  return uniqTrades(output);
+};

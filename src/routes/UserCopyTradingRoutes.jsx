@@ -7,6 +7,8 @@ import UserCopyTradingDashboard from "@/Components/copyTrading/user/UserCopyTrad
 import UserExploreMasters from "@/Components/copyTrading/user/UserExploreMasters";
 import UserMyCopiedAccounts from "@/Components/copyTrading/user/UserMyCopiedAccounts";
 import UserCopyTradeHistory from "@/Components/copyTrading/user/UserCopyTradeHistory";
+import UserMasterTradeHistory from "@/Components/copyTrading/user/UserMasterTradeHistory";
+import UserCopierTradeComparison from "@/Components/copyTrading/user/UserCopierTradeComparison";
 
 const UserCopyTradingRoutes = () => {
   return (
@@ -23,6 +25,11 @@ const UserCopyTradingRoutes = () => {
         <Route path="masters" element={<UserExploreMasters />} />
         <Route path="my-accounts" element={<UserMyCopiedAccounts />} />
         <Route path="trades" element={<UserCopyTradeHistory />} />
+
+        <Route path="master-trades" element={<UserMasterTradeHistory />} />
+<Route path="copier-trades" element={<UserCopierTradeComparison />} />
+
+
         <Route
           path="*"
           element={<Navigate to="/user/copy-trading/dashboard" replace />}

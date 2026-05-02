@@ -38,6 +38,20 @@ const titleMap = (role = "user") => [
       : "/user/copy-trading/trades",
     role === "admin" ? "Trade Monitor" : "Copy Trade History",
   ],
+
+  [
+  role === "admin"
+    ? "/admin/copy-trading/master-trades"
+    : "/user/copy-trading/master-trades",
+  "Master Trades",
+],
+[
+  role === "admin"
+    ? "/admin/copy-trading/copier-trades"
+    : "/user/copy-trading/copier-trades",
+  "Copier Trades",
+],
+
 ];
 
 const getPageMeta = (pathname, role = "user") => {
@@ -76,6 +90,27 @@ const getPageMeta = (pathname, role = "user") => {
       icon: <RadioTower className="h-6 w-6" />,
     };
   }
+
+
+
+  if (pathname.includes("/master-trades")) {
+  return {
+    title: "Master Trades",
+    subtitle: "Search a master account and review its trade activity.",
+    active: "Master Trades",
+    icon: <RadioTower className="h-6 w-6" />,
+  };
+}
+
+if (pathname.includes("/copier-trades")) {
+  return {
+    title: "Copier Trades",
+    subtitle:
+      "Search a copier account and compare copier open/closed trades with linked master trades.",
+    active: "Copier Trades",
+    icon: <Users className="h-6 w-6" />,
+  };
+}
 
   return {
     title: role === "admin" ? "Copy Trading Overview" : "Copy Trading Dashboard",

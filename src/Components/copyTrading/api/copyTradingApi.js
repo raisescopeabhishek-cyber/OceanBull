@@ -79,6 +79,31 @@ const normalizeResponse = (response) => {
 };
 
 export const copyTradingApi = {
+
+
+  userAccountTrades: async ({
+  userId,
+  account,
+  status = "all",
+  page = 1,
+  page_size = 20,
+}) => {
+  const res = await api.post("/user/copy-trading/account-trades", {
+    userId,
+    account,
+    status,
+    page,
+    page_size,
+  });
+
+  return normalizeResponse(res);
+},
+
+
+  // =========================
+  // AUTH / CURRENT USER
+  // =========================
+
   getMeUser: async () => {
     const res = await api.get("/user/logger-info");
     return normalizeResponse(res);
@@ -97,6 +122,7 @@ export const copyTradingApi = {
     const res = await api.get("/user/copy-trading/master-details", {
       params: { MT5Account },
     });
+
     return normalizeResponse(res);
   },
 
@@ -104,6 +130,7 @@ export const copyTradingApi = {
     const res = await api.get("/user/copy-trading/copier-details", {
       params: { MT5Account, Manager_Index },
     });
+
     return normalizeResponse(res);
   },
 
@@ -112,6 +139,7 @@ export const copyTradingApi = {
       "/user/copy-trading/dashboard",
       toFormData({ MT5Account, Manager_Index })
     );
+
     return normalizeResponse(res);
   },
 
@@ -126,6 +154,7 @@ export const copyTradingApi = {
       "/user/copy-trading/my-masters",
       toFormData(payload)
     );
+
     return normalizeResponse(res);
   },
 
@@ -144,6 +173,7 @@ export const copyTradingApi = {
         min_invest,
       })
     );
+
     return normalizeResponse(res);
   },
 
@@ -200,14 +230,21 @@ export const copyTradingApi = {
       "/user/copy-trading/stop-copy",
       toFormData({ mt5Account })
     );
+
     return normalizeResponse(res);
   },
 
   userTrades: async ({ userId, masterAccount, page = 1, page_size = 10 }) => {
     const res = await api.post(
       "/user/copy-trading/trades",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -219,8 +256,14 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/user/copy-trading/open-trades",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -232,8 +275,50 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/user/copy-trading/closed-trades",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
+    return normalizeResponse(res);
+  },
+
+  // New user section: Master Trades
+  userMasterTrades: async ({
+    userId,
+    masterAccount,
+    status = "all",
+    page = 1,
+    page_size = 20,
+  }) => {
+    const res = await api.post("/user/copy-trading/master-trades", {
+      userId,
+      masterAccount,
+      status,
+      page,
+      page_size,
+    });
+
+    return normalizeResponse(res);
+  },
+
+  // New user section: Copier vs Master Trades
+  userCopierVsMasterTrades: async ({
+    userId,
+    copierAccount,
+    page = 1,
+    page_size = 20,
+  }) => {
+    const res = await api.post("/user/copy-trading/copier-vs-master-trades", {
+      userId,
+      copierAccount,
+      page,
+      page_size,
+    });
+
     return normalizeResponse(res);
   },
 
@@ -260,6 +345,7 @@ export const copyTradingApi = {
     const res = await api.get("/admin/copy-trading/master-details", {
       params: { MT5Account },
     });
+
     return normalizeResponse(res);
   },
 
@@ -267,6 +353,7 @@ export const copyTradingApi = {
     const res = await api.get("/admin/copy-trading/copier-details", {
       params: { MT5Account, Manager_Index },
     });
+
     return normalizeResponse(res);
   },
 
@@ -275,6 +362,7 @@ export const copyTradingApi = {
       "/admin/copy-trading/dashboard",
       toFormData({ userId })
     );
+
     return normalizeResponse(res);
   },
 
@@ -283,6 +371,7 @@ export const copyTradingApi = {
       "/admin/copy-trading/add-master",
       toFormData({ userId, mt5Account })
     );
+
     return normalizeResponse(res);
   },
 
@@ -314,14 +403,20 @@ export const copyTradingApi = {
         masterAccount,
       })
     );
+
     return normalizeResponse(res);
   },
 
   adminLinkCopier: async ({ userId, mt5Account, masterAccount }) => {
     const res = await api.post(
       "/admin/copy-trading/link-copier",
-      toFormData({ userId, mt5Account, masterAccount })
+      toFormData({
+        userId,
+        mt5Account,
+        masterAccount,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -333,8 +428,14 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/admin/copy-trading/link-copier-with-balance-check",
-      toFormData({ userId, mt5Account, masterAccount, min_invest })
+      toFormData({
+        userId,
+        mt5Account,
+        masterAccount,
+        min_invest,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -343,6 +444,7 @@ export const copyTradingApi = {
       "/admin/copy-trading/delete-copier",
       toFormData({ mt5Account })
     );
+
     return normalizeResponse(res);
   },
 
@@ -350,6 +452,7 @@ export const copyTradingApi = {
     const res = await api.post("/admin/copy-trading/copiers-details", {
       copiers,
     });
+
     return normalizeResponse(res);
   },
 
@@ -361,8 +464,14 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/admin/copy-trading/trades-page",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -378,6 +487,7 @@ export const copyTradingApi = {
       page,
       page_size,
     });
+
     return normalizeResponse(res);
   },
 
@@ -389,8 +499,14 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/admin/copy-trading/open-trades",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
     return normalizeResponse(res);
   },
 
@@ -402,8 +518,14 @@ export const copyTradingApi = {
   }) => {
     const res = await api.post(
       "/admin/copy-trading/closed-trades",
-      toFormData({ userId, masterAccount, page, page_size })
+      toFormData({
+        userId,
+        masterAccount,
+        page,
+        page_size,
+      })
     );
+
     return normalizeResponse(res);
   },
 };

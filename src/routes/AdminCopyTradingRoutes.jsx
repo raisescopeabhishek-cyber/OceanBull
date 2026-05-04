@@ -19,7 +19,7 @@ const AdminCopyTradingRoutes = () => {
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminCopyTradingDashboard />} />
+  <Route path="dashboard" element={<AdminCopyTradingDashboard />} />
         <Route path="masters" element={<AdminMasters />} />
         <Route path="copiers" element={<AdminCopiers />} />
         <Route path="trades" element={<AdminTradeMonitor />} />

@@ -1,272 +1,453 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { copyTradingApi } from "../api/copyTradingApi";
-import {
-  asArray,
-  cx,
-  getNestedUser,
-  getUserIdFromUser,
-  pickMasterAccount,
-  pickName,
-} from "../utils/copyTradingHelpers";
-import CopyTradingTable from "../shared/CopyTradingTable";
+import { cx } from "../utils/copyTradingHelpers";
 import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
+import {
+  formatAgo,
+  pickCreatedTime,
+  pickLogin,
+  safeArray,
+  valueOf,
+} from "./adminCopyTradingHelpers";
+
+const PAGE_SIZE = 10;
+
+const emptyForm = {
+  login: "",
+  name: "",
+  commission: "",
+  min_invest: "",
+  description: "",
+  chat_link: "",
+};
+
+const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSubmit }) => {
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+      <div
+        className={cx(
+          "w-full max-w-2xl rounded-[28px] border p-5 shadow-2xl",
+          isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-950"
+        )}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-black">
+            {mode === "edit" ? "Update Master" : "Add Master"}
+          </h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className={cx(
+              "rounded-xl border p-2",
+              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+            )}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {[
+            ["login", "MT5 Login"],
+            ["name", "Master Name"],
+            ["commission", "Commission %"],
+            ["min_invest", "Minimum Investment"],
+            ["chat_link", "Chat Link"],
+          ].map(([key, label]) => (
+            <label key={key} className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600">
+                {label}
+              </span>
+              <input
+                value={form[key]}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, [key]: event.target.value }))
+                }
+                className={cx(
+                  "w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
+                  isDark
+                    ? "border-white/10 bg-slate-900 text-white"
+                    : "border-emerald-100 bg-white text-slate-900"
+                )}
+              />
+            </label>
+          ))}
+
+          <label className="space-y-2 md:col-span-2">
+            <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600">
+              Description
+            </span>
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+              className={cx(
+                "min-h-[110px] w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
+                isDark
+                  ? "border-white/10 bg-slate-900 text-white"
+                  : "border-emerald-100 bg-white text-slate-900"
+              )}
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className={cx(
+              "rounded-2xl border px-5 py-3 text-sm font-bold",
+              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+            )}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={loading}
+            className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {loading ? "Saving..." : mode === "edit" ? "Update Master" : "Create Master"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const AdminMasters = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
 
   const [masters, setMasters] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [adminUserId, setAdminUserId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const [form, setForm] = useState({
-    mt5Account: "",
-    commission: "",
-    nickname: "",
-    min_invest: "",
-    description: "",
-    chat_link: "",
-  });
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
 
-  const onChange = (key, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [form, setForm] = useState(emptyForm);
 
-  const loadMasters = async () => {
+  const load = async () => {
     try {
       setLoading(true);
-
-      const [meRes, mastersRes] = await Promise.all([
-        copyTradingApi.getMeUser().catch(() => null),
-        copyTradingApi.adminGetMasters(),
-      ]);
-
-      const me = getNestedUser(meRes);
-      setAdminUserId(getUserIdFromUser(me));
-
-      setMasters(asArray(mastersRes));
+      const res = await copyTradingApi.adminGetMasters();
+      setMasters(safeArray(res));
+      setPage(1);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load masters");
+      toast.error(error?.message || "Failed to load masters");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadMasters();
+    load();
   }, []);
 
-  const addMaster = async () => {
-    if (!form.mt5Account) {
-      toast.error("MT5 account is required");
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    const output = masters
+      .filter((row) => {
+        if (!q) return true;
+        return JSON.stringify(row || {}).toLowerCase().includes(q);
+      })
+      .sort((a, b) => {
+        if (sortBy === "oldest") return pickCreatedTime(a) - pickCreatedTime(b);
+        if (sortBy === "commissionHigh") {
+          return Number(valueOf(b, ["commission", "Commission"], 0)) - Number(valueOf(a, ["commission", "Commission"], 0));
+        }
+        if (sortBy === "commissionLow") {
+          return Number(valueOf(a, ["commission", "Commission"], 0)) - Number(valueOf(b, ["commission", "Commission"], 0));
+        }
+        if (sortBy === "loginAsc") return Number(pickLogin(a) || 0) - Number(pickLogin(b) || 0);
+        if (sortBy === "loginDesc") return Number(pickLogin(b) || 0) - Number(pickLogin(a) || 0);
+        return pickCreatedTime(b) - pickCreatedTime(a);
+      });
+
+    return output;
+  }, [masters, search, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedRows = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const openCreate = () => {
+    setModalMode("create");
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setModalMode("edit");
+    setForm({
+      login: pickLogin(row),
+      name: valueOf(row, ["name", "Name", "nickname"], ""),
+      commission: valueOf(row, ["commission", "Commission"], ""),
+      min_invest: valueOf(row, ["min_invest", "minInvest", "minimumInvestment"], ""),
+      description: valueOf(row, ["description", "Description"], ""),
+      chat_link: valueOf(row, ["chat_link", "chatLink"], ""),
+    });
+    setModalOpen(true);
+  };
+
+  const submitForm = async () => {
+    if (!form.login) {
+      toast.error("MT5 login is required.");
       return;
     }
 
     try {
-      await copyTradingApi.adminAddMaster({
-        userId: adminUserId,
-        mt5Account: form.mt5Account,
-      });
+      setActionLoading(true);
 
-      toast.success("Master added successfully");
-      loadMasters();
+      if (modalMode === "edit") {
+        await copyTradingApi.adminUpdateMaster({
+          ...form,
+          MT5Account: form.login,
+          mt5Account: form.login,
+        });
+        toast.success("Master updated successfully");
+      } else {
+        await copyTradingApi.adminAddMaster({
+          ...form,
+          MT5Account: form.login,
+          mt5Account: form.login,
+        });
+        toast.success("Master created successfully");
+      }
+
+      setModalOpen(false);
+      load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to add master");
+      console.error(error);
+      toast.error(error?.message || "Action failed");
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const updateMaster = async () => {
-    if (!form.mt5Account) {
-      toast.error("MT5 account is required");
-      return;
-    }
+  const deleteMaster = async (row) => {
+    const login = pickLogin(row);
+
+    if (!window.confirm(`Delete master #${login}?`)) return;
 
     try {
-      await copyTradingApi.adminUpdateMaster({
-        masterAccount: form.mt5Account,
-        commission: form.commission,
-        nickname: form.nickname,
-        min_invest: form.min_invest,
-        description: form.description,
-        chat_link: form.chat_link,
+      setActionLoading(true);
+      await copyTradingApi.adminDeleteMaster({
+        login,
+        MT5Account: login,
+        mt5Account: login,
       });
-
-      toast.success("Master updated successfully");
-      loadMasters();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to update master");
-    }
-  };
-
-  const deleteMaster = async (master) => {
-    const masterAccount = pickMasterAccount(master);
-
-    if (!masterAccount) {
-      toast.error("Master account not found");
-      return;
-    }
-
-    try {
-      await copyTradingApi.adminDeleteMaster({ masterAccount });
       toast.success("Master deleted successfully");
-      loadMasters();
+      load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to delete master");
+      console.error(error);
+      toast.error(error?.message || "Delete failed");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   return (
     <div className="space-y-5 p-5 sm:p-6">
+      <MasterModal
+        isDark={isDark}
+        open={modalOpen}
+        mode={modalMode}
+        form={form}
+        setForm={setForm}
+        loading={actionLoading}
+        onClose={() => setModalOpen(false)}
+        onSubmit={submitForm}
+      />
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black">Masters CRUD</h1>
+          <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+            Manage copy-trading master accounts. Newest records show first.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={openCreate}
+          className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700"
+        >
+          <Plus className="h-4 w-4" />
+          Add Master
+        </button>
+      </div>
+
       <div
         className={cx(
-          "rounded-[22px] border p-4",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
+          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-[1fr_220px_auto]",
+          isDark ? "border-white/10 bg-white/[0.035]" : "border-emerald-100 bg-white/95"
         )}
       >
-        <h3
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-slate-900">
+          <Search className="h-4 w-4 text-emerald-600" />
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search masters..."
+            className="w-full bg-transparent text-sm font-semibold outline-none"
+          />
+        </div>
+
+        <select
+          value={sortBy}
+          onChange={(event) => setSortBy(event.target.value)}
           className={cx(
-            "mb-4 text-base font-bold",
-            isDark ? "text-white" : "text-slate-900"
+            "rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
+            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
           )}
         >
-          Add / Update Master
-        </h3>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="commissionHigh">Commission High</option>
+          <option value="commissionLow">Commission Low</option>
+          <option value="loginAsc">Login ↑</option>
+          <option value="loginDesc">Login ↓</option>
+        </select>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="MT5 Account"
-            value={form.mt5Account}
-            onChange={(event) => onChange("mt5Account", event.target.value)}
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Nickname"
-            value={form.nickname}
-            onChange={(event) => onChange("nickname", event.target.value)}
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Commission %"
-            value={form.commission}
-            onChange={(event) => onChange("commission", event.target.value)}
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Minimum Investment"
-            value={form.min_invest}
-            onChange={(event) => onChange("min_invest", event.target.value)}
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Chat Link"
-            value={form.chat_link}
-            onChange={(event) => onChange("chat_link", event.target.value)}
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Description"
-            value={form.description}
-            onChange={(event) => onChange("description", event.target.value)}
-          />
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={addMaster}
-            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white"
-          >
-            <Plus className="h-4 w-4" />
-            Add Master
-          </button>
-
-          <button
-            type="button"
-            onClick={updateMaster}
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white"
-          >
-            <Save className="h-4 w-4" />
-            Update Details
-          </button>
-
-          <button
-            type="button"
-            onClick={loadMasters}
-            className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className={cx(
+            "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
+            isDark ? "border-white/10 bg-white/[0.04] text-white" : "border-emerald-100 bg-white text-emerald-700"
+          )}
+        >
+          <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
+          Refresh
+        </button>
       </div>
 
       {loading ? (
         <div className="p-5 text-sm">Loading masters...</div>
-      ) : masters.length === 0 ? (
-        <CopyTradingEmptyState isDark={isDark} title="No masters found" />
-      ) : (
-        <CopyTradingTable
+      ) : !rows.length ? (
+        <CopyTradingEmptyState
           isDark={isDark}
-          columns={[
-            "Master Account",
-            "Nickname",
-            "Commission",
-            "Min Invest",
-            "Description",
-            "Action",
-          ]}
-          rows={masters}
-          minWidth="1150px"
-          renderRow={(row, index) => {
-            const masterAccount = pickMasterAccount(row) || "-";
-
-            return (
-              <tr
-                key={`${masterAccount}-${index}`}
-                className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
-                )}
-              >
-                <td className="px-4 py-4 font-bold">#{masterAccount}</td>
-                <td className="px-4 py-4">{pickName(row)}</td>
-                <td className="px-4 py-4">
-                  {row?.commission || row?.Commission || 0}%
-                </td>
-                <td className="px-4 py-4">
-                  ${row?.min_invest || row?.minInvest || row?.minimumInvestment || 0}
-                </td>
-                <td className="px-4 py-4">{row?.description || row?.Description || "-"}</td>
-                <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    onClick={() => deleteMaster(row)}
-                    className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            );
-          }}
+          title="No masters found"
+          subtitle="Try changing search filters."
         />
+      ) : (
+        <div
+          className={cx(
+            "overflow-hidden rounded-[24px] border",
+            isDark ? "border-white/10 bg-white/[0.03]" : "border-emerald-100 bg-white/95"
+          )}
+        >
+          <div className="max-w-full overflow-x-auto">
+            <table className="w-full min-w-[1050px] text-left text-sm">
+              <thead>
+                <tr className={cx("border-b text-xs uppercase tracking-[0.16em]", isDark ? "border-white/10 bg-white/[0.035] text-white/45" : "border-emerald-100 bg-emerald-50/80 text-slate-500")}>
+                  <th className="px-4 py-3">Login</th>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Commission</th>
+                  <th className="px-4 py-3">Min Invest</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Ago</th>
+                  <th className="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {paginatedRows.map((row, index) => {
+                  const createdTime = pickCreatedTime(row);
+                  const login = pickLogin(row);
+
+                  return (
+                    <tr key={`${login}-${index}`} className={cx("border-t", isDark ? "border-white/10" : "border-emerald-100")}>
+                      <td className="whitespace-nowrap px-4 py-4 font-black">#{login}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["name", "Name", "nickname"], "-")}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["commission", "Commission"], 0)}%</td>
+                      <td className="whitespace-nowrap px-4 py-4">${valueOf(row, ["min_invest", "minInvest", "minimumInvestment"], 0)}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{createdTime ? new Date(createdTime).toLocaleString() : "-"}</td>
+                      <td className="whitespace-nowrap px-4 py-4 font-bold text-emerald-600">{formatAgo(createdTime)}</td>
+                      <td className="whitespace-nowrap px-4 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(row)}
+                            className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-700"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteMaster(row)}
+                            className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className={cx("text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+          Page <b>{safePage}</b> / <b>{totalPages}</b> · Showing {paginatedRows.length} of {rows.length}
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={safePage === 1}
+            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={safePage === totalPages}
+            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

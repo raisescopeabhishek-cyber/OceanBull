@@ -13,146 +13,138 @@ import {
 import CopyTradingMiniSidebar from "./CopyTradingMiniSidebar";
 import { cx } from "../utils/copyTradingHelpers";
 
-const titleMap = (role = "user") => [
-  [
-    role === "admin"
-      ? "/admin/copy-trading/dashboard"
-      : "/user/copy-trading/dashboard",
-    role === "admin" ? "Copy Trading Overview" : "Copy Trading Dashboard",
-  ],
-  [
-    role === "admin"
-      ? "/admin/copy-trading/masters"
-      : "/user/copy-trading/masters",
-    role === "admin" ? "Master Management" : "Explore Master Traders",
-  ],
-  [
-    role === "admin"
-      ? "/admin/copy-trading/copiers"
-      : "/user/copy-trading/my-accounts",
-    role === "admin" ? "Copier Management" : "My Copied Accounts",
-  ],
-  [
-    role === "admin"
-      ? "/admin/copy-trading/trades"
-      : "/user/copy-trading/trades",
-    role === "admin" ? "Trade Monitor" : "Copy Trade History",
-  ],
+const getTitleMap = (role = "user") => {
+  if (role === "admin") {
+    return [
+      ["/admin/copy-trading/dashboard", "Copy Trading Overview"],
+      ["/admin/copy-trading/masters", "Master Management"],
+      ["/admin/copy-trading/copiers", "Copier Management"],
+      ["/admin/copy-trading/trades", "Trade History"],
+    ];
+  }
 
-  [
-  role === "admin"
-    ? "/admin/copy-trading/master-trades"
-    : "/user/copy-trading/master-trades",
-  "Master Trades",
-],
-[
-  role === "admin"
-    ? "/admin/copy-trading/copier-trades"
-    : "/user/copy-trading/copier-trades",
-  "Copier Trades",
-],
-
-
-[
-  role === "admin"
-    ? "/admin/copy-trading/master-accounts"
-    : "/user/copy-trading/my-master-accounts",
-  "My Master Accounts",
-],
-[
-  role === "admin"
-    ? "/admin/copy-trading/copier-accounts"
-    : "/user/copy-trading/my-copier-accounts",
-  "My Copier Accounts",
-],
-
-];
+  return [
+    ["/user/copy-trading/dashboard", "Copy Trading Dashboard"],
+    ["/user/copy-trading/masters", "Explore Master Traders"],
+    ["/user/copy-trading/my-accounts", "My Copied Accounts"],
+    ["/user/copy-trading/trades", "Copy Trade History"],
+    ["/user/copy-trading/master-trades", "Master Trades"],
+    ["/user/copy-trading/copier-trades", "Copier Trades"],
+    ["/user/copy-trading/my-master-accounts", "My Master Accounts"],
+    ["/user/copy-trading/my-copier-accounts", "My Copier Accounts"],
+  ];
+};
 
 const getPageMeta = (pathname, role = "user") => {
+  if (role === "admin") {
+    if (pathname.includes("/masters")) {
+      return {
+        title: "Master Management",
+        subtitle: "Create, update, delete, and monitor master trading accounts.",
+        active: "Masters",
+        icon: <TrendingUp className="h-6 w-6" />,
+      };
+    }
+
+    if (pathname.includes("/copiers")) {
+      return {
+        title: "Copier Management",
+        subtitle: "Create, update, delete, and monitor copier mappings.",
+        active: "Copiers",
+        icon: <Users className="h-6 w-6" />,
+      };
+    }
+
+    if (pathname.includes("/trades")) {
+      return {
+        title: "Trade History",
+        subtitle: "Search master or copier trade history by MT5 account.",
+        active: "Trades",
+        icon: <RadioTower className="h-6 w-6" />,
+      };
+    }
+
+    return {
+      title: "Copy Trading Overview",
+      subtitle:
+        "Monitor masters, copiers, active mappings, and copy-trading reports.",
+      active: "Dashboard",
+      icon: <LayoutDashboard className="h-6 w-6" />,
+    };
+  }
+
+  if (pathname.includes("/my-master-accounts")) {
+    return {
+      title: "My Master Accounts",
+      subtitle:
+        "View only your CRM master accounts, linked copiers, and their open/closed trades.",
+      active: "My Masters",
+      icon: <RadioTower className="h-6 w-6" />,
+    };
+  }
+
+  if (pathname.includes("/my-copier-accounts")) {
+    return {
+      title: "My Copier Accounts",
+      subtitle:
+        "View the master accounts you are copying and compare master/copier open and closed trades.",
+      active: "My Copiers",
+      icon: <Users className="h-6 w-6" />,
+    };
+  }
+
+  if (pathname.includes("/master-trades")) {
+    return {
+      title: "Master Trades",
+      subtitle: "Search a master account and review its trade activity.",
+      active: "Master Trades",
+      icon: <RadioTower className="h-6 w-6" />,
+    };
+  }
+
+  if (pathname.includes("/copier-trades")) {
+    return {
+      title: "Copier Trades",
+      subtitle:
+        "Search a copier account and compare copier open/closed trades with linked master trades.",
+      active: "Copier Trades",
+      icon: <Users className="h-6 w-6" />,
+    };
+  }
+
   if (pathname.includes("/masters")) {
     return {
-      title: role === "admin" ? "Master Management" : "Explore Master Traders",
+      title: "Explore Master Traders",
       subtitle:
-        role === "admin"
-          ? "Add, update, and manage master trading accounts."
-          : "Choose a master trader and start copy trading after reviewing commission and minimum investment.",
+        "Choose a master trader and start copy trading after reviewing commission and minimum investment.",
       active: "Masters",
       icon: <TrendingUp className="h-6 w-6" />,
     };
   }
 
-  if (pathname.includes("/my-accounts") || pathname.includes("/copiers")) {
+  if (pathname.includes("/my-accounts")) {
     return {
-      title: role === "admin" ? "Copier Management" : "My Copied Accounts",
+      title: "My Copied Accounts",
       subtitle:
-        role === "admin"
-          ? "Monitor copier accounts, master mappings, and copy status."
-          : "Track the master accounts currently linked with your MT5 accounts.",
-      active: role === "admin" ? "Copiers" : "Copied Accounts",
+        "Track the master accounts currently linked with your MT5 accounts.",
+      active: "Copied Accounts",
       icon: <Users className="h-6 w-6" />,
     };
   }
 
   if (pathname.includes("/trades")) {
     return {
-      title: role === "admin" ? "Trade Monitor" : "Copy Trade History",
-      subtitle:
-        role === "admin"
-          ? "Monitor master and copier trade activity in one place."
-          : "Review all, open, and closed copy-trading history.",
+      title: "Copy Trade History",
+      subtitle: "Review all, open, and closed copy-trading history.",
       active: "Trades",
       icon: <RadioTower className="h-6 w-6" />,
     };
   }
 
-
-
-  if (pathname.includes("/master-trades")) {
   return {
-    title: "Master Trades",
-    subtitle: "Search a master account and review its trade activity.",
-    active: "Master Trades",
-    icon: <RadioTower className="h-6 w-6" />,
-  };
-}
-
-if (pathname.includes("/copier-trades")) {
-  return {
-    title: "Copier Trades",
+    title: "Copy Trading Dashboard",
     subtitle:
-      "Search a copier account and compare copier open/closed trades with linked master trades.",
-    active: "Copier Trades",
-    icon: <Users className="h-6 w-6" />,
-  };
-}
-
-
-if (pathname.includes("/my-master-accounts")) {
-  return {
-    title: "My Master Accounts",
-    subtitle:
-      "View only your CRM master accounts, linked copiers, and their open/closed trades.",
-    active: "My Masters",
-    icon: <RadioTower className="h-6 w-6" />,
-  };
-}
-
-if (pathname.includes("/my-copier-accounts")) {
-  return {
-    title: "My Copier Accounts",
-    subtitle:
-      "View the master accounts you are copying and compare master/copier open and closed trades.",
-    active: "My Copiers",
-    icon: <Users className="h-6 w-6" />,
-  };
-}
-
-  return {
-    title: role === "admin" ? "Copy Trading Overview" : "Copy Trading Dashboard",
-    subtitle:
-      role === "admin"
-        ? "Monitor masters, copiers, active mappings, and trade activity."
-        : "View your copy-trading summary, copied accounts, and available masters.",
+      "View your copy-trading summary, copied accounts, and available masters.",
     active: "Dashboard",
     icon: <LayoutDashboard className="h-6 w-6" />,
   };
@@ -186,28 +178,28 @@ const CopyTradingLayout = ({ role = "user" }) => {
   );
 
   const currentTitle =
-    titleMap(role).find(([path]) => location.pathname.startsWith(path))?.[1] ||
+    getTitleMap(role).find(([path]) => location.pathname.startsWith(path))?.[1] ||
     pageMeta.title ||
     "Copy Trading";
 
   const backPath = role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
-const shellStyle = {
-  borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(16,185,129,0.16)",
-  background: isDark
-    ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(6,78,59,0.20))"
-    : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(236,253,245,0.88))",
-  boxShadow: isDark
-    ? "0 18px 55px rgba(0,0,0,0.34)"
-    : "0 14px 40px rgba(16,185,129,0.10)",
-  backdropFilter: "blur(10px)",
-};
+  const shellStyle = {
+    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(16,185,129,0.16)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(6,78,59,0.20))"
+      : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(236,253,245,0.88))",
+    boxShadow: isDark
+      ? "0 18px 55px rgba(0,0,0,0.34)"
+      : "0 14px 40px rgba(16,185,129,0.10)",
+    backdropFilter: "blur(10px)",
+  };
 
-const headerStyle = {
-  background: isDark
-    ? "linear-gradient(135deg, #064e3b, #022c22)"
-    : "linear-gradient(135deg, #10b981, #059669, #047857)",
-};
+  const headerStyle = {
+    background: isDark
+      ? "linear-gradient(135deg, #064e3b, #022c22)"
+      : "linear-gradient(135deg, #10b981, #059669, #047857)",
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 p-3 sm:p-4 xl:grid-cols-[300px_minmax(0,1fr)]">
@@ -218,7 +210,7 @@ const headerStyle = {
         style={shellStyle}
       >
         <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-emerald-400/15 blur-3xl" />
-<div className="pointer-events-none absolute bottom-0 left-[-50px] h-52 w-52 rounded-full bg-green-400/12 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-[-50px] h-52 w-52 rounded-full bg-green-400/12 blur-3xl" />
 
         <div
           className="relative overflow-hidden px-4 py-5 sm:px-6"

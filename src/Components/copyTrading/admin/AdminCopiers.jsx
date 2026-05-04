@@ -1,239 +1,424 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { Link2, Search, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  Link2,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { copyTradingApi } from "../api/copyTradingApi";
-import {
-  asArray,
-  cx,
-  getNestedUser,
-  getUserIdFromUser,
-} from "../utils/copyTradingHelpers";
-import CopyTradingTable from "../shared/CopyTradingTable";
+import { cx } from "../utils/copyTradingHelpers";
 import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
+import {
+  formatAgo,
+  pickCopierLogin,
+  pickCreatedTime,
+  pickMasterLogin,
+  safeArray,
+  valueOf,
+} from "./adminCopyTradingHelpers";
+
+const PAGE_SIZE = 10;
+
+const emptyForm = {
+  masterAccount: "",
+  copierAccount: "",
+  name: "",
+  copyType: "",
+  commission: "",
+};
+
+const CopierModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSubmit }) => {
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+      <div
+        className={cx(
+          "w-full max-w-xl rounded-[28px] border p-5 shadow-2xl",
+          isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-950"
+        )}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-black">
+            {mode === "edit" ? "Update Copier" : "Link Copier"}
+          </h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className={cx(
+              "rounded-xl border p-2",
+              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+            )}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {[
+            ["masterAccount", "Master Account"],
+            ["copierAccount", "Copier Account"],
+            ["name", "Copier Name"],
+            ["copyType", "Copy Type"],
+            ["commission", "Commission"],
+          ].map(([key, label]) => (
+            <label key={key} className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600">
+                {label}
+              </span>
+
+              <input
+                value={form[key]}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, [key]: event.target.value }))
+                }
+                className={cx(
+                  "w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
+                  isDark
+                    ? "border-white/10 bg-slate-900 text-white"
+                    : "border-emerald-100 bg-white text-slate-900"
+                )}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className={cx(
+              "rounded-2xl border px-5 py-3 text-sm font-bold",
+              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+            )}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={loading}
+            className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {loading ? "Saving..." : mode === "edit" ? "Update Copier" : "Link Copier"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const AdminCopiers = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
 
-  const [copiersText, setCopiersText] = useState("");
-  const [rows, setRows] = useState([]);
+  const [copiers, setCopiers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const [linkForm, setLinkForm] = useState({
-    userId: "",
-    mt5Account: "",
-    masterAccount: "",
-    min_invest: "",
-  });
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
 
-  const ensureUserId = async () => {
-    if (linkForm.userId) return linkForm.userId;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [form, setForm] = useState(emptyForm);
 
+  const load = async () => {
     try {
-      const meRes = await copyTradingApi.getMeUser();
-      const me = getNestedUser(meRes);
-      return getUserIdFromUser(me);
-    } catch {
-      return "";
-    }
-  };
-
-  const searchCopiers = async () => {
-    const copiers = copiersText
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    if (!copiers.length) {
-      toast.error("Enter copier account numbers");
-      return;
-    }
-
-    try {
-      const res = await copyTradingApi.adminCopiersDetails({ copiers });
-      setRows(asArray(res));
+      setLoading(true);
+      const res = await copyTradingApi.adminGetCopiers();
+      setCopiers(safeArray(res));
+      setPage(1);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch copiers");
+      toast.error(error?.message || "Failed to load copiers");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const linkCopier = async () => {
-    if (!linkForm.mt5Account || !linkForm.masterAccount) {
-      toast.error("Copier and master account are required");
+  useEffect(() => {
+    load();
+  }, []);
+
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return copiers
+      .filter((row) => {
+        if (!q) return true;
+        return JSON.stringify(row || {}).toLowerCase().includes(q);
+      })
+      .sort((a, b) => {
+        if (sortBy === "oldest") return pickCreatedTime(a) - pickCreatedTime(b);
+        if (sortBy === "copierAsc") return Number(pickCopierLogin(a) || 0) - Number(pickCopierLogin(b) || 0);
+        if (sortBy === "copierDesc") return Number(pickCopierLogin(b) || 0) - Number(pickCopierLogin(a) || 0);
+        if (sortBy === "masterAsc") return Number(pickMasterLogin(a) || 0) - Number(pickMasterLogin(b) || 0);
+        if (sortBy === "masterDesc") return Number(pickMasterLogin(b) || 0) - Number(pickMasterLogin(a) || 0);
+        return pickCreatedTime(b) - pickCreatedTime(a);
+      });
+  }, [copiers, search, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedRows = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const openCreate = () => {
+    setModalMode("create");
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setModalMode("edit");
+    setForm({
+      masterAccount: pickMasterLogin(row),
+      copierAccount: pickCopierLogin(row),
+      name: valueOf(row, ["name", "Name"], ""),
+      copyType: valueOf(row, ["copyType", "CopyType"], ""),
+      commission: valueOf(row, ["commission", "Commission"], ""),
+    });
+    setModalOpen(true);
+  };
+
+  const submitForm = async () => {
+    if (!form.masterAccount || !form.copierAccount) {
+      toast.error("Master and copier account are required.");
       return;
     }
 
     try {
-      const userId = await ensureUserId();
+      setActionLoading(true);
 
-      await copyTradingApi.adminLinkCopierWithBalanceCheck({
-        userId,
-        mt5Account: linkForm.mt5Account,
-        masterAccount: linkForm.masterAccount,
-        min_invest: linkForm.min_invest || 0,
-      });
+      if (modalMode === "edit") {
+        await copyTradingApi.adminUpdateCopier(form);
+        toast.success("Copier updated successfully");
+      } else {
+        await copyTradingApi.adminLinkCopier(form);
+        toast.success("Copier linked successfully");
+      }
 
-      toast.success("Copier linked to master");
+      setModalOpen(false);
+      load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to link copier");
+      console.error(error);
+      toast.error(error?.message || "Action failed");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const deleteCopier = async (row) => {
-    const mt5Account = row?.MT5Account || row?.mt5Account || row?.account;
+    const copierAccount = pickCopierLogin(row);
+    const masterAccount = pickMasterLogin(row);
 
-    if (!mt5Account) {
-      toast.error("MT5 account not found");
-      return;
-    }
+    if (!window.confirm(`Delete copier #${copierAccount}?`)) return;
 
     try {
-      await copyTradingApi.adminDeleteCopier({ mt5Account });
-      toast.success("Copier removed");
+      setActionLoading(true);
+      await copyTradingApi.adminDeleteCopier({
+        masterAccount,
+        copierAccount,
+        mt5Account: copierAccount,
+        MT5Account: copierAccount,
+      });
+      toast.success("Copier deleted successfully");
+      load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to remove copier");
+      console.error(error);
+      toast.error(error?.message || "Delete failed");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   return (
     <div className="space-y-5 p-5 sm:p-6">
-      <div
-        className={cx(
-          "rounded-[22px] border p-4",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
-        )}
-      >
-        <h3 className="mb-4 text-base font-bold">Link Copier To Master</h3>
+      <CopierModal
+        isDark={isDark}
+        open={modalOpen}
+        mode={modalMode}
+        form={form}
+        setForm={setForm}
+        loading={actionLoading}
+        onClose={() => setModalOpen(false)}
+        onSubmit={submitForm}
+      />
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="User ID optional"
-            value={linkForm.userId}
-            onChange={(event) =>
-              setLinkForm((prev) => ({ ...prev, userId: event.target.value }))
-            }
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Copier MT5 Account"
-            value={linkForm.mt5Account}
-            onChange={(event) =>
-              setLinkForm((prev) => ({ ...prev, mt5Account: event.target.value }))
-            }
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Master Account"
-            value={linkForm.masterAccount}
-            onChange={(event) =>
-              setLinkForm((prev) => ({
-                ...prev,
-                masterAccount: event.target.value,
-              }))
-            }
-          />
-
-          <input
-            className="rounded-2xl border px-4 py-3 text-sm outline-none"
-            placeholder="Min Invest"
-            value={linkForm.min_invest}
-            onChange={(event) =>
-              setLinkForm((prev) => ({
-                ...prev,
-                min_invest: event.target.value,
-              }))
-            }
-          />
-
-          <button
-            type="button"
-            onClick={linkCopier}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white"
-          >
-            <Link2 className="h-4 w-4" />
-            Link
-          </button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black">Copiers CRUD</h1>
+          <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+            Manage copier links and mapping.
+          </p>
         </div>
-      </div>
-
-      <div
-        className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-[1fr_140px]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
-        )}
-      >
-        <input
-          value={copiersText}
-          onChange={(event) => setCopiersText(event.target.value)}
-          placeholder="Search copier accounts comma separated: 10000,35562"
-          className="rounded-2xl border px-4 py-3 text-sm outline-none"
-        />
 
         <button
           type="button"
-          onClick={searchCopiers}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white"
+          onClick={openCreate}
+          className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700"
         >
-          <Search className="h-4 w-4" />
-          Search
+          <Plus className="h-4 w-4" />
+          Link Copier
         </button>
       </div>
 
-      {rows.length === 0 ? (
+      <div
+        className={cx(
+          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-[1fr_220px_auto]",
+          isDark ? "border-white/10 bg-white/[0.035]" : "border-emerald-100 bg-white/95"
+        )}
+      >
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-slate-900">
+          <Search className="h-4 w-4 text-emerald-600" />
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search copiers..."
+            className="w-full bg-transparent text-sm font-semibold outline-none"
+          />
+        </div>
+
+        <select
+          value={sortBy}
+          onChange={(event) => setSortBy(event.target.value)}
+          className={cx(
+            "rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
+            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+          )}
+        >
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="copierAsc">Copier ↑</option>
+          <option value="copierDesc">Copier ↓</option>
+          <option value="masterAsc">Master ↑</option>
+          <option value="masterDesc">Master ↓</option>
+        </select>
+
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className={cx(
+            "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
+            isDark ? "border-white/10 bg-white/[0.04] text-white" : "border-emerald-100 bg-white text-emerald-700"
+          )}
+        >
+          <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="p-5 text-sm">Loading copiers...</div>
+      ) : !rows.length ? (
         <CopyTradingEmptyState
           isDark={isDark}
-          title="No copier data loaded"
-          subtitle="Search copier MT5 accounts to view details."
+          title="No copiers found"
+          subtitle="Try changing search filters."
         />
       ) : (
-        <CopyTradingTable
-          isDark={isDark}
-          columns={["MT5 Account", "Master", "Balance", "Equity", "Status", "Action"]}
-          rows={rows}
-          minWidth="1000px"
-          renderRow={(row, index) => {
-            const mt5Account = row?.MT5Account || row?.mt5Account || row?.account || "-";
+        <div
+          className={cx(
+            "overflow-hidden rounded-[24px] border",
+            isDark ? "border-white/10 bg-white/[0.03]" : "border-emerald-100 bg-white/95"
+          )}
+        >
+          <div className="max-w-full overflow-x-auto">
+            <table className="w-full min-w-[1050px] text-left text-sm">
+              <thead>
+                <tr className={cx("border-b text-xs uppercase tracking-[0.16em]", isDark ? "border-white/10 bg-white/[0.035] text-white/45" : "border-emerald-100 bg-emerald-50/80 text-slate-500")}>
+                  <th className="px-4 py-3">Copier</th>
+                  <th className="px-4 py-3">Master</th>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Copy Type</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Ago</th>
+                  <th className="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
 
-            return (
-              <tr
-                key={`${mt5Account}-${index}`}
-                className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
-                )}
-              >
-                <td className="px-4 py-4 font-bold">#{mt5Account}</td>
-                <td className="px-4 py-4">{row?.masterAccount || row?.Master || "-"}</td>
-                <td className="px-4 py-4">{row?.Balance || row?.balance || "-"}</td>
-                <td className="px-4 py-4">{row?.Equity || row?.equity || "-"}</td>
-                <td className="px-4 py-4">
-                  <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600">
-                    Active
-                  </span>
-                </td>
-                <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    onClick={() => deleteCopier(row)}
-                    className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            );
-          }}
-        />
+              <tbody>
+                {paginatedRows.map((row, index) => {
+                  const createdTime = pickCreatedTime(row);
+                  const copierAccount = pickCopierLogin(row);
+
+                  return (
+                    <tr key={`${copierAccount}-${index}`} className={cx("border-t", isDark ? "border-white/10" : "border-emerald-100")}>
+                      <td className="whitespace-nowrap px-4 py-4 font-black">#{copierAccount}</td>
+                      <td className="whitespace-nowrap px-4 py-4 font-bold">#{pickMasterLogin(row)}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["name", "Name"], "-")}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["copyType", "CopyType"], "-")}</td>
+                      <td className="whitespace-nowrap px-4 py-4">{createdTime ? new Date(createdTime).toLocaleString() : "-"}</td>
+                      <td className="whitespace-nowrap px-4 py-4 font-bold text-emerald-600">{formatAgo(createdTime)}</td>
+                      <td className="whitespace-nowrap px-4 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(row)}
+                            className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-700"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteCopier(row)}
+                            className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className={cx("text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+          Page <b>{safePage}</b> / <b>{totalPages}</b> · Showing {paginatedRows.length} of {rows.length}
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={safePage === 1}
+            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={safePage === totalPages}
+            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

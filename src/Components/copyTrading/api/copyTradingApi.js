@@ -81,6 +81,15 @@ const normalizeResponse = (response) => {
 export const copyTradingApi = {
 
 
+  userMyCopierAccounts: async ({ accounts = [] } = {}) => {
+  const res = await api.post("/user/copy-trading/my-copier-accounts", {
+    accounts,
+  });
+
+  return normalizeResponse(res);
+},
+
+
   userAccountTrades: async ({
   userId,
   account,
@@ -125,6 +134,14 @@ export const copyTradingApi = {
 
     return normalizeResponse(res);
   },
+
+  userMyCopyAccounts: async ({ accounts = [] } = {}) => {
+  const res = await api.post("/user/copy-trading/my-copy-accounts", {
+    accounts,
+  });
+
+  return normalizeResponse(res);
+},
 
   userGetCopierDetails: async ({ MT5Account, Manager_Index = 1 }) => {
     const res = await api.get("/user/copy-trading/copier-details", {

@@ -9,6 +9,8 @@ import UserMyCopiedAccounts from "@/Components/copyTrading/user/UserMyCopiedAcco
 import UserCopyTradeHistory from "@/Components/copyTrading/user/UserCopyTradeHistory";
 import UserMasterTradeHistory from "@/Components/copyTrading/user/UserMasterTradeHistory";
 import UserCopierTradeComparison from "@/Components/copyTrading/user/UserCopierTradeComparison";
+import UserMyMasterAccounts from "@/Components/copyTrading/user/UserMyMasterAccounts";
+import UserMyCopierAccounts from "@/Components/copyTrading/user/UserMyCopierAccounts";
 
 const UserCopyTradingRoutes = () => {
   return (
@@ -28,6 +30,10 @@ const UserCopyTradingRoutes = () => {
 
         <Route path="master-trades" element={<UserMasterTradeHistory />} />
 <Route path="copier-trades" element={<UserCopierTradeComparison />} />
+
+
+<Route path="my-master-accounts" element={<UserMyMasterAccounts />} />
+<Route path="my-copier-accounts" element={<UserMyCopierAccounts />} />
 
 
         <Route

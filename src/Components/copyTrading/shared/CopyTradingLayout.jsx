@@ -52,6 +52,20 @@ const titleMap = (role = "user") => [
   "Copier Trades",
 ],
 
+
+[
+  role === "admin"
+    ? "/admin/copy-trading/master-accounts"
+    : "/user/copy-trading/my-master-accounts",
+  "My Master Accounts",
+],
+[
+  role === "admin"
+    ? "/admin/copy-trading/copier-accounts"
+    : "/user/copy-trading/my-copier-accounts",
+  "My Copier Accounts",
+],
+
 ];
 
 const getPageMeta = (pathname, role = "user") => {
@@ -112,6 +126,27 @@ if (pathname.includes("/copier-trades")) {
   };
 }
 
+
+if (pathname.includes("/my-master-accounts")) {
+  return {
+    title: "My Master Accounts",
+    subtitle:
+      "View only your CRM master accounts, linked copiers, and their open/closed trades.",
+    active: "My Masters",
+    icon: <RadioTower className="h-6 w-6" />,
+  };
+}
+
+if (pathname.includes("/my-copier-accounts")) {
+  return {
+    title: "My Copier Accounts",
+    subtitle:
+      "View the master accounts you are copying and compare master/copier open and closed trades.",
+    active: "My Copiers",
+    icon: <Users className="h-6 w-6" />,
+  };
+}
+
   return {
     title: role === "admin" ? "Copy Trading Overview" : "Copy Trading Dashboard",
     subtitle:
@@ -157,22 +192,22 @@ const CopyTradingLayout = ({ role = "user" }) => {
 
   const backPath = role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
-  const shellStyle = {
-    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(245,158,11,0.14)",
-    background: isDark
-      ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.90))"
-      : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
-    boxShadow: isDark
-      ? "0 18px 55px rgba(0,0,0,0.34)"
-      : "0 14px 40px rgba(245,158,11,0.08)",
-    backdropFilter: "blur(10px)",
-  };
+const shellStyle = {
+  borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(16,185,129,0.16)",
+  background: isDark
+    ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(6,78,59,0.20))"
+    : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(236,253,245,0.88))",
+  boxShadow: isDark
+    ? "0 18px 55px rgba(0,0,0,0.34)"
+    : "0 14px 40px rgba(16,185,129,0.10)",
+  backdropFilter: "blur(10px)",
+};
 
-  const headerStyle = {
-    background: isDark
-      ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-      : "linear-gradient(135deg, #fb923c, #f59e0b)",
-  };
+const headerStyle = {
+  background: isDark
+    ? "linear-gradient(135deg, #064e3b, #022c22)"
+    : "linear-gradient(135deg, #10b981, #059669, #047857)",
+};
 
   return (
     <div className="grid grid-cols-1 gap-4 p-3 sm:p-4 xl:grid-cols-[300px_minmax(0,1fr)]">
@@ -182,8 +217,8 @@ const CopyTradingLayout = ({ role = "user" }) => {
         className="relative min-h-[780px] overflow-hidden rounded-[26px] border transition-all duration-300"
         style={shellStyle}
       >
-        <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-amber-400/15 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-[-50px] h-52 w-52 rounded-full bg-orange-400/12 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 top-0 h-52 w-52 rounded-full bg-emerald-400/15 blur-3xl" />
+<div className="pointer-events-none absolute bottom-0 left-[-50px] h-52 w-52 rounded-full bg-green-400/12 blur-3xl" />
 
         <div
           className="relative overflow-hidden px-4 py-5 sm:px-6"

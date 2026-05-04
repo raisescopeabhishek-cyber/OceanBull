@@ -32,8 +32,8 @@ const getInputClass = (isDark, extra = "") =>
     "w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none transition-all duration-200",
     "focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
     isDark
-      ? "border-amber-300/25 bg-amber-400/[0.08] text-white placeholder:text-white/40 shadow-[0_0_0_1px_rgba(245,158,11,0.08)] focus:border-amber-300 focus:bg-amber-400/[0.12] focus:ring-amber-400/15"
-      : "border-amber-300/80 bg-amber-50/80 text-slate-900 placeholder:text-slate-400 shadow-[0_0_0_4px_rgba(245,158,11,0.05),0_10px_22px_rgba(245,158,11,0.07)] focus:border-amber-500 focus:bg-white focus:ring-amber-200/70",
+      ? "border-emerald-300/25 bg-emerald-400/[0.08] text-white placeholder:text-white/40 shadow-[0_0_0_1px_rgba(16,185,129,0.08)] focus:border-emerald-300 focus:bg-emerald-400/[0.12] focus:ring-emerald-400/15"
+      : "border-emerald-300/80 bg-emerald-50/80 text-slate-900 placeholder:text-slate-400 shadow-[0_0_0_4px_rgba(16,185,129,0.05),0_10px_22px_rgba(16,185,129,0.07)] focus:border-emerald-500 focus:bg-white focus:ring-emerald-200/70",
     extra
   );
 
@@ -42,14 +42,14 @@ const getSectionClass = (isDark) =>
     "rounded-[24px] border p-5",
     isDark
       ? "border-white/10 bg-white/[0.035]"
-      : "border-amber-200/70 bg-white/95 shadow-[0_14px_30px_rgba(245,158,11,0.08)]"
+      : "border-emerald-200/70 bg-white/95 shadow-[0_14px_30px_rgba(16,185,129,0.08)]"
   );
 
 const FieldLabel = ({ children, isDark }) => (
   <label
     className={cx(
       "mb-1.5 block text-xs font-bold uppercase tracking-[0.14em]",
-      isDark ? "text-amber-200/80" : "text-amber-700"
+      isDark ? "text-emerald-200/80" : "text-emerald-700"
     )}
   >
     {children}
@@ -62,15 +62,17 @@ const InfoBox = ({ isDark, icon, label, value }) => (
       "rounded-2xl border p-3",
       isDark
         ? "border-white/10 bg-white/[0.025]"
-        : "border-amber-100 bg-amber-50/50"
+        : "border-emerald-100 bg-emerald-50/50"
     )}
   >
-    <div className={cx("mb-2", isDark ? "text-amber-300" : "text-amber-600")}>
+    <div className={cx("mb-2", isDark ? "text-emerald-300" : "text-emerald-600")}>
       {icon}
     </div>
+
     <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
       {label}
     </p>
+
     <p className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
       {value}
     </p>
@@ -154,6 +156,7 @@ const ConfirmRoleChangeModal = ({
               >
                 Account already used
               </h3>
+
               <p
                 className={cx(
                   "mt-1 text-sm leading-6",
@@ -679,8 +682,8 @@ const UserExploreMasters = () => {
             className={cx(
               "flex h-11 w-11 items-center justify-center rounded-2xl border",
               isDark
-                ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
-                : "border-amber-200 bg-amber-50 text-amber-700"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
             )}
           >
             <Crown className="h-5 w-5" />
@@ -695,6 +698,7 @@ const UserExploreMasters = () => {
             >
               Become a Master Trader
             </h3>
+
             <p
               className={cx(
                 "mt-1 text-sm",
@@ -804,8 +808,8 @@ const UserExploreMasters = () => {
               className={cx(
                 "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
                 isDark
-                  ? "bg-amber-500 hover:bg-amber-400"
-                  : "bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_12px_24px_rgba(245,158,11,0.25)] hover:from-orange-600 hover:to-amber-600"
+                  ? "bg-emerald-500 hover:bg-emerald-400"
+                  : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:from-emerald-600 hover:to-green-700"
               )}
             >
               <Crown className="h-4 w-4" />
@@ -835,7 +839,7 @@ const UserExploreMasters = () => {
           "grid grid-cols-1 gap-4 rounded-[22px] border p-4 md:grid-cols-[1fr_280px]",
           isDark
             ? "border-white/10 bg-white/[0.035]"
-            : "border-amber-200/70 bg-white/95 shadow-[0_12px_24px_rgba(245,158,11,0.07)]"
+            : "border-emerald-200/70 bg-white/95 shadow-[0_12px_24px_rgba(16,185,129,0.07)]"
         )}
       >
         <div>
@@ -844,7 +848,7 @@ const UserExploreMasters = () => {
             <Search
               className={cx(
                 "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2",
-                isDark ? "text-amber-300" : "text-amber-600"
+                isDark ? "text-emerald-300" : "text-emerald-600"
               )}
             />
             <input
@@ -927,7 +931,7 @@ const UserExploreMasters = () => {
                   "rounded-[24px] border p-5",
                   isDark
                     ? "border-white/10 bg-white/[0.035]"
-                    : "border-amber-100 bg-white/95 shadow-[0_10px_24px_rgba(245,158,11,0.07)]"
+                    : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.07)]"
                 )}
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -940,6 +944,7 @@ const UserExploreMasters = () => {
                     >
                       Master Account
                     </p>
+
                     <h3
                       className={cx(
                         "mt-1 text-xl font-bold",
@@ -948,6 +953,7 @@ const UserExploreMasters = () => {
                     >
                       {name === "-" ? `#${masterAccount}` : name}
                     </h3>
+
                     <p
                       className={cx(
                         "mt-1 text-sm",
@@ -965,8 +971,8 @@ const UserExploreMasters = () => {
                     className={cx(
                       "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
                       isDark
-                        ? "bg-amber-500 hover:bg-amber-400"
-                        : "bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_12px_24px_rgba(245,158,11,0.22)] hover:from-orange-600 hover:to-amber-600"
+                        ? "bg-emerald-500 hover:bg-emerald-400"
+                        : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:from-emerald-600 hover:to-green-700"
                     )}
                   >
                     <Copy className="h-4 w-4" />

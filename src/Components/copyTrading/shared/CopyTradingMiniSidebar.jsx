@@ -36,7 +36,16 @@ const getLinks = (role) => {
         to: "/admin/copy-trading/trades",
         icon: RadioTower,
       },
-
+      {
+        label: "My Master Accounts",
+        to: "/user/copy-trading/my-master-accounts",
+        icon: RadioTower,
+      },
+      {
+        label: "My Copier Accounts",
+        to: "/user/copy-trading/my-copier-accounts",
+        icon: Users,
+      },
     ];
   }
 
@@ -51,26 +60,33 @@ const getLinks = (role) => {
       to: "/user/copy-trading/masters",
       icon: UserRoundCog,
     },
+
     {
-      label: "My Copied Accounts",
-      to: "/user/copy-trading/my-accounts",
-      icon: Link2,
+      label: "My Master",
+      to: "/user/copy-trading/my-master-accounts",
+      icon: RadioTower,
     },
+    {
+      label: "My Copier",
+      to: "/user/copy-trading/my-copier-accounts",
+      icon: Users,
+    },
+    
     {
       label: "Trade History",
       to: "/user/copy-trading/trades",
       icon: BarChart3,
     },
-     {
-    label: "Master Trades",
-    to: "/user/copy-trading/master-trades",
-    icon: RadioTower,
-  },
-  {
-    label: "Copier Trades",
-    to: "/user/copy-trading/copier-trades",
-    icon: Users,
-  },
+    {
+      label: "Master Trades",
+      to: "/user/copy-trading/master-trades",
+      icon: RadioTower,
+    },
+    {
+      label: "Copier Trades",
+      to: "/user/copy-trading/copier-trades",
+      icon: Users,
+    },
   ];
 };
 
@@ -78,13 +94,13 @@ const CopyTradingMiniSidebar = ({ role = "user", isDark }) => {
   const links = getLinks(role);
 
   const shellStyle = {
-    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(245,158,11,0.14)",
+    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(16,185,129,0.16)",
     background: isDark
-      ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.90))"
-      : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
+      ? "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(6,78,59,0.22))"
+      : "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(236,253,245,0.88))",
     boxShadow: isDark
       ? "0 18px 55px rgba(0,0,0,0.28)"
-      : "0 14px 40px rgba(245,158,11,0.08)",
+      : "0 14px 40px rgba(16,185,129,0.10)",
     backdropFilter: "blur(10px)",
   };
 
@@ -97,8 +113,8 @@ const CopyTradingMiniSidebar = ({ role = "user", isDark }) => {
         )}
         style={shellStyle}
       >
-        <div className="pointer-events-none absolute -right-12 top-0 h-36 w-36 rounded-full bg-amber-400/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-14 -left-12 h-40 w-40 rounded-full bg-orange-400/12 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 top-0 h-36 w-36 rounded-full bg-emerald-400/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-14 -left-12 h-40 w-40 rounded-full bg-green-400/12 blur-3xl" />
 
         <div className="relative z-10 flex min-h-full flex-col">
           <div className="mb-5 flex items-center gap-3">
@@ -106,8 +122,8 @@ const CopyTradingMiniSidebar = ({ role = "user", isDark }) => {
               className={cx(
                 "flex h-12 w-12 items-center justify-center rounded-2xl border",
                 isDark
-                  ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
-                  : "border-amber-200 bg-amber-50 text-amber-700"
+                  ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
               )}
             >
               <Copy className="h-6 w-6" />
@@ -146,11 +162,11 @@ const CopyTradingMiniSidebar = ({ role = "user", isDark }) => {
                       "group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200",
                       isActive
                         ? isDark
-                          ? "border-amber-400/30 bg-amber-500/15 text-amber-200 shadow-[0_10px_30px_rgba(245,158,11,0.12)]"
-                          : "border-amber-200 bg-amber-50 text-amber-700 shadow-[0_10px_24px_rgba(245,158,11,0.10)]"
+                          ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-200 shadow-[0_10px_30px_rgba(16,185,129,0.14)]"
+                          : "border-emerald-200 bg-emerald-50 text-emerald-700 shadow-[0_10px_24px_rgba(16,185,129,0.12)]"
                         : isDark
-                        ? "border-white/10 bg-white/[0.025] text-white/65 hover:bg-white/[0.06] hover:text-white"
-                        : "border-amber-100/70 bg-white/70 text-slate-600 hover:border-amber-200 hover:bg-amber-50/70 hover:text-amber-700"
+                        ? "border-white/10 bg-white/[0.025] text-white/65 hover:border-emerald-400/20 hover:bg-emerald-500/10 hover:text-emerald-100"
+                        : "border-emerald-100/70 bg-white/70 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50/80 hover:text-emerald-700"
                     )
                   }
                 >
@@ -166,13 +182,13 @@ const CopyTradingMiniSidebar = ({ role = "user", isDark }) => {
               "mt-5 rounded-2xl border p-4 text-xs leading-5 xl:mt-auto",
               isDark
                 ? "border-white/10 bg-white/[0.035] text-white/55"
-                : "border-amber-100 bg-amber-50/60 text-slate-600"
+                : "border-emerald-100 bg-emerald-50/60 text-slate-600"
             )}
           >
             <div
               className={cx(
                 "mb-2 flex items-center gap-2 font-bold",
-                isDark ? "text-amber-200" : "text-amber-700"
+                isDark ? "text-emerald-200" : "text-emerald-700"
               )}
             >
               <ShieldCheck className="h-4 w-4" />

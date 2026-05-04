@@ -9,6 +9,9 @@ export const unwrapData = (input) => {
 export const asArray = (input) => {
   const data = unwrapData(input);
 
+
+  
+
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.data)) return data.data;
   if (Array.isArray(data?.result)) return data.result;
@@ -19,6 +22,11 @@ export const asArray = (input) => {
   if (Array.isArray(data?.copiers)) return data.copiers;
   if (Array.isArray(data?.trades)) return data.trades;
   if (Array.isArray(data?.rows)) return data.rows;
+
+
+  if (Array.isArray(data?.masterAccounts)) return data.masterAccounts;
+if (Array.isArray(data?.master_accounts)) return data.master_accounts;
+if (Array.isArray(data?.masteraccounts)) return data.masteraccounts;
 
   return [];
 };
@@ -62,6 +70,8 @@ export const pickMasterAccount = (master) => {
     master?.login ||
     master?.Login ||
     master?.MasterAccount ||
+    master?.masterId ||
+    master?.master_id ||
     ""
   );
 };

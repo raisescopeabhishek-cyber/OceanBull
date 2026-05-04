@@ -4,6 +4,10 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Copy,
   Crown,
   DollarSign,
@@ -26,6 +30,8 @@ import {
   pickName,
 } from "../utils/copyTradingHelpers";
 import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
+
+const PAGE_SIZE_OPTIONS = [6, 10, 20, 50];
 
 const getInputClass = (isDark, extra = "") =>
   cx(
@@ -65,7 +71,9 @@ const InfoBox = ({ isDark, icon, label, value }) => (
         : "border-emerald-100 bg-emerald-50/50"
     )}
   >
-    <div className={cx("mb-2", isDark ? "text-emerald-300" : "text-emerald-600")}>
+    <div
+      className={cx("mb-2", isDark ? "text-emerald-300" : "text-emerald-600")}
+    >
       {icon}
     </div>
 
@@ -78,6 +86,58 @@ const InfoBox = ({ isDark, icon, label, value }) => (
     </p>
   </div>
 );
+
+const getMasterCreatedTimestamp = (master) => {
+  const candidates = [
+    master?.created_at,
+    master?.createdAt,
+    master?.CreatedAt,
+    master?.createdDate,
+    master?.date,
+    master?.updated_at,
+    master?.updatedAt,
+    master?.UpdatedAt,
+  ];
+
+  for (const value of candidates) {
+    if (!value) continue;
+
+    const timestamp = new Date(value).getTime();
+
+    if (!Number.isNaN(timestamp)) {
+      return timestamp;
+    }
+  }
+
+  return 0;
+};
+
+const formatMasterCreatedDate = (master) => {
+  const timestamp = getMasterCreatedTimestamp(master);
+
+  if (!timestamp) return "-";
+
+  return new Date(timestamp).toLocaleString();
+};
+
+const PaginationButton = ({ isDark, disabled, onClick, children, label }) => {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={cx(
+        "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40",
+        isDark
+          ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+          : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+      )}
+    >
+      {children}
+    </button>
+  );
+};
 
 const ConfirmRoleChangeModal = ({
   isDark,
@@ -278,6 +338,9 @@ const UserExploreMasters = () => {
   const [selectedAccount, setSelectedAccount] = useState("");
   const [copyAccountNudge, setCopyAccountNudge] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
   const [makeMasterForm, setMakeMasterForm] = useState({
     mt5Account: "",
     nickname: "",
@@ -306,6 +369,7 @@ const UserExploreMasters = () => {
 
       setUser(getNestedUser(userRes));
       setMasters(asArray(mastersRes));
+      setPage(1);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load master traders");
@@ -326,18 +390,55 @@ const UserExploreMasters = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search, pageSize]);
+
   const accounts = getUserAccountsFromUser(user);
   const userId = getUserIdFromUser(user);
 
   const filteredMasters = useMemo(() => {
     const q = search.toLowerCase().trim();
 
-    if (!q) return masters;
+    const rows = masters
+      .map((master, index) => ({
+        master,
+        index,
+      }))
+      .filter(({ master }) => {
+        if (!q) return true;
 
-    return masters.filter((master) => {
-      return JSON.stringify(master || {}).toLowerCase().includes(q);
-    });
+        return JSON.stringify(master || {}).toLowerCase().includes(q);
+      })
+      .sort((a, b) => {
+        const bTime = getMasterCreatedTimestamp(b.master);
+        const aTime = getMasterCreatedTimestamp(a.master);
+
+        if (bTime !== aTime) {
+          return bTime - aTime;
+        }
+
+        return a.index - b.index;
+      })
+      .map(({ master }) => master);
+
+    return rows;
   }, [masters, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMasters.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = filteredMasters.length ? (safePage - 1) * pageSize : 0;
+  const endIndex = Math.min(startIndex + pageSize, filteredMasters.length);
+
+  const paginatedMasters = useMemo(() => {
+    return filteredMasters.slice(startIndex, endIndex);
+  }, [filteredMasters, startIndex, endIndex]);
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [page, safePage]);
 
   const buildConflictModalData = ({ data, action, payload, message }) => {
     const targetRole =
@@ -913,116 +1014,284 @@ const UserExploreMasters = () => {
           subtitle="Try another search or contact admin."
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {filteredMasters.map((master, index) => {
-            const masterAccount =
-              pickMasterAccount(master) || `MASTER-${index + 1}`;
-            const name = pickName(master);
-            const minInvest =
-              master?.min_invest ||
-              master?.minInvest ||
-              master?.minimumInvestment ||
-              0;
-
-            return (
-              <div
-                key={`${masterAccount}-${index}`}
+        <div className="space-y-4">
+          <div
+            className={cx(
+              "flex flex-col gap-3 rounded-[22px] border p-4 sm:flex-row sm:items-center sm:justify-between",
+              isDark
+                ? "border-white/10 bg-white/[0.035]"
+                : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+            )}
+          >
+            <div>
+              <p
                 className={cx(
-                  "rounded-[24px] border p-5",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035]"
-                    : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.07)]"
+                  "text-sm font-bold",
+                  isDark ? "text-white" : "text-slate-900"
                 )}
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p
-                      className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500"
-                      )}
-                    >
-                      Master Account
-                    </p>
+                Showing {startIndex + 1}-{endIndex} of {filteredMasters.length} masters
+              </p>
 
-                    <h3
-                      className={cx(
-                        "mt-1 text-xl font-bold",
-                        isDark ? "text-white" : "text-slate-900"
-                      )}
-                    >
-                      {name === "-" ? `#${masterAccount}` : name}
-                    </h3>
+              <p
+                className={cx(
+                  "mt-1 text-xs",
+                  isDark ? "text-white/45" : "text-slate-500"
+                )}
+              >
+                Newest master accounts are shown first.
+              </p>
+            </div>
 
-                    <p
-                      className={cx(
-                        "mt-1 text-sm",
-                        isDark ? "text-white/55" : "text-slate-500"
-                      )}
-                    >
-                      #{masterAccount}
-                    </p>
-                  </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={pageSize}
+                onChange={(event) => setPageSize(Number(event.target.value))}
+                className={cx(
+                  "rounded-xl border px-3 py-2 text-sm font-bold outline-none",
+                  isDark
+                    ? "border-white/10 bg-slate-950 text-white"
+                    : "border-emerald-100 bg-white text-emerald-700"
+                )}
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size} / page
+                  </option>
+                ))}
+              </select>
 
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(master)}
-                    disabled={actionLoading}
-                    className={cx(
-                      "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
-                      isDark
-                        ? "bg-emerald-500 hover:bg-emerald-400"
-                        : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:from-emerald-600 hover:to-green-700"
-                    )}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy Master
-                  </button>
-                </div>
+              <PaginationButton
+                isDark={isDark}
+                label="First page"
+                disabled={safePage === 1}
+                onClick={() => setPage(1)}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </PaginationButton>
 
-                <p
+              <PaginationButton
+                isDark={isDark}
+                label="Previous page"
+                disabled={safePage === 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </PaginationButton>
+
+              <div
+                className={cx(
+                  "rounded-xl border px-4 py-2 text-sm font-black",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04] text-white"
+                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                )}
+              >
+                Page {safePage} / {totalPages}
+              </div>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Next page"
+                disabled={safePage === totalPages}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+              >
+                <ChevronRight className="h-4 w-4" />
+              </PaginationButton>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Last page"
+                disabled={safePage === totalPages}
+                onClick={() => setPage(totalPages)}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </PaginationButton>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {paginatedMasters.map((master, index) => {
+              const masterAccount =
+                pickMasterAccount(master) || `MASTER-${startIndex + index + 1}`;
+              const name = pickName(master);
+              const minInvest =
+                master?.min_invest ||
+                master?.minInvest ||
+                master?.minimumInvestment ||
+                0;
+
+              return (
+                <div
+                  key={`${masterAccount}-${startIndex + index}`}
                   className={cx(
-                    "mt-4 text-sm leading-6",
-                    isDark ? "text-white/60" : "text-slate-600"
+                    "rounded-[24px] border p-5",
+                    isDark
+                      ? "border-white/10 bg-white/[0.035]"
+                      : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.07)]"
                   )}
                 >
-                  {master?.description ||
-                    master?.Description ||
-                    "No description added for this master trader."}
-                </p>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p
+                        className={cx(
+                          "text-xs font-semibold uppercase tracking-[0.14em]",
+                          isDark ? "text-white/45" : "text-slate-500"
+                        )}
+                      >
+                        Master Account
+                      </p>
 
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
-                  <InfoBox
-                    isDark={isDark}
-                    icon={<Percent className="h-4 w-4" />}
-                    label="Commission"
-                    value={`${master?.commission || master?.Commission || 0}%`}
-                  />
+                      <h3
+                        className={cx(
+                          "mt-1 text-xl font-bold",
+                          isDark ? "text-white" : "text-slate-900"
+                        )}
+                      >
+                        {name === "-" ? `#${masterAccount}` : name}
+                      </h3>
 
-                  <InfoBox
-                    isDark={isDark}
-                    icon={<DollarSign className="h-4 w-4" />}
-                    label="Min Invest"
-                    value={`$${minInvest || 0}`}
-                  />
+                      <p
+                        className={cx(
+                          "mt-1 text-sm",
+                          isDark ? "text-white/55" : "text-slate-500"
+                        )}
+                      >
+                        #{masterAccount}
+                      </p>
 
-                  <InfoBox
-                    isDark={isDark}
-                    icon={<Users className="h-4 w-4" />}
-                    label="Copiers"
-                    value={master?.copiers || master?.Copiers || 0}
-                  />
+                      <p
+                        className={cx(
+                          "mt-1 text-xs",
+                          isDark ? "text-emerald-200/70" : "text-emerald-700"
+                        )}
+                      >
+                        Created: {formatMasterCreatedDate(master)}
+                      </p>
+                    </div>
 
-                  <InfoBox
-                    isDark={isDark}
-                    icon={<ShieldCheck className="h-4 w-4" />}
-                    label="Status"
-                    value="Active"
-                  />
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(master)}
+                      disabled={actionLoading}
+                      className={cx(
+                        "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
+                        isDark
+                          ? "bg-emerald-500 hover:bg-emerald-400"
+                          : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:from-emerald-600 hover:to-green-700"
+                      )}
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Master
+                    </button>
+                  </div>
+
+                  <p
+                    className={cx(
+                      "mt-4 text-sm leading-6",
+                      isDark ? "text-white/60" : "text-slate-600"
+                    )}
+                  >
+                    {master?.description ||
+                      master?.Description ||
+                      "No description added for this master trader."}
+                  </p>
+
+                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
+                    <InfoBox
+                      isDark={isDark}
+                      icon={<Percent className="h-4 w-4" />}
+                      label="Commission"
+                      value={`${master?.commission || master?.Commission || 0}%`}
+                    />
+
+                    <InfoBox
+                      isDark={isDark}
+                      icon={<DollarSign className="h-4 w-4" />}
+                      label="Min Invest"
+                      value={`$${minInvest || 0}`}
+                    />
+
+                    <InfoBox
+                      isDark={isDark}
+                      icon={<Users className="h-4 w-4" />}
+                      label="Copiers"
+                      value={master?.copiers || master?.Copiers || 0}
+                    />
+
+                    <InfoBox
+                      isDark={isDark}
+                      icon={<ShieldCheck className="h-4 w-4" />}
+                      label="Status"
+                      value="Active"
+                    />
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div
+              className={cx(
+                "flex flex-wrap items-center justify-center gap-2 rounded-[22px] border p-4",
+                isDark
+                  ? "border-white/10 bg-white/[0.035]"
+                  : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+              )}
+            >
+              <PaginationButton
+                isDark={isDark}
+                label="First page"
+                disabled={safePage === 1}
+                onClick={() => setPage(1)}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </PaginationButton>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Previous page"
+                disabled={safePage === 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </PaginationButton>
+
+              <div
+                className={cx(
+                  "rounded-xl border px-4 py-2 text-sm font-black",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04] text-white"
+                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                )}
+              >
+                Page {safePage} / {totalPages}
               </div>
-            );
-          })}
+
+              <PaginationButton
+                isDark={isDark}
+                label="Next page"
+                disabled={safePage === totalPages}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+              >
+                <ChevronRight className="h-4 w-4" />
+              </PaginationButton>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Last page"
+                disabled={safePage === totalPages}
+                onClick={() => setPage(totalPages)}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </PaginationButton>
+            </div>
+          )}
         </div>
       )}
     </div>

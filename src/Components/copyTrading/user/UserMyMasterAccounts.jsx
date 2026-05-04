@@ -3,9 +3,17 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
+  ChevronsLeft,
+  ChevronsRight,
+  Clock3,
+  Filter,
   RefreshCw,
   RadioTower,
+  RotateCcw,
+  Search,
   Users,
 } from "lucide-react";
 
@@ -28,6 +36,8 @@ import {
 } from "../utils/copyTradingHelpers";
 import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
 import CopyTradingTable from "../shared/CopyTradingTable";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const getUserMt5Accounts = (user) => {
   const output = [];
@@ -97,7 +107,223 @@ const getMasterValue = (master, key, fallback = "-") => {
     master?.details?.[key] ??
     master?.raw?.masterAccount?.[key] ??
     master?.raw?.MasterAccount?.[key] ??
+    master?.details?.data?.[key] ??
+    master?.raw?.[key] ??
+    master?.[key] ??
     fallback
+  );
+};
+
+const getMasterAccount = (master) => {
+  return String(
+    master?.account ||
+      getMasterValue(master, "login", "") ||
+      getMasterValue(master, "Login", "") ||
+      getMasterValue(master, "MT5Account", "") ||
+      getMasterValue(master, "mt5Account", "") ||
+      ""
+  );
+};
+
+const getMasterName = (master) => {
+  return String(
+    getMasterValue(master, "name", "") ||
+      getMasterValue(master, "nickname", "") ||
+      getMasterValue(master, "NickName", "") ||
+      "-"
+  );
+};
+
+const getMasterCommission = (master) => {
+  return Number(getMasterValue(master, "commission", 0) || 0);
+};
+
+const getMasterMinInvest = (master) => {
+  return Number(
+    getMasterValue(master, "min_invest", 0) ||
+      getMasterValue(master, "minInvest", 0) ||
+      getMasterValue(master, "minimumInvestment", 0) ||
+      0
+  );
+};
+
+const getMasterCopiers = (master) => {
+  return Array.isArray(master?.copiers) ? master.copiers : [];
+};
+
+const parseDateToTimestamp = (value) => {
+  if (!value) return 0;
+
+  if (value instanceof Date) {
+    const timestamp = value.getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  }
+
+  if (typeof value === "number") {
+    const timestamp = value < 10000000000 ? value * 1000 : value;
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
+  const cleanValue = String(value).trim();
+
+  if (!cleanValue) return 0;
+
+  if (/^\d+$/.test(cleanValue)) {
+    const numberValue = Number(cleanValue);
+    const timestamp =
+      numberValue < 10000000000 ? numberValue * 1000 : numberValue;
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
+  const normalizedValue = cleanValue.includes("T")
+    ? cleanValue
+    : cleanValue.replace(" ", "T");
+
+  const date = new Date(normalizedValue);
+
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+};
+
+const formatAgoFromTimestamp = (timestamp) => {
+  if (!timestamp) return "-";
+
+  const diffMs = Date.now() - timestamp;
+
+  if (diffMs < 0) return "Just now";
+
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+
+  if (diffSeconds < 60) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffHours < 24) return `${diffHours} hr ago`;
+  if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  if (diffMonths < 12) {
+    return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`;
+  }
+
+  return `${diffYears} year${diffYears > 1 ? "s" : ""} ago`;
+};
+
+const getMasterCreatedTimestamp = (master) => {
+  const candidates = [
+    master?.created_at,
+    master?.createdAt,
+    master?.CreatedAt,
+    master?.created_date,
+    master?.createdDate,
+    master?.updated_at,
+    master?.updatedAt,
+    master?.UpdatedAt,
+
+    master?.details?.created_at,
+    master?.details?.createdAt,
+    master?.details?.CreatedAt,
+    master?.details?.created_date,
+    master?.details?.createdDate,
+    master?.details?.updated_at,
+    master?.details?.updatedAt,
+    master?.details?.UpdatedAt,
+
+    master?.raw?.created_at,
+    master?.raw?.createdAt,
+    master?.raw?.CreatedAt,
+    master?.raw?.created_date,
+    master?.raw?.createdDate,
+    master?.raw?.updated_at,
+    master?.raw?.updatedAt,
+    master?.raw?.UpdatedAt,
+
+    master?.raw?.masterAccount?.created_at,
+    master?.raw?.masterAccount?.createdAt,
+    master?.raw?.masterAccount?.CreatedAt,
+    master?.raw?.masterAccount?.created_date,
+    master?.raw?.masterAccount?.createdDate,
+    master?.raw?.masterAccount?.updated_at,
+    master?.raw?.masterAccount?.updatedAt,
+    master?.raw?.masterAccount?.UpdatedAt,
+
+    master?.raw?.MasterAccount?.created_at,
+    master?.raw?.MasterAccount?.createdAt,
+    master?.raw?.MasterAccount?.CreatedAt,
+    master?.raw?.MasterAccount?.created_date,
+    master?.raw?.MasterAccount?.createdDate,
+  ];
+
+  for (const value of candidates) {
+    const timestamp = parseDateToTimestamp(value);
+
+    if (timestamp) return timestamp;
+  }
+
+  return 0;
+};
+
+const getCopierCreatedTimestamp = (copier) => {
+  const candidates = [
+    copier?.created_at,
+    copier?.createdAt,
+    copier?.CreatedAt,
+    copier?.created_date,
+    copier?.createdDate,
+    copier?.updated_at,
+    copier?.updatedAt,
+    copier?.UpdatedAt,
+    copier?.details?.created_at,
+    copier?.details?.createdAt,
+    copier?.details?.CreatedAt,
+  ];
+
+  for (const value of candidates) {
+    const timestamp = parseDateToTimestamp(value);
+
+    if (timestamp) return timestamp;
+  }
+
+  return 0;
+};
+
+const formatTimestampDate = (timestamp) => {
+  if (!timestamp) return "-";
+
+  return new Date(timestamp).toLocaleString();
+};
+
+const formatMasterCreatedDate = (master) => {
+  return formatTimestampDate(getMasterCreatedTimestamp(master));
+};
+
+const formatMasterCreatedAgo = (master) => {
+  return formatAgoFromTimestamp(getMasterCreatedTimestamp(master));
+};
+
+const formatCopierCreatedDate = (copier) => {
+  return formatTimestampDate(getCopierCreatedTimestamp(copier));
+};
+
+const formatCopierCreatedAgo = (copier) => {
+  return formatAgoFromTimestamp(getCopierCreatedTimestamp(copier));
+};
+
+const AgoBadge = ({ isDark, children }) => {
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-bold",
+        isDark
+          ? "border-white/10 bg-white/[0.04] text-white/70"
+          : "border-emerald-100 bg-emerald-50 text-emerald-700"
+      )}
+    >
+      <Clock3 className="h-3.5 w-3.5" />
+      {children}
+    </span>
   );
 };
 
@@ -270,6 +496,77 @@ const AccountTradePanel = ({ isDark, userId, account, mode = "master" }) => {
   );
 };
 
+const FilterInput = ({ isDark, value, onChange }) => {
+  return (
+    <div
+      className={cx(
+        "flex items-center gap-2 rounded-2xl border px-4 py-3",
+        isDark
+          ? "border-white/10 bg-white/[0.04] text-white"
+          : "border-emerald-100 bg-white text-slate-900"
+      )}
+    >
+      <Search className="h-4 w-4 text-emerald-600" />
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Search master, copier, name, commission..."
+        className={cx(
+          "w-full bg-transparent text-sm font-semibold outline-none placeholder:text-slate-400",
+          isDark ? "text-white" : "text-slate-900"
+        )}
+      />
+    </div>
+  );
+};
+
+const FilterSelect = ({ isDark, label, value, onChange, children }) => {
+  return (
+    <label className="space-y-2">
+      <span
+        className={cx(
+          "text-xs font-black uppercase tracking-[0.14em]",
+          isDark ? "text-white/45" : "text-slate-500"
+        )}
+      >
+        {label}
+      </span>
+
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={cx(
+          "w-full rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
+          isDark
+            ? "border-white/10 bg-slate-950 text-white"
+            : "border-emerald-100 bg-white text-slate-900"
+        )}
+      >
+        {children}
+      </select>
+    </label>
+  );
+};
+
+const PaginationButton = ({ isDark, disabled, onClick, children, label }) => {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={cx(
+        "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40",
+        isDark
+          ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+          : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+      )}
+    >
+      {children}
+    </button>
+  );
+};
+
 const UserMyMasterAccounts = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
@@ -278,6 +575,15 @@ const UserMyMasterAccounts = () => {
   const [masters, setMasters] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [copierFilter, setCopierFilter] = useState("all");
+  const [commissionFilter, setCommissionFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const loadMasters = async () => {
     try {
@@ -305,6 +611,7 @@ const UserMyMasterAccounts = () => {
         : [];
 
       setMasters(masterAccounts);
+      setPage(1);
     } catch (error) {
       console.error(error);
       toast.error(error?.message || "Failed to load master accounts");
@@ -318,12 +625,187 @@ const UserMyMasterAccounts = () => {
     loadMasters();
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchText, copierFilter, commissionFilter, sortBy, pageSize]);
+
   const totalCopiers = useMemo(() => {
     return masters.reduce((sum, master) => {
-      const copiers = Array.isArray(master?.copiers) ? master.copiers : [];
-      return sum + copiers.length;
+      return sum + getMasterCopiers(master).length;
     }, 0);
   }, [masters]);
+
+  const filteredMasters = useMemo(() => {
+    const search = searchText.trim().toLowerCase();
+
+    let rows = masters.map((master, index) => ({
+      master,
+      index,
+    }));
+
+    if (search) {
+      rows = rows.filter(({ master }) => {
+        const masterAccount = getMasterAccount(master);
+        const masterName = getMasterName(master);
+        const commission = getMasterCommission(master);
+        const minInvest = getMasterMinInvest(master);
+        const createdDate = formatMasterCreatedDate(master);
+        const createdAgo = formatMasterCreatedAgo(master);
+        const copiers = getMasterCopiers(master);
+
+        const copierText = copiers
+          .map((copier) => {
+            return [
+              getCopierAccount(copier),
+              copier?.name,
+              copier?.Name,
+              copier?.login,
+              copier?.Login,
+              formatCopierCreatedDate(copier),
+              formatCopierCreatedAgo(copier),
+            ].join(" ");
+          })
+          .join(" ");
+
+        const fullText = [
+          masterAccount,
+          masterName,
+          commission,
+          minInvest,
+          createdDate,
+          createdAgo,
+          copierText,
+          JSON.stringify(master || {}),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return fullText.includes(search);
+      });
+    }
+
+    if (copierFilter !== "all") {
+      rows = rows.filter(({ master }) => {
+        const count = getMasterCopiers(master).length;
+
+        if (copierFilter === "withCopiers") return count > 0;
+        if (copierFilter === "noCopiers") return count === 0;
+        if (copierFilter === "onePlus") return count >= 1;
+        if (copierFilter === "twoPlus") return count >= 2;
+        if (copierFilter === "fivePlus") return count >= 5;
+
+        return true;
+      });
+    }
+
+    if (commissionFilter !== "all") {
+      rows = rows.filter(({ master }) => {
+        const commission = getMasterCommission(master);
+
+        if (commissionFilter === "free") return commission === 0;
+        if (commissionFilter === "paid") return commission > 0;
+        if (commissionFilter === "low") return commission > 0 && commission <= 5;
+        if (commissionFilter === "medium")
+          return commission > 5 && commission <= 15;
+        if (commissionFilter === "high") return commission > 15;
+
+        return true;
+      });
+    }
+
+    rows.sort((a, b) => {
+      const aTime = getMasterCreatedTimestamp(a.master);
+      const bTime = getMasterCreatedTimestamp(b.master);
+      const aAccount = Number(getMasterAccount(a.master) || 0);
+      const bAccount = Number(getMasterAccount(b.master) || 0);
+      const aCommission = getMasterCommission(a.master);
+      const bCommission = getMasterCommission(b.master);
+      const aCopiers = getMasterCopiers(a.master).length;
+      const bCopiers = getMasterCopiers(b.master).length;
+      const aMinInvest = getMasterMinInvest(a.master);
+      const bMinInvest = getMasterMinInvest(b.master);
+
+      if (sortBy === "oldest") {
+        if (aTime !== bTime) return aTime - bTime;
+        return a.index - b.index;
+      }
+
+      if (sortBy === "copiersHigh") return bCopiers - aCopiers;
+      if (sortBy === "copiersLow") return aCopiers - bCopiers;
+      if (sortBy === "commissionHigh") return bCommission - aCommission;
+      if (sortBy === "commissionLow") return aCommission - bCommission;
+      if (sortBy === "minInvestHigh") return bMinInvest - aMinInvest;
+      if (sortBy === "minInvestLow") return aMinInvest - bMinInvest;
+      if (sortBy === "accountAsc") return aAccount - bAccount;
+      if (sortBy === "accountDesc") return bAccount - aAccount;
+
+      if (bTime !== aTime) return bTime - aTime;
+      return a.index - b.index;
+    });
+
+    return rows.map(({ master }) => master);
+  }, [masters, searchText, copierFilter, commissionFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMasters.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = filteredMasters.length ? (safePage - 1) * pageSize : 0;
+  const endIndex = Math.min(startIndex + pageSize, filteredMasters.length);
+
+  const paginatedMasters = useMemo(() => {
+    return filteredMasters.slice(startIndex, endIndex);
+  }, [filteredMasters, startIndex, endIndex]);
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [page, safePage]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+
+    if (searchText.trim()) count += 1;
+    if (copierFilter !== "all") count += 1;
+    if (commissionFilter !== "all") count += 1;
+    if (sortBy !== "newest") count += 1;
+
+    return count;
+  }, [searchText, copierFilter, commissionFilter, sortBy]);
+
+  const resetFilters = () => {
+    setSearchText("");
+    setCopierFilter("all");
+    setCommissionFilter("all");
+    setSortBy("newest");
+    setPage(1);
+  };
+
+  const expandAllOnPage = () => {
+    const next = {};
+
+    paginatedMasters.forEach((master) => {
+      const account = getMasterAccount(master);
+      if (account) next[account] = true;
+    });
+
+    setExpanded((prev) => ({
+      ...prev,
+      ...next,
+    }));
+  };
+
+  const collapseAllOnPage = () => {
+    setExpanded((prev) => {
+      const next = { ...prev };
+
+      paginatedMasters.forEach((master) => {
+        const account = getMasterAccount(master);
+        if (account) delete next[account];
+      });
+
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -352,7 +834,7 @@ const UserMyMasterAccounts = () => {
     <div className="space-y-5">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-2",
+          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-3",
           isDark
             ? "border-white/10 bg-white/[0.035]"
             : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
@@ -385,164 +867,505 @@ const UserMyMasterAccounts = () => {
 
           <div className="mt-2 text-2xl font-black">{totalCopiers}</div>
         </div>
-      </div>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={loadMasters}
-          disabled={loading}
+        <div
           className={cx(
-            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white"
-              : "border-emerald-100 bg-white text-emerald-700"
+            "rounded-2xl border p-4",
+            isDark ? "border-white/10" : "border-emerald-100"
           )}
         >
-          <RefreshCw className={cx("h-3.5 w-3.5", loading && "animate-spin")} />
-          Refresh Accounts
-        </button>
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <Filter className="h-4 w-4" />
+            Showing Results
+          </div>
+
+          <div className="mt-2 text-2xl font-black">
+            {filteredMasters.length}
+          </div>
+        </div>
       </div>
 
-      {masters.map((master, index) => {
-        const masterAccount = String(master?.account || "");
-        const copiers = Array.isArray(master?.copiers) ? master.copiers : [];
-        const isOpen = Boolean(expanded[masterAccount]);
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p
+          className={cx(
+            "text-sm",
+            isDark ? "text-white/55" : "text-slate-500"
+          )}
+        >
+          Showing{" "}
+          <span className="font-bold">
+            {filteredMasters.length ? startIndex + 1 : 0}-{endIndex}
+          </span>{" "}
+          of <span className="font-bold">{filteredMasters.length}</span>{" "}
+          masters · Newest first by default
+        </p>
 
-        return (
-          <div
-            key={`${masterAccount}-${index}`}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={expandAllOnPage}
+            disabled={!paginatedMasters.length}
             className={cx(
-              "overflow-hidden rounded-[24px] border",
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-50",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white"
+                : "border-emerald-100 bg-white text-emerald-700"
+            )}
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+            Expand Page
+          </button>
+
+          <button
+            type="button"
+            onClick={collapseAllOnPage}
+            disabled={!paginatedMasters.length}
+            className={cx(
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-50",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white"
+                : "border-emerald-100 bg-white text-emerald-700"
+            )}
+          >
+            <ChevronUp className="h-3.5 w-3.5" />
+            Collapse Page
+          </button>
+
+          <button
+            type="button"
+            onClick={loadMasters}
+            disabled={loading}
+            className={cx(
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white"
+                : "border-emerald-100 bg-white text-emerald-700"
+            )}
+          >
+            <RefreshCw
+              className={cx("h-3.5 w-3.5", loading && "animate-spin")}
+            />
+            Refresh Accounts
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((prev) => !prev)}
+          className={cx(
+            "flex w-full items-center justify-between gap-4 rounded-[22px] border p-4 text-left transition-all",
+            isDark
+              ? "border-white/10 bg-white/[0.035] text-white hover:bg-white/[0.06]"
+              : "border-emerald-100 bg-white text-slate-950 shadow-[0_10px_24px_rgba(16,185,129,0.06)] hover:bg-emerald-50/40"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={cx(
+                "flex h-11 w-11 items-center justify-center rounded-2xl border",
+                isDark
+                  ? "border-white/10 bg-white/[0.04]"
+                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
+              )}
+            >
+              <Filter className="h-5 w-5" />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-black">Search & Filters</h3>
+              <p
+                className={cx(
+                  "mt-1 text-xs",
+                  isDark ? "text-white/45" : "text-slate-500"
+                )}
+              >
+                Search master/copier accounts, filter by copiers or commission,
+                and sort results.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {activeFilterCount ? (
+              <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white">
+                {activeFilterCount} Active
+              </span>
+            ) : null}
+
+            {filtersOpen ? (
+              <ChevronUp className="h-5 w-5" />
+            ) : (
+              <ChevronDown className="h-5 w-5" />
+            )}
+          </div>
+        </button>
+
+        {filtersOpen && (
+          <div
+            className={cx(
+              "rounded-[24px] border p-4",
               isDark
                 ? "border-white/10 bg-white/[0.03]"
                 : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
             )}
           >
-            <button
-              type="button"
-              onClick={() =>
-                setExpanded((prev) => ({
-                  ...prev,
-                  [masterAccount]: !prev[masterAccount],
-                }))
-              }
-              className="flex w-full items-center justify-between gap-4 p-5 text-left"
-            >
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">
-                  Master Account
-                </p>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.3fr_1fr_1fr_1fr_0.8fr_auto]">
+              <FilterInput
+                isDark={isDark}
+                value={searchText}
+                onChange={setSearchText}
+              />
 
-                <h3 className="mt-1 text-xl font-black">#{masterAccount}</h3>
+              <FilterSelect
+                isDark={isDark}
+                label="Copier Filter"
+                value={copierFilter}
+                onChange={setCopierFilter}
+              >
+                <option value="all">All Masters</option>
+                <option value="withCopiers">With Copiers</option>
+                <option value="noCopiers">No Copiers</option>
+                <option value="onePlus">1+ Copier</option>
+                <option value="twoPlus">2+ Copiers</option>
+                <option value="fivePlus">5+ Copiers</option>
+              </FilterSelect>
 
-                <p
+              <FilterSelect
+                isDark={isDark}
+                label="Commission"
+                value={commissionFilter}
+                onChange={setCommissionFilter}
+              >
+                <option value="all">All Commission</option>
+                <option value="free">0% Commission</option>
+                <option value="paid">Paid Commission</option>
+                <option value="low">Low: 1% - 5%</option>
+                <option value="medium">Medium: 6% - 15%</option>
+                <option value="high">High: 15%+</option>
+              </FilterSelect>
+
+              <FilterSelect
+                isDark={isDark}
+                label="Sort By"
+                value={sortBy}
+                onChange={setSortBy}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="copiersHigh">Copiers High</option>
+                <option value="copiersLow">Copiers Low</option>
+                <option value="commissionHigh">Commission High</option>
+                <option value="commissionLow">Commission Low</option>
+                <option value="minInvestHigh">Min Invest High</option>
+                <option value="minInvestLow">Min Invest Low</option>
+                <option value="accountAsc">Account ↑</option>
+                <option value="accountDesc">Account ↓</option>
+              </FilterSelect>
+
+              <FilterSelect
+                isDark={isDark}
+                label="Page Size"
+                value={pageSize}
+                onChange={(value) => setPageSize(Number(value))}
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size} / page
+                  </option>
+                ))}
+              </FilterSelect>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={resetFilters}
                   className={cx(
-                    "mt-2 text-sm",
-                    isDark ? "text-white/55" : "text-slate-500"
+                    "inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black",
+                    isDark
+                      ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                      : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
                   )}
                 >
-                  Commission: {getMasterValue(master, "commission", 0)}% ·
-                  Min Invest: ${getMasterValue(master, "min_invest", 0)} ·
-                  Copiers: {copiers.length}
-                </p>
+                  <RotateCcw className="h-4 w-4" />
+                  Reset
+                </button>
               </div>
+            </div>
+          </div>
+        )}
+      </div>
 
-              {isOpen ? <ChevronUp /> : <ChevronDown />}
-            </button>
+      {!filteredMasters.length ? (
+        <CopyTradingEmptyState
+          isDark={isDark}
+          title="No matching master accounts"
+          subtitle="Try changing search text or filters."
+        />
+      ) : (
+        <div className="space-y-4">
+          {paginatedMasters.map((master, index) => {
+            const masterAccount = getMasterAccount(master);
+            const copiers = getMasterCopiers(master);
+            const isOpen = Boolean(expanded[masterAccount]);
+            const masterCreatedAgo = formatMasterCreatedAgo(master);
 
-            {isOpen && (
+            return (
               <div
+                key={`${masterAccount}-${startIndex + index}`}
                 className={cx(
-                  "space-y-5 border-t p-5",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "overflow-hidden rounded-[24px] border",
+                  isDark
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
                 )}
               >
-                <div>
-                  <h4 className="mb-3 text-sm font-black">Master Trades</h4>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpanded((prev) => ({
+                      ...prev,
+                      [masterAccount]: !prev[masterAccount],
+                    }))
+                  }
+                  className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">
+                        Master Account
+                      </p>
 
-                  <AccountTradePanel
-                    isDark={isDark}
-                    userId={userId}
-                    account={masterAccount}
-                    mode="master"
-                  />
-                </div>
+                      <AgoBadge isDark={isDark}>
+                        Created {masterCreatedAgo}
+                      </AgoBadge>
+                    </div>
 
-                <div>
-                  <h4 className="mb-3 text-sm font-black">
-                    Linked Copiers ({copiers.length})
-                  </h4>
+                    <h3 className="mt-2 text-xl font-black">
+                      #{masterAccount}
+                    </h3>
 
-                  {!copiers.length ? (
-                    <CopyTradingEmptyState
-                      isDark={isDark}
-                      title="No linked copiers found"
-                      subtitle="This master account does not have copier details in the current API response."
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      {copiers.map((copier, copierIndex) => {
-                        const copierAccount = getCopierAccount(copier);
+                    <p
+                      className={cx(
+                        "mt-2 text-sm",
+                        isDark ? "text-white/55" : "text-slate-500"
+                      )}
+                    >
+                      Name: {getMasterName(master)} · Commission:{" "}
+                      {getMasterCommission(master)}% · Min Invest: $
+                      {getMasterMinInvest(master)} · Copiers: {copiers.length}
+                    </p>
 
-                        return (
-                          <div
-                            key={`${copierAccount}-${copierIndex}`}
-                            className={cx(
-                              "rounded-[20px] border p-4",
-                              isDark
-                                ? "border-white/10 bg-slate-950/40"
-                                : "border-emerald-100 bg-emerald-50/40"
-                            )}
-                          >
-                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                              <div>
-                                <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">
-                                  Copier Account
-                                </p>
+                    <p
+                      className={cx(
+                        "mt-1 text-xs",
+                        isDark ? "text-emerald-200/70" : "text-emerald-700"
+                      )}
+                    >
+                      Created: {formatMasterCreatedDate(master)}
+                    </p>
+                  </div>
 
-                                <h5 className="mt-1 text-base font-black">
-                                  #{copierAccount || "-"}
-                                </h5>
-                              </div>
+                  {isOpen ? <ChevronUp /> : <ChevronDown />}
+                </button>
 
+                {isOpen && (
+                  <div
+                    className={cx(
+                      "space-y-5 border-t p-5",
+                      isDark ? "border-white/10" : "border-emerald-100"
+                    )}
+                  >
+                    <div>
+                      <h4 className="mb-3 text-sm font-black">
+                        Master Trades
+                      </h4>
+
+                      <AccountTradePanel
+                        isDark={isDark}
+                        userId={userId}
+                        account={masterAccount}
+                        mode="master"
+                      />
+                    </div>
+
+                    <div>
+                      <h4 className="mb-3 text-sm font-black">
+                        Linked Copiers ({copiers.length})
+                      </h4>
+
+                      {!copiers.length ? (
+                        <CopyTradingEmptyState
+                          isDark={isDark}
+                          title="No linked copiers found"
+                          subtitle="This master account does not have copier details in the current API response."
+                        />
+                      ) : (
+                        <div className="space-y-4">
+                          {copiers.map((copier, copierIndex) => {
+                            const copierAccount = getCopierAccount(copier);
+                            const copierCreatedAgo =
+                              formatCopierCreatedAgo(copier);
+
+                            return (
                               <div
+                                key={`${copierAccount}-${copierIndex}`}
                                 className={cx(
-                                  "rounded-xl border px-3 py-2 text-xs font-bold",
+                                  "rounded-[20px] border p-4",
                                   isDark
-                                    ? "border-white/10 bg-white/[0.04] text-white/70"
-                                    : "border-emerald-100 bg-white text-slate-600"
+                                    ? "border-white/10 bg-slate-950/40"
+                                    : "border-emerald-100 bg-emerald-50/40"
                                 )}
                               >
-                                Master #{masterAccount}
-                              </div>
-                            </div>
+                                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">
+                                        Copier Account
+                                      </p>
 
-                            {copierAccount ? (
-                              <AccountTradePanel
-                                isDark={isDark}
-                                userId={userId}
-                                account={copierAccount}
-                                mode="copier"
-                              />
-                            ) : (
-                              <CopyTradingEmptyState
-                                isDark={isDark}
-                                title="Copier account missing"
-                                subtitle="This copier row does not contain an MT5 account number."
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
+                                      <AgoBadge isDark={isDark}>
+                                        Linked {copierCreatedAgo}
+                                      </AgoBadge>
+                                    </div>
+
+                                    <h5 className="mt-2 text-base font-black">
+                                      #{copierAccount || "-"}
+                                    </h5>
+
+                                    <p
+                                      className={cx(
+                                        "mt-1 text-xs",
+                                        isDark
+                                          ? "text-white/45"
+                                          : "text-slate-500"
+                                      )}
+                                    >
+                                      Created: {formatCopierCreatedDate(copier)}
+                                    </p>
+                                  </div>
+
+                                  <div
+                                    className={cx(
+                                      "rounded-xl border px-3 py-2 text-xs font-bold",
+                                      isDark
+                                        ? "border-white/10 bg-white/[0.04] text-white/70"
+                                        : "border-emerald-100 bg-white text-slate-600"
+                                    )}
+                                  >
+                                    Master #{masterAccount}
+                                  </div>
+                                </div>
+
+                                {copierAccount ? (
+                                  <AccountTradePanel
+                                    isDark={isDark}
+                                    userId={userId}
+                                    account={copierAccount}
+                                    mode="copier"
+                                  />
+                                ) : (
+                                  <CopyTradingEmptyState
+                                    isDark={isDark}
+                                    title="Copier account missing"
+                                    subtitle="This copier row does not contain an MT5 account number."
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
+            );
+          })}
+
+          <div
+            className={cx(
+              "flex flex-col gap-3 rounded-[22px] border p-4 sm:flex-row sm:items-center sm:justify-between",
+              isDark
+                ? "border-white/10 bg-white/[0.035]"
+                : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
             )}
+          >
+            <div>
+              <p
+                className={cx(
+                  "text-sm font-bold",
+                  isDark ? "text-white" : "text-slate-900"
+                )}
+              >
+                Page {safePage} / {totalPages}
+              </p>
+
+              <p
+                className={cx(
+                  "mt-1 text-xs",
+                  isDark ? "text-white/45" : "text-slate-500"
+                )}
+              >
+                Showing {filteredMasters.length ? startIndex + 1 : 0}-{endIndex}{" "}
+                of {filteredMasters.length}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <PaginationButton
+                isDark={isDark}
+                label="First page"
+                disabled={safePage === 1}
+                onClick={() => setPage(1)}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </PaginationButton>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Previous page"
+                disabled={safePage === 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </PaginationButton>
+
+              <div
+                className={cx(
+                  "rounded-xl border px-4 py-2 text-sm font-black",
+                  isDark
+                    ? "border-white/10 bg-white/[0.04] text-white"
+                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                )}
+              >
+                {safePage} / {totalPages}
+              </div>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Next page"
+                disabled={safePage === totalPages}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+              >
+                <ChevronRight className="h-4 w-4" />
+              </PaginationButton>
+
+              <PaginationButton
+                isDark={isDark}
+                label="Last page"
+                disabled={safePage === totalPages}
+                onClick={() => setPage(totalPages)}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </PaginationButton>
+            </div>
           </div>
-        );
-      })}
+        </div>
+      )}
     </div>
   );
 };

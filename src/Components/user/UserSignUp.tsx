@@ -26,6 +26,8 @@ import {
   Check,
   LineChart,
   Rocket,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { getData } from "country-list";
 import { useDispatch, useSelector } from "react-redux";
@@ -57,6 +59,7 @@ const rgba = (v: any, a = 1) => {
 const orange = "249 115 22";
 const deepOrange = "234 88 12";
 const amber = "251 146 60";
+const danger = "239 68 68";
 
 const fontStack =
   '"Inter", "Plus Jakarta Sans", "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -152,6 +155,170 @@ const extractSiteConfigFromResponse = (res: any) => {
   return payload;
 };
 
+/* -------------------- error helpers -------------------- */
+const getFirstString = (...values: any[]) => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+
+  return "";
+};
+
+const flattenErrorMessages = (value: any): string[] => {
+  if (!value) return [];
+
+  if (typeof value === "string") return [value];
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => flattenErrorMessages(item));
+  }
+
+  if (typeof value === "object") {
+    const messages: string[] = [];
+
+    Object.entries(value).forEach(([key, item]: any) => {
+      if (typeof item === "string") {
+        messages.push(item);
+        return;
+      }
+
+      if (Array.isArray(item)) {
+        item.forEach((entry) => {
+          if (typeof entry === "string") {
+            messages.push(entry);
+          } else if (entry?.message) {
+            messages.push(String(entry.message));
+          }
+        });
+        return;
+      }
+
+      if (item?.message) {
+        messages.push(String(item.message));
+        return;
+      }
+
+      if (typeof item === "object") {
+        const nested = flattenErrorMessages(item);
+        if (nested.length) messages.push(...nested);
+      }
+
+      if (!messages.length && key && typeof item !== "object") {
+        messages.push(`${key}: ${String(item)}`);
+      }
+    });
+
+    return messages;
+  }
+
+  return [];
+};
+
+const extractApiErrorDetails = (err: any) => {
+  const responseData = err?.response?.data;
+  const directData = err?.data;
+  const payload = responseData || directData || err || {};
+
+  const status =
+    err?.response?.status ||
+    err?.status ||
+    payload?.statusCode ||
+    payload?.status ||
+    null;
+
+  const nestedMessages = flattenErrorMessages(
+    payload?.errors ||
+      payload?.error?.errors ||
+      payload?.data?.errors ||
+      payload?.details
+  );
+
+  let message =
+    getFirstString(
+      payload?.message,
+      payload?.msg,
+      payload?.error?.message,
+      payload?.error?.msg,
+      payload?.data?.message,
+      payload?.data?.msg,
+      responseData?.message,
+      responseData?.msg,
+      err?.message
+    ) || nestedMessages[0];
+
+  const rawMessage = message || "";
+
+  const hasResponse = Boolean(err?.response || responseData || directData);
+  const isNetworkError =
+    err?.code === "ERR_NETWORK" ||
+    String(err?.message || "").toLowerCase() === "network error";
+
+  if (!message) {
+    message = "Unable to create your account right now.";
+  }
+
+  if (!hasResponse && isNetworkError) {
+    message = "Network issue: please check your connection and try again.";
+  }
+
+  let title = "Signup failed";
+
+  const lowerMessage = String(message).toLowerCase();
+
+  if (lowerMessage.includes("email") && lowerMessage.includes("exist")) {
+    title = "Email already registered";
+    message = "Email already exists. Please sign in or use another email.";
+  } else if (lowerMessage.includes("phone") && lowerMessage.includes("exist")) {
+    title = "Phone number already registered";
+    message = "Phone number already exists. Please use another phone number.";
+  } else if (status === 409) {
+    title = "Account already exists";
+  } else if (status === 400 || status === 422) {
+    title = "Please check your details";
+  } else if (status === 401) {
+    title = "Unauthorized request";
+  } else if (status === 403) {
+    title = "Permission denied";
+  } else if (status >= 500) {
+    title = "Server error";
+    message = "Server is busy. Please try again later.";
+  } else if (!hasResponse && isNetworkError) {
+    title = "Network issue";
+  }
+
+  return {
+    title,
+    message,
+    status,
+    rawMessage,
+    messages: nestedMessages,
+    payload,
+  };
+};
+
+const buildFieldErrorsFromMessage = (message = "") => {
+  const lower = String(message || "").toLowerCase();
+  const output: Record<string, string> = {};
+
+  if (lower.includes("email")) {
+    output.email = message;
+  }
+
+  if (lower.includes("phone") || lower.includes("mobile")) {
+    output.phone = message;
+  }
+
+  if (lower.includes("password")) {
+    output.password = message;
+  }
+
+  if (lower.includes("country")) {
+    output.country = message;
+  }
+
+  return output;
+};
+
 /* -------------------- password strength -------------------- */
 function getPasswordStrength(pw = "", theme: any) {
   let score = 0;
@@ -166,7 +333,7 @@ function getPasswordStrength(pw = "", theme: any) {
 
   const labels = ["Weak", "Basic", "Good", "Strong", "Excellent"];
   const colors = [
-    theme?.danger || "239 68 68",
+    theme?.danger || danger,
     theme?.warning || "245 158 11",
     theme?.info || "234 179 8",
     theme?.success || "34 197 94",
@@ -491,27 +658,58 @@ const StatStrip = ({ isDark }: { isDark: boolean }) => {
 };
 
 /* -------------------- form field styling -------------------- */
+const FieldError = ({
+  message,
+  isDark,
+}: {
+  message?: string;
+  isDark: boolean;
+}) => {
+  if (!message) return null;
+
+  return (
+    <motion.p
+      initial={{ opacity: 0, y: -3 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-1.5 px-1 text-xs font-bold"
+      style={{
+        color: isDark ? "rgba(252,165,165,0.95)" : "rgba(185,28,28,0.95)",
+      }}
+    >
+      {message}
+    </motion.p>
+  );
+};
+
 const FieldBox = ({
   children,
   active,
   isDark,
+  hasError = false,
 }: {
   children: React.ReactNode;
   active: boolean;
   isDark: boolean;
+  hasError?: boolean;
 }) => {
   return (
     <div
       className="relative rounded-2xl border transition-all duration-200"
       style={{
         borderWidth: "1.5px",
-        borderColor: active
+        borderColor: hasError
+          ? "rgba(239,68,68,0.92)"
+          : active
           ? "rgba(249,115,22,0.92)"
           : isDark
           ? "rgba(255,255,255,0.12)"
           : "rgba(249,115,22,0.42)",
         background: isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.92)",
-        boxShadow: active
+        boxShadow: hasError
+          ? isDark
+            ? "0 0 0 4px rgba(239,68,68,0.14), 0 14px 32px rgba(0,0,0,0.16)"
+            : "0 0 0 4px rgba(239,68,68,0.14), 0 14px 34px rgba(239,68,68,0.12)"
+          : active
           ? isDark
             ? "0 0 0 4px rgba(249,115,22,0.16), 0 14px 32px rgba(0,0,0,0.16)"
             : "0 0 0 4px rgba(249,115,22,0.18), 0 14px 34px rgba(249,115,22,0.16)"
@@ -535,6 +733,7 @@ const SignupField = ({
   isDark,
   rightAction,
   autoComplete,
+  error,
 }: {
   icon: any;
   name: string;
@@ -545,22 +744,25 @@ const SignupField = ({
   isDark: boolean;
   rightAction?: React.ReactNode;
   autoComplete?: string;
+  error?: string;
 }) => {
   const [focused, setFocused] = useState(false);
 
   return (
     <motion.div variants={itemVariants}>
-      <FieldBox active={focused} isDark={isDark}>
+      <FieldBox active={focused} isDark={isDark} hasError={Boolean(error)}>
         <div className="relative">
           <span
             className="absolute left-4 top-1/2 -translate-y-1/2"
-        style={{
-  color: focused
-    ? rgb(orange)
-    : isDark
-    ? "rgba(255,255,255,0.46)"
-    : "rgba(249,115,22,0.72)",
-}}
+            style={{
+              color: error
+                ? rgba(danger, 0.95)
+                : focused
+                ? rgb(orange)
+                : isDark
+                ? "rgba(255,255,255,0.46)"
+                : "rgba(249,115,22,0.72)",
+            }}
           >
             <Icon size={19} strokeWidth={1.8} />
           </span>
@@ -584,6 +786,8 @@ const SignupField = ({
           {rightAction}
         </div>
       </FieldBox>
+
+      <FieldError message={error} isDark={isDark} />
     </motion.div>
   );
 };
@@ -593,23 +797,29 @@ const CountryField = ({
   onChange,
   countriesArray,
   isDark,
+  error,
 }: {
   value: string;
   onChange: (e: any) => void;
   countriesArray: any[];
   isDark: boolean;
+  error?: string;
 }) => {
   const [focused, setFocused] = useState(false);
 
   return (
     <motion.div variants={itemVariants}>
-      <FieldBox active={focused} isDark={isDark}>
+      <FieldBox active={focused} isDark={isDark} hasError={Boolean(error)}>
         <label className="relative block">
           <span
             className="absolute left-4 top-1/2 -translate-y-1/2"
-           style={{
-  color: isDark ? "rgba(255,255,255,0.46)" : "rgba(249,115,22,0.70)",
-}}
+            style={{
+              color: error
+                ? rgba(danger, 0.95)
+                : isDark
+                ? "rgba(255,255,255,0.46)"
+                : "rgba(249,115,22,0.70)",
+            }}
           >
             <Globe size={19} strokeWidth={1.8} />
           </span>
@@ -657,6 +867,8 @@ const CountryField = ({
           />
         </label>
       </FieldBox>
+
+      <FieldError message={error} isDark={isDark} />
     </motion.div>
   );
 };
@@ -671,6 +883,7 @@ const PasswordField = ({
   show,
   setShow,
   showStrength = false,
+  error,
 }: {
   name: string;
   placeholder: string;
@@ -681,6 +894,7 @@ const PasswordField = ({
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   showStrength?: boolean;
+  error?: string;
 }) => {
   const strength = getPasswordStrength(value, theme);
 
@@ -695,6 +909,7 @@ const PasswordField = ({
         onChange={onChange}
         isDark={isDark}
         autoComplete="new-password"
+        error={error}
         rightAction={
           <button
             type="button"
@@ -753,16 +968,18 @@ const PhoneField = ({
   value,
   onChange,
   isDark,
+  error,
 }: {
   value: string;
   onChange: (phone: any) => void;
   isDark: boolean;
+  error?: string;
 }) => {
   const [focused, setFocused] = useState(false);
 
   return (
     <motion.div variants={itemVariants}>
-      <FieldBox active={focused} isDark={isDark}>
+      <FieldBox active={focused} isDark={isDark} hasError={Boolean(error)}>
         <div
           className="relative"
           onFocus={() => setFocused(true)}
@@ -771,7 +988,9 @@ const PhoneField = ({
           <span
             className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2"
             style={{
-              color: focused
+              color: error
+                ? rgba(danger, 0.95)
+                : focused
                 ? rgb(orange)
                 : isDark
                 ? "rgba(255,255,255,0.46)"
@@ -791,6 +1010,89 @@ const PhoneField = ({
           />
         </div>
       </FieldBox>
+
+      <FieldError message={error} isDark={isDark} />
+    </motion.div>
+  );
+};
+
+const ErrorBanner = ({
+  error,
+  isDark,
+  theme,
+  onClose,
+}: {
+  error: any;
+  isDark: boolean;
+  theme: any;
+  onClose: () => void;
+}) => {
+  if (!error?.message) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      className="mb-4 rounded-2xl px-4 py-3 text-sm"
+      style={{
+        border: `1px solid ${rgba(theme?.danger || danger, 0.38)}`,
+        background: rgba(theme?.danger || danger, isDark ? 0.14 : 0.1),
+        color: isDark ? "rgba(255,255,255,0.94)" : "rgba(127,29,29,0.96)",
+        boxShadow: isDark
+          ? "0 14px 36px rgba(0,0,0,0.24)"
+          : "0 14px 36px rgba(239,68,68,0.12)",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+          style={{
+            background: rgba(theme?.danger || danger, isDark ? 0.18 : 0.12),
+            color: rgba(theme?.danger || danger, 1),
+          }}
+        >
+          <AlertCircle size={18} />
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-black">{error.title || "Signup failed"}</p>
+
+            {error.status ? (
+              <span
+                className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase"
+                style={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(127,29,29,0.08)",
+                }}
+              >
+                Status {error.status}
+              </span>
+            ) : null}
+          </div>
+
+          <p className="mt-1 font-bold leading-5">{error.message}</p>
+
+          {Array.isArray(error.messages) && error.messages.length > 1 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs font-semibold opacity-90">
+              {error.messages.slice(0, 3).map((item: string, index: number) => (
+                <li key={`${item}-${index}`}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg p-1 transition hover:bg-black/10"
+          aria-label="Dismiss error"
+        >
+          <X size={16} />
+        </button>
+      </div>
     </motion.div>
   );
 };
@@ -824,6 +1126,7 @@ const UserSignUp = () => {
   });
 
   const [error, setError] = useState<any>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -875,43 +1178,81 @@ const UserSignUp = () => {
     };
   }, []);
 
+  const clearFieldError = (name: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
   const handleChange = (e: any) => {
+    const { name, value } = e.target;
+
+    clearFieldError(name);
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+
+    if (error?.type === "validation") {
+      setError(null);
+    }
   };
 
   const handlePhoneChange = (phone: any) => {
+    clearFieldError("phone");
+
     setFormData((prev) => ({
       ...prev,
       phone: phone || "",
     }));
+
+    if (error?.type === "validation") {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+
     setError(null);
+    setFieldErrors({});
 
     if (!acceptedTerms) {
-      return setError({
+      setError({
         type: "validation",
+        title: "Terms required",
         message: "Please agree to the Terms of Service and Privacy Policy.",
       });
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      return setError({
-        type: "validation",
-        message: "Password and confirm password must match.",
-      });
+      return;
     }
 
     if (!formData.phone?.trim()) {
-      return setError({
+      setFieldErrors({
+        phone: "Please enter your phone number.",
+      });
+      setError({
         type: "validation",
+        title: "Phone number required",
         message: "Please enter your phone number.",
       });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setFieldErrors({
+        confirmPassword: "Password and confirm password must match.",
+      });
+      setError({
+        type: "validation",
+        title: "Password mismatch",
+        message: "Password and confirm password must match.",
+      });
+      return;
     }
 
     setSubmitting(true);
@@ -923,7 +1264,20 @@ const UserSignUp = () => {
         ? `/auth/signup/${encodeURIComponent(inviteId)}`
         : "/auth/signup";
 
-      const res = await backendApi.post(path, formData);
+      const payload = {
+        ...formData,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        state: formData.state.trim(),
+        city: formData.city.trim(),
+        address: formData.address.trim(),
+        zipCode: formData.zipCode.trim(),
+        country: formData.country.trim(),
+      };
+
+      const res = await backendApi.post(path, payload);
 
       toast.success(res.data?.message || "Account created successfully.", {
         id: toastId,
@@ -931,22 +1285,18 @@ const UserSignUp = () => {
 
       navigate(res.data?.redirectTo || "/auth/login");
     } catch (err: any) {
-      let message = "Unable to create your account right now.";
+      console.error("Signup error:", err);
 
-      if (err?.response?.data?.msg) message = err.response.data.msg;
-      else if (err?.response?.data?.message) message = err.response.data.message;
-      else if (!err?.response) message = "Network issue: please check your connection.";
-      else if (err?.response?.status >= 500) message = "Server is busy. Please try again later.";
-      else if (err?.response?.status === 401) message = "Unauthorized request.";
-      else if (err?.response?.status === 403) message = "You do not have permission for this action.";
-      else if (err?.message) message = err.message;
+      const details = extractApiErrorDetails(err);
+      const mappedFieldErrors = buildFieldErrorsFromMessage(details.message);
 
+      setFieldErrors(mappedFieldErrors);
       setError({
         type: "http",
-        message,
+        ...details,
       });
 
-      toast.error(message, { id: toastId });
+      toast.error(details.message, { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -1200,19 +1550,12 @@ const UserSignUp = () => {
 
               <AnimatePresence>
                 {error?.message && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                    className="mb-4 rounded-2xl px-4 py-3 text-sm font-bold"
-                    style={{
-                      border: `1px solid ${rgba(theme?.danger || "239 68 68", 0.34)}`,
-                      background: rgba(theme?.danger || "239 68 68", isDark ? 0.14 : 0.1),
-                      color: isDark ? rgba(fg, 0.92) : "rgba(127,29,29,0.96)",
-                    }}
-                  >
-                    {error.message}
-                  </motion.div>
+                  <ErrorBanner
+                    error={error}
+                    isDark={isDark}
+                    theme={theme}
+                    onClose={() => setError(null)}
+                  />
                 )}
               </AnimatePresence>
 
@@ -1228,6 +1571,7 @@ const UserSignUp = () => {
                   onChange={handleChange}
                   isDark={isDark}
                   autoComplete="given-name"
+                  error={fieldErrors.firstName}
                 />
 
                 <SignupField
@@ -1238,6 +1582,7 @@ const UserSignUp = () => {
                   onChange={handleChange}
                   isDark={isDark}
                   autoComplete="family-name"
+                  error={fieldErrors.lastName}
                 />
 
                 <div className="col-span-2 sm:col-span-1">
@@ -1250,6 +1595,7 @@ const UserSignUp = () => {
                     onChange={handleChange}
                     isDark={isDark}
                     autoComplete="email"
+                    error={fieldErrors.email}
                   />
                 </div>
 
@@ -1258,6 +1604,7 @@ const UserSignUp = () => {
                     value={formData.phone}
                     onChange={handlePhoneChange}
                     isDark={isDark}
+                    error={fieldErrors.phone}
                   />
                 </div>
 
@@ -1270,6 +1617,7 @@ const UserSignUp = () => {
                     onChange={handleChange}
                     isDark={isDark}
                     autoComplete="street-address"
+                    error={fieldErrors.address}
                   />
                 </div>
 
@@ -1279,6 +1627,7 @@ const UserSignUp = () => {
                     onChange={handleChange}
                     countriesArray={countriesArray}
                     isDark={isDark}
+                    error={fieldErrors.country}
                   />
                 </div>
 
@@ -1290,6 +1639,7 @@ const UserSignUp = () => {
                   onChange={handleChange}
                   isDark={isDark}
                   autoComplete="address-level1"
+                  error={fieldErrors.state}
                 />
 
                 <SignupField
@@ -1300,6 +1650,7 @@ const UserSignUp = () => {
                   onChange={handleChange}
                   isDark={isDark}
                   autoComplete="address-level2"
+                  error={fieldErrors.city}
                 />
 
                 <div className="col-span-2">
@@ -1311,6 +1662,7 @@ const UserSignUp = () => {
                     onChange={handleChange}
                     isDark={isDark}
                     autoComplete="postal-code"
+                    error={fieldErrors.zipCode}
                   />
                 </div>
 
@@ -1325,6 +1677,7 @@ const UserSignUp = () => {
                     show={showPass}
                     setShow={setShowPass}
                     showStrength
+                    error={fieldErrors.password}
                   />
                 </div>
 
@@ -1338,6 +1691,7 @@ const UserSignUp = () => {
                     isDark={isDark}
                     show={showConfirm}
                     setShow={setShowConfirm}
+                    error={fieldErrors.confirmPassword}
                   />
                 </div>
 
@@ -1352,7 +1706,10 @@ const UserSignUp = () => {
                     <input
                       type="checkbox"
                       checked={acceptedTerms}
-                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      onChange={(e) => {
+                        setAcceptedTerms(e.target.checked);
+                        if (error?.type === "validation") setError(null);
+                      }}
                       className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
                     />
 

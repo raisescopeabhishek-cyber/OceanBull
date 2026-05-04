@@ -332,7 +332,7 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
               isDark ? "text-white/45" : "text-slate-500"
             )}
           >
-            Account #{account || "-"}
+            Account {account || "-"}
           </p>
         </div>
 
@@ -572,7 +572,7 @@ const TradesPopup = ({
             </p>
 
             <h2 className="mt-1 text-2xl font-black">
-              Copier #{copierAccount || "-"} vs Master #{masterAccount || "-"}
+              Copier {copierAccount || "-"} vs Master {masterAccount || "-"}
             </h2>
 
             <p
@@ -1002,7 +1002,7 @@ const UserMyCopierAccounts = () => {
                   <option value="all">All Masters</option>
                   {masterOptions.map((master) => (
                     <option key={master.account} value={master.account}>
-                      #{master.account} - {master.name}
+                      {master.account} - {master.name}
                     </option>
                   ))}
                 </FilterSelect>
@@ -1150,11 +1150,11 @@ const UserMyCopierAccounts = () => {
                             )}
                           >
                             <td className="whitespace-nowrap px-4 py-4 font-black">
-                              #{copierAccount || "-"}
+                              {copierAccount || "-"}
                             </td>
 
                             <td className="whitespace-nowrap px-4 py-4 font-bold">
-                              #{masterAccount || "-"}
+                              {masterAccount || "-"}
                             </td>
 
                             <td className="whitespace-nowrap px-4 py-4">
@@ -1277,7 +1277,7 @@ const UserMyCopierAccounts = () => {
                           </p>
 
                           <h3 className="mt-1 text-xl font-black">
-                            #{copierAccount || "-"}
+                            {copierAccount || "-"}
                           </h3>
                         </div>
 
@@ -1289,7 +1289,7 @@ const UserMyCopierAccounts = () => {
                               : "border-emerald-100 bg-emerald-50 text-emerald-700"
                           )}
                         >
-                          Copying #{masterAccount || "-"}
+                          Copying {masterAccount || "-"}
                         </div>
                       </div>
 

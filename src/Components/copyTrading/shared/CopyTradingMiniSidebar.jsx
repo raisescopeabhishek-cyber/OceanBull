@@ -72,11 +72,6 @@ const userGroups = [
         to: "/user/copy-trading/my-copier-accounts",
         icon: Users,
       },
-      {
-        label: "My Copied Accounts",
-        to: "/user/copy-trading/my-accounts",
-        icon: Link2,
-      },
     ],
   },
   {

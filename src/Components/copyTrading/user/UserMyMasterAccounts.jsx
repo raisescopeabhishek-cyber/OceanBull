@@ -9,12 +9,17 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Clock3,
+  DollarSign,
   Filter,
+  Percent,
   RefreshCw,
   RadioTower,
   RotateCcw,
   Search,
+  TrendingDown,
+  TrendingUp,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { copyTradingApi } from "../api/copyTradingApi";
@@ -38,6 +43,49 @@ import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
 import CopyTradingTable from "../shared/CopyTradingTable";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
+const toNumber = (value, fallback = 0) => {
+  if (value === undefined || value === null || value === "") return fallback;
+
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const formatPercent = (value) => {
+  const number = toNumber(value, 0);
+
+  return `${number.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}%`;
+};
+
+const formatSignedMoney = (value) => {
+  const number = toNumber(value, 0);
+  const sign = number > 0 ? "+" : "";
+
+  return `${sign}${formatMoney(number)}`;
+};
+
+const getProfitAmount = (value) => {
+  const number = toNumber(value, 0);
+  return number > 0 ? number : 0;
+};
+
+const getLossAmount = (value) => {
+  const number = toNumber(value, 0);
+  return number < 0 ? Math.abs(number) : 0;
+};
+
+const getProfitClass = (value, isDark) => {
+  const number = toNumber(value, 0);
+
+  if (number > 0) return "text-emerald-500";
+  if (number < 0) return "text-red-500";
+
+  return isDark ? "text-white/60" : "text-slate-500";
+};
 
 const getUserMt5Accounts = (user) => {
   const output = [];
@@ -92,14 +140,18 @@ const getUserMt5Accounts = (user) => {
 const getCopierAccount = (row) => {
   return String(
     row?.copierAccount ||
+      row?.CopierAccount ||
+      row?.copyAccount ||
+      row?.CopyAccount ||
+      row?.clientAccount ||
+      row?.ClientAccount ||
       row?.login ||
       row?.Login ||
-      row?.clientAccount ||
       row?.MT5Account ||
       row?.mt5Account ||
       row?.account ||
       ""
-  );
+  ).trim();
 };
 
 const getMasterValue = (master, key, fallback = "-") => {
@@ -122,7 +174,7 @@ const getMasterAccount = (master) => {
       getMasterValue(master, "MT5Account", "") ||
       getMasterValue(master, "mt5Account", "") ||
       ""
-  );
+  ).trim();
 };
 
 const getMasterName = (master) => {
@@ -135,15 +187,16 @@ const getMasterName = (master) => {
 };
 
 const getMasterCommission = (master) => {
-  return Number(getMasterValue(master, "commission", 0) || 0);
+  return toNumber(getMasterValue(master, "commission", 0), 0);
 };
 
 const getMasterMinInvest = (master) => {
-  return Number(
+  return toNumber(
     getMasterValue(master, "min_invest", 0) ||
       getMasterValue(master, "minInvest", 0) ||
       getMasterValue(master, "minimumInvestment", 0) ||
-      0
+      0,
+    0
   );
 };
 
@@ -204,6 +257,7 @@ const formatAgoFromTimestamp = (timestamp) => {
   if (diffMinutes < 60) return `${diffMinutes} min ago`;
   if (diffHours < 24) return `${diffHours} hr ago`;
   if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+
   if (diffMonths < 12) {
     return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`;
   }
@@ -311,6 +365,174 @@ const formatCopierCreatedAgo = (copier) => {
   return formatAgoFromTimestamp(getCopierCreatedTimestamp(copier));
 };
 
+const getTradeMasterCommission = (row) => {
+  return toNumber(
+    row?.masterCommission ??
+      row?.MasterCommission ??
+      row?.master_commission ??
+      row?.masterCommissionAmount ??
+      row?.MasterCommissionAmount ??
+      row?.commissionEarned ??
+      row?.CommissionEarned ??
+      row?.earnedCommission ??
+      row?.EarnedCommission ??
+      0,
+    0
+  );
+};
+
+const getTradeCommissionRate = (row, fallbackCommission = 0) => {
+  return toNumber(
+    row?.commissionRate ??
+      row?.CommissionRate ??
+      row?.commissionPercent ??
+      row?.CommissionPercent ??
+      row?.commission_percent ??
+      row?.masterCommissionPercent ??
+      row?.MasterCommissionPercent ??
+      row?.commission ??
+      row?.Commission ??
+      fallbackCommission ??
+      0,
+    0
+  );
+};
+
+const getTradeStatus = (row) => {
+  const status =
+    row?.__tradeStatus ||
+    row?.tradeStatus ||
+    row?.status ||
+    row?.Status ||
+    "";
+
+  if (status) return String(status).toLowerCase();
+
+  if (row?.Close_Time || row?.CloseTime || row?.closeTime) return "closed";
+
+  return "open";
+};
+
+const calculateCommissionFromProfit = (profit, rate) => {
+  const safeProfit = toNumber(profit, 0);
+  const safeRate = toNumber(rate, 0);
+
+  if (safeProfit <= 0 || safeRate <= 0) return 0;
+
+  return (safeProfit * safeRate) / 100;
+};
+
+const getEffectiveTradeCommission = (row, fallbackCommission = 0) => {
+  const apiCommission = getTradeMasterCommission(row);
+
+  if (apiCommission !== 0) return apiCommission;
+
+  const profit = toNumber(getTradeProfit(row), 0);
+  const rate = getTradeCommissionRate(row, fallbackCommission);
+
+  return calculateCommissionFromProfit(profit, rate);
+};
+
+const getTradeSourceAccount = (row, fallbackAccount = "") => {
+  return String(
+    row?.copierAccount ||
+      row?.CopierAccount ||
+      row?.copyAccount ||
+      row?.CopyAccount ||
+      row?.clientAccount ||
+      row?.ClientAccount ||
+      row?.copier ||
+      row?.Copier ||
+      row?.login ||
+      row?.Login ||
+      row?.MT5Account ||
+      row?.mt5Account ||
+      row?.account ||
+      fallbackAccount ||
+      ""
+  ).trim();
+};
+
+const buildTradeCommissionSummary = ({
+  rows = [],
+  fallbackCommission = 0,
+  fallbackCopierAccount = "",
+}) => {
+  const summary = {
+    totalTrades: rows.length,
+    openTrades: 0,
+    closedTrades: 0,
+    grossProfit: 0,
+    grossLoss: 0,
+    netProfit: 0,
+    commission: 0,
+    positiveProfitTrades: 0,
+    lossTrades: 0,
+    commissionRows: 0,
+    byCopier: [],
+  };
+
+  const copierMap = new Map();
+
+  rows.forEach((row) => {
+    const status = getTradeStatus(row);
+    const profit = toNumber(getTradeProfit(row), 0);
+    const profitAmount = getProfitAmount(profit);
+    const lossAmount = getLossAmount(profit);
+    const commission = getEffectiveTradeCommission(row, fallbackCommission);
+    const copierAccount = getTradeSourceAccount(row, fallbackCopierAccount);
+
+    if (status === "closed") {
+      summary.closedTrades += 1;
+    } else {
+      summary.openTrades += 1;
+    }
+
+    if (profit > 0) {
+      summary.positiveProfitTrades += 1;
+    }
+
+    if (profit < 0) {
+      summary.lossTrades += 1;
+    }
+
+    if (commission !== 0) {
+      summary.commissionRows += 1;
+    }
+
+    summary.grossProfit += profitAmount;
+    summary.grossLoss += lossAmount;
+    summary.netProfit += profit;
+    summary.commission += commission;
+
+    if (copierAccount) {
+      if (!copierMap.has(copierAccount)) {
+        copierMap.set(copierAccount, {
+          account: copierAccount,
+          trades: 0,
+          grossProfit: 0,
+          grossLoss: 0,
+          netProfit: 0,
+          commission: 0,
+        });
+      }
+
+      const item = copierMap.get(copierAccount);
+      item.trades += 1;
+      item.grossProfit += profitAmount;
+      item.grossLoss += lossAmount;
+      item.netProfit += profit;
+      item.commission += commission;
+    }
+  });
+
+  summary.byCopier = Array.from(copierMap.values()).sort(
+    (a, b) => Math.abs(b.commission) - Math.abs(a.commission)
+  );
+
+  return summary;
+};
+
 const AgoBadge = ({ isDark, children }) => {
   return (
     <span
@@ -327,83 +549,365 @@ const AgoBadge = ({ isDark, children }) => {
   );
 };
 
-const TradeRows = ({ isDark, rows }) => {
+const MiniStat = ({ isDark, icon, label, value, hint, tone = "emerald" }) => {
+  const toneClass =
+    tone === "red"
+      ? isDark
+        ? "border-red-400/20 bg-red-500/10 text-red-300"
+        : "border-red-100 bg-red-50 text-red-700"
+      : tone === "blue"
+      ? isDark
+        ? "border-sky-400/20 bg-sky-500/10 text-sky-300"
+        : "border-sky-100 bg-sky-50 text-sky-700"
+      : isDark
+      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+      : "border-emerald-100 bg-emerald-50 text-emerald-700";
+
+  return (
+    <div
+      className={cx(
+        "rounded-2xl border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.025]"
+          : "border-emerald-100 bg-white/90"
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p
+            className={cx(
+              "text-xs font-black uppercase tracking-[0.14em]",
+              isDark ? "text-white/45" : "text-slate-500"
+            )}
+          >
+            {label}
+          </p>
+
+          <p
+            className={cx(
+              "mt-2 text-xl font-black",
+              isDark ? "text-white" : "text-slate-950"
+            )}
+          >
+            {value}
+          </p>
+
+          {hint ? (
+            <p
+              className={cx(
+                "mt-1 text-xs",
+                isDark ? "text-white/45" : "text-slate-500"
+              )}
+            >
+              {hint}
+            </p>
+          ) : null}
+        </div>
+
+        <div
+          className={cx(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+            toneClass
+          )}
+        >
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TradeRows = ({
+  isDark,
+  rows,
+  mode = "master",
+  fallbackCommission = 0,
+  fallbackCopierAccount = "",
+}) => {
+  const summary = useMemo(() => {
+    return buildTradeCommissionSummary({
+      rows,
+      fallbackCommission,
+      fallbackCopierAccount,
+    });
+  }, [rows, fallbackCommission, fallbackCopierAccount]);
+
   if (!rows.length) {
     return (
       <CopyTradingEmptyState
         isDark={isDark}
         title="No trades found"
         subtitle="No open or closed trades found for this account."
+        minHeight="min-h-[190px]"
       />
     );
   }
 
   return (
-    <CopyTradingTable
-      isDark={isDark}
-      minWidth="980px"
-      columns={[
-        "Ticket",
-        "Symbol",
-        "Type",
-        "Volume",
-        "Open Price",
-        "Close Price",
-        "Profit",
-        "Time",
-      ]}
-      rows={rows}
-      renderRow={(row, index) => (
-        <tr
-          key={`${getTradeTicket(row)}-${index}`}
-          className={cx(
-            "border-t transition-colors",
-            isDark
-              ? "border-white/10 hover:bg-white/[0.035]"
-              : "border-emerald-100 hover:bg-emerald-50/40"
-          )}
-        >
-          <td className="whitespace-nowrap px-4 py-4 font-bold">
-            {getTradeTicket(row)}
-          </td>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+        <MiniStat
+          isDark={isDark}
+          icon={<RadioTower className="h-4 w-4" />}
+          label="Trades"
+          value={summary.totalTrades}
+          hint={`${summary.closedTrades} closed / ${summary.openTrades} open`}
+          tone="blue"
+        />
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {getTradeSymbol(row)}
-          </td>
+        <MiniStat
+          isDark={isDark}
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Profit"
+          value={formatMoney(summary.grossProfit)}
+          hint={`${summary.positiveProfitTrades} profitable trades`}
+          tone="emerald"
+        />
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {getTradeType(row)}
-          </td>
+        <MiniStat
+          isDark={isDark}
+          icon={<TrendingDown className="h-4 w-4" />}
+          label="Loss"
+          value={formatMoney(summary.grossLoss)}
+          hint={`${summary.lossTrades} loss trades`}
+          tone="red"
+        />
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {getTradeVolume(row)}
-          </td>
+        <MiniStat
+          isDark={isDark}
+          icon={<Wallet className="h-4 w-4" />}
+          label="Master Commission"
+          value={formatMoney(summary.commission)}
+          hint={
+            mode === "copier"
+              ? "Earned from this copier"
+              : "Direct/API commission"
+          }
+          tone="emerald"
+        />
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {getTradeOpenPrice(row)}
-          </td>
+        <MiniStat
+          isDark={isDark}
+          icon={<Percent className="h-4 w-4" />}
+          label="Commission Rate"
+          value={formatPercent(fallbackCommission)}
+          hint={`Net P/L: ${formatSignedMoney(summary.netProfit)}`}
+          tone="blue"
+        />
+      </div>
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {getTradeClosePrice(row)}
-          </td>
+      {mode === "copier" &&
+        fallbackCommission > 0 &&
+        summary.commission === 0 && (
+          <div
+            className={cx(
+              "rounded-2xl border p-4 text-sm leading-6",
+              isDark
+                ? "border-yellow-400/20 bg-yellow-500/10 text-yellow-100"
+                : "border-yellow-100 bg-yellow-50 text-yellow-800"
+            )}
+          >
+            <b>Commission is showing 0.</b> Commission is calculated only on
+            profitable trades. When a positive profit trade is available, the
+            estimated commission will be calculated using: Profit × Commission%.
+          </div>
+        )}
 
-          <td className="whitespace-nowrap px-4 py-4 font-bold">
-            {formatMoney(getTradeProfit(row))}
-          </td>
+      <CopyTradingTable
+        isDark={isDark}
+        minWidth="1380px"
+        columns={[
+          "Ticket",
+          "Account",
+          "Symbol",
+          "Type",
+          "Volume",
+          "Open Price",
+          "Close Price",
+          "Profit",
+          "Loss",
+          "Rate %",
+          "Master Commission",
+          "Status",
+          "Time",
+        ]}
+        rows={rows}
+        emptyTitle="No trades found"
+        emptySubtitle="No trade data found for this account."
+        renderRow={(row, index) => {
+          const profit = toNumber(getTradeProfit(row), 0);
+          const profitAmount = getProfitAmount(profit);
+          const lossAmount = getLossAmount(profit);
+          const commissionRate = getTradeCommissionRate(
+            row,
+            fallbackCommission
+          );
+          const commission = getEffectiveTradeCommission(
+            row,
+            fallbackCommission
+          );
+          const account = getTradeSourceAccount(row, fallbackCopierAccount);
+          const status = getTradeStatus(row);
 
-          <td className="whitespace-nowrap px-4 py-4">
-            {formatDateTime(getTradeTime(row))}
-          </td>
-        </tr>
-      )}
-    />
+          return (
+            <tr
+              key={`${getTradeTicket(row)}-${index}`}
+              className={cx(
+                "border-t transition-colors",
+                isDark
+                  ? "border-white/10 hover:bg-white/[0.035]"
+                  : "border-emerald-100 hover:bg-emerald-50/40"
+              )}
+            >
+              <td className="whitespace-nowrap px-4 py-4 font-bold">
+                {getTradeTicket(row)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {account || "-"}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {getTradeSymbol(row)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {getTradeType(row)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {getTradeVolume(row)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {getTradeOpenPrice(row)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {getTradeClosePrice(row)}
+              </td>
+
+              <td
+                className={cx(
+                  "whitespace-nowrap px-4 py-4 font-black",
+                  profitAmount > 0
+                    ? "text-emerald-500"
+                    : isDark
+                    ? "text-white/35"
+                    : "text-slate-400"
+                )}
+              >
+                {profitAmount > 0 ? formatMoney(profitAmount) : "-"}
+              </td>
+
+              <td
+                className={cx(
+                  "whitespace-nowrap px-4 py-4 font-black",
+                  lossAmount > 0
+                    ? "text-red-500"
+                    : isDark
+                    ? "text-white/35"
+                    : "text-slate-400"
+                )}
+              >
+                {lossAmount > 0 ? formatMoney(lossAmount) : "-"}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4 font-bold">
+                {commissionRate ? formatPercent(commissionRate) : "-"}
+              </td>
+
+              <td
+                className={cx(
+                  "whitespace-nowrap px-4 py-4 font-black",
+                  commission > 0
+                    ? "text-emerald-500"
+                    : isDark
+                    ? "text-white/45"
+                    : "text-slate-400"
+                )}
+              >
+                {formatMoney(commission)}
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                <span
+                  className={cx(
+                    "rounded-full border px-2.5 py-1 text-xs font-black uppercase",
+                    status === "closed"
+                      ? isDark
+                        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                        : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                      : isDark
+                      ? "border-sky-400/20 bg-sky-500/10 text-sky-300"
+                      : "border-sky-100 bg-sky-50 text-sky-700"
+                  )}
+                >
+                  {status}
+                </span>
+              </td>
+
+              <td className="whitespace-nowrap px-4 py-4">
+                {formatDateTime(getTradeTime(row))}
+              </td>
+            </tr>
+          );
+        }}
+        footer={
+          <tr
+            className={cx(
+              "border-t text-sm font-black",
+              isDark
+                ? "border-white/10 bg-white/[0.035] text-white"
+                : "border-emerald-100 bg-emerald-50/80 text-slate-950"
+            )}
+          >
+            <td className="px-4 py-4" colSpan={7}>
+              Total
+            </td>
+
+            <td className="whitespace-nowrap px-4 py-4 text-emerald-500">
+              {formatMoney(summary.grossProfit)}
+            </td>
+
+            <td className="whitespace-nowrap px-4 py-4 text-red-500">
+              {formatMoney(summary.grossLoss)}
+            </td>
+
+            <td className="whitespace-nowrap px-4 py-4">
+              {formatPercent(fallbackCommission)}
+            </td>
+
+            <td className="whitespace-nowrap px-4 py-4 text-emerald-500">
+              {formatMoney(summary.commission)}
+            </td>
+
+            <td className="px-4 py-4" colSpan={2}>
+              Net P/L:{" "}
+              <span className={getProfitClass(summary.netProfit, isDark)}>
+                {formatSignedMoney(summary.netProfit)}
+              </span>{" "}
+              · {summary.commissionRows} commission rows
+            </td>
+          </tr>
+        }
+      />
+    </div>
   );
 };
 
-const AccountTradePanel = ({ isDark, userId, account, mode = "master" }) => {
-  const [status, setStatus] = useState("open");
+const AccountTradePanel = ({
+  isDark,
+  userId,
+  account,
+  mode = "master",
+  fallbackCommission = 0,
+  fallbackCopierAccount = "",
+}) => {
+  const [status, setStatus] = useState("closed");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [responseInfo, setResponseInfo] = useState(null);
 
   const loadTrades = async (nextStatus = status) => {
     if (!account) return;
@@ -419,17 +923,28 @@ const AccountTradePanel = ({ isDark, userId, account, mode = "master" }) => {
         page_size: 50,
       });
 
+      const payload = res?.data || res?.data?.data || res || {};
+      const rawRows = payload?.rows || payload?.data?.rows || payload;
+
       const normalized = normalizeTradeRows({
-        input: res?.data?.rows || res?.data || res,
+        input: rawRows,
         account,
         mode,
       });
 
       setRows(normalized);
+      setResponseInfo({
+        account: payload?.account || account,
+        role: payload?.role || mode,
+        linkedMasterAccount: payload?.linkedMasterAccount || "",
+        selectedStatus: payload?.selectedStatus || nextStatus,
+        count: res?.meta?.count || payload?.meta?.count || normalized.length,
+      });
     } catch (error) {
       console.error(error);
       toast.error(error?.message || "Failed to load trades");
       setRows([]);
+      setResponseInfo(null);
     } finally {
       setLoading(false);
     }
@@ -440,58 +955,109 @@ const AccountTradePanel = ({ isDark, userId, account, mode = "master" }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
+  const summary = useMemo(() => {
+    return buildTradeCommissionSummary({
+      rows,
+      fallbackCommission,
+      fallbackCopierAccount,
+    });
+  }, [rows, fallbackCommission, fallbackCopierAccount]);
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {["open", "closed"].map((item) => (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {["open", "closed", "all"].map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => {
+                setStatus(item);
+                loadTrades(item);
+              }}
+              className={cx(
+                "rounded-xl border px-4 py-2 text-xs font-bold capitalize",
+                status === item
+                  ? "border-emerald-400 bg-emerald-500 text-white"
+                  : isDark
+                  ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
+                  : "border-emerald-100 bg-white text-slate-600 hover:bg-emerald-50"
+              )}
+            >
+              {item} Trades
+            </button>
+          ))}
+
           <button
-            key={item}
             type="button"
-            onClick={() => {
-              setStatus(item);
-              loadTrades(item);
-            }}
+            onClick={() => loadTrades(status)}
+            disabled={loading}
             className={cx(
-              "rounded-xl border px-4 py-2 text-xs font-bold capitalize",
-              status === item
-                ? "border-emerald-400 bg-emerald-500 text-white"
-                : isDark
-                ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
-                : "border-emerald-100 bg-white text-slate-600 hover:bg-emerald-50"
+              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white"
+                : "border-emerald-100 bg-white text-emerald-700"
             )}
           >
-            {item} Trades
+            <RefreshCw
+              className={cx("h-3.5 w-3.5", loading && "animate-spin")}
+            />
+            Refresh
           </button>
-        ))}
+        </div>
 
-        <button
-          type="button"
-          onClick={() => loadTrades(status)}
-          disabled={loading}
-          className={cx(
-            "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white"
-              : "border-emerald-100 bg-white text-emerald-700"
-          )}
-        >
-          <RefreshCw className={cx("h-3.5 w-3.5", loading && "animate-spin")} />
-          Refresh
-        </button>
+        {responseInfo ? (
+          <div
+            className={cx(
+              "rounded-xl border px-3 py-2 text-xs font-bold",
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white/70"
+                : "border-emerald-100 bg-white text-slate-600"
+            )}
+          >
+            {responseInfo.role} · {responseInfo.selectedStatus} ·{" "}
+            {responseInfo.count} rows
+          </div>
+        ) : null}
       </div>
 
       {loading ? (
         <div
           className={cx(
-            "text-sm",
-            isDark ? "text-white/60" : "text-slate-500"
+            "rounded-2xl border p-5 text-sm font-bold",
+            isDark
+              ? "border-white/10 bg-white/[0.025] text-white/60"
+              : "border-emerald-100 bg-white text-slate-500"
           )}
         >
           Loading trades...
         </div>
       ) : (
-        <TradeRows isDark={isDark} rows={rows} />
+        <TradeRows
+          isDark={isDark}
+          rows={rows}
+          mode={mode}
+          fallbackCommission={fallbackCommission}
+          fallbackCopierAccount={fallbackCopierAccount || account}
+        />
       )}
+
+      {mode === "copier" ? (
+        <div
+          className={cx(
+            "rounded-2xl border p-4 text-sm",
+            isDark
+              ? "border-white/10 bg-white/[0.025] text-white/65"
+              : "border-emerald-100 bg-white text-slate-600"
+          )}
+        >
+          <b>Copier {fallbackCopierAccount || account}</b> estimated master
+          commission:{" "}
+          <span className="font-black text-emerald-500">
+            {formatMoney(summary.commission)}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -507,6 +1073,7 @@ const FilterInput = ({ isDark, value, onChange }) => {
       )}
     >
       <Search className="h-4 w-4 text-emerald-600" />
+
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -633,6 +1200,16 @@ const UserMyMasterAccounts = () => {
     return masters.reduce((sum, master) => {
       return sum + getMasterCopiers(master).length;
     }, 0);
+  }, [masters]);
+
+  const averageCommission = useMemo(() => {
+    if (!masters.length) return 0;
+
+    const total = masters.reduce((sum, master) => {
+      return sum + getMasterCommission(master);
+    }, 0);
+
+    return total / masters.length;
   }, [masters]);
 
   const filteredMasters = useMemo(() => {
@@ -834,7 +1411,7 @@ const UserMyMasterAccounts = () => {
     <div className="space-y-5">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-3",
+          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-4",
           isDark
             ? "border-white/10 bg-white/[0.035]"
             : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
@@ -866,6 +1443,22 @@ const UserMyMasterAccounts = () => {
           </div>
 
           <div className="mt-2 text-2xl font-black">{totalCopiers}</div>
+        </div>
+
+        <div
+          className={cx(
+            "rounded-2xl border p-4",
+            isDark ? "border-white/10" : "border-emerald-100"
+          )}
+        >
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <DollarSign className="h-4 w-4" />
+            Avg Commission
+          </div>
+
+          <div className="mt-2 text-2xl font-black">
+            {formatPercent(averageCommission)}
+          </div>
         </div>
 
         <div
@@ -1110,6 +1703,7 @@ const UserMyMasterAccounts = () => {
             const copiers = getMasterCopiers(master);
             const isOpen = Boolean(expanded[masterAccount]);
             const masterCreatedAgo = formatMasterCreatedAgo(master);
+            const masterCommission = getMasterCommission(master);
 
             return (
               <div
@@ -1140,10 +1734,22 @@ const UserMyMasterAccounts = () => {
                       <AgoBadge isDark={isDark}>
                         Created {masterCreatedAgo}
                       </AgoBadge>
+
+                      <span
+                        className={cx(
+                          "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-black",
+                          isDark
+                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                            : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                        )}
+                      >
+                        <Percent className="h-3.5 w-3.5" />
+                        {formatPercent(masterCommission)} Commission
+                      </span>
                     </div>
 
                     <h3 className="mt-2 text-xl font-black">
-                      #{masterAccount}
+                      {masterAccount}
                     </h3>
 
                     <p
@@ -1153,7 +1759,7 @@ const UserMyMasterAccounts = () => {
                       )}
                     >
                       Name: {getMasterName(master)} · Commission:{" "}
-                      {getMasterCommission(master)}% · Min Invest: $
+                      {formatPercent(masterCommission)} · Min Invest: $
                       {getMasterMinInvest(master)} · Copiers: {copiers.length}
                     </p>
 
@@ -1187,6 +1793,8 @@ const UserMyMasterAccounts = () => {
                         userId={userId}
                         account={masterAccount}
                         mode="master"
+                        fallbackCommission={masterCommission}
+                        fallbackCopierAccount={masterAccount}
                       />
                     </div>
 
@@ -1200,6 +1808,7 @@ const UserMyMasterAccounts = () => {
                           isDark={isDark}
                           title="No linked copiers found"
                           subtitle="This master account does not have copier details in the current API response."
+                          minHeight="min-h-[190px]"
                         />
                       ) : (
                         <div className="space-y-4">
@@ -1228,10 +1837,22 @@ const UserMyMasterAccounts = () => {
                                       <AgoBadge isDark={isDark}>
                                         Linked {copierCreatedAgo}
                                       </AgoBadge>
+
+                                      <span
+                                        className={cx(
+                                          "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-black",
+                                          isDark
+                                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                                            : "border-emerald-100 bg-white text-emerald-700"
+                                        )}
+                                      >
+                                        <Wallet className="h-3.5 w-3.5" />
+                                        Rate {formatPercent(masterCommission)}
+                                      </span>
                                     </div>
 
                                     <h5 className="mt-2 text-base font-black">
-                                      #{copierAccount || "-"}
+                                      {copierAccount || "-"}
                                     </h5>
 
                                     <p
@@ -1254,7 +1875,7 @@ const UserMyMasterAccounts = () => {
                                         : "border-emerald-100 bg-white text-slate-600"
                                     )}
                                   >
-                                    Master #{masterAccount}
+                                    Master {masterAccount}
                                   </div>
                                 </div>
 
@@ -1264,12 +1885,15 @@ const UserMyMasterAccounts = () => {
                                     userId={userId}
                                     account={copierAccount}
                                     mode="copier"
+                                    fallbackCommission={masterCommission}
+                                    fallbackCopierAccount={copierAccount}
                                   />
                                 ) : (
                                   <CopyTradingEmptyState
                                     isDark={isDark}
                                     title="Copier account missing"
                                     subtitle="This copier row does not contain an MT5 account number."
+                                    minHeight="min-h-[190px]"
                                   />
                                 )}
                               </div>

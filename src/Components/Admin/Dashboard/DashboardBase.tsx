@@ -1,1061 +1,1825 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowUpRight,
+  Banknote,
+  BarChart3,
+  ChevronRight,
+  Clock3,
+  CreditCard,
+  Gift,
+  LifeBuoy,
+  MousePointerClick,
+  RefreshCcw,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  Users,
+  Wallet,
+  Zap,
+} from "lucide-react";
 import { adminApi } from "../../../../src/utils/apiClients.js";
 
-import { motion } from "framer-motion";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Legend,
-  BarChart,
-  Bar,
-  CartesianGrid,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
-} from "recharts";
-import {
-  Users as UsersIcon,
-  UserCheck,
-  UserX,
-  MailCheck,
-  MailX,
-  Wallet,
-  Banknote,
-  CreditCard,
-  ArrowDownRight,
-  TrendingUp,
-  Info as InfoIcon,
-} from "lucide-react";
+const RANGE_OPTIONS = [
+  { label: "7D", value: "7d" },
+  { label: "30D", value: "30d" },
+  { label: "90D", value: "90d" },
+  { label: "180D", value: "180d" },
+  { label: "1Y", value: "365d" },
+  { label: "All", value: "all" },
+];
 
-/* -------------------------------- helpers --------------------------------- */
-const monthsNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const REPORT_ENDPOINTS = [
+  "/report-dashboard/overview",
+  "/admin/report-dashboard/overview",
+];
 
-const formatNumber = (n) => (n || n === 0 ? Number(n).toLocaleString() : "-");
-const formatMoney = (n) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(n || 0));
+const cx = (...classes) => classes.filter(Boolean).join(" ");
 
-const normalizeMonthly = (row) => {
-  if (row == null) return 0;
-  if (typeof row === "number") return row;
-  return Number(row.total ?? row.amount ?? row.value ?? row.approved ?? 0);
+const toNumber = (value) => {
+  const num = Number(value || 0);
+  return Number.isFinite(num) ? num : 0;
 };
 
-const pctChange = (arr) => {
-  if (!Array.isArray(arr) || arr.length < 2) return 0;
-  const prev = Number(arr[arr.length - 2]) || 0;
-  const last = Number(arr[arr.length - 1]) || 0;
-  if (prev === 0) return 0;
-  return ((last - prev) / Math.abs(prev)) * 100;
+const formatMoney = (value) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(toNumber(value));
+
+const formatCompactMoney = (value) => {
+  const num = toNumber(value);
+  if (Math.abs(num) >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
+  if (Math.abs(num) >= 1000) return `$${(num / 1000).toFixed(1)}K`;
+  return formatMoney(num);
 };
 
-const safeRgbParts = (v) => {
-  const s = String(v ?? "0 0 0").trim().replace(/,/g, " ");
-  const parts = s.split(/\s+/).map((x) => Number(x));
-  const [r, g, b] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0].map((n) => (Number.isFinite(n) ? n : 0));
-  return { r, g, b };
+const formatNumber = (value) =>
+  new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 2,
+  }).format(toNumber(value));
+
+const formatDate = (value) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 };
 
-const rgba = (v, a = 1) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
+const getPayloadData = (response) => {
+  const payload = response?.data || {};
+  return payload?.data || payload;
 };
 
-const rgb = (v) => {
-  const { r, g, b } = safeRgbParts(v);
-  return `rgb(${r}, ${g}, ${b})`;
-};
+async function getReportDashboard(params) {
+  let lastError = null;
 
-/* --------------------------- FX vibe background --------------------------- */
-const FloatingParticles = ({ theme }) => {
-  const particleColor = theme?.primary || theme?.accent || "34 197 94";
-  const enabled = theme?.effectsEnabled !== false;
-  if (!enabled) return null;
+  for (const endpoint of REPORT_ENDPOINTS) {
+    try {
+      const response = await adminApi.get(endpoint, { params });
+      return getPayloadData(response);
+    } catch (error) {
+      lastError = error;
 
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 20 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            backgroundColor: rgba(particleColor, 0.9),
-            boxShadow: `0 0 12px ${rgba(theme?.glow || theme?.accent || particleColor, 0.35)}`,
-          }}
-          initial={{ y: 0, opacity: 0 }}
-          animate={{ y: -100, opacity: [0, 1, 0] }}
-          transition={{ duration: Math.random() * 3 + 2, repeat: Infinity, delay: Math.random() * 2 }}
-        />
-      ))}
-    </div>
-  );
-};
-
-const AnimatedGrid = ({ theme }) => {
-  const enabled = theme?.effectsEnabled !== false;
-  const pattern = theme?.pattern || "grid";
-  if (!enabled || pattern !== "grid") return null;
-
-  const gridStroke = theme?.accent || "59 130 246";
-  const scanStroke = theme?.ring || theme?.accent || "59 130 246";
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          opacity: 0.12,
-          backgroundImage: `linear-gradient(${rgba(gridStroke, 0.22)} 1px, transparent 1px),
-                            linear-gradient(90deg, ${rgba(gridStroke, 0.22)} 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-          maskImage: "radial-gradient(120% 80% at 50% -10%, black 55%, transparent 80%)",
-          WebkitMaskImage: "radial-gradient(120% 80% at 50% -10%, black 55%, transparent 80%)",
-        }}
-      />
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          opacity: 0.18,
-          background: `repeating-linear-gradient(90deg, ${rgba(scanStroke, 0.14)} 0 2px, transparent 2px 8px)`,
-        }}
-        animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-        transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
-      />
-    </div>
-  );
-};
-
-/* --------------------------------- UI base -------------------------------- */
-const Card = ({ children, className = "", style = {} }) => (
-  <div className={className} style={style}>
-    {children}
-  </div>
-);
-
-const CardContent = ({ children, className = "" }) => <div className={className}>{children}</div>;
-
-const InfoNote = ({ children, theme }) => (
-  <div
-    className="flex items-start gap-2 p-3 text-sm"
-    style={{
-      borderRadius: theme?.radius || "14px",
-      border: `1px solid ${rgba(theme?.border || theme?.muted || "255 255 255", 0.12)}`,
-      background: rgba(theme?.card || theme?.surface2 || "18 18 18", 0.6),
-      color: rgba(theme?.fg || "255 255 255", 0.75),
-    }}
-  >
-    <InfoIcon className="w-4 h-4 mt-0.5" style={{ color: rgba(theme?.accent || "59 130 246", 0.95) }} />
-    <div>{children}</div>
-  </div>
-);
-
-/* -------------------------- tiny components ------------------------------- */
-const AnimatedCounter = ({ value = 0, duration = 700 }) => {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let start;
-    let raf;
-    const total = Number(value || 0);
-    const tick = (t) => {
-      if (!start) start = t;
-      const p = Math.min(1, (t - start) / duration);
-      setCount(Math.floor(total * p));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [value, duration]);
-  return <span className="font-extrabold tabular-nums">{count.toLocaleString()}</span>;
-};
-
-const KPI = ({ title, value, icon: Icon, isMoney = false, theme, iconBg }) => {
-  const radius = theme?.radius || "14px";
-  return (
-    <Card
-      className="p-4 transition-colors"
-      style={{
-        borderRadius: radius,
-        border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`,
-        background: `linear-gradient(135deg, ${rgba(theme?.card || theme?.surface2 || "18 18 18", 0.7)}, ${rgba(
-          theme?.surface1 || theme?.bg || "0 0 0",
-          0.7
-        )})`,
-        boxShadow: `0 14px 40px ${rgba(theme?.shadowColor || "0 0 0", 0.35)}`,
-      }}
-    >
-      <CardContent className="p-0" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-        <div className="flex items-center justify-between mb-2">
-          <div
-            className="p-2 rounded-lg"
-            style={{
-              background: iconBg || `linear-gradient(135deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(theme?.gradientTo || "147 51 234")})`,
-              boxShadow: `0 0 24px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.25)}`,
-            }}
-          >
-            <Icon className="w-5 h-5" style={{ color: rgb(theme?.accentFg || "255 255 255") }} />
-          </div>
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7) }}>
-            Live
-          </span>
-        </div>
-
-        <div className="text-xs" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.72) }}>
-          {title}
-        </div>
-
-        <div className="text-2xl">
-          {isMoney ? <span className="font-extrabold">{formatMoney(value)}</span> : <AnimatedCounter value={Number(value || 0)} />}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-/* ================================ MAIN ==================================== */
-export default function DashboardBase() {
-  const API_KEY = import.meta.env.VITE_API_KEY;
-
-  // Theme from Redux
-  const themeConfig = useSelector((state) => state.user.themeConfig);
-  const theme = useMemo(() => {
-    const t = themeConfig?.theme;
-    // sensible fallback if redux not ready
-    return (
-      t || {
-        accent: "59 130 246",
-        accentFg: "255 255 255",
-        bg: "0 0 0",
-        fg: "255 255 255",
-        card: "18 18 18",
-        border: "255 255 255",
-        ring: "59 130 246",
-        gradientFrom: "59 130 246",
-        gradientTo: "147 51 234",
-        sidebar: "25 25 25",
-        sidebarHover: "40 40 40",
-        sidebarActive: "34 197 94",
-        headerRow: "30 41 59",
-        rowHover: "15 23 42",
-        input: "6 101 234",
-        inputBorder: "100 116 139",
-        muted: "148 163 184",
-        mutedFg: "203 213 225",
-        placeholder: "148 163 184",
-        primary: "34 197 94",
-        primaryFg: "0 0 0",
-        success: "34 197 94",
-        successFg: "0 0 0",
-        warning: "234 179 8",
-        warningFg: "0 0 0",
-        danger: "244 63 94",
-        dangerFg: "255 255 255",
-        info: "56 189 248",
-        infoFg: "0 0 0",
-        surface1: "10 10 10",
-        surface2: "18 18 18",
-        surface3: "30 30 30",
-        shadowColor: "0 0 0",
-        radius: "14px",
-        pattern: "grid",
-        effectsEnabled: true,
+      if (error?.response?.status !== 404) {
+        throw error;
       }
+    }
+  }
+
+  throw lastError;
+}
+
+function buildSmoothPath(points) {
+  if (!points?.length) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  const path = [`M ${points[0].x} ${points[0].y}`];
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const current = points[i];
+    const next = points[i + 1];
+    const controlX = (current.x + next.x) / 2;
+
+    path.push(
+      `C ${controlX} ${current.y}, ${controlX} ${next.y}, ${next.x} ${next.y}`
     );
-  }, [themeConfig]);
+  }
 
-  const radius = theme?.radius || "14px";
+  return path.join(" ");
+}
 
-  const [userReport, setUserReport] = useState(null);
-  const [depositReport, setDepositReport] = useState(null);
-  const [withdrawalReport, setWithdrawalReport] = useState(null);
-  const [ibWithdrawalReport, setIbWithdrawalReport] = useState(null);
+function getTheme(isDark) {
+  return {
+    pageText: isDark ? "text-white" : "text-slate-900",
+    mutedText: isDark ? "text-white/45" : "text-slate-500",
+    softText: isDark ? "text-white/60" : "text-slate-600",
+    strongText: isDark ? "text-white" : "text-slate-950",
 
-  // unified monthly series + totals
-  const [depWdrMonthly, setDepWdrMonthly] = useState(null);
-  const [depWdrTotals, setDepWdrTotals] = useState(null);
+    heroShell: isDark
+      ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
+      : "border-orange-100/80 bg-white/90 shadow-[0_20px_60px_rgba(251,146,60,0.12)]",
 
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+    panelShell: isDark
+      ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.24)]"
+      : "border-orange-100/80 bg-white/95 shadow-[0_16px_50px_rgba(251,146,60,0.10)]",
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        setLoading(true);
-        setErr("");
+    innerShell: isDark
+      ? "border-white/10 bg-white/[0.035]"
+      : "border-orange-100/80 bg-orange-50/35",
 
-        const cfg = { headers: { "x-api-key": API_KEY } };
+    inputShell: isDark
+      ? "border-white/10 bg-white/[0.04]"
+      : "border-orange-100 bg-white",
 
-        const depWdrReq = adminApi
-          .get(`/analytics/deposits-vs-withdrawals?months=12`, cfg)
-          .then((r) => r?.data?.data)
-          .catch(() => null);
+    badgeGreen: isDark
+      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+      : "border-emerald-200 bg-emerald-50 text-emerald-700",
 
-        const [userRes, depRes, wdrRes, ibRes, depWdrRes] = await Promise.allSettled([
-          adminApi.get(`/user-report`, cfg),
-          adminApi.get(`/deposit-report`, cfg),
-          adminApi.get(`/withdrawal-report`, cfg),
-          adminApi.get(`/ib-withdrawal-report`, cfg),
-          depWdrReq,
-        ]);
+    rangeActive: isDark
+      ? "bg-white text-slate-950 shadow-lg"
+      : "bg-orange-600 text-white shadow-lg shadow-orange-500/20",
 
-        if (userRes.status === "fulfilled") setUserReport(userRes.value?.data?.data || {});
-        if (depRes.status === "fulfilled") setDepositReport(depRes.value?.data?.data || {});
-        if (wdrRes.status === "fulfilled") setWithdrawalReport(wdrRes.value?.data?.data || {});
-        if (ibRes.status === "fulfilled") setIbWithdrawalReport(ibRes.value?.data?.data || {});
-        if (depWdrRes.status === "fulfilled" && depWdrRes.value) {
-          setDepWdrMonthly(Array.isArray(depWdrRes.value.months) ? depWdrRes.value.months : null);
-          setDepWdrTotals(depWdrRes.value.totals || null);
-        }
-      } catch (e) {
-        console.error(e);
-        setErr("Failed to fetch dashboard data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    rangeIdle: isDark
+      ? "text-white/45 hover:bg-white/[0.07] hover:text-white"
+      : "text-slate-600 hover:bg-orange-50 hover:text-orange-700",
 
-    fetchAll();
-  }, [API_KEY]);
+    refreshButton: isDark
+      ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10"
+      : "border-orange-100 bg-white text-slate-700 shadow-sm hover:bg-orange-50",
+  };
+}
 
-  /* --------------------- Derived metrics -------------------- */
-  const totalUsers = userReport?.totalUsers ?? 0;
-  const kycVerified = userReport?.kycVerified ?? 0;
-  const kycUnverified = userReport?.kycUnverified ?? 0;
-  const emailVerified = userReport?.emailVerified ?? 0;
-  const emailUnverified = userReport?.emailUnverified ?? 0;
-  const totalIbUsers = userReport?.totalIbUsers ?? 0;
-  const totalReferralUsers = userReport?.totalReferralUsers ?? 0;
-
-  // fallback monthlies from legacy endpoints
-  const depMonthlyRaw = depositReport?.monthly || depositReport?.months || null;
-  const wdrMonthlyRaw = withdrawalReport?.monthly || withdrawalReport?.months || null;
-
-  const monthlyDeposits = Array.isArray(depMonthlyRaw) ? depMonthlyRaw.map(normalizeMonthly) : null;
-  const monthlyWithdrawals = Array.isArray(wdrMonthlyRaw) ? wdrMonthlyRaw.map(normalizeMonthly) : null;
-
-  // totals
-  const totalDeposits =
-    (monthlyDeposits?.reduce((s, v) => s + (Number(v) || 0), 0) || 0) || Number(depositReport?.totalAmount ?? depositReport?.approved ?? 0);
-
-  const totalWithdrawals =
-    (monthlyWithdrawals?.reduce((s, v) => s + (Number(v) || 0), 0) || 0) ||
-    Number(withdrawalReport?.totalAmount ?? withdrawalReport?.approved ?? 0);
-
-  // Use analytics totals if provided
-  const chartTotalDeposits = depWdrTotals?.deposits ?? totalDeposits;
-  const chartTotalWithdrawals = depWdrTotals?.withdrawals ?? totalWithdrawals;
-
-  const depPending = depositReport?.pending ?? 0;
-  const depRejected = depositReport?.rejected ?? 0;
-
-  const wdrApproved = withdrawalReport?.approved ?? withdrawalReport?.totalAmount ?? 0;
-  const wdrPending = withdrawalReport?.pending ?? 0;
-  const wdrRejected = withdrawalReport?.rejected ?? 0;
-  const wdrTotal = withdrawalReport?.total ?? 0;
-
-  const ibApproved = ibWithdrawalReport?.approved ?? 0;
-  const ibPending = ibWithdrawalReport?.pending ?? 0;
-  const ibRejected = ibWithdrawalReport?.rejected ?? 0;
-  const ibTodayApproved = ibWithdrawalReport?.todayApproved ?? 0;
-  const ibLastWeekApproved = ibWithdrawalReport?.lastWeekApproved ?? 0;
-  const ibLastMonthApproved = ibWithdrawalReport?.lastMonthApproved ?? 0;
-  const ibTotal = ibWithdrawalReport?.total ?? 0;
-
-  const labelFromMonth = (m, i) => {
-    if (!m) return `M${(i ?? 0) + 1}`;
-    if (m.label) return m.label;
-    if (m.month && typeof m.month === "string") {
-      const d = new Date(`${m.month}-01T00:00:00Z`);
-      const idx = Number.isNaN(d.getTime()) ? null : d.getUTCMonth();
-      return idx != null ? monthsNames[idx] : `M${(i ?? 0) + 1}`;
-    }
-    if (typeof m.monthIndex === "number") {
-      return monthsNames[Math.max(0, Math.min(11, m.monthIndex - 1))];
-    }
-    return `M${(i ?? 0) + 1}`;
+function IconBox({ children, tone = "orange", isDark }) {
+  const lightTones = {
+    orange: "border-orange-200 bg-orange-50 text-orange-700",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    sky: "border-sky-200 bg-sky-50 text-sky-700",
+    violet: "border-violet-200 bg-violet-50 text-violet-700",
+    rose: "border-rose-200 bg-rose-50 text-rose-700",
+    slate: "border-slate-200 bg-slate-50 text-slate-700",
   };
 
-  const monthlyDepVsWdr = useMemo(() => {
-    if (Array.isArray(depWdrMonthly) && depWdrMonthly.length) {
-      return depWdrMonthly.map((m, i) => ({
-        name: labelFromMonth(m, i),
-        deposits: Number(m.deposits || 0),
-        withdrawals: Number(m.withdrawals || 0),
-      }));
-    }
-    if (Array.isArray(depMonthlyRaw) && Array.isArray(wdrMonthlyRaw) && depMonthlyRaw.length && wdrMonthlyRaw.length) {
-      const len = Math.min(depMonthlyRaw.length, wdrMonthlyRaw.length, 12);
-      return Array.from({ length: len }, (_, i) => ({
-        name: monthsNames[i] ?? `M${i + 1}`,
-        deposits: normalizeMonthly(depMonthlyRaw[i]),
-        withdrawals: normalizeMonthly(wdrMonthlyRaw[i]),
-      }));
-    }
-    return null;
-  }, [depWdrMonthly, depMonthlyRaw, wdrMonthlyRaw]);
-
-  const depChange = pctChange(monthlyDepVsWdr?.map((d) => d.deposits) || []);
-  const wdrChange = pctChange(monthlyDepVsWdr?.map((d) => d.withdrawals) || []);
-
-  const userBarData = [
-    { title: "Total Users", value: totalUsers },
-    { title: "KYC Verified", value: kycVerified },
-    { title: "KYC Unverified", value: kycUnverified },
-    { title: "Email Verified", value: emailVerified },
-    { title: "Email Unverified", value: emailUnverified },
-    { title: "IB Users", value: totalIbUsers },
-    { title: "Referrals", value: totalReferralUsers },
-  ];
-
-  const ibBarData = [
-    { name: "Approved", value: Number(ibApproved || 0) },
-    { name: "Pending", value: Number(ibPending || 0) },
-    { name: "Rejected", value: Number(ibRejected || 0) },
-  ];
-
-  const safeDiv = (num, den) => (den ? (num / den) * 100 : 0);
-  const mt5Radial = [
-    { name: "KYC", pct: Number(safeDiv(kycVerified, totalUsers).toFixed(1)), fill: rgb(theme?.success || theme?.primary || "34 197 94") },
-    { name: "Email", pct: Number(safeDiv(emailVerified, totalUsers).toFixed(1)), fill: rgb(theme?.accent || "59 130 246") },
-    { name: "IB", pct: Number(safeDiv(totalIbUsers, totalUsers).toFixed(1)), fill: rgb(theme?.warning || "234 179 8") },
-  ];
-
-  const tickerItems = [
-    { symbol: "DEPOSITS", price: chartTotalDeposits, change24h: depChange || 0 },
-    { symbol: "WITHDRAWALS", price: chartTotalWithdrawals, change24h: wdrChange || 0 },
-    { symbol: "USERS", price: totalUsers, change24h: 0 },
-    { symbol: "IB APPROVED", price: ibApproved, change24h: 0 },
-  ];
-
-  // UI styles (theme driven)
-  const outerStyle = {
-    color: rgb(theme?.fg || "255 255 255"),
-    background: `radial-gradient(1200px 600px at 18% 0%, ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}, transparent 60%),
-                 radial-gradient(900px 480px at 82% 12%, ${rgba(theme?.gradientTo || theme?.accent || "147 51 234", 0.14)}, transparent 55%),
-                 linear-gradient(135deg, ${rgb(theme?.bg || "0 0 0")}, ${rgb(theme?.surface1 || "10 10 10")}, ${rgb(theme?.bg || "0 0 0")})`,
+  const darkTones = {
+    orange: "border-orange-400/20 bg-orange-500/10 text-orange-300",
+    emerald: "border-emerald-400/20 bg-emerald-500/10 text-emerald-300",
+    sky: "border-sky-400/20 bg-sky-500/10 text-sky-300",
+    violet: "border-violet-400/20 bg-violet-500/10 text-violet-300",
+    rose: "border-rose-400/20 bg-rose-500/10 text-rose-300",
+    slate: "border-white/10 bg-white/[0.06] text-white/80",
   };
-
-  const sectionStyle = {
-    borderRadius: radius,
-    border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`,
-    background: `linear-gradient(135deg, ${rgba(theme?.card || theme?.surface2 || "18 18 18", 0.7)}, ${rgba(
-      theme?.surface1 || theme?.bg || "0 0 0",
-      0.7
-    )})`,
-    backdropFilter: "blur(10px)",
-    boxShadow: `0 14px 40px ${rgba(theme?.shadowColor || "0 0 0", 0.35)}`,
-  };
-
-  const chipStyle = {
-    borderRadius: "999px",
-    border: `1px solid ${rgba(theme?.border || theme?.accent || "255 255 255", 0.18)}`,
-    background: rgba(theme?.accent || "59 130 246", 0.12),
-    color: rgba(theme?.accent || "59 130 246", 0.95),
-  };
-
-  const tickStroke = rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.65);
-  const gridStroke = rgba(theme?.fg || "255 255 255", 0.08);
 
   return (
-    <motion.div 
-    
-    // className="p-4 md:p-6 pb-12 min-h-screen relative overflow-hidden" style={outerStyle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}
-
-     className={[
-            "rounded-[24px] border backdrop-blur-xl transition-all duration-300","border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-    
-    
+    <div
+      className={cx(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl border transition-all duration-300",
+        isDark ? darkTones[tone] || darkTones.orange : lightTones[tone] || lightTones.orange
+      )}
     >
-      <FloatingParticles theme={theme} />
-      <AnimatedGrid theme={theme} />
+      {children}
+    </div>
+  );
+}
 
-      <div className="max-w-7xl mx-auto">
+function StatCard({
+  title,
+  value,
+  helper,
+  icon,
+  tone = "orange",
+  loading = false,
+  trend,
+  onClick,
+  clickLabel = "View Details",
+  isDark,
+}) {
+  const clickable = typeof onClick === "function";
 
-        comming soon .. 
-        {/* Header */}
-        {/* <div className="mb-5">
-          <h1
-            className="text-3xl md:text-4xl font-extrabold drop-shadow"
-            style={{
-              backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                theme?.gradientTo || "147 51 234"
-              )}, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")})`,
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-          >
-            Dashboard
-          </h1>
+  const lightToneMap = {
+    orange:
+      "border-orange-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] shadow-[0_16px_45px_rgba(251,146,60,0.10)]",
+    emerald:
+      "border-emerald-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(236,253,245,0.92))] shadow-[0_16px_45px_rgba(16,185,129,0.09)]",
+    sky: "border-sky-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,249,255,0.92))] shadow-[0_16px_45px_rgba(14,165,233,0.09)]",
+    violet:
+      "border-violet-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(245,243,255,0.92))] shadow-[0_16px_45px_rgba(139,92,246,0.09)]",
+    rose: "border-rose-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,241,242,0.92))] shadow-[0_16px_45px_rgba(244,63,94,0.09)]",
+    slate:
+      "border-slate-100 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] shadow-[0_16px_45px_rgba(15,23,42,0.07)]",
+  };
 
-          <div className="mt-2 flex items-center gap-3">
-            <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider" style={chipStyle}>
-              Live Overview
-            </span>
+  const darkToneMap = {
+    orange:
+      "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+    emerald:
+      "border-white/10 bg-[linear-gradient(135deg,rgba(16,185,129,0.09),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+    sky: "border-white/10 bg-[linear-gradient(135deg,rgba(14,165,233,0.09),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+    violet:
+      "border-white/10 bg-[linear-gradient(135deg,rgba(139,92,246,0.09),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+    rose: "border-white/10 bg-[linear-gradient(135deg,rgba(244,63,94,0.09),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+    slate:
+      "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+  };
 
-            {err && (
-              <span
-                className="px-2 py-0.5 text-[11px] border"
-                style={{
-                  borderRadius: "999px",
-                  borderColor: rgba(theme?.danger || "244 63 94", 0.25),
-                  background: rgba(theme?.danger || "244 63 94", 0.14),
-                  color: rgba(theme?.danger || "244 63 94", 0.95),
-                }}
-              >
-                {err}
-              </span>
-            )}
-          </div>
-        </div> */}
+  return (
+    <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? onClick : undefined}
+      onKeyDown={(event) => {
+        if (!clickable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={cx(
+        "group relative min-h-[176px] overflow-hidden rounded-[24px] border p-4 backdrop-blur-xl transition-all duration-300",
+        isDark ? darkToneMap[tone] || darkToneMap.orange : lightToneMap[tone] || lightToneMap.orange,
+        clickable &&
+          "cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-orange-400/40",
+        clickable && !isDark && "hover:border-orange-300 hover:shadow-[0_22px_70px_rgba(251,146,60,0.18)]",
+        clickable && isDark && "hover:border-sky-300/30 hover:bg-white/[0.07]"
+      )}
+      title={`${title}: ${value}${helper ? ` • ${helper}` : ""}${
+        clickable ? ` • Click to ${clickLabel}` : ""
+      }`}
+    >
+      <div
+        className={cx(
+          "pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl",
+          tone === "emerald" && (isDark ? "bg-emerald-400/13" : "bg-emerald-200/55"),
+          tone === "sky" && (isDark ? "bg-sky-400/13" : "bg-sky-200/55"),
+          tone === "violet" && (isDark ? "bg-violet-400/13" : "bg-violet-200/55"),
+          tone === "rose" && (isDark ? "bg-rose-400/13" : "bg-rose-200/55"),
+          tone === "slate" && (isDark ? "bg-white/6" : "bg-slate-200/45"),
+          tone === "orange" && (isDark ? "bg-orange-400/13" : "bg-orange-200/60")
+        )}
+      />
 
-        {/* Ticker */}
-        {/* <div className="mb-5">
-          <div
-            className="relative overflow-hidden border backdrop-blur-md"
-            style={{
-              borderRadius: radius,
-              borderColor: rgba(theme?.border || "255 255 255", 0.12),
-              background: `linear-gradient(90deg, ${rgba(theme?.card || theme?.surface2 || "18 18 18", 0.7)}, ${rgba(
-                theme?.bg || "0 0 0",
-                0.75
-              )}, ${rgba(theme?.card || theme?.surface2 || "18 18 18", 0.7)})`,
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                opacity: 0.12,
-                backgroundImage: `repeating-linear-gradient(90deg, ${rgba(theme?.accent || "59 130 246", 0.18)} 0 2px, transparent 2px 8px)`,
-              }}
-            />
-            <div className="whitespace-nowrap animate-[marquee_24s_linear_infinite] py-2">
-              {[...tickerItems, ...tickerItems].map((c, i) => {
-                const up = c.change24h >= 0;
-                return (
-                  <span key={c.symbol + i} className="inline-flex items-center mx-4 gap-2 text-sm">
-                    <span className="font-mono" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.75) }}>
-                      {c.symbol}
-                    </span>
-                    <span className="font-semibold">{formatNumber(c.price)}</span>
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs border"
-                      style={{
-                        borderColor: rgba(up ? theme?.success || theme?.primary : theme?.danger, 0.25),
-                        background: rgba(up ? theme?.success || theme?.primary : theme?.danger, 0.14),
-                        color: rgba(up ? theme?.success || theme?.primary : theme?.danger, 0.95),
-                      }}
-                    >
-                      {up ? "▲" : "▼"} {Math.abs(c.change24h).toFixed(2)}%
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-            <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
-          </div>
-        </div> */}
+      <div
+        className={cx(
+          "pointer-events-none absolute bottom-[-52px] right-[-40px] h-[120px] w-[58%] rounded-full blur-2xl",
+          isDark ? "bg-white/[0.035]" : "bg-white/80"
+        )}
+      />
 
-        {/* KPIs */}
-        {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KPI
-            title="Total Users"
-            value={totalUsers}
-            icon={UsersIcon}
-            theme={theme}
-            iconBg={`linear-gradient(135deg, ${rgb(theme?.accent || "59 130 246")}, ${rgb(theme?.info || "56 189 248")})`}
-          />
-          <KPI
-            title="KYC Verified"
-            value={kycVerified}
-            icon={UserCheck}
-            theme={theme}
-            iconBg={`linear-gradient(135deg, ${rgb(theme?.success || theme?.primary || "34 197 94")}, ${rgb(theme?.accent || "59 130 246")})`}
-          />
-          <KPI
-            title="Total Deposits"
-            value={totalDeposits}
-            icon={CreditCard}
-            isMoney
-            theme={theme}
-            iconBg={`linear-gradient(135deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(theme?.gradientTo || "147 51 234")})`}
-          />
-          <KPI
-            title="Total Withdrawals"
-            value={totalWithdrawals}
-            icon={ArrowDownRight}
-            isMoney
-            theme={theme}
-            iconBg={`linear-gradient(135deg, ${rgb(theme?.warning || "234 179 8")}, ${rgb(theme?.danger || "244 63 94")})`}
-          />
-        </div> */}
+      {clickable ? (
+        <div
+          className={cx(
+            "pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] opacity-0 shadow-sm transition-all duration-300 group-hover:opacity-100",
+            isDark
+              ? "border-white/10 bg-white/[0.08] text-white/70"
+              : "border-orange-100 bg-white text-orange-700"
+          )}
+        >
+          Open
+          <ChevronRight size={12} />
+        </div>
+      ) : null}
 
-        {/* ======= Aligned rows (2 columns each) ======= */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Row 1: User Information */}
-          {/* <section style={sectionStyle}>
-            <CardContent className="p-6" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-              <h2
-                className="text-lg mb-4 font-semibold"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                    theme?.gradientTo || "147 51 234"
-                  )})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                User Information
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { title: "Total Users", value: totalUsers, icon: <UsersIcon size={20} /> },
-                  { title: "KYC Verified", value: kycVerified, icon: <UserCheck size={20} /> },
-                  { title: "KYC Unverified", value: kycUnverified, icon: <UserX size={20} /> },
-                  { title: "Email Verified", value: emailVerified, icon: <MailCheck size={20} /> },
-                  { title: "Email Unverified", value: emailUnverified, icon: <MailX size={20} /> },
-                  { title: "IB Users", value: totalIbUsers, icon: <Wallet size={20} /> },
-                  { title: "Referrals", value: totalReferralUsers, icon: <Banknote size={20} /> },
-                ].map((c, i) => (
-                  <div
-                    key={i}
-                    className="p-4 border transition"
-                    style={{
-                      borderRadius: radius,
-                      borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                      background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.45),
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = rgba(theme?.surface3 || theme?.card || "30 30 30", 0.55);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = rgba(theme?.surface2 || theme?.card || "18 18 18", 0.45);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.8) }}>
-                        {c.title}
-                      </div>
-                      <div style={{ color: rgba(theme?.accent || "59 130 246", 0.95) }}>{c.icon}</div>
-                    </div>
-                    <div className="mt-1 text-xl font-extrabold">{formatNumber(c.value)}</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </section> */}
-
-          {/* User Report Overview */}
-          {/* <section style={sectionStyle}>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                User Report Overview
-              </h2>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={userBarData}>
-                    <CartesianGrid stroke={gridStroke} vertical={false} />
-                    <XAxis dataKey="title" stroke={tickStroke} tickLine={false} axisLine={false} />
-                    <YAxis stroke={tickStroke} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      contentStyle={{
-                        background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.95),
-                        border: `1px solid ${rgba(theme?.accent || "59 130 246", 0.5)}`,
-                        borderRadius: 10,
-                        color: rgb(theme?.fg || "255 255 255"),
-                      }}
-                    />
-                    <Bar dataKey="value" fill={rgb(theme?.info || theme?.accent || "56 189 248")} radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </section> */}
-
-          {/* Row 2: Deposit & Withdraw Report */}
-          {/* <section style={sectionStyle}>
-            <CardContent className="p-6">
-              <h2
-                className="text-lg mb-4 font-semibold"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${rgb(theme?.success || theme?.primary || "34 197 94")}, ${rgb(
-                    theme?.accent || "59 130 246"
-                  )})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                Deposit & Withdraw Report
-              </h2>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { t: "Deposits (Total)", v: totalDeposits, money: true },
-                  { t: "Deposits Pending", v: depPending, money: true },
-                  { t: "Deposits Rejected", v: depRejected, money: true },
-                  { t: "Withdrawals (Total)", v: totalWithdrawals, money: true },
-                  { t: "Withdraw Approved", v: wdrApproved, money: true },
-                  { t: "Withdraw Pending", v: wdrPending, money: true },
-                  { t: "Withdraw Rejected", v: wdrRejected, money: true },
-                ].map((x, i) => (
-                  <div
-                    key={i}
-                    className="p-3 border"
-                    style={{
-                      borderRadius: radius,
-                      borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                      background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.45),
-                    }}
-                  >
-                    <div className="text-[12px]" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7) }}>
-                      {x.t}
-                    </div>
-                    <div className="text-lg font-extrabold" style={{ color: rgba(theme?.fg || "255 255 255", 0.95) }}>
-                      {x.money ? formatMoney(x.v) : formatNumber(x.v)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </section> */}
-
-          {/* Deposits vs Withdrawals */}
-          {/* <Card
-            className="transition-colors"
-            style={{
-              ...sectionStyle,
-            }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" style={{ color: rgba(theme?.accent || "59 130 246", 0.95) }} />
-                  <h2 className="text-lg font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                    Deposits vs Withdrawals
-                  </h2>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm">
-                  <span
-                    className="px-2 py-1 border"
-                    style={{
-                      borderRadius: radius,
-                      background: rgba(theme?.accent || "59 130 246", 0.12),
-                      borderColor: rgba(theme?.accent || "59 130 246", 0.28),
-                    }}
-                  >
-                    <span style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.72) }}>Total Deposits:</span>{" "}
-                    <span className="font-bold" style={{ color: rgba(theme?.accent || "59 130 246", 0.95) }}>
-                      {formatMoney(chartTotalDeposits)}
-                    </span>
-                  </span>
-
-                  <span
-                    className="px-2 py-1 border"
-                    style={{
-                      borderRadius: radius,
-                      background: rgba(theme?.danger || "244 63 94", 0.12),
-                      borderColor: rgba(theme?.danger || "244 63 94", 0.28),
-                    }}
-                  >
-                    <span style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.72) }}>Total Withdrawals:</span>{" "}
-                    <span className="font-bold" style={{ color: rgba(theme?.danger || "244 63 94", 0.95) }}>
-                      {formatMoney(chartTotalWithdrawals)}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              {Array.isArray(monthlyDepVsWdr) && monthlyDepVsWdr.length > 1 ? (
-                <div className="h-[340px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyDepVsWdr} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="areaDeposits" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={rgba(theme?.accent || "59 130 246", 0.95)} stopOpacity={0.95} />
-                          <stop offset="95%" stopColor={rgba(theme?.accent || "59 130 246", 0)} stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="areaWithdrawals" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={rgba(theme?.danger || "244 63 94", 0.95)} stopOpacity={0.95} />
-                          <stop offset="95%" stopColor={rgba(theme?.danger || "244 63 94", 0)} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-
-                      <CartesianGrid stroke={gridStroke} vertical={false} />
-                      <XAxis dataKey="name" stroke={tickStroke} tickLine={false} axisLine={false} />
-                      <YAxis stroke={tickStroke} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        formatter={(val, name) => [formatMoney(val), name === "deposits" ? "Deposits" : "Withdrawals"]}
-                        contentStyle={{
-                          background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.95),
-                          border: `1px solid ${rgba(theme?.success || theme?.primary || "34 197 94", 0.5)}`,
-                          borderRadius: 10,
-                          color: rgb(theme?.fg || "255 255 255"),
-                        }}
-                      />
-                      <Legend formatter={(v) => (v === "deposits" ? "Deposits" : "Withdrawals")} />
-                      <Area
-                        type="monotone"
-                        dataKey="deposits"
-                        stroke={rgb(theme?.accent || "59 130 246")}
-                        strokeWidth={2}
-                        fill="url(#areaDeposits)"
-                        name="deposits"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="withdrawals"
-                        stroke={rgb(theme?.danger || "244 63 94")}
-                        strokeWidth={2}
-                        fill="url(#areaWithdrawals)"
-                        name="withdrawals"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[{ name: "Totals", Deposits: chartTotalDeposits, Withdrawals: chartTotalWithdrawals }]}>
-                      <CartesianGrid stroke={gridStroke} vertical={false} />
-                      <XAxis dataKey="name" stroke={tickStroke} tickLine={false} axisLine={false} />
-                      <YAxis stroke={tickStroke} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{
-                          background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.95),
-                          border: `1px solid ${rgba(theme?.success || theme?.primary || "34 197 94", 0.5)}`,
-                          borderRadius: 10,
-                          color: rgb(theme?.fg || "255 255 255"),
-                        }}
-                        formatter={(val, key) => [formatMoney(val), key]}
-                      />
-                      <Legend />
-                      <Bar dataKey="Deposits" fill={rgb(theme?.accent || "59 130 246")} radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="Withdrawals" fill={rgb(theme?.danger || "244 63 94")} radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-
-                  {!monthlyDepVsWdr && (
-                    <div className="mt-3">
-                      <InfoNote theme={theme}>
-                        Showing totals because the unified endpoint{" "}
-                        <code
-                          className="mx-1 px-2 py-0.5 border"
-                          style={{
-                            borderRadius: "10px",
-                            borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                            background: rgba(theme?.bg || "0 0 0", 0.25),
-                            color: rgba(theme?.fg || "255 255 255", 0.85),
-                          }}
-                        >
-                          GET /api/analytics/deposits-vs-withdrawals?months=12
-                        </code>{" "}
-                        didn’t return a monthly array. Provide <code>data.months</code> as{" "}
-                        <code
-                          className="ml-1 px-2 py-0.5 border"
-                          style={{
-                            borderRadius: "10px",
-                            borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                            background: rgba(theme?.bg || "0 0 0", 0.25),
-                            color: rgba(theme?.fg || "255 255 255", 0.85),
-                          }}
-                        >
-                          [&#123; month: "YYYY-MM", label: "Jan", deposits: Number, withdrawals: Number &#125;]
-                        </code>{" "}
-                        and optional <code>data.totals</code>.
-                      </InfoNote>
-                    </div>
-                  )}
-                </div>
+      <div className="relative z-10 flex h-full flex-col justify-between gap-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p
+              className={cx(
+                "text-[11px] font-bold uppercase tracking-[0.18em]",
+                isDark ? "text-white/40" : "text-slate-500"
               )}
-            </CardContent>
-          </Card> */}
+            >
+              {title}
+            </p>
 
-          {/* Row 3: IB Withdrawal Report */}
-          {/* <section style={sectionStyle}>
-            <CardContent className="p-6">
-              <h2
-                className="text-lg mb-4 font-semibold"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientTo || "147 51 234")}, ${rgb(theme?.accent || "59 130 246")})`,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
+            {loading ? (
+              <div
+                className={cx(
+                  "mt-3 h-8 w-32 animate-pulse rounded-xl",
+                  isDark ? "bg-white/10" : "bg-slate-200"
+                )}
+              />
+            ) : (
+              <h3
+                className={cx(
+                  "mt-2 truncate text-2xl font-black tracking-tight",
+                  isDark ? "text-white" : "text-slate-950"
+                )}
               >
-                IB Withdrawal Report
-              </h2>
+                {value}
+              </h3>
+            )}
 
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { t: "Approved", v: ibApproved },
-                  { t: "Pending", v: ibPending },
-                  { t: "Rejected", v: ibRejected },
-                  { t: "Today Approved", v: ibTodayApproved },
-                  { t: "Last Week Approved", v: ibLastWeekApproved },
-                  { t: "Last Month Approved", v: ibLastMonthApproved },
-                  { t: "Total", v: ibTotal },
-                ].map((x, i) => (
-                  <div
-                    key={i}
-                    className="p-3 border"
-                    style={{
-                      borderRadius: radius,
-                      borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                      background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.45),
-                    }}
-                  >
-                    <div className="text-[12px]" style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7) }}>
-                      {x.t}
-                    </div>
-                    <div className="text-lg font-extrabold" style={{ color: rgba(theme?.fg || "255 255 255", 0.95) }}>
-                      {formatNumber(x.v)}
-                    </div>
-                  </div>
-                ))}
+            {helper ? (
+              <p
+                className={cx(
+                  "mt-1 text-xs font-semibold",
+                  isDark ? "text-white/45" : "text-slate-500"
+                )}
+              >
+                {helper}
+              </p>
+            ) : null}
+          </div>
+
+          <IconBox tone={tone} isDark={isDark}>
+            {icon}
+          </IconBox>
+        </div>
+
+        <div className="flex items-end justify-between gap-3">
+          {trend ? (
+            <div
+              className={cx(
+                "flex min-w-0 items-center gap-2 text-xs font-semibold",
+                isDark ? "text-white/45" : "text-slate-600"
+              )}
+            >
+              {trend}
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {clickable ? (
+            <div
+              className={cx(
+                "flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-[0.12em]",
+                isDark ? "text-sky-300" : "text-orange-600"
+              )}
+            >
+              <MousePointerClick size={13} />
+              {clickLabel}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Panel({
+  title,
+  subtitle,
+  action,
+  children,
+  className = "",
+  onClick,
+  clickLabel = "Open",
+  isDark,
+}) {
+  const clickable = typeof onClick === "function";
+  const theme = getTheme(isDark);
+
+  return (
+    <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? onClick : undefined}
+      onKeyDown={(event) => {
+        if (!clickable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={cx(
+        "relative overflow-hidden rounded-[24px] border p-4 backdrop-blur-xl transition-all duration-300",
+        theme.panelShell,
+        clickable &&
+          "cursor-pointer hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-orange-400/40",
+        clickable && !isDark && "hover:border-orange-300 hover:bg-white",
+        clickable && isDark && "hover:border-sky-300/30 hover:bg-white/[0.065]",
+        className
+      )}
+    >
+      <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3
+              className={cx(
+                "text-sm font-bold uppercase tracking-[0.18em]",
+                isDark ? "text-white/85" : "text-slate-800"
+              )}
+            >
+              {title}
+            </h3>
+
+            {clickable ? (
+              <ChevronRight
+                className={isDark ? "text-sky-300" : "text-orange-500"}
+                size={16}
+              />
+            ) : null}
+          </div>
+
+          {subtitle ? (
+            <p className={cx("mt-1 text-xs", theme.mutedText)}>{subtitle}</p>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          {clickable ? (
+            <span
+              className={cx(
+                "rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em]",
+                isDark
+                  ? "border-white/10 bg-white/[0.06] text-white/55"
+                  : "border-orange-100 bg-orange-50 text-orange-700"
+              )}
+            >
+              {clickLabel}
+            </span>
+          ) : null}
+
+          {action ? <div>{action}</div> : null}
+        </div>
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+function StatusList({
+  items = [],
+  loading = false,
+  emptyText = "No data found",
+  onItemClick,
+  isDark,
+}) {
+  const clickable = typeof onItemClick === "function";
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((item) => (
+          <div
+            key={item}
+            className={cx(
+              "h-[62px] animate-pulse rounded-2xl",
+              isDark ? "bg-white/10" : "bg-slate-100"
+            )}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (!items?.length) {
+    return (
+      <div
+        className={cx(
+          "grid min-h-[210px] place-items-center rounded-[20px] border border-dashed px-4 text-center text-xs font-semibold",
+          isDark
+            ? "border-white/10 bg-white/[0.03] text-white/35"
+            : "border-orange-200 bg-orange-50/45 text-slate-500"
+        )}
+      >
+        {emptyText}
+      </div>
+    );
+  }
+
+  const max = Math.max(...items.map((item) => toNumber(item?.count)), 1);
+
+  return (
+    <div className="space-y-3">
+      {items.slice(0, 6).map((item, index) => {
+        const label = String(item?._id || "Unknown").replaceAll("_", " ");
+        const count = toNumber(item?.count);
+        const percentage = Math.min((count / max) * 100, 100);
+
+        return (
+          <div
+            key={`${label}-${index}`}
+            role={clickable ? "button" : undefined}
+            tabIndex={clickable ? 0 : undefined}
+            onClick={clickable ? () => onItemClick(item) : undefined}
+            onKeyDown={(event) => {
+              if (!clickable) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onItemClick(item);
+              }
+            }}
+            title={`${label}: ${formatNumber(count)} records${
+              clickable ? " • Click to view" : ""
+            }`}
+            className={cx(
+              "rounded-[18px] border p-3 transition-all duration-300",
+              isDark
+                ? "border-white/10 bg-white/[0.035]"
+                : "border-orange-100 bg-white/85",
+              clickable &&
+                "cursor-pointer hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/30",
+              clickable && isDark && "hover:bg-white/[0.06]",
+              clickable && !isDark && "hover:border-orange-300 hover:bg-white"
+            )}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p
+                className={cx(
+                  "truncate text-sm font-bold capitalize",
+                  isDark ? "text-white/75" : "text-slate-700"
+                )}
+              >
+                {label}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <span
+                  className={cx(
+                    "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                    isDark
+                      ? "border-white/10 bg-white/[0.06] text-white/70"
+                      : "border-orange-100 bg-orange-50 text-orange-700"
+                  )}
+                >
+                  {formatNumber(count)}
+                </span>
+
+                {clickable ? (
+                  <ChevronRight
+                    size={15}
+                    className={isDark ? "text-sky-300" : "text-orange-500"}
+                  />
+                ) : null}
               </div>
-            </CardContent>
-          </section> */}
+            </div>
 
-          {/* IB Withdrawal (Status) */}
-          {/* <Card style={sectionStyle}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                  IB Withdrawal (Status)
-                </h2>
-              </div>
+            <div
+              className={cx(
+                "mt-3 h-1.5 overflow-hidden rounded-full",
+                isDark ? "bg-white/10" : "bg-orange-100"
+              )}
+            >
+              <div
+                className={cx(
+                  "h-full rounded-full",
+                  isDark
+                    ? "bg-gradient-to-r from-sky-400 to-cyan-300"
+                    : "bg-gradient-to-r from-orange-400 to-orange-600"
+                )}
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-              <div className="h-[340px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ibBarData} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="ibBar" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={rgba(theme?.gradientTo || "147 51 234", 0.95)} stopOpacity={0.95} />
-                        <stop offset="95%" stopColor={rgba(theme?.gradientTo || "147 51 234", 0.2)} stopOpacity={0.25} />
-                      </linearGradient>
-                    </defs>
+function CashflowChart({ data = [], loading = false, isDark = false }) {
+  const [hoverIndex, setHoverIndex] = useState(null);
 
-                    <CartesianGrid stroke={gridStroke} vertical={false} />
-                    <XAxis dataKey="name" stroke={tickStroke} tickLine={false} axisLine={false} />
-                    <YAxis stroke={tickStroke} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      contentStyle={{
-                        background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.95),
-                        border: `1px solid ${rgba(theme?.gradientTo || "147 51 234", 0.5)}`,
-                        borderRadius: 10,
-                        color: rgb(theme?.fg || "255 255 255"),
-                      }}
-                      formatter={(v) => [formatNumber(v), "Count"]}
+  const chart = useMemo(() => {
+    const list = (data || []).map((item) => ({
+      date: item?.date,
+      deposits: toNumber(item?.deposits),
+      withdrawals: toNumber(item?.withdrawals),
+      users: toNumber(item?.users),
+      tradingProfit: toNumber(item?.tradingProfit),
+      net: toNumber(item?.deposits) - toNumber(item?.withdrawals),
+    }));
+
+    if (!list.length) {
+      return {
+        list: [],
+        paths: {},
+        points: {},
+        yTicks: [],
+        width: 760,
+      };
+    }
+
+    const width = 760;
+    const height = 260;
+    const padding = {
+      top: 24,
+      right: 20,
+      bottom: 28,
+      left: 54,
+    };
+
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+
+    const allValues = list.flatMap((item) => [
+      item.deposits,
+      item.withdrawals,
+      item.net,
+      item.tradingProfit,
+    ]);
+
+    let min = Math.min(...allValues, 0);
+    let max = Math.max(...allValues, 1);
+
+    if (min === max) {
+      min -= 1;
+      max += 1;
+    }
+
+    const buffer = (max - min) * 0.12;
+    min -= buffer;
+    max += buffer;
+
+    const xScale = (index) =>
+      padding.left +
+      (list.length === 1
+        ? plotWidth / 2
+        : (index / (list.length - 1)) * plotWidth);
+
+    const yScale = (value) =>
+      padding.top + ((max - value) / Math.max(max - min, 1)) * plotHeight;
+
+    const makePoints = (key) =>
+      list.map((item, index) => ({
+        x: xScale(index),
+        y: yScale(item[key]),
+        value: item[key],
+        date: item.date,
+        index,
+      }));
+
+    const points = {
+      deposits: makePoints("deposits"),
+      withdrawals: makePoints("withdrawals"),
+      net: makePoints("net"),
+      tradingProfit: makePoints("tradingProfit"),
+    };
+
+    const paths = {
+      deposits: buildSmoothPath(points.deposits),
+      withdrawals: buildSmoothPath(points.withdrawals),
+      net: buildSmoothPath(points.net),
+      tradingProfit: buildSmoothPath(points.tradingProfit),
+    };
+
+    const areaPath = `${paths.net} L ${
+      points.net[points.net.length - 1]?.x || padding.left
+    } ${padding.top + plotHeight} L ${points.net[0]?.x || padding.left} ${
+      padding.top + plotHeight
+    } Z`;
+
+    const yTicks = [0, 1, 2, 3, 4].map((tick) => {
+      const value = max - ((max - min) / 4) * tick;
+      return {
+        value,
+        y: yScale(value),
+      };
+    });
+
+    return {
+      width,
+      height,
+      padding,
+      list,
+      points,
+      paths,
+      areaPath,
+      yTicks,
+    };
+  }, [data]);
+
+  const hovered =
+    hoverIndex !== null && chart.list?.[hoverIndex]
+      ? chart.list[hoverIndex]
+      : null;
+
+  const hoveredX =
+    hoverIndex !== null && chart.points?.net?.[hoverIndex]
+      ? chart.points.net[hoverIndex].x
+      : null;
+
+  const handleMouseMove = (event) => {
+    if (!chart.list?.length) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const svgX = (x / rect.width) * chart.width;
+
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+
+    chart.points.net.forEach((point, index) => {
+      const distance = Math.abs(point.x - svgX);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+
+    setHoverIndex(nearestIndex);
+  };
+
+  const handleMouseLeave = () => {
+    setHoverIndex(null);
+  };
+
+  if (loading) {
+    return (
+      <div
+        className={cx(
+          "h-[360px] animate-pulse rounded-[22px]",
+          isDark ? "bg-white/10" : "bg-slate-100"
+        )}
+      />
+    );
+  }
+
+  if (!data?.length) {
+    return (
+      <div
+        className={cx(
+          "grid h-[360px] place-items-center rounded-[22px] border border-dashed text-xs font-semibold",
+          isDark
+            ? "border-white/10 bg-white/[0.03] text-white/35"
+            : "border-orange-200 bg-orange-50/45 text-slate-500"
+        )}
+      >
+        No chart data available for selected range
+      </div>
+    );
+  }
+
+  const legend = [
+    {
+      key: "net",
+      label: "Net Cashflow",
+      color: isDark ? "#38bdf8" : "#ea580c",
+      value: hovered?.net,
+    },
+    {
+      key: "deposits",
+      label: "Deposits",
+      color: "#10b981",
+      value: hovered?.deposits,
+    },
+    {
+      key: "withdrawals",
+      label: "Withdrawals",
+      color: "#f43f5e",
+      value: hovered?.withdrawals,
+    },
+    {
+      key: "tradingProfit",
+      label: "Trading P&L",
+      color: "#8b5cf6",
+      value: hovered?.tradingProfit,
+    },
+  ];
+
+  return (
+    <div
+      className={cx(
+        "relative overflow-hidden rounded-[22px] border p-4",
+        isDark
+          ? "border-white/10 bg-white/[0.025]"
+          : "border-orange-100 bg-white/85"
+      )}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {legend.map((item) => (
+            <div key={item.key} className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              <p
+                className={cx(
+                  "text-[11px] font-bold uppercase tracking-[0.14em]",
+                  isDark ? "text-white/45" : "text-slate-500"
+                )}
+              >
+                {item.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p
+          className={cx(
+            "text-[11px] font-bold uppercase tracking-[0.16em]",
+            isDark ? "text-white/30" : "text-slate-400"
+          )}
+        >
+          {formatDate(data[0]?.date)} - {formatDate(data[data.length - 1]?.date)}
+        </p>
+      </div>
+
+      <div className="relative">
+        <svg viewBox="0 0 760 260" className="h-[320px] w-full">
+          <defs>
+            <linearGradient id="adminNetLine" x1="0" x2="1" y1="0" y2="0">
+              <stop
+                offset="0%"
+                stopColor={isDark ? "#38bdf8" : "#fb923c"}
+                stopOpacity="0.25"
+              />
+              <stop
+                offset="100%"
+                stopColor={isDark ? "#22d3ee" : "#ea580c"}
+                stopOpacity="1"
+              />
+            </linearGradient>
+
+            <linearGradient id="adminNetFill" x1="0" x2="0" y1="0" y2="1">
+              <stop
+                offset="0%"
+                stopColor={isDark ? "#38bdf8" : "#fb923c"}
+                stopOpacity="0.18"
+              />
+              <stop
+                offset="100%"
+                stopColor={isDark ? "#38bdf8" : "#fb923c"}
+                stopOpacity="0"
+              />
+            </linearGradient>
+
+            <filter id="adminGlowLine">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {chart.yTicks.map((tick, index) => (
+            <g key={`${tick.y}-${index}`}>
+              <line
+                x1="54"
+                x2="740"
+                y1={tick.y}
+                y2={tick.y}
+                stroke="currentColor"
+                strokeOpacity={isDark ? "0.08" : "0.12"}
+              />
+              <text
+                x="8"
+                y={tick.y + 4}
+                fill="currentColor"
+                opacity={isDark ? "0.38" : "0.48"}
+                fontSize="10"
+                fontWeight="700"
+              >
+                {formatCompactMoney(tick.value)}
+              </text>
+            </g>
+          ))}
+
+          <path d={chart.areaPath} fill="url(#adminNetFill)" />
+
+          <path
+            d={chart.paths.deposits}
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.9"
+          />
+
+          <path
+            d={chart.paths.withdrawals}
+            fill="none"
+            stroke="#f43f5e"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.9"
+          />
+
+          <path
+            d={chart.paths.tradingProfit}
+            fill="none"
+            stroke="#8b5cf6"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.85"
+          />
+
+          <path
+            d={chart.paths.net}
+            fill="none"
+            stroke="url(#adminNetLine)"
+            strokeWidth="4.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#adminGlowLine)"
+          />
+
+          {hoveredX !== null ? (
+            <line
+              x1={hoveredX}
+              x2={hoveredX}
+              y1="20"
+              y2="232"
+              stroke="currentColor"
+              strokeOpacity={isDark ? "0.22" : "0.28"}
+              strokeDasharray="5 6"
+            />
+          ) : null}
+
+          {["deposits", "withdrawals", "tradingProfit", "net"].map((key) =>
+            chart.points[key].map((point, index) => {
+              const isActive = hoverIndex === index;
+              const colorMap = {
+                deposits: "#10b981",
+                withdrawals: "#f43f5e",
+                tradingProfit: "#8b5cf6",
+                net: isDark ? "#38bdf8" : "#ea580c",
+              };
+
+              return (
+                <g key={`${key}-${point.date}-${index}`}>
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r={isActive ? 6.5 : key === "net" ? 4.8 : 3.3}
+                    fill={colorMap[key]}
+                    opacity={isActive || key === "net" ? 1 : 0.72}
+                  />
+                  {isActive ? (
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="12"
+                      fill={colorMap[key]}
+                      opacity="0.14"
                     />
-                    <Bar dataKey="value" fill="url(#ibBar)" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card> */}
+                  ) : null}
+                </g>
+              );
+            })
+          )}
 
-          {/* Row 4: MT5 Accounts Report */}
-          {/* <Card style={sectionStyle}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                  MT5 Accounts Report
-                </h2>
-                <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider" style={chipStyle}>
-                  % of total users
+          {chart.points.net.map((point, index) => {
+            const showLabel =
+              index === 0 ||
+              index === chart.points.net.length - 1 ||
+              hoverIndex === index;
+
+            if (!showLabel) return null;
+
+            return (
+              <text
+                key={`date-${point.date}-${index}`}
+                x={point.x}
+                y="252"
+                textAnchor="middle"
+                fill="currentColor"
+                opacity={hoverIndex === index ? "0.75" : "0.45"}
+                fontSize="10"
+                fontWeight="700"
+              >
+                {formatDate(point.date)}
+              </text>
+            );
+          })}
+        </svg>
+
+        {hovered ? (
+          <div
+            className={cx(
+              "pointer-events-none absolute top-5 z-20 w-[230px] rounded-2xl border p-3 shadow-2xl backdrop-blur-xl transition-all duration-150",
+              isDark
+                ? "border-white/10 bg-slate-950/90 text-white shadow-black/30"
+                : "border-orange-100 bg-white text-slate-900 shadow-orange-200/40"
+            )}
+            style={{
+              left:
+                hoveredX && hoveredX > 560
+                  ? "auto"
+                  : `${Math.min(Math.max((hoveredX || 80) / 7.6, 8), 66)}%`,
+              right: hoveredX && hoveredX > 560 ? "18px" : "auto",
+            }}
+          >
+            <p
+              className={cx(
+                "text-xs font-black uppercase tracking-[0.18em]",
+                isDark ? "text-white/40" : "text-slate-500"
+              )}
+            >
+              {formatDate(hovered.date)}
+            </p>
+
+            <div className="mt-3 space-y-2">
+              {legend.map((item) => (
+                <div
+                  key={item.key}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span
+                      className={cx(
+                        "text-xs font-semibold",
+                        isDark ? "text-white/45" : "text-slate-500"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+
+                  <span className="text-xs font-black">
+                    {formatMoney(item.value)}
+                  </span>
+                </div>
+              ))}
+
+              <div
+                className={cx(
+                  "mt-2 flex items-center justify-between border-t pt-2",
+                  isDark ? "border-white/10" : "border-orange-100"
+                )}
+              >
+                <span
+                  className={cx(
+                    "text-xs font-semibold",
+                    isDark ? "text-white/45" : "text-slate-500"
+                  )}
+                >
+                  New Users
+                </span>
+                <span className="text-xs font-black">
+                  {formatNumber(hovered.users)}
                 </span>
               </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadialBarChart innerRadius="35%" outerRadius="95%" startAngle={90} endAngle={-270} barCategoryGap="15%" data={mt5Radial}>
-                    <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                    <RadialBar dataKey="pct" cornerRadius={8} />
-                    <Legend
-                      iconSize={10}
-                      layout="horizontal"
-                      verticalAlign="bottom"
-                      wrapperStyle={{ color: rgb(theme?.fg || "255 255 255") }}
-                      formatter={(value, entry) => (
-                        <span style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.8) }}>
-                          {value}:{" "}
-                          <b style={{ color: entry?.payload?.fill }}>
-                            {entry?.payload?.pct}%
-                          </b>
-                        </span>
-                      )}
-                    />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card> */}
+      <div className="mt-3 grid gap-2 sm:grid-cols-4">
+        {legend.map((item) => (
+          <div
+            key={`mini-${item.key}`}
+            className={cx(
+              "rounded-2xl border px-3 py-2",
+              isDark
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-orange-100 bg-white/90"
+            )}
+          >
+            <p
+              className={cx(
+                "text-[10px] font-bold uppercase tracking-[0.14em]",
+                isDark ? "text-white/30" : "text-slate-400"
+              )}
+            >
+              {item.label}
+            </p>
+            <p
+              className={cx(
+                "mt-1 text-sm font-black",
+                isDark ? "text-white/80" : "text-slate-800"
+              )}
+            >
+              {hovered ? formatMoney(item.value) : "Hover chart"}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          {/* Withdrawal Summary */}
-          {/* <section style={sectionStyle}>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-2" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                📤 Withdrawal Summary
-              </h2>
+function RecentTrendTable({ data = [], loading = false, isDark = false }) {
+  const rows = [...(data || [])].slice(-6).reverse();
 
-              <ul className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                {[
-                  { label: "Total", value: wdrTotal },
-                  { label: "Approved", value: wdrApproved },
-                  { label: "Pending", value: wdrPending },
-                  { label: "Rejected", value: wdrRejected },
-                ].map((x) => (
-                  <li
-                    key={x.label}
-                    className="p-3 border"
-                    style={{
-                      borderRadius: radius,
-                      borderColor: rgba(theme?.border || "255 255 255", 0.12),
-                      background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.45),
-                    }}
+  if (loading) {
+    return (
+      <div
+        className={cx(
+          "h-[280px] animate-pulse rounded-[22px]",
+          isDark ? "bg-white/10" : "bg-slate-100"
+        )}
+      />
+    );
+  }
+
+  if (!rows.length) {
+    return (
+      <div
+        className={cx(
+          "rounded-[22px] border border-dashed p-6 text-center text-xs font-semibold",
+          isDark
+            ? "border-white/10 bg-white/[0.03] text-white/35"
+            : "border-orange-200 bg-orange-50/45 text-slate-500"
+        )}
+      >
+        No recent trend rows
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cx(
+        "overflow-hidden rounded-[22px] border",
+        isDark ? "border-white/10" : "border-orange-100"
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table
+          className={cx(
+            "min-w-full divide-y",
+            isDark ? "divide-white/10" : "divide-orange-100"
+          )}
+        >
+          <thead className={isDark ? "bg-white/[0.04]" : "bg-orange-50/70"}>
+            <tr>
+              {["Date", "Deposits", "Withdrawals", "Users", "Trading P&L"].map(
+                (head, index) => (
+                  <th
+                    key={head}
+                    className={cx(
+                      "px-4 py-3 text-xs font-bold uppercase tracking-[0.15em]",
+                      isDark ? "text-white/35" : "text-slate-500",
+                      index === 0 ? "text-left" : "text-right"
+                    )}
                   >
-                    <div style={{ color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7) }}>{x.label}</div>
-                    <div className="text-lg font-extrabold" style={{ color: rgba(theme?.fg || "255 255 255", 0.95) }}>
-                      {formatNumber(x.value)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </section> */}
+                    {head}
+                  </th>
+                )
+              )}
+            </tr>
+          </thead>
+
+          <tbody
+            className={cx(
+              "divide-y",
+              isDark
+                ? "divide-white/10 bg-white/[0.015]"
+                : "divide-orange-100 bg-white"
+            )}
+          >
+            {rows.map((row) => (
+              <tr
+                key={row.date}
+                className={cx(
+                  "transition",
+                  isDark ? "hover:bg-white/[0.04]" : "hover:bg-orange-50/70"
+                )}
+                title={`Date: ${formatDate(row.date)} • Deposits: ${formatMoney(
+                  row.deposits
+                )} • Withdrawals: ${formatMoney(
+                  row.withdrawals
+                )} • Users: ${formatNumber(row.users)} • Trading P&L: ${formatMoney(
+                  row.tradingProfit
+                )}`}
+              >
+                <td
+                  className={cx(
+                    "whitespace-nowrap px-4 py-3 text-sm font-bold",
+                    isDark ? "text-white/80" : "text-slate-800"
+                  )}
+                >
+                  {formatDate(row.date)}
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-bold text-emerald-600">
+                  {formatMoney(row.deposits)}
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-bold text-rose-600">
+                  {formatMoney(row.withdrawals)}
+                </td>
+
+                <td
+                  className={cx(
+                    "whitespace-nowrap px-4 py-3 text-right text-sm font-bold",
+                    isDark ? "text-white/55" : "text-slate-600"
+                  )}
+                >
+                  {formatNumber(row.users)}
+                </td>
+
+                <td
+                  className={cx(
+                    "whitespace-nowrap px-4 py-3 text-right text-sm font-bold",
+                    toNumber(row.tradingProfit) >= 0
+                      ? "text-emerald-600"
+                      : "text-rose-600"
+                  )}
+                >
+                  {formatMoney(row.tradingProfit)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SnapshotRow({
+  label,
+  value,
+  icon,
+  tone = "orange",
+  loading = false,
+  onClick,
+  clickLabel = "View",
+  isDark,
+}) {
+  const clickable = typeof onClick === "function";
+
+  return (
+    <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? onClick : undefined}
+      onKeyDown={(event) => {
+        if (!clickable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={cx(
+        "rounded-[20px] border p-3 transition-all duration-300",
+        isDark
+          ? "border-white/10 bg-white/[0.035]"
+          : "border-orange-100 bg-white/90",
+        clickable &&
+          "cursor-pointer hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/30",
+        clickable && isDark && "hover:bg-white/[0.06]",
+        clickable && !isDark && "hover:border-orange-300 hover:bg-white"
+      )}
+      title={`${label}: ${value}${clickable ? ` • Click to ${clickLabel}` : ""}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p
+            className={cx(
+              "text-[11px] font-bold uppercase tracking-[0.16em]",
+              isDark ? "text-white/35" : "text-slate-500"
+            )}
+          >
+            {label}
+          </p>
+
+          {loading ? (
+            <div
+              className={cx(
+                "mt-2 h-6 w-20 animate-pulse rounded-lg",
+                isDark ? "bg-white/10" : "bg-slate-200"
+              )}
+            />
+          ) : (
+            <h4
+              className={cx(
+                "mt-1 text-xl font-black",
+                isDark ? "text-white" : "text-slate-950"
+              )}
+            >
+              {value}
+            </h4>
+          )}
+
+          {clickable ? (
+            <p
+              className={cx(
+                "mt-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em]",
+                isDark ? "text-sky-300" : "text-orange-600"
+              )}
+            >
+              {clickLabel}
+              <ChevronRight size={12} />
+            </p>
+          ) : null}
         </div>
 
-        {/* Loading overlay */}
-        {/* <motion.div
-          initial={false}
-          animate={{ opacity: loading ? 1 : 0, pointerEvents: loading ? "auto" : "none" }}
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-          style={{ background: rgba(theme?.bg || "0 0 0", 0.55) }}
-        >
-          <div
-            className="px-6 py-4 border shadow-xl"
-            style={{
-              borderRadius: radius,
-              borderColor: rgba(theme?.border || "255 255 255", 0.12),
-              background: rgba(theme?.card || theme?.surface2 || "18 18 18", 0.75),
-              color: rgba(theme?.fg || "255 255 255", 0.92),
-              boxShadow: `0 18px 60px ${rgba(theme?.shadowColor || "0 0 0", 0.45)}`,
-            }}
-          >
-            Loading dashboard…
-          </div>
-        </motion.div> */}
+        <IconBox tone={tone} isDark={isDark}>
+          {icon}
+        </IconBox>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+export default function DashboardBase() {
+  const navigate = useNavigate();
+  const mode = useSelector((store) => store.adminTheme?.mode || "light");
+  const isDark = mode === "dark";
+  const theme = getTheme(isDark);
+
+  const [range, setRange] = useState("30d");
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const goTo = (path) => {
+    if (!path) return;
+    navigate(path);
+  };
+
+  const loadDashboard = async ({ silent = false } = {}) => {
+    try {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
+      setError("");
+
+      const data = await getReportDashboard({ range });
+      setDashboard(data);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to load report dashboard";
+
+      setError(message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range]);
+
+  const overview = dashboard?.overview || {};
+  const statuses = dashboard?.statuses || {};
+  const trends = dashboard?.trends?.performance || [];
+
+  const users = overview?.users || {};
+  const cashflow = overview?.cashflow || {};
+  const challenges = overview?.challenges || {};
+  const trading = overview?.trading || {};
+  const bonus = overview?.bonus || {};
+  const insurance = overview?.insurance || {};
+
+  const approvedDeposits = cashflow?.approvedDeposits || {};
+  const approvedWithdrawals = cashflow?.approvedWithdrawals || {};
+  const ibWithdrawals = cashflow?.ibWithdrawals || {};
+  const openTrades = trading?.openTrades || {};
+  const closedTrades = trading?.closedTrades || {};
+
+  const netCashflow = toNumber(cashflow?.netCashflow);
+  const isPositiveCashflow = netCashflow >= 0;
+
+  return (
+    <div className={cx("space-y-4", theme.pageText)}>
+      <div className={cx("relative overflow-hidden rounded-[22px] border p-4", theme.heroShell)}>
+        <div
+          aria-hidden
+          className={cx(
+            "pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl",
+            isDark ? "bg-blue-500/10" : "bg-orange-300/25"
+          )}
+        />
+
+        <div
+          aria-hidden
+          className={cx(
+            "pointer-events-none absolute -bottom-20 left-1/3 h-44 w-44 rounded-full blur-3xl",
+            isDark ? "bg-cyan-400/10" : "bg-amber-200/30"
+          )}
+        />
+
+        <div className="relative flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <div>
+            <div
+              className={cx(
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em]",
+                theme.badgeGreen
+              )}
+            >
+              <span className="h-2 w-2 rounded-full bg-current opacity-90" />
+              Live Analytics
+            </div>
+
+            <h1 className={cx("mt-3 text-2xl font-black tracking-tight sm:text-3xl", theme.strongText)}>
+              Report Dashboard
+            </h1>
+
+            <p className={cx("mt-1 max-w-3xl text-sm", theme.mutedText)}>
+              Track users, KYC, deposits, withdrawals, challenges, trades,
+              bonuses, insurance, IB payouts, and support activity.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className={cx("flex flex-wrap items-center gap-1.5 rounded-2xl border p-1.5", theme.inputShell)}>
+              {RANGE_OPTIONS.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setRange(item.value)}
+                  className={cx(
+                    "rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300",
+                    range === item.value ? theme.rangeActive : theme.rangeIdle
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => loadDashboard({ silent: true })}
+              disabled={refreshing || loading}
+              className={cx(
+                "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60",
+                theme.refreshButton
+              )}
+            >
+              <RefreshCcw size={15} className={cx(refreshing && "animate-spin")} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {error ? (
+        <div
+          className={cx(
+            "rounded-[22px] border p-4",
+            isDark
+              ? "border-rose-400/20 bg-rose-500/10 text-rose-300"
+              : "border-rose-200 bg-rose-50 text-rose-700"
+          )}
+        >
+          <p className="text-sm font-bold">Unable to load dashboard</p>
+          <p className="mt-1 text-xs font-medium">{error}</p>
+
+          <button
+            type="button"
+            onClick={() => loadDashboard()}
+            className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : null}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Approved Deposits"
+          value={formatMoney(approvedDeposits?.totalAmount)}
+          helper={`${formatNumber(approvedDeposits?.count)} successful records`}
+          icon={<Banknote size={21} />}
+          tone="emerald"
+          onClick={() => goTo("/admin/deposit")}
+          clickLabel="Deposits"
+          trend={
+            <>
+              <ArrowUpRight size={14} className="text-emerald-500" />
+              Deposit inflow
+            </>
+          }
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Approved Withdrawals"
+          value={formatMoney(approvedWithdrawals?.totalAmount)}
+          helper={`${formatNumber(approvedWithdrawals?.count)} approved payouts`}
+          icon={<CreditCard size={21} />}
+          tone="rose"
+          onClick={() => goTo("/admin/withdrawal")}
+          clickLabel="Withdrawals"
+          trend={
+            <>
+              <ArrowDownRight size={14} className="text-rose-500" />
+              Client payout
+            </>
+          }
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Net Cashflow"
+          value={formatMoney(netCashflow)}
+          helper="Deposits minus withdrawals"
+          icon={<TrendingUp size={21} />}
+          tone={isPositiveCashflow ? "sky" : "rose"}
+          onClick={() => goTo("/admin/deposit")}
+          clickLabel="Cashflow"
+          trend={
+            <>
+              {isPositiveCashflow ? (
+                <ArrowUpRight size={14} className="text-emerald-500" />
+              ) : (
+                <ArrowDownRight size={14} className="text-rose-500" />
+              )}
+              {isPositiveCashflow ? "Positive flow" : "Negative flow"}
+            </>
+          }
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="New Users"
+          value={formatNumber(users?.new)}
+          helper={`${formatNumber(users?.total)} total users`}
+          icon={<Users size={21} />}
+          tone="violet"
+          onClick={() => goTo("/admin/manage-users")}
+          clickLabel="Users"
+          trend={
+            <>
+              <Activity size={14} className="text-violet-500" />
+              Selected range
+            </>
+          }
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="KYC Verified"
+          value={formatNumber(users?.verifiedKyc)}
+          helper={`${formatNumber(users?.pendingKyc)} pending profiles`}
+          icon={<ShieldCheck size={21} />}
+          tone="emerald"
+          onClick={() => goTo("/admin/kyc-users")}
+          clickLabel="KYC"
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Active Challenges"
+          value={formatNumber(challenges?.active)}
+          helper={`${formatNumber(challenges?.total)} total challenges`}
+          icon={<Target size={21} />}
+          tone="orange"
+          onClick={() => goTo("/admin/setup-challenges")}
+          clickLabel="Challenges"
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Trading P&L"
+          value={formatMoney(closedTrades?.totalProfit)}
+          helper={`${formatNumber(closedTrades?.winRate)}% win rate`}
+          icon={<BarChart3 size={21} />}
+          tone={toNumber(closedTrades?.totalProfit) >= 0 ? "sky" : "rose"}
+          onClick={() => goTo("/admin/dashboard")}
+          clickLabel="Trading"
+        />
+
+        <StatCard
+          isDark={isDark}
+          loading={loading}
+          title="Open Trades"
+          value={formatNumber(openTrades?.count)}
+          helper={`${formatNumber(openTrades?.totalLot)} total lots`}
+          icon={<Zap size={21} />}
+          tone="slate"
+          onClick={() => goTo("/admin/dashboard")}
+          clickLabel="Trades"
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1.6fr_0.9fr]">
+        <Panel
+          isDark={isDark}
+          title="Cashflow Performance"
+          subtitle="Hover on graph points to view deposits, withdrawals, net cashflow, users, and trading P&L"
+          action={
+            <span
+              className={cx(
+                "rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em]",
+                isDark
+                  ? "border-white/10 bg-white/[0.06] text-white/45"
+                  : "border-orange-100 bg-orange-50 text-orange-700"
+              )}
+            >
+              {range.toUpperCase()}
+            </span>
+          }
+        >
+          <CashflowChart data={trends} loading={loading} isDark={isDark} />
+        </Panel>
+
+        <div className="grid gap-4">
+          <StatCard
+            isDark={isDark}
+            loading={loading}
+            title="IB Withdrawals"
+            value={formatMoney(ibWithdrawals?.totalAmount)}
+            helper={`${formatNumber(ibWithdrawals?.count)} IB payout records`}
+            icon={<Wallet size={21} />}
+            tone="orange"
+            onClick={() => goTo("/admin/ib-withdrawal")}
+            clickLabel="IB Payouts"
+          />
+
+          <StatCard
+            isDark={isDark}
+            loading={loading}
+            title="Bonus Payouts"
+            value={formatMoney(bonus?.payouts?.totalAmount)}
+            helper={`${formatNumber(bonus?.payouts?.count)} payout records`}
+            icon={<Gift size={21} />}
+            tone="violet"
+            onClick={() => goTo("/admin/BonusReports")}
+            clickLabel="Bonus"
+          />
+
+          <StatCard
+            isDark={isDark}
+            loading={loading}
+            title="Insurance Claims"
+            value={formatMoney(insurance?.claims?.totalAmount)}
+            helper={`${formatNumber(insurance?.activeCoverage)} active coverages`}
+            icon={<LifeBuoy size={21} />}
+            tone="emerald"
+            onClick={() => goTo("/admin/insurance-report")}
+            clickLabel="Insurance"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+        <Panel
+          isDark={isDark}
+          title="Deposit Status"
+          subtitle="Current deposit records"
+          onClick={() => goTo("/admin/deposit")}
+          clickLabel="Open"
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <StatusList
+              isDark={isDark}
+              items={statuses?.deposits}
+              loading={loading}
+              onItemClick={() => goTo("/admin/deposit")}
+            />
+          </div>
+        </Panel>
+
+        <Panel
+          isDark={isDark}
+          title="Withdrawal Status"
+          subtitle="Client payout records"
+          onClick={() => goTo("/admin/withdrawal")}
+          clickLabel="Open"
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <StatusList
+              isDark={isDark}
+              items={statuses?.withdrawals}
+              loading={loading}
+              onItemClick={() => goTo("/admin/withdrawal")}
+            />
+          </div>
+        </Panel>
+
+        <Panel
+          isDark={isDark}
+          title="Challenge Status"
+          subtitle="Account challenge activity"
+          onClick={() => goTo("/admin/setup-challenges")}
+          clickLabel="Open"
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <StatusList
+              isDark={isDark}
+              items={statuses?.challenges}
+              loading={loading}
+              onItemClick={() => goTo("/admin/setup-challenges")}
+            />
+          </div>
+        </Panel>
+
+        <Panel
+          isDark={isDark}
+          title="Support Tickets"
+          subtitle="User support workload"
+          onClick={() => goTo("/admin/customerSupport/tickets")}
+          clickLabel="Open"
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <StatusList
+              isDark={isDark}
+              items={statuses?.tickets}
+              loading={loading}
+              onItemClick={() => goTo("/admin/customerSupport/tickets")}
+            />
+          </div>
+        </Panel>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Panel
+          isDark={isDark}
+          title="Recent Report Rows"
+          subtitle="Hover table rows to view complete daily information"
+        >
+          <RecentTrendTable data={trends} loading={loading} isDark={isDark} />
+        </Panel>
+
+        <Panel
+          isDark={isDark}
+          title="Operational Snapshot"
+          subtitle="Quick admin decision view"
+        >
+          <div className="grid gap-3">
+            <SnapshotRow
+              isDark={isDark}
+              loading={loading}
+              label="Passed Challenges"
+              value={formatNumber(challenges?.passed)}
+              icon={<ShieldCheck size={19} />}
+              tone="emerald"
+              onClick={() => goTo("/admin/setup-challenges")}
+              clickLabel="Challenges"
+            />
+
+            <SnapshotRow
+              isDark={isDark}
+              loading={loading}
+              label="Failed Challenges"
+              value={formatNumber(challenges?.failed)}
+              icon={<Target size={19} />}
+              tone="rose"
+              onClick={() => goTo("/admin/setup-challenges")}
+              clickLabel="Challenges"
+            />
+
+            <SnapshotRow
+              isDark={isDark}
+              loading={loading}
+              label="Closed Trades"
+              value={formatNumber(closedTrades?.count)}
+              icon={<BarChart3 size={19} />}
+              tone="sky"
+              onClick={() => goTo("/admin/dashboard")}
+              clickLabel="Trades"
+            />
+
+            <div
+              className={cx(
+                "relative overflow-hidden rounded-[20px] border p-4",
+                isDark
+                  ? "border-white/10 bg-white/[0.05]"
+                  : "border-orange-100 bg-gradient-to-r from-slate-950 to-slate-800 text-white shadow-[0_16px_50px_rgba(15,23,42,0.14)]"
+              )}
+            >
+              <div className="relative flex items-start gap-3">
+                <IconBox tone="orange" isDark={isDark}>
+                  <Clock3 size={19} />
+                </IconBox>
+
+                <div>
+                  <p
+                    className={cx(
+                      "text-[10px] font-bold uppercase tracking-[0.18em]",
+                      isDark ? "text-white/35" : "text-orange-200"
+                    )}
+                  >
+                    System Status
+                  </p>
+
+                  <h4 className="mt-1 text-base font-black text-white">
+                    Report dashboard is active
+                  </h4>
+
+                  <p className="mt-1 text-xs leading-5 text-white/60">
+                    Data is loaded from your secured admin API using the
+                    existing adminApi client.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    </div>
   );
 }

@@ -13,10 +13,10 @@ export const FloatingOrbs = () => (
           top: `${(i * 53) % 100}%`,
           background:
             i % 3 === 0
-              ? "radial-gradient(circle at center, rgba(16,185,129,0.25), transparent 60%)"
+              ? "radial-gradient(circle at center, rgba(15, 159, 110,0.25), transparent 60%)"
               : i % 3 === 1
               ? "radial-gradient(circle at center, rgba(34,211,238,0.25), transparent 60%)"
-              : "radial-gradient(circle at center, rgba(99,102,241,0.25), transparent 60%)",
+              : "radial-gradient(circle at center, rgba(23, 157, 166,0.25), transparent 60%)",
         }}
         animate={{
           y: [0, i % 2 ? -22 : 22, 0],

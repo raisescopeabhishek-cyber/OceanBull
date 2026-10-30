@@ -18,33 +18,21 @@ import { userApi } from "@/utils/apiClients";
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 const getTheme = (isDark) => ({
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/55" : "text-slate-500",
-  softText: isDark ? "text-white/70" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  card: isDark
-    ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100 bg-white/70",
+  card:"border-line bg-surface-2",
 
-  input: isDark
-    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
-    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+  input:"border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-primary",
 
-  icon: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+  icon:"border-line bg-primary-soft text-primary",
 
-  successBadge: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+  successBadge:"border-success bg-success-soft text-success",
 
-  button: isDark
-    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+  button:"bg-primary text-text hover:bg-primary focus:ring-primary",
 
-  buttonDisabled: isDark
-    ? "bg-slate-600 text-white/60"
-    : "bg-slate-300 text-slate-600",
+  buttonDisabled:"bg-surface-3 text-subtle",
 });
 
 const InputField = ({
@@ -67,7 +55,7 @@ const InputField = ({
     </label>
 
     <div className="relative">
-      <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-500">
+      <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary">
         {icon}
       </div>
 
@@ -78,7 +66,7 @@ const InputField = ({
         onChange={onChange}
         name={name}
         className={cx(
-          "w-full rounded-2xl border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:ring-4",
+          "w-full rounded-card border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:ring-4",
           theme.input
         )}
       />
@@ -178,11 +166,11 @@ const UserWalletDetails = () => {
   ];
 
   return (
-    <div className={cx("rounded-[22px] border p-4 sm:p-5", theme.card)}>
+    <div className={cx("rounded-card border p-4 sm:p-5", theme.card)}>
       <div className="mb-5 flex items-start gap-3">
         <div
           className={cx(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
             theme.icon
           )}
         >
@@ -201,7 +189,7 @@ const UserWalletDetails = () => {
 
       <div
         className={cx(
-          "mb-5 rounded-2xl border px-4 py-3",
+          "mb-5 rounded-card border px-4 py-3",
           theme.successBadge
         )}
       >
@@ -236,7 +224,7 @@ const UserWalletDetails = () => {
           onClick={submitHandler}
           disabled={isLoading}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
+            "inline-flex items-center justify-center gap-2 rounded-card px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
             isLoading ? theme.buttonDisabled : theme.button
           )}
         >

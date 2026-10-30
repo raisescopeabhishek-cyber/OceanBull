@@ -13,61 +13,42 @@ import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { userApi } from "../../utils/apiClients";
+import { PageHeader } from "@/Components/ui";
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
 const getTheme = (isDark) => ({
-  pageText: isDark ? "text-white" : "text-slate-900",
-  text: isDark ? "text-white" : "text-slate-900",
-  mutedText: isDark ? "text-white/50" : "text-slate-500",
-  softText: isDark ? "text-white/70" : "text-slate-600",
+  pageText:"text-text",
+  text:"text-text",
+  mutedText:"text-subtle",
+  softText:"text-muted",
 
-  header: isDark
-    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
+  header:"border-line",
 
-  headerText: "text-white",
-  headerMuted: "text-white/80",
-  headerBadge: "border-white/20 bg-white/10 text-white",
-  headerIcon: "border-white/20 bg-white/10 text-white",
-  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
-  headerStatMuted: "text-white/75",
+  headerText: "text-text",
+  headerMuted: "text-muted",
+  headerBadge: "border-line bg-surface-2 text-text",
+  headerIcon: "border-line bg-surface-2 text-text",
+  headerStat: "border-line bg-surface-2 text-text backdrop-blur-xl",
+  headerStatMuted: "text-muted",
 
-  card: isDark
-    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
+  card:"border-line bg-surface-2",
 
-  cardSoft: isDark
-    ? "border-white/10 bg-white/[0.035]"
-    : "border-amber-100/80 bg-white/70",
+  cardSoft:"border-line bg-surface-2",
 
-  iconBox: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-amber-200 bg-amber-50 text-amber-600",
+  iconBox:"border-line bg-primary-soft text-primary",
 
-  iconBoxSoft: isDark
-    ? "border-white/10 bg-white/[0.04] text-white/55"
-    : "border-amber-100 bg-white/80 text-amber-500",
+  iconBoxSoft:"border-line bg-surface-2 text-subtle",
 
-  badge: isDark
-    ? "border-white/10 bg-white/[0.05] text-white/55"
-    : "border-amber-100 bg-white/80 text-amber-600",
+  badge:"border-line bg-surface-2 text-subtle",
 
-  ruleItem: isDark
-    ? "border-white/10 bg-white/[0.035] hover:bg-white/[0.055]"
-    : "border-amber-100 bg-white/75 hover:bg-white",
+  ruleItem:"border-line bg-surface-2 hover:bg-surface-2",
 
-  accordion: isDark
-    ? "border-white/10 bg-white/[0.035] text-white/75 hover:bg-white/[0.055]"
-    : "border-amber-100 bg-white/75 text-slate-700 hover:bg-amber-50/80",
+  accordion:"border-line bg-surface-2 text-muted hover:bg-surface-2",
 
-  accordionActive: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-white"
-    : "border-amber-300 bg-amber-50/90 text-slate-900 shadow-[0_0_0_3px_rgba(245,158,11,0.06)]",
+  accordionActive:"border-line bg-primary-soft text-text",
 
-  successBadge: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+  successBadge:"border-success bg-success-soft text-success",
 });
 
 const HeaderCard = ({ children, theme, isDark }) => (
@@ -76,7 +57,7 @@ const HeaderCard = ({ children, theme, isDark }) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.35 }}
     className={cn(
-      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      "relative overflow-hidden rounded-card border p-5 transition-all duration-300 sm:p-6",
       theme.header
     )}
   >
@@ -85,7 +66,7 @@ const HeaderCard = ({ children, theme, isDark }) => (
       className="pointer-events-none absolute inset-0"
       style={{
         background: isDark
-          ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
+          ? "radial-gradient(circle at top left, rgba(79, 125, 246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
           : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
       }}
     />
@@ -96,7 +77,7 @@ const HeaderCard = ({ children, theme, isDark }) => (
 const Card = ({ children, theme, className = "" }) => (
   <div
     className={cn(
-      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      "rounded-card border p-4 transition-all duration-300 sm:p-5",
       theme.card,
       className
     )}
@@ -108,7 +89,7 @@ const Card = ({ children, theme, className = "" }) => (
 const HeaderIconBox = ({ children, theme }) => (
   <div
     className={cn(
-      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-card border",
       theme.headerIcon
     )}
   >
@@ -117,15 +98,15 @@ const HeaderIconBox = ({ children, theme }) => (
 );
 
 const HeaderStatBox = ({ icon, label, value, theme }) => (
-  <div className={cn("rounded-2xl border px-4 py-3", theme.headerStat)}>
+  <div className={cn("rounded-card border px-4 py-3", theme.headerStat)}>
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+      <div className="flex h-10 w-10 items-center justify-center rounded-card border border-line bg-surface-2">
         {icon}
       </div>
 
       <div className="min-w-0">
         <p className={cn("text-xs", theme.headerStatMuted)}>{label}</p>
-        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+        <p className="mt-1 truncate text-base font-bold text-text">{value}</p>
       </div>
     </div>
   </div>
@@ -135,7 +116,7 @@ const SectionHeader = ({ icon, title, subtitle, theme }) => (
   <div className="mb-5 flex items-start gap-3">
     <div
       className={cn(
-        "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
         theme.iconBox
       )}
     >
@@ -164,7 +145,7 @@ const DefinitionAccordion = ({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border transition-all duration-300",
+        "overflow-hidden rounded-card border transition-all duration-300",
         isOpen ? theme.accordionActive : theme.accordion
       )}
     >
@@ -177,7 +158,7 @@ const DefinitionAccordion = ({
 
         <span
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-card border transition-all duration-200",
             isOpen ? theme.iconBox : theme.iconBoxSoft
           )}
         >
@@ -200,10 +181,7 @@ const DefinitionAccordion = ({
           >
             <div
               className={cn(
-                "border-t px-4 py-4 text-sm leading-6",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/65"
-                  : "border-amber-100 bg-amber-50/60 text-slate-600"
+                "border-t px-4 py-4 text-sm leading-6","border-line bg-surface-2 text-muted"
               )}
             >
               {content}
@@ -310,10 +288,7 @@ const UserRules = () => {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "font-semibold underline underline-offset-4 transition-colors",
-                isDark
-                  ? "text-blue-300 hover:text-blue-200"
-                  : "text-amber-600 hover:text-amber-700"
+                "font-semibold underline underline-offset-4 transition-colors","text-primary hover:text-primary"
               )}
             >
               {part}
@@ -354,61 +329,11 @@ const UserRules = () => {
   return (
     <div className={cn("w-full space-y-5", theme.pageText)}>
       {/* Header */}
-      <HeaderCard theme={theme} isDark={isDark}>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <HeaderIconBox theme={theme}>
-              <Shield className="h-6 w-6" />
-            </HeaderIconBox>
-
-            <div>
-              <div
-                className={cn(
-                  "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
-                  theme.headerBadge
-                )}
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Trading Knowledge Center
-              </div>
-
-              <h1
-                className={cn(
-                  "text-2xl font-bold tracking-tight sm:text-3xl",
-                  theme.headerText
-                )}
-              >
-                Rules & Definitions
-              </h1>
-
-              <p
-                className={cn(
-                  "mt-2 max-w-2xl text-sm leading-6",
-                  theme.headerMuted
-                )}
-              >
-                Review active platform rules and learn important forex trading terms in one clean workspace.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[360px]">
-            <HeaderStatBox
-              theme={theme}
-              icon={<FileText className="h-4 w-4" />}
-              label="Active Rules"
-              value={String(activeRulesCount)}
-            />
-
-            <HeaderStatBox
-              theme={theme}
-              icon={<BookOpenIcon className="h-4 w-4" />}
-              label="Definitions"
-              value={String(definitions.length)}
-            />
-          </div>
-        </div>
-      </HeaderCard>
+      <PageHeader
+        breadcrumb="Trading / Rules"
+        title="Rules & definitions"
+        description="Active platform rules, and the trading terms behind them."
+      />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
         {/* Rules Section */}
@@ -429,15 +354,14 @@ const UserRules = () => {
             {loading ? (
               <div
                 className={cn(
-                  "flex min-h-[340px] items-center justify-center rounded-3xl border",
+                  "flex min-h-[340px] items-center justify-center rounded-card border",
                   theme.cardSoft
                 )}
               >
                 <div className="text-center">
                   <Loader2
                     className={cn(
-                      "mx-auto h-9 w-9 animate-spin",
-                      isDark ? "text-blue-400" : "text-amber-500"
+                      "mx-auto h-9 w-9 animate-spin","text-primary"
                     )}
                   />
                   <p className={cn("mt-3 text-sm", theme.mutedText)}>
@@ -458,14 +382,14 @@ const UserRules = () => {
                     }
                     transition={{ duration: 0.25 }}
                     className={cn(
-                      "relative overflow-hidden rounded-3xl border p-4 pl-5 transition-all duration-200",
+                      "relative overflow-hidden rounded-card border p-4 pl-5 transition-all duration-200",
                       theme.ruleItem
                     )}
                   >
                     <div
                       aria-hidden
                       className="absolute left-0 top-0 h-full w-1.5"
-                      style={{ backgroundColor: rule?.color || "#f59e0b" }}
+                      style={{ backgroundColor: rule?.color || "#2a56dc" }}
                     />
 
                     <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -485,10 +409,10 @@ const UserRules = () => {
                         )}
                       >
                         <span
-                          className="h-3 w-3 rounded-full border border-white/30"
-                          style={{ backgroundColor: rule?.color || "#f59e0b" }}
+                          className="h-3 w-3 rounded-full border border-line"
+                          style={{ backgroundColor: rule?.color || "#2a56dc" }}
                         />
-                        {rule?.color || "#f59e0b"}
+                        {rule?.color || "#2a56dc"}
                       </span>
                     </div>
 
@@ -501,14 +425,14 @@ const UserRules = () => {
             ) : (
               <div
                 className={cn(
-                  "flex min-h-[340px] items-center justify-center rounded-3xl border p-8 text-center",
+                  "flex min-h-[340px] items-center justify-center rounded-card border p-8 text-center",
                   theme.cardSoft
                 )}
               >
                 <div>
                   <div
                     className={cn(
-                      "mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border",
+                      "mx-auto flex h-14 w-14 items-center justify-center rounded-card border",
                       theme.iconBox
                     )}
                   >

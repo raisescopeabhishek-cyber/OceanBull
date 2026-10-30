@@ -17,7 +17,7 @@ export default function OpenAccountMail({
                 font-family: 'Arial', sans-serif;
                 line-height: 1.6;
                 color: #333;
-                background-color: #f4f4f4;
+                background-color: #f3f5f9;
               }
               .container {
                 max-width: 600px;
@@ -43,7 +43,7 @@ export default function OpenAccountMail({
               .cta-button {
                 display: inline-block;
                 padding: 12px 24px;
-                background-color: #2d6a4f;
+                background-color: #0f9f6e;
                 color: #FFFFFF;
                 text-decoration: none;
                 border-radius: 5px;
@@ -62,13 +62,13 @@ export default function OpenAccountMail({
                 margin-top: 6px;
               }
               .footer-info a {
-                color: #B6D0E2;
+                color: #bed2ff;
                 text-decoration: none;
               }
 
               .withdrawal-details {
                 background-color: #f8f8f8;
-                border-left: 4px solid #2d6a4f;
+                border-left: 4px solid #0f9f6e;
                 padding: 15px;
                 margin: 20px 0;
               }

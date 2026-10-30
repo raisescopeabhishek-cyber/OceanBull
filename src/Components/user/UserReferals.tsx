@@ -39,6 +39,7 @@ import { CFgenerateRandomNumber } from "../../utils/CustomFunctions";
 import { userApi } from "../../utils/apiClients";
 import { FloatingParticles } from "../../utils/FloatingParticles";
 import { AnimatedGrid } from "../../utils/AnimatedGrid";
+import { PageHeader } from "@/Components/ui";
 
 /* -------------------- theme helpers (RGB strings -> css) ------------------- */
 const safeRgbParts = (v: any) => {
@@ -165,12 +166,12 @@ const UserReferal = () => {
 
   const mutedText: CSSProperties = { color: rgba(theme?.mutedFg || theme?.fg, 0.7) };
   const subtleText: CSSProperties = { color: rgba(theme?.mutedFg || theme?.fg, 0.6) };
-  const iconAccent: CSSProperties = { color: rgba(theme?.accent || theme?.gradientFrom || "59 130 246", 0.95) };
+  const iconAccent: CSSProperties = { color: rgba(theme?.accent || theme?.gradientFrom || "79 125 246", 0.95) };
 
   const inputStyle: CSSProperties = {
     width: "100%",
     borderRadius: radius,
-    background: rgba(theme?.input || theme?.surface2 || "18 18 18", 0.35),
+    background: rgba(theme?.input || theme?.surface2 || "15 24 41", 0.35),
     border: `1px solid ${rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18)}`,
     color: rgb(theme?.fg || "255 255 255"),
     outline: "none",
@@ -182,8 +183,8 @@ const UserReferal = () => {
   };
 
   const focusOn = (el: HTMLInputElement | HTMLSelectElement) => {
-    el.style.boxShadow = `0 0 0 3px ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.25)}`;
-    el.style.borderColor = rgba(theme?.ring || theme?.accent || "59 130 246", 0.45);
+    el.style.boxShadow = `0 0 0 3px ${rgba(theme?.ring || theme?.accent || "79 125 246", 0.25)}`;
+    el.style.borderColor = rgba(theme?.ring || theme?.accent || "79 125 246", 0.45);
   };
   const focusOff = (el: HTMLInputElement | HTMLSelectElement) => {
     el.style.boxShadow = "none";
@@ -194,24 +195,24 @@ const UserReferal = () => {
     const st = String(s || "").toLowerCase();
     if (st === "pending")
       return {
-        background: rgba(theme?.warning || "245 158 11", 0.14),
-        border: `1px solid ${rgba(theme?.warning || "245 158 11", 0.26)}`,
+        background: rgba(theme?.warning || "42 86 220", 0.14),
+        border: `1px solid ${rgba(theme?.warning || "42 86 220", 0.26)}`,
         color: rgba(theme?.warningFg || theme?.fg || "255 255 255", 0.92),
       };
     if (st === "approved")
       return {
-        background: rgba(theme?.success || "34 197 94", 0.14),
-        border: `1px solid ${rgba(theme?.success || "34 197 94", 0.26)}`,
+        background: rgba(theme?.success || "15 159 110", 0.14),
+        border: `1px solid ${rgba(theme?.success || "15 159 110", 0.26)}`,
         color: rgba(theme?.successFg || theme?.fg || "255 255 255", 0.92),
       };
     if (st === "rejected")
       return {
-        background: rgba(theme?.danger || "244 63 94", 0.14),
-        border: `1px solid ${rgba(theme?.danger || "244 63 94", 0.26)}`,
+        background: rgba(theme?.danger || "220 58 58", 0.14),
+        border: `1px solid ${rgba(theme?.danger || "220 58 58", 0.26)}`,
         color: rgba(theme?.dangerFg || theme?.fg || "255 255 255", 0.92),
       };
     return {
-      background: rgba(theme?.muted || theme?.surface2 || "148 163 184", 0.12),
+      background: rgba(theme?.muted || theme?.surface2 || "163 177 198", 0.12),
       border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
       color: rgba(theme?.fg || "255 255 255", 0.85),
     };
@@ -230,13 +231,13 @@ const UserReferal = () => {
     const toneBg =
       tone === "accent"
         ? `linear-gradient(135deg,
-            ${rgba(theme?.gradientFrom || theme?.accent || "59 130 246", 0.18)},
-            ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.68)},
-            ${rgba(theme?.gradientTo || "147 51 234", 0.14)})`
+            ${rgba(theme?.gradientFrom || theme?.accent || "79 125 246", 0.18)},
+            ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.68)},
+            ${rgba(theme?.gradientTo || "23 157 166", 0.14)})`
         : `linear-gradient(135deg,
-            ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)},
+            ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.72)},
             ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.78)},
-            ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)})`;
+            ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.72)})`;
 
     const cardStyle: CSSProperties = {
       borderRadius: "24px",
@@ -251,9 +252,9 @@ const UserReferal = () => {
       inset: "1px",
       borderRadius: "calc(24px - 1px)",
       background: `linear-gradient(135deg,
-        ${rgba(theme?.gradientFrom || theme?.accent || "59 130 246", 0.08)},
-        ${rgba(theme?.accent || "59 130 246", 0.05)},
-        ${rgba(theme?.gradientTo || "147 51 234", 0.08)}
+        ${rgba(theme?.gradientFrom || theme?.accent || "79 125 246", 0.08)},
+        ${rgba(theme?.accent || "79 125 246", 0.05)},
+        ${rgba(theme?.gradientTo || "23 157 166", 0.08)}
       )`,
       pointerEvents: "none",
     };
@@ -286,28 +287,28 @@ const UserReferal = () => {
   }) => {
     const token =
       variant === "success"
-        ? theme?.success || "34 197 94"
+        ? theme?.success || "15 159 110"
         : variant === "warning"
-        ? theme?.warning || "245 158 11"
+        ? theme?.warning || "42 86 220"
         : variant === "info"
-        ? theme?.info || theme?.accent || "59 130 246"
-        : theme?.accent || "59 130 246";
+        ? theme?.info || theme?.accent || "79 125 246"
+        : theme?.accent || "79 125 246";
 
     return (
       <motion.div
         {...scaleIn(delay)}
         whileHover={{ scale: 1.02 }}
-        className="rounded-2xl p-5"
+        className="rounded-card p-5"
         style={{
           borderRadius: "18px",
           border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
-          background: `linear-gradient(135deg, ${rgba(token, 0.16)}, ${rgba(theme?.surface2 || "18 18 18", 0.22)})`,
+          background: `linear-gradient(135deg, ${rgba(token, 0.16)}, ${rgba(theme?.surface2 || "15 24 41", 0.22)})`,
           backdropFilter: "blur(12px)",
         }}
       >
         <div className="flex items-center justify-between mb-3">
           <div
-            className="p-2 rounded-xl"
+            className="p-2 rounded-card"
             style={{
               background: rgba(token, 0.18),
               border: `1px solid ${rgba(token, 0.22)}`,
@@ -337,9 +338,9 @@ const UserReferal = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text relative"
         style={{
-          backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-            theme?.accent || theme?.primary || "34 197 94"
-          )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
+          backgroundImage: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+            theme?.accent || theme?.primary || "15 159 110"
+          )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
         }}
       >
         {text}
@@ -349,9 +350,9 @@ const UserReferal = () => {
         <svg width="100%" height="8" viewBox="0 0 100 8" preserveAspectRatio="none">
           <defs>
             <linearGradient id="neonGradient" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor={rgb(theme?.gradientFrom || theme?.accent || "59 130 246")} />
-              <stop offset="50%" stopColor={rgb(theme?.accent || theme?.primary || "34 197 94")} />
-              <stop offset="100%" stopColor={rgb(theme?.gradientTo || "147 51 234")} />
+              <stop offset="0%" stopColor={rgb(theme?.gradientFrom || theme?.accent || "79 125 246")} />
+              <stop offset="50%" stopColor={rgb(theme?.accent || theme?.primary || "15 159 110")} />
+              <stop offset="100%" stopColor={rgb(theme?.gradientTo || "23 157 166")} />
             </linearGradient>
           </defs>
           <path d="M0,8 C25,0 75,0 100,8" fill="none" stroke="url(#neonGradient)" strokeWidth="2" />
@@ -365,7 +366,7 @@ const UserReferal = () => {
     title,
     value,
     subtitle,
-    token = theme?.accent || "59 130 246",
+    token = theme?.accent || "79 125 246",
   }: {
     icon: any;
     title: string;
@@ -374,20 +375,20 @@ const UserReferal = () => {
     token?: any;
   }) => (
     <div
-      className="relative rounded-2xl p-4 transition-all shadow-xl"
+      className="relative rounded-card p-4 transition-all"
       style={{
         borderRadius: "18px",
-        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
+        background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22),
         border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
       }}
     >
       <div
-        className="absolute -inset-px rounded-2xl blur-md"
+        className="absolute -inset-px rounded-card blur-md"
         style={{ opacity: 0.18, background: `linear-gradient(90deg, ${rgba(token, 0.5)}, ${rgba(theme?.gradientTo || token, 0.45)})` }}
       />
       <div className="relative flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          className="w-10 h-10 rounded-card flex items-center justify-center"
           style={{
             background: `linear-gradient(90deg, ${rgba(token, 0.9)}, ${rgba(theme?.gradientTo || token, 0.9)})`,
           }}
@@ -506,16 +507,16 @@ const UserReferal = () => {
           />
           <button
             onClick={copyToClipboard}
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-card font-semibold text-sm transition-all duration-300 flex items-center gap-2"
             style={
               isCopied
                 ? {
-                    background: rgba(theme?.success || "34 197 94", 0.16),
-                    border: `1px solid ${rgba(theme?.success || "34 197 94", 0.28)}`,
+                    background: rgba(theme?.success || "15 159 110", 0.16),
+                    border: `1px solid ${rgba(theme?.success || "15 159 110", 0.28)}`,
                     color: rgba(theme?.successFg || theme?.fg, 0.92),
                   }
                 : {
-                    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
+                    background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22),
                     border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                     color: rgba(theme?.fg || "255 255 255", 0.88),
                   }
@@ -554,11 +555,11 @@ const UserReferal = () => {
       padding: "12px 18px",
       fontWeight: 700,
       color: rgb(theme?.primaryFg || "0 0 0"),
-      background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-        theme?.accent || theme?.primary || "34 197 94"
-      )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
-      border: `1px solid ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.22)}`,
-      boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`,
+      background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+        theme?.accent || theme?.primary || "15 159 110"
+      )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
+      border: `1px solid ${rgba(theme?.ring || theme?.accent || "79 125 246", 0.22)}`,
+      boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.22)}`,
     };
 
     return (
@@ -573,24 +574,24 @@ const UserReferal = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="absolute z-10 mt-2 w-56 p-3 rounded-xl shadow-xl"
+              className="absolute z-10 mt-2 w-56 p-3 rounded-card"
               style={{
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.92),
+                background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.92),
                 border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                 backdropFilter: "blur(10px)",
               }}
             >
               <div className="grid grid-cols-4 gap-2" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
-                <button onClick={() => shareOnPlatform("whatsapp")} className="p-2 rounded-lg" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
+                <button onClick={() => shareOnPlatform("whatsapp")} className="p-2 rounded-field" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
                   <FaWhatsapp size={22} />
                 </button>
-                <button onClick={() => shareOnPlatform("facebook")} className="p-2 rounded-lg" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
+                <button onClick={() => shareOnPlatform("facebook")} className="p-2 rounded-field" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
                   <FaFacebookF size={22} />
                 </button>
-                <button onClick={() => shareOnPlatform("twitter")} className="p-2 rounded-lg" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
+                <button onClick={() => shareOnPlatform("twitter")} className="p-2 rounded-field" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
                   <FaXTwitter size={22} />
                 </button>
-                <button onClick={() => shareOnPlatform("native")} className="p-2 rounded-lg" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
+                <button onClick={() => shareOnPlatform("native")} className="p-2 rounded-field" style={{ background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.25) }}>
                   <FaShareAlt size={22} />
                 </button>
               </div>
@@ -606,7 +607,7 @@ const UserReferal = () => {
       <div
         className="w-20 h-20 rounded-full grid place-items-center mx-auto mb-6"
         style={{
-          background: `linear-gradient(135deg, ${rgba(theme?.accent || "59 130 246", 0.18)}, ${rgba(theme?.gradientTo || "147 51 234", 0.14)})`,
+          background: `linear-gradient(135deg, ${rgba(theme?.accent || "79 125 246", 0.18)}, ${rgba(theme?.gradientTo || "23 157 166", 0.14)})`,
           border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
         }}
       >
@@ -626,10 +627,10 @@ const UserReferal = () => {
         className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold"
         style={{
           color: rgb(theme?.primaryFg || "0 0 0"),
-          background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-            theme?.accent || theme?.primary || "34 197 94"
-          )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
-          boxShadow: `0 16px 46px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.26)}`,
+          background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+            theme?.accent || theme?.primary || "15 159 110"
+          )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
+          boxShadow: `0 16px 46px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.26)}`,
         }}
       >
         <Zap className="w-5 h-5" />
@@ -661,9 +662,9 @@ const UserReferal = () => {
             <GlassCard>
               <div className="flex items-center gap-3 mb-6">
                 <div
-                  className="p-3 rounded-xl"
+                  className="p-3 rounded-card"
                   style={{
-                    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(theme?.gradientTo || "147 51 234")})`,
+                    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(theme?.gradientTo || "23 157 166")})`,
                     color: rgb(theme?.primaryFg || "255 255 255"),
                   }}
                 >
@@ -682,9 +683,9 @@ const UserReferal = () => {
               {loggedUser?.referralAccount ? (
                 <div className="space-y-4">
                   <div
-                    className="rounded-xl p-4"
+                    className="rounded-card p-4"
                     style={{
-                      background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
+                      background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22),
                       border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                     }}
                   >
@@ -697,9 +698,9 @@ const UserReferal = () => {
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setActiveTab("referrals-details")}
-                      className="px-4 py-2 rounded-xl transition"
+                      className="px-4 py-2 rounded-card transition"
                       style={{
-                        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                        background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                         border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
                         color: rgba(theme?.fg || "255 255 255", 0.88),
                       }}
@@ -708,9 +709,9 @@ const UserReferal = () => {
                     </button>
                     <button
                       onClick={() => setActiveTab("commission")}
-                      className="px-4 py-2 rounded-xl transition"
+                      className="px-4 py-2 rounded-card transition"
                       style={{
-                        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                        background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                         border: `1px solid ${rgba(theme?.border || "255 255 255", 0.14)}`,
                         color: rgba(theme?.fg || "255 255 255", 0.88),
                       }}
@@ -719,12 +720,12 @@ const UserReferal = () => {
                     </button>
                     <button
                       onClick={() => setActiveTab("withdraw")}
-                      className="px-4 py-2 rounded-xl font-semibold transition"
+                      className="px-4 py-2 rounded-card font-semibold transition"
                       style={{
                         color: rgb(theme?.primaryFg || "0 0 0"),
-                        background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                          theme?.accent || theme?.primary || "34 197 94"
-                        )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
+                        background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+                          theme?.accent || theme?.primary || "15 159 110"
+                        )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
                       }}
                     >
                       Withdraw Earnings
@@ -751,8 +752,8 @@ const UserReferal = () => {
                       href={`https://wa.me/?text=${encodeURIComponent(`Join me and earn with this broker — sign up here: ${referralLink}`)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="p-2 rounded-xl"
-                      style={{ background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
+                      className="p-2 rounded-card"
+                      style={{ background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
                     >
                       <FaWhatsapp size={22} />
                     </a>
@@ -760,8 +761,8 @@ const UserReferal = () => {
                       href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="p-2 rounded-xl"
-                      style={{ background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
+                      className="p-2 rounded-card"
+                      style={{ background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
                     >
                       <FaFacebookF size={22} />
                     </a>
@@ -769,8 +770,8 @@ const UserReferal = () => {
                       href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join me and earn with this broker — sign up here: ${referralLink}`)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="p-2 rounded-xl"
-                      style={{ background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
+                      className="p-2 rounded-card"
+                      style={{ background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22), border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}` }}
                     >
                       <FaXTwitter size={22} />
                     </a>
@@ -788,8 +789,8 @@ const UserReferal = () => {
                   <div className="text-2xl font-mono font-bold" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
                     {loggedUser?.referralAccount}
                   </div>
-                  <div className="mt-3 inline-flex items-center gap-2 text-sm" style={{ color: rgba(theme?.success || "34 197 94", 0.95) }}>
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: rgba(theme?.success || "34 197 94", 0.95) }} />
+                  <div className="mt-3 inline-flex items-center gap-2 text-sm" style={{ color: rgba(theme?.success || "15 159 110", 0.95) }}>
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: rgba(theme?.success || "15 159 110", 0.95) }} />
                     Active
                   </div>
                 </div>
@@ -885,7 +886,7 @@ const UserReferal = () => {
                 className="flex items-center gap-2 px-4 py-2 rounded-full transition-all"
                 style={{
                   border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.16)}`,
-                  background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                  background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                   color: rgba(theme?.fg || "255 255 255", 0.85),
                 }}
               >
@@ -902,8 +903,8 @@ const UserReferal = () => {
               <div
                 className="px-4 py-1 rounded-full mt-1"
                 style={{
-                  background: rgba(theme?.warning || theme?.accent || "245 158 11", 0.12),
-                  border: `1px solid ${rgba(theme?.warning || theme?.accent || "245 158 11", 0.22)}`,
+                  background: rgba(theme?.warning || theme?.accent || "42 86 220", 0.12),
+                  border: `1px solid ${rgba(theme?.warning || theme?.accent || "42 86 220", 0.22)}`,
                 }}
               >
                 <p className="font-semibold text-sm" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
@@ -955,16 +956,16 @@ const UserReferal = () => {
             </div>
 
             <div
-              className="rounded-2xl p-5"
+              className="rounded-card p-5"
               style={{
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                 border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
               }}
             >
               <div className="flex items-center gap-2 mb-4">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: rgba(theme?.accent || "59 130 246", 0.12), border: `1px solid ${rgba(theme?.accent || "59 130 246", 0.18)}` }}
+                  className="w-10 h-10 rounded-card flex items-center justify-center"
+                  style={{ background: rgba(theme?.accent || "79 125 246", 0.12), border: `1px solid ${rgba(theme?.accent || "79 125 246", 0.18)}` }}
                 >
                   <WalletCardsIcon className="w-5 h-5" style={iconAccent} />
                 </div>
@@ -1051,11 +1052,11 @@ const UserReferal = () => {
               style={{
                 borderRadius: radius,
                 color: rgb(theme?.primaryFg || "0 0 0"),
-                background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                  theme?.accent || theme?.primary || "34 197 94"
-                )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
-                border: `1px solid ${rgba(theme?.ring || theme?.accent || "59 130 246", 0.22)}`,
-                boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.24)}`,
+                background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+                  theme?.accent || theme?.primary || "15 159 110"
+                )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
+                border: `1px solid ${rgba(theme?.ring || theme?.accent || "79 125 246", 0.22)}`,
+                boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.24)}`,
                 opacity: isWithdrawing ? 0.65 : 1,
                 cursor: isWithdrawing ? "not-allowed" : "pointer",
               }}
@@ -1175,7 +1176,7 @@ const UserReferal = () => {
               className="flex items-center gap-2 px-4 py-2 rounded-full transition-all"
               style={{
                 border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.16)}`,
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                 color: rgba(theme?.fg || "255 255 255", 0.85),
               }}
             >
@@ -1211,9 +1212,9 @@ const UserReferal = () => {
             <button
               onClick={refresh}
               disabled={isLoading}
-              className="px-4 py-2.5 rounded-2xl transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-card transition-all flex items-center gap-2"
               style={{
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                 border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                 color: rgba(theme?.fg || "255 255 255", 0.88),
                 cursor: isLoading ? "not-allowed" : "pointer",
@@ -1233,46 +1234,46 @@ const UserReferal = () => {
             title="Total Users"
             value={stats.totalUsers || 0}
             subtitle={`${stats.uniqueEmails || 0} unique`}
-            token={theme?.info || theme?.accent || "59 130 246"}
+            token={theme?.info || theme?.accent || "79 125 246"}
           />
           <SmallStat
             icon={DollarSign}
             title="Total Commission"
             value={Number(stats.totalCommission || 0).toFixed(4)}
             subtitle={`${Number(stats.avgCommission || 0).toFixed(4)}/user`}
-            token={theme?.success || "34 197 94"}
+            token={theme?.success || "15 159 110"}
           />
           <SmallStat
             icon={BarChart3}
             title="Total Volume"
             value={Number(stats.totalVolume || 0).toFixed(4)}
             subtitle={`${Number(stats.avgVolume || 0).toFixed(4)}/user`}
-            token={theme?.accent || "59 130 246"}
+            token={theme?.accent || "79 125 246"}
           />
           <SmallStat
             icon={Globe}
             title="Top Country"
             value={String(stats.topCountry?.[0] || "Unknown")}
             subtitle={`${stats.topCountry?.[1] || 0} users`}
-            token={theme?.warning || "245 158 11"}
+            token={theme?.warning || "42 86 220"}
           />
           <SmallStat
             icon={TrendingUp}
             title="Active Rate"
             value={`${Number(stats.activeRate || 0).toFixed(0)}%`}
             subtitle={`${stats.activeUsers || 0} active`}
-            token={theme?.gradientTo || theme?.accent || "147 51 234"}
+            token={theme?.gradientTo || theme?.accent || "23 157 166"}
           />
         </div>
 
         {/* Table */}
         <GlassCard>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] whitespace-nowrap">
+            <table className="w-full min-w-[980px] whitespace-nowrap table-stack">
               <thead>
                 <tr
                   style={{
-                    background: rgba(theme?.headerRow || theme?.surface2 || "18 18 18", 0.28),
+                    background: rgba(theme?.headerRow || theme?.surface2 || "15 24 41", 0.28),
                     borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                   }}
                 >
@@ -1302,7 +1303,7 @@ const UserReferal = () => {
                   <tr>
                     <td colSpan={6} className="py-16 text-center">
                       <div className="inline-flex items-center gap-2" style={mutedText}>
-                        <Info className="w-5 h-5" style={{ color: rgba(theme?.warning || theme?.accent || "245 158 11", 0.9) }} />
+                        <Info className="w-5 h-5" style={{ color: rgba(theme?.warning || theme?.accent || "42 86 220", 0.9) }} />
                         No data found
                       </div>
                     </td>
@@ -1323,10 +1324,10 @@ const UserReferal = () => {
                             cursor: users.length > 1 ? "pointer" : "default",
                           }}
                           onClick={() => users.length > 1 && toggleDropdown(email)}
-                          onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "18 18 18", 0.24))}
+                          onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "15 24 41", 0.24))}
                           onMouseLeave={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.18))}
                         >
-                          <td className="pl-6 pr-3 py-3">
+                          <td data-label="Name / Email" className="pl-6 pr-3 py-3">
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="truncate" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
@@ -1341,19 +1342,19 @@ const UserReferal = () => {
                               )}
                             </div>
                           </td>
-                          <td className="p-3 text-center" style={mutedText}>
+                          <td data-label="Country" className="p-3 text-center" style={mutedText}>
                             {first?.country || "-"}
                           </td>
-                          <td className="p-3 text-center" style={mutedText}>
+                          <td data-label="AC No" className="p-3 text-center" style={mutedText}>
                             {first?.accountNumber || "-"}
                           </td>
-                          <td className="p-3 text-center" style={mutedText}>
+                          <td data-label="Level" className="p-3 text-center" style={mutedText}>
                             {first?.level ?? "-"}
                           </td>
-                          <td className="p-3 text-center" style={mutedText}>
+                          <td data-label="Total Volume" className="p-3 text-center" style={mutedText}>
                             {Number(first?.totalLot || 0).toFixed(4)}
                           </td>
-                          <td className="p-3 text-center" style={mutedText}>
+                          <td data-label="Total Earned" className="p-3 text-center" style={mutedText}>
                             {Number(first?.totalCommission || 0).toFixed(4)}
                           </td>
                         </tr>
@@ -1367,28 +1368,28 @@ const UserReferal = () => {
                                 borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.10)}`,
                                 background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.12),
                               }}
-                              onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "18 18 18", 0.20))}
+                              onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "15 24 41", 0.20))}
                               onMouseLeave={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.12))}
                             >
-                              <td className="pl-12 pr-3 py-2">
+                              <td data-label="Name / Email" className="pl-12 pr-3 py-2">
                                 <p style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>{u?.name || "-"}</p>
                                 <p className="text-sm" style={subtleText}>
                                   {u?.email || "-"}
                                 </p>
                               </td>
-                              <td className="p-2 text-center" style={mutedText}>
+                              <td data-label="Country" className="p-2 text-center" style={mutedText}>
                                 {u?.country || "-"}
                               </td>
-                              <td className="p-2 text-center" style={mutedText}>
+                              <td data-label="AC No" className="p-2 text-center" style={mutedText}>
                                 {u?.accountNumber || "-"}
                               </td>
-                              <td className="p-2 text-center" style={mutedText}>
+                              <td data-label="Level" className="p-2 text-center" style={mutedText}>
                                 {u?.level ?? "-"}
                               </td>
-                              <td className="p-2 text-center" style={mutedText}>
+                              <td data-label="Total Volume" className="p-2 text-center" style={mutedText}>
                                 {Number(u?.totalLot || 0).toFixed(4)}
                               </td>
-                              <td className="p-2 text-center" style={mutedText}>
+                              <td data-label="Total Earned" className="p-2 text-center" style={mutedText}>
                                 {Number(u?.totalCommission || 0).toFixed(4)}
                               </td>
                             </tr>
@@ -1414,7 +1415,7 @@ const UserReferal = () => {
                 disabled={currentPage === 1}
                 className="px-4 py-1.5 rounded-full"
                 style={{
-                  background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                  background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                   border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                   color: rgba(theme?.fg || "255 255 255", 0.88),
                   opacity: currentPage === 1 ? 0.45 : 1,
@@ -1431,7 +1432,7 @@ const UserReferal = () => {
                 disabled={currentPage === totalPages}
                 className="px-4 py-1.5 rounded-full"
                 style={{
-                  background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                  background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                   border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                   color: rgba(theme?.fg || "255 255 255", 0.88),
                   opacity: currentPage === totalPages ? 0.45 : 1,
@@ -1466,9 +1467,9 @@ const UserReferal = () => {
           <div
             className="px-4 py-2 rounded-full"
             style={{
-              background: rgba(theme?.accent || "59 130 246", 0.14),
-              border: `1px solid ${rgba(theme?.accent || "59 130 246", 0.22)}`,
-              color: rgba(theme?.accent || "59 130 246", 0.9),
+              background: rgba(theme?.accent || "79 125 246", 0.14),
+              border: `1px solid ${rgba(theme?.accent || "79 125 246", 0.22)}`,
+              color: rgba(theme?.accent || "79 125 246", 0.9),
               fontWeight: 800,
             }}
           >
@@ -1481,9 +1482,9 @@ const UserReferal = () => {
             {referredUsers.map((user: any, idx: number) => (
               <div
                 key={idx}
-                className="rounded-xl p-4 flex items-center justify-between transition"
+                className="rounded-card p-4 flex items-center justify-between transition"
                 style={{
-                  background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                  background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                   border: `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`,
                 }}
               >
@@ -1495,7 +1496,7 @@ const UserReferal = () => {
                     {user.email || "No email"}
                   </div>
                 </div>
-                <div style={{ color: rgba(theme?.success || "34 197 94", 0.9), fontWeight: 800 }}>Active</div>
+                <div style={{ color: rgba(theme?.success || "15 159 110", 0.9), fontWeight: 800 }}>Active</div>
               </div>
             ))}
           </div>
@@ -1545,7 +1546,7 @@ const UserReferal = () => {
               className="flex items-center gap-2 px-4 py-2 rounded-full transition-all"
               style={{
                 border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.16)}`,
-                background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+                background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
                 color: rgba(theme?.fg || "255 255 255", 0.85),
               }}
             >
@@ -1558,9 +1559,9 @@ const UserReferal = () => {
           <button
             onClick={fetchWithdrawals}
             disabled={loadingWd}
-            className="px-4 py-2.5 rounded-2xl transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-card transition-all flex items-center gap-2"
             style={{
-              background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+              background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
               border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
               color: rgba(theme?.fg || "255 255 255", 0.88),
               cursor: loadingWd ? "not-allowed" : "pointer",
@@ -1573,20 +1574,20 @@ const UserReferal = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <SmallStat icon={DollarSign} title="Total Requests" value={stats.total} subtitle={money(stats.totalRequested)} token={theme?.info || theme?.accent || "59 130 246"} />
-          <SmallStat icon={Clock} title="Pending" value={stats.pendingCount} subtitle={money(stats.pendingAmount)} token={theme?.warning || "245 158 11"} />
-          <SmallStat icon={TrendingUp} title="Approved" value={stats.approvedCount} subtitle={money(stats.approvedAmount)} token={theme?.success || "34 197 94"} />
-          <SmallStat icon={Info} title="Rejected" value={stats.rejectedCount} subtitle="—" token={theme?.danger || "244 63 94"} />
-          <SmallStat icon={Calendar} title="Last Updated" value={stats.lastUpdated ? formatDate(stats.lastUpdated.toISOString()) : "--"} subtitle="—" token={theme?.accent || "59 130 246"} />
+          <SmallStat icon={DollarSign} title="Total Requests" value={stats.total} subtitle={money(stats.totalRequested)} token={theme?.info || theme?.accent || "79 125 246"} />
+          <SmallStat icon={Clock} title="Pending" value={stats.pendingCount} subtitle={money(stats.pendingAmount)} token={theme?.warning || "42 86 220"} />
+          <SmallStat icon={TrendingUp} title="Approved" value={stats.approvedCount} subtitle={money(stats.approvedAmount)} token={theme?.success || "15 159 110"} />
+          <SmallStat icon={Info} title="Rejected" value={stats.rejectedCount} subtitle="—" token={theme?.danger || "220 58 58"} />
+          <SmallStat icon={Calendar} title="Last Updated" value={stats.lastUpdated ? formatDate(stats.lastUpdated.toISOString()) : "--"} subtitle="—" token={theme?.accent || "79 125 246"} />
         </div>
 
         <GlassCard>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] whitespace-nowrap">
+            <table className="w-full min-w-[760px] whitespace-nowrap table-stack">
               <thead>
                 <tr
                   style={{
-                    background: rgba(theme?.headerRow || theme?.surface2 || "18 18 18", 0.28),
+                    background: rgba(theme?.headerRow || theme?.surface2 || "15 24 41", 0.28),
                     borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
                   }}
                 >
@@ -1613,7 +1614,7 @@ const UserReferal = () => {
                   <tr>
                     <td colSpan={5} className="py-10">
                       <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: rgba(theme?.accent || "59 130 246", 0.85) }} />
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: rgba(theme?.accent || "79 125 246", 0.85) }} />
                       </div>
                     </td>
                   </tr>
@@ -1621,7 +1622,7 @@ const UserReferal = () => {
                   <tr>
                     <td colSpan={5} className="py-10 text-center">
                       <div className="flex gap-2 mx-auto justify-center items-center" style={mutedText}>
-                        <Info className="w-5 h-5" style={{ color: rgba(theme?.warning || theme?.accent || "245 158 11", 0.9) }} />
+                        <Info className="w-5 h-5" style={{ color: rgba(theme?.warning || theme?.accent || "42 86 220", 0.9) }} />
                         <p>No withdrawal history available.</p>
                       </div>
                     </td>
@@ -1635,25 +1636,25 @@ const UserReferal = () => {
                         borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
                         background: rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.18),
                       }}
-                      onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "18 18 18", 0.24))}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface2 || "15 24 41", 0.24))}
                       onMouseLeave={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.18))}
                     >
-                      <td className="p-3 pl-6" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
+                      <td data-label="Total Amount" className="p-3 pl-6" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
                         {money(v?.totalBalance || 0)}
                       </td>
-                      <td className="p-3 text-center" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
+                      <td data-label="Withdrawal Amount" className="p-3 text-center" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
                         {money(v?.amount || 0)}
                       </td>
-                      <td className="p-3 text-center" style={mutedText}>
+                      <td data-label="Method" className="p-3 text-center" style={mutedText}>
                         {methodNice(v?.method) || "--"}
                       </td>
-                      <td className="p-3 text-center">
+                      <td data-label="Updated At" className="p-3 text-center">
                         <div style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>{formatDate(v?.updatedAt)}</div>
                         <div className="text-xs" style={subtleText}>
                           {since(v?.updatedAt)}
                         </div>
                       </td>
-                      <td className="p-3 text-center">
+                      <td data-label="Status" className="p-3 text-center">
                         <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold" style={chipStyle(v?.status)}>
                           {String(v?.status || "--").toLowerCase()}
                         </span>
@@ -1706,12 +1707,12 @@ const UserReferal = () => {
               </div>
               <div
                 className="p-3 rounded-full"
-                style={{ background: rgba(theme?.success || "34 197 94", 0.16), border: `1px solid ${rgba(theme?.success || "34 197 94", 0.22)}` }}
+                style={{ background: rgba(theme?.success || "15 159 110", 0.16), border: `1px solid ${rgba(theme?.success || "15 159 110", 0.22)}` }}
               >
-                <DollarSign className="w-6 h-6" style={{ color: rgba(theme?.success || "34 197 94", 0.9) }} />
+                <DollarSign className="w-6 h-6" style={{ color: rgba(theme?.success || "15 159 110", 0.9) }} />
               </div>
             </div>
-            <div className="mt-4 text-sm" style={{ color: rgba(theme?.success || "34 197 94", 0.75) }}>
+            <div className="mt-4 text-sm" style={{ color: rgba(theme?.success || "15 159 110", 0.75) }}>
               Lifetime Commission Earnings
             </div>
           </GlassCard>
@@ -1728,7 +1729,7 @@ const UserReferal = () => {
               </div>
               <div
                 className="p-3 rounded-full"
-                style={{ background: rgba(theme?.info || theme?.accent || "59 130 246", 0.16), border: `1px solid ${rgba(theme?.info || theme?.accent || "59 130 246", 0.22)}` }}
+                style={{ background: rgba(theme?.info || theme?.accent || "79 125 246", 0.16), border: `1px solid ${rgba(theme?.info || theme?.accent || "79 125 246", 0.22)}` }}
               >
                 <WalletIcon className="w-6 h-6" style={iconAccent} />
               </div>
@@ -1737,7 +1738,7 @@ const UserReferal = () => {
               <button
                 onClick={() => setActiveTab("withdrawal-history")}
                 className="text-sm transition-all inline-flex items-center gap-1"
-                style={{ color: rgba(theme?.accent || "59 130 246", 0.9) }}
+                style={{ color: rgba(theme?.accent || "79 125 246", 0.9) }}
               >
                 <span>Withdrawal History</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1751,13 +1752,13 @@ const UserReferal = () => {
                 <span className="text-sm font-medium" style={mutedText}>
                   Withdrawable balance
                 </span>
-                <span className="text-2xl font-bold" style={{ color: rgba(theme?.success || "34 197 94", 0.75) }}>
+                <span className="text-2xl font-bold" style={{ color: rgba(theme?.success || "15 159 110", 0.75) }}>
                   {money(ibBalance, 4)}
                 </span>
               </div>
               <div
                 className="p-3 rounded-full"
-                style={{ background: rgba(theme?.accent || "59 130 246", 0.14), border: `1px solid ${rgba(theme?.accent || "59 130 246", 0.2)}` }}
+                style={{ background: rgba(theme?.accent || "79 125 246", 0.14), border: `1px solid ${rgba(theme?.accent || "79 125 246", 0.2)}` }}
               >
                 <WalletCardsIcon className="w-6 h-6" style={iconAccent} />
               </div>
@@ -1769,9 +1770,9 @@ const UserReferal = () => {
                 style={{
                   borderRadius: "999px",
                   color: rgb(theme?.primaryFg || "0 0 0"),
-                  background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                    theme?.accent || theme?.primary || "34 197 94"
-                  )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
+                  background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+                    theme?.accent || theme?.primary || "15 159 110"
+                  )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
                 }}
               >
                 Withdraw
@@ -1791,7 +1792,7 @@ const UserReferal = () => {
               </div>
               <div
                 className="p-3 rounded-full"
-                style={{ background: rgba(theme?.accent || "59 130 246", 0.14), border: `1px solid ${rgba(theme?.accent || "59 130 246", 0.2)}` }}
+                style={{ background: rgba(theme?.accent || "79 125 246", 0.14), border: `1px solid ${rgba(theme?.accent || "79 125 246", 0.2)}` }}
               >
                 <Users className="w-6 h-6" style={iconAccent} />
               </div>
@@ -1803,9 +1804,9 @@ const UserReferal = () => {
                 style={{
                   borderRadius: "999px",
                   color: rgb(theme?.primaryFg || "0 0 0"),
-                  background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-                    theme?.accent || theme?.primary || "34 197 94"
-                  )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
+                  background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+                    theme?.accent || theme?.primary || "15 159 110"
+                  )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
                 }}
               >
                 View Details
@@ -1820,7 +1821,7 @@ const UserReferal = () => {
           </h2>
           <div style={mutedText}>
             <p>
-              Total Earned: <span style={{ color: rgba(theme?.success || "34 197 94", 0.9), fontWeight: 800 }}>{money(totalCommission, 4)}</span>
+              Total Earned: <span style={{ color: rgba(theme?.success || "15 159 110", 0.9), fontWeight: 800 }}>{money(totalCommission, 4)}</span>
             </p>
             <p className="text-sm mt-2" style={subtleText}>
               Tip: Use <span style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>IB Details</span> to inspect per-user lots & earnings.
@@ -1837,7 +1838,7 @@ const UserReferal = () => {
 
   /* ----------------------------- Main Render ----------------------------- */
   const tabWrapStyle: CSSProperties = {
-    background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.18),
+    background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.18),
     border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
     borderRadius: "18px",
     backdropFilter: "blur(12px)",
@@ -1851,10 +1852,10 @@ const UserReferal = () => {
 
   const tabBtnActive: CSSProperties = {
     color: rgb(theme?.primaryFg || "0 0 0"),
-    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")}, ${rgb(
-      theme?.accent || theme?.primary || "34 197 94"
-    )}, ${rgb(theme?.gradientTo || "147 51 234")})`,
-    boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.22)}`,
+    background: `linear-gradient(90deg, ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")}, ${rgb(
+      theme?.accent || theme?.primary || "15 159 110"
+    )}, ${rgb(theme?.gradientTo || "23 157 166")})`,
+    boxShadow: `0 14px 36px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.22)}`,
   };
 
   const tabBtnInactive: CSSProperties = {
@@ -1867,13 +1868,12 @@ const UserReferal = () => {
       <AnimatedGrid />
       <FloatingParticles />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-12">
-        <motion.div {...fadeIn} className="mb-8 text-center">
-          <ModernHeading text="Affiliate & Referrals" />
-          <p className="text-lg mt-2" style={mutedText}>
-            Earn commissions by inviting traders — modern, fast, and secure
-          </p>
-        </motion.div>
+      <div className="relative z-10 w-full">
+        <PageHeader
+          breadcrumb="Partners"
+          title="Affiliate & referrals"
+          description="Earn commission by inviting traders. Track your network and payouts."
+        />
 
         <motion.div {...scaleIn(0.05)} className="flex flex-wrap gap-2 mb-8 p-2 w-fit mx-auto" style={tabWrapStyle}>
           {[

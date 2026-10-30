@@ -109,10 +109,7 @@ export default function Platform() {
         <div>
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <Layers3 size={14} />
@@ -121,8 +118,7 @@ export default function Platform() {
 
           <h2
             className={[
-              "text-2xl sm:text-3xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
             ].join(" ")}
           >
             List of Platforms
@@ -130,8 +126,7 @@ export default function Platform() {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/55" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Create, enable, disable, and remove platform entries from the
@@ -143,25 +138,20 @@ export default function Platform() {
       {/* add form */}
       <div
         className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
-            : "border-orange-100 bg-white/70 shadow-[0_10px_30px_rgba(251,146,60,0.10)]",
+          "rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="mb-4">
           <h3
             className={[
-              "text-lg font-semibold",
-              isDark ? "text-white" : "text-slate-900",
+              "text-lg font-semibold","text-text",
             ].join(" ")}
           >
             Add New Platform
           </h3>
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/45" : "text-slate-500",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Enter a platform name and add it to the list.
@@ -175,10 +165,7 @@ export default function Platform() {
             value={newField.name}
             onChange={(e) => setNewField({ ...newField, name: e.target.value })}
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
             ].join(" ")}
           />
 
@@ -186,14 +173,10 @@ export default function Platform() {
             onClick={addField}
             disabled={!newField.name}
             className={[
-              "inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+              "inline-flex min-w-[120px] items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300",
               !newField.name
-                ? isDark
-                  ? "cursor-not-allowed bg-white/10 text-white/35"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
-                : isDark
-                ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.25)]",
+                ?"cursor-not-allowed bg-surface-2 text-subtle"
+                :"bg-primary-soft text-text hover:bg-primary",
             ].join(" ")}
           >
             <Plus size={16} />
@@ -206,10 +189,7 @@ export default function Platform() {
       {loading && (
         <div
           className={[
-            "mt-6 rounded-[20px] border px-4 py-6 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.03] text-white/70"
-              : "border-slate-200 bg-white/70 text-slate-600",
+            "mt-6 rounded-card border px-4 py-6 text-sm","border-line bg-surface-2 text-muted",
           ].join(" ")}
         >
           Loading platforms...
@@ -220,10 +200,7 @@ export default function Platform() {
       {error && (
         <div
           className={[
-            "mt-6 flex items-center gap-2 rounded-[20px] border px-4 py-4 text-sm font-medium",
-            isDark
-              ? "border-red-500/20 bg-red-500/10 text-red-300"
-              : "border-red-200 bg-red-50 text-red-600",
+            "mt-6 flex items-center gap-2 rounded-card border px-4 py-4 text-sm font-medium","border-danger bg-danger-soft text-danger",
           ].join(" ")}
         >
           <AlertCircle size={16} />
@@ -235,25 +212,20 @@ export default function Platform() {
       {!loading && !error && (
         <div
           className={[
-            "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "mt-6 rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           <div className="mb-4">
             <h3
               className={[
-                "text-lg font-semibold",
-                isDark ? "text-white" : "text-slate-900",
+                "text-lg font-semibold","text-text",
               ].join(" ")}
             >
               Platform Records
             </h3>
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               View all platforms and manage their current status.
@@ -263,10 +235,7 @@ export default function Platform() {
           {platformData.length === 0 ? (
             <div
               className={[
-                "rounded-[18px] border px-4 py-10 text-center text-sm",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/55"
-                  : "border-slate-200 bg-slate-50 text-slate-500",
+                "rounded-card border px-4 py-10 text-center text-sm","border-line bg-surface-2 text-subtle",
               ].join(" ")}
             >
               No platforms found.
@@ -275,16 +244,12 @@ export default function Platform() {
             <div className="overflow-x-auto">
               <div
                 className={[
-                  "overflow-hidden rounded-[20px] border",
-                  isDark ? "border-white/10" : "border-slate-200",
+                  "overflow-hidden rounded-card border","border-line",
                 ].join(" ")}
               >
-                <table className="min-w-full">
+                <table className="min-w-full table-stack">
                   <thead
-                    className={[
-                      isDark
-                        ? "bg-white/[0.06] text-white/80"
-                        : "bg-slate-100/80 text-slate-700",
+                    className={["bg-surface-2 text-muted",
                     ].join(" ")}
                   >
                     <tr>
@@ -304,39 +269,33 @@ export default function Platform() {
                   </thead>
 
                   <tbody
-                    className={[
-                      isDark ? "bg-transparent" : "bg-white/40",
+                    className={["bg-transparent",
                     ].join(" ")}
                   >
                     {platformData.map((platform, index) => (
                       <tr
                         key={platform._id || index}
                         className={[
-                          "border-t transition-colors duration-200",
-                          isDark
-                            ? "border-white/10 hover:bg-white/[0.03]"
-                            : "border-slate-200 hover:bg-slate-50/80",
+                          "border-t transition-colors duration-200","border-line hover:bg-surface-2",
                         ].join(" ")}
                       >
-                        <td
+                        <td data-label="S.No."
                           className={[
-                            "px-4 py-4 text-sm font-medium sm:px-6",
-                            isDark ? "text-white/85" : "text-slate-800",
+                            "px-4 py-4 text-sm font-medium sm:px-6","text-muted",
                           ].join(" ")}
                         >
                           {index + 1}
                         </td>
 
-                        <td
+                        <td data-label="Name"
                           className={[
-                            "px-4 py-4 text-sm sm:px-6",
-                            isDark ? "text-white/75" : "text-slate-700",
+                            "px-4 py-4 text-sm sm:px-6","text-muted",
                           ].join(" ")}
                         >
                           {platform.name}
                         </td>
 
-                        <td className="px-4 py-4 text-sm sm:px-6">
+                        <td data-label="Status" className="px-4 py-4 text-sm sm:px-6">
                           <div className="flex items-center gap-3">
                             <Switch
                               checked={platform.status === "active"}
@@ -348,12 +307,8 @@ export default function Platform() {
                               className={[
                                 "text-xs font-semibold uppercase tracking-[0.12em]",
                                 platform.status === "active"
-                                  ? isDark
-                                    ? "text-emerald-300"
-                                    : "text-emerald-600"
-                                  : isDark
-                                  ? "text-rose-300"
-                                  : "text-rose-600",
+                                  ?"text-success"
+                                  :"text-danger",
                               ].join(" ")}
                             >
                               {platform.status}
@@ -361,17 +316,14 @@ export default function Platform() {
                           </div>
                         </td>
 
-                        <td className="px-4 py-4 text-right sm:px-6">
+                        <td data-label="Actions" className="px-4 py-4 text-right sm:px-6">
                           <button
                             onClick={() =>
                               window.confirm("Are you sure want to delete?") &&
                               deletePlatform(platform._id)
                             }
                             className={[
-                              "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                              isDark
-                                ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                                : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                              "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300","text-danger hover:bg-danger-soft hover:text-danger",
                             ].join(" ")}
                           >
                             <Trash2 size={18} />

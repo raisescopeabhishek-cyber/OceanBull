@@ -96,12 +96,11 @@ const BonusLedgerTab = () => {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-[1100px] w-full text-left">
+              <table className="min-w-[1100px] w-full text-left table-stack">
                 <thead>
                   <tr
                     className={[
-                      "text-xs uppercase tracking-[0.16em]",
-                      isDark ? "text-white/40" : "text-slate-500",
+                      "text-xs uppercase tracking-[0.16em]","text-subtle",
                     ].join(" ")}
                   >
                     <th className="px-4 py-3">Date</th>
@@ -119,23 +118,22 @@ const BonusLedgerTab = () => {
                     <tr
                       key={item._id}
                       className={[
-                        "border-t",
-                        isDark ? "border-white/10" : "border-orange-100",
+                        "border-t","border-line",
                       ].join(" ")}
                     >
-                      <td className="px-4 py-4">{formatDate(item.createdAt)}</td>
-                      <td className="px-4 py-4 capitalize">{item.type}</td>
-                      <td className="px-4 py-4 font-semibold">
+                      <td data-label="Date" className="px-4 py-4">{formatDate(item.createdAt)}</td>
+                      <td data-label="Type" className="px-4 py-4 capitalize">{item.type}</td>
+                      <td data-label="Amount" className="px-4 py-4 font-semibold">
                         {formatCurrency(item.amount)}
                       </td>
-                      <td className="px-4 py-4">
+                      <td data-label="Before" className="px-4 py-4">
                         {formatCurrency(item.balanceBefore)}
                       </td>
-                      <td className="px-4 py-4">
+                      <td data-label="After" className="px-4 py-4">
                         {formatCurrency(item.balanceAfter)}
                       </td>
-                      <td className="px-4 py-4">{item.referenceModel || "-"}</td>
-                      <td className="px-4 py-4">{item.note || "-"}</td>
+                      <td data-label="Reference Model" className="px-4 py-4">{item.referenceModel || "-"}</td>
+                      <td data-label="Note" className="px-4 py-4">{item.note || "-"}</td>
                     </tr>
                   ))}
                 </tbody>

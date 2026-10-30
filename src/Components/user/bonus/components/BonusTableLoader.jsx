@@ -12,10 +12,7 @@ const BonusTableLoader = ({ rows = 6 }) => {
         <div
           key={idx}
           className={[
-            "h-14 animate-pulse rounded-2xl border",
-            isDark
-              ? "border-white/10 bg-white/[0.055]"
-              : "border-orange-100/70 bg-orange-50/45",
+            "h-14 animate-pulse rounded-card border","border-line bg-surface-2",
           ].join(" ")}
         />
       ))}

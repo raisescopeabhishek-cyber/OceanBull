@@ -62,8 +62,7 @@ const PasswordScreen = () => {
   return (
     <div
       className={[
-        "relative min-h-screen overflow-hidden flex items-center justify-center p-4 transition-all duration-300",
-        isDark ? "text-white" : "text-slate-900",
+        "relative min-h-screen overflow-hidden flex items-center justify-center p-4 transition-all duration-300","text-text",
       ].join(" ")}
     >
       {/* Base Background */}
@@ -72,8 +71,8 @@ const PasswordScreen = () => {
         className="absolute inset-0"
         style={{
           background: isDark
-            ? "linear-gradient(180deg, #05070b 0%, #0a0f17 42%, #05070b 100%)"
-            : "linear-gradient(180deg, #fffaf7 0%, #fff5ee 48%, #fff0e6 100%)",
+            ? "linear-gradient(180deg, #0a111f 0%, #0f1829 42%, #0a111f 100%)"
+            : "linear-gradient(180deg, #f3f5f9 0%, #f7f9fc 48%, #eef2f7 100%)",
         }}
       />
 
@@ -95,12 +94,12 @@ const PasswordScreen = () => {
         style={{
           background: isDark
             ? `
-              radial-gradient(circle at 20% 20%, rgba(59,130,246,0.14), transparent 25%),
-              radial-gradient(circle at 80% 0%, rgba(56,189,248,0.08), transparent 22%),
+              radial-gradient(circle at 20% 20%, rgba(79, 125, 246,0.14), transparent 25%),
+              radial-gradient(circle at 80% 0%, rgba(79, 125, 246,0.08), transparent 22%),
               radial-gradient(circle at 50% 100%, rgba(255,255,255,0.03), transparent 35%)
             `
             : `
-              radial-gradient(circle at 15% 20%, rgba(251,146,60,0.14), transparent 24%),
+              radial-gradient(circle at 15% 20%, rgba(79, 125, 246,0.14), transparent 24%),
               radial-gradient(circle at 85% 0%, rgba(255,255,255,0.85), transparent 30%),
               linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25))
             `,
@@ -124,45 +123,36 @@ const PasswordScreen = () => {
       <div
         aria-hidden
         className={[
-          "absolute -top-24 -left-20 h-72 w-72 rounded-full blur-3xl",
-          isDark ? "bg-blue-500/10" : "bg-orange-300/20",
+          "absolute -top-24 -left-20 h-72 w-72 rounded-full blur-3xl","bg-primary-soft",
         ].join(" ")}
       />
       <div
         aria-hidden
         className={[
-          "absolute bottom-0 right-0 h-96 w-96 rounded-full blur-3xl",
-          isDark ? "bg-cyan-400/10" : "bg-amber-200/25",
+          "absolute bottom-0 right-0 h-96 w-96 rounded-full blur-3xl","bg-primary-soft",
         ].join(" ")}
       />
 
       <div className="relative z-[2] w-full max-w-5xl">
         <div
           className={[
-            "overflow-hidden rounded-[30px] border backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.045] shadow-[0_25px_80px_rgba(0,0,0,0.50)]"
-              : "border-orange-100/80 bg-white/65 shadow-[0_20px_60px_rgba(251,146,60,0.12)]",
+            "overflow-hidden rounded-card border backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           {/* top bar */}
           <div
             className={[
-              "relative px-6 py-4 border-b",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-orange-100/80 bg-white/40",
+              "relative px-6 py-4 border-b","border-line bg-surface-2",
             ].join(" ")}
           >
             <div className="flex items-center justify-center gap-2">
               <KeyRound
-                className={isDark ? "text-blue-200/80" : "text-orange-600"}
+                className={"text-primary"}
                 size={18}
               />
               <h1
                 className={[
-                  "tracking-[0.22em] text-xs sm:text-sm font-semibold uppercase",
-                  isDark ? "text-white/80" : "text-slate-800",
+                  "tracking-[0.22em] text-xs sm:text-sm font-semibold uppercase","text-muted",
                 ].join(" ")}
               >
                 Superadmin Security World
@@ -172,9 +162,6 @@ const PasswordScreen = () => {
             <div
               className={[
                 "pointer-events-none absolute inset-x-0 top-0 h-px",
-                isDark
-                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent",
               ].join(" ")}
             />
           </div>
@@ -185,10 +172,7 @@ const PasswordScreen = () => {
               <div className="mb-8">
                 <div
                   className={[
-                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                      : "border-orange-200 bg-orange-50 text-orange-700",
+                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
                   ].join(" ")}
                 >
                   <ShieldCheck size={14} />
@@ -197,8 +181,7 @@ const PasswordScreen = () => {
 
                 <h2
                   className={[
-                    "text-2xl sm:text-3xl font-bold tracking-tight",
-                    isDark ? "text-white" : "text-slate-900",
+                    "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
                   ].join(" ")}
                 >
                   Welcome Back
@@ -206,8 +189,7 @@ const PasswordScreen = () => {
 
                 <p
                   className={[
-                    "mt-2 text-sm",
-                    isDark ? "text-white/50" : "text-slate-600",
+                    "mt-2 text-sm","text-subtle",
                   ].join(" ")}
                 >
                   Enter your super admin password to continue to the protected
@@ -219,8 +201,7 @@ const PasswordScreen = () => {
                 <div>
                   <label
                     className={[
-                      "mb-2 flex items-center gap-2 text-sm font-medium",
-                      isDark ? "text-white/75" : "text-slate-700",
+                      "mb-2 flex items-center gap-2 text-sm font-medium","text-muted",
                     ].join(" ")}
                   >
                     <Lock size={15} />
@@ -230,8 +211,7 @@ const PasswordScreen = () => {
                   <div className="relative">
                     <div
                       className={[
-                        "absolute left-3 top-1/2 -translate-y-1/2",
-                        isDark ? "text-white/40" : "text-slate-500",
+                        "absolute left-3 top-1/2 -translate-y-1/2","text-subtle",
                       ].join(" ")}
                     >
                       <Lock size={18} />
@@ -243,10 +223,7 @@ const PasswordScreen = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       className={[
-                        "w-full h-12 pl-10 pr-3 rounded-xl border text-sm outline-none transition-all duration-300",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                          : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                        "w-full h-12 pl-10 pr-3 rounded-card border text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
                       ].join(" ")}
                       autoComplete="current-password"
                       required
@@ -257,10 +234,7 @@ const PasswordScreen = () => {
                 {error && (
                   <div
                     className={[
-                      "flex items-start gap-2 rounded-xl border px-3 py-3 text-sm",
-                      isDark
-                        ? "border-red-500/20 bg-red-500/10 text-red-300"
-                        : "border-red-200 bg-red-50 text-red-600",
+                      "flex items-start gap-2 rounded-card border px-3 py-3 text-sm","border-danger bg-danger-soft text-danger",
                     ].join(" ")}
                   >
                     <AlertCircle size={18} className="mt-0.5 shrink-0" />
@@ -272,11 +246,8 @@ const PasswordScreen = () => {
                   type="submit"
                   disabled={!canSubmit}
                   className={[
-                    "w-full h-12 rounded-xl font-semibold tracking-wide transition-all duration-300",
-                    "disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                    isDark
-                      ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                      : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+                    "w-full h-12 rounded-card font-semibold tracking-wide transition-all duration-300",
+                    "disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2","bg-primary-soft text-text hover:bg-primary",
                   ].join(" ")}
                 >
                   {isLoading && <Loader2 className="animate-spin" size={18} />}
@@ -288,23 +259,18 @@ const PasswordScreen = () => {
             {/* Right Side */}
             <div
               className={[
-                "relative p-6 sm:p-8 md:p-10 border-t md:border-t-0 md:border-l",
-                isDark
-                  ? "border-white/10 bg-gradient-to-br from-white/[0.04] to-transparent"
-                  : "border-orange-100/80 bg-gradient-to-br from-white/40 to-orange-50/40",
+                "relative p-6 sm:p-8 md:p-10 border-t md:border-t-0 md:border-l","border-line to-transparent",
               ].join(" ")}
             >
               <div className="absolute inset-0 pointer-events-none">
                 <div
                   className={[
-                    "absolute -right-24 -bottom-24 h-80 w-80 rounded-full blur-2xl",
-                    isDark ? "bg-white/5" : "bg-orange-200/30",
+                    "absolute -right-24 -bottom-24 h-80 w-80 rounded-full blur-2xl","bg-surface-2",
                   ].join(" ")}
                 />
                 <div
                   className={[
-                    "absolute -left-24 -top-24 h-80 w-80 rounded-full blur-2xl",
-                    isDark ? "bg-black/25" : "bg-white/60",
+                    "absolute -left-24 -top-24 h-80 w-80 rounded-full blur-2xl","bg-black/60",
                   ].join(" ")}
                 />
               </div>
@@ -312,23 +278,17 @@ const PasswordScreen = () => {
               <div className="relative h-full flex flex-col items-center justify-center text-center">
                 <div
                   className={[
-                    "w-40 h-40 rounded-full border flex items-center justify-center shadow-inner",
-                    isDark
-                      ? "border-white/10 bg-black/15"
-                      : "border-orange-100 bg-white/80",
+                    "w-40 h-40 rounded-full border flex items-center justify-center shadow-inner","border-line bg-black/60",
                   ].join(" ")}
                 >
                   <div
                     className={[
-                      "w-28 h-28 rounded-2xl border flex items-center justify-center",
-                      isDark
-                        ? "border-white/10 bg-white/5"
-                        : "border-orange-100 bg-orange-50/60",
+                      "w-28 h-28 rounded-card border flex items-center justify-center","border-line bg-surface-2",
                     ].join(" ")}
                   >
                     <ShieldCheck
                       size={54}
-                      className={isDark ? "text-white/65" : "text-orange-600"}
+                      className={"text-muted"}
                     />
                   </div>
                 </div>
@@ -336,8 +296,7 @@ const PasswordScreen = () => {
                 <div className="mt-6">
                   <div
                     className={[
-                      "text-3xl font-extrabold tracking-wide",
-                      isDark ? "text-white/85" : "text-slate-900",
+                      "text-3xl font-extrabold tracking-wide","text-muted",
                     ].join(" ")}
                   >
                     MASTER
@@ -345,8 +304,7 @@ const PasswordScreen = () => {
 
                   <div
                     className={[
-                      "text-xs tracking-[0.18em] mt-1 uppercase",
-                      isDark ? "text-white/45" : "text-slate-500",
+                      "text-xs tracking-[0.18em] mt-1 uppercase","text-subtle",
                     ].join(" ")}
                   >
                     Management Simplified
@@ -354,8 +312,7 @@ const PasswordScreen = () => {
 
                   <div
                     className={[
-                      "mt-5 text-xs leading-relaxed max-w-xs",
-                      isDark ? "text-white/35" : "text-slate-500",
+                      "mt-5 text-xs leading-relaxed max-w-xs","text-subtle",
                     ].join(" ")}
                   >
                     Protected Area • Super Admin Access Only
@@ -369,10 +326,7 @@ const PasswordScreen = () => {
 
           <div
             className={[
-              "px-6 py-3 border-t text-center text-[11px]",
-              isDark
-                ? "border-white/10 text-white/30"
-                : "border-orange-100/80 text-slate-500",
+              "px-6 py-3 border-t text-center text-[11px]","border-line text-subtle",
             ].join(" ")}
           >
             © {new Date().getFullYear()} • Authorized Personnel Only

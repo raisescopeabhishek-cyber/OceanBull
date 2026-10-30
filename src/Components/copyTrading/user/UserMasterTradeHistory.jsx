@@ -77,20 +77,14 @@ const UserMasterTradeHistory = () => {
     <div className="space-y-5 p-5 sm:p-6">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 lg:grid-cols-[220px_1fr_140px]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 lg:grid-cols-[220px_1fr_140px]","border-line bg-surface-2"
         )}
       >
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value)}
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm outline-none",
-            isDark
-              ? "border-white/10 bg-slate-950 text-white"
-              : "border-slate-200 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm outline-none","border-line bg-surface text-text"
           )}
         >
           <option value="all">All Master Trades</option>
@@ -108,10 +102,7 @@ const UserMasterTradeHistory = () => {
           }}
           placeholder="Enter master account"
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm outline-none",
-            isDark
-              ? "border-white/10 bg-slate-950 text-white placeholder:text-white/40"
-              : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
+            "rounded-card border px-4 py-3 text-sm outline-none","border-line bg-surface text-text placeholder:text-subtle"
           )}
         />
 
@@ -119,7 +110,7 @@ const UserMasterTradeHistory = () => {
           type="button"
           onClick={loadTrades}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-card bg-success px-4 py-3 text-sm font-bold text-text disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Search className="h-4 w-4" />
           {loading ? "Loading..." : "Search"}
@@ -129,8 +120,7 @@ const UserMasterTradeHistory = () => {
       {loading ? (
         <div
           className={cx(
-            "p-5 text-sm",
-            isDark ? "text-white/70" : "text-slate-600"
+            "p-5 text-sm","text-muted"
           )}
         >
           Loading master trades...
@@ -164,8 +154,7 @@ const UserMasterTradeHistory = () => {
               <tr
                 key={`${ticket}-${index}`}
                 className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "border-t","border-line"
                 )}
               >
                 <td className="px-4 py-4 font-bold">{ticket}</td>
@@ -184,12 +173,10 @@ const UserMasterTradeHistory = () => {
                   className={cx(
                     "px-4 py-4 font-bold",
                     profit > 0
-                      ? "text-emerald-600"
+                      ? "text-success"
                       : profit < 0
-                      ? "text-red-500"
-                      : isDark
-                      ? "text-white"
-                      : "text-slate-900"
+                      ? "text-danger"
+                      :"text-text"
                   )}
                 >
                   {getTradeProfit(row)}

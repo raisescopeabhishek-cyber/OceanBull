@@ -99,23 +99,21 @@ const AdminTradeMonitor = () => {
     <div className="space-y-5 p-5 sm:p-6">
       <div>
         <h1 className="text-2xl font-black">Trade History Search</h1>
-        <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+        <p className={cx("mt-1 text-sm","text-subtle")}>
           Search master or copier trade history by account.
         </p>
       </div>
 
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 xl:grid-cols-[170px_170px_1fr_160px]",
-          isDark ? "border-white/10 bg-white/[0.035]" : "border-emerald-100 bg-white/95"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 xl:grid-cols-[170px_170px_1fr_160px]","border-line bg-surface-2"
         )}
       >
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value)}
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
-            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm font-bold outline-none","border-line bg-surface text-text"
           )}
         >
           <option value="all">All Trades</option>
@@ -127,8 +125,7 @@ const AdminTradeMonitor = () => {
           value={role}
           onChange={(event) => setRole(event.target.value)}
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
-            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm font-bold outline-none","border-line bg-surface text-text"
           )}
         >
           <option value="auto">Auto Role</option>
@@ -144,8 +141,7 @@ const AdminTradeMonitor = () => {
           }}
           placeholder="Enter master/copier MT5 account"
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
           )}
         />
 
@@ -153,7 +149,7 @@ const AdminTradeMonitor = () => {
           type="button"
           onClick={loadTrades}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-card bg-success px-4 py-3 text-sm font-black text-text hover:bg-success disabled:opacity-60"
         >
           <Search className="h-4 w-4" />
           {loading ? "Loading..." : "Search"}
@@ -163,8 +159,7 @@ const AdminTradeMonitor = () => {
       {!!rows.length && (
         <div
           className={cx(
-            "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-[1fr_auto]",
-            isDark ? "border-white/10 bg-white/[0.035]" : "border-emerald-100 bg-white/95"
+            "grid grid-cols-1 gap-3 rounded-card border p-4 md:grid-cols-[1fr_auto]","border-line bg-surface-2"
           )}
         >
           <input
@@ -172,8 +167,7 @@ const AdminTradeMonitor = () => {
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Filter loaded trades by symbol, ticket, type..."
             className={cx(
-              "rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-              isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+              "rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
             )}
           />
 
@@ -182,8 +176,7 @@ const AdminTradeMonitor = () => {
             onClick={loadTrades}
             disabled={loading}
             className={cx(
-              "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
-              isDark ? "border-white/10 bg-white/[0.04] text-white" : "border-emerald-100 bg-white text-emerald-700"
+              "inline-flex items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-bold","border-line bg-surface-2 text-text"
             )}
           >
             <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -225,8 +218,7 @@ const AdminTradeMonitor = () => {
               <tr
                 key={`${ticket}-${index}`}
                 className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "border-t","border-line"
                 )}
               >
                 <td className="whitespace-nowrap px-4 py-4 font-black">{ticket}</td>
@@ -238,7 +230,7 @@ const AdminTradeMonitor = () => {
                 <td
                   className={cx(
                     "whitespace-nowrap px-4 py-4 font-black",
-                    profit > 0 ? "text-emerald-600" : profit < 0 ? "text-red-500" : ""
+                    profit > 0 ? "text-success" : profit < 0 ? "text-danger" : ""
                   )}
                 >
                   {formatMoney(profit)}
@@ -246,7 +238,7 @@ const AdminTradeMonitor = () => {
                 <td className="whitespace-nowrap px-4 py-4">
                   {formatDateTime(tradeTime)}
                 </td>
-                <td className="whitespace-nowrap px-4 py-4 font-bold text-emerald-600">
+                <td className="whitespace-nowrap px-4 py-4 font-bold text-success">
                   {formatAgo(tradeTime)}
                 </td>
               </tr>

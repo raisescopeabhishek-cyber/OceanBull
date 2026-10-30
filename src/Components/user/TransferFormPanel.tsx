@@ -75,7 +75,7 @@ function CheckoutStep({
       >
         <div className="flex min-w-0 items-start gap-3">
           <div
-            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold"
+            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-card text-xs font-bold"
             style={{
               background: isOpen ? colors.accent : colors.surfaceSoft,
               color: isOpen ? "#ffffff" : colors.text,
@@ -175,8 +175,8 @@ export default function TransferFormPanel({
   };
 
   const optionStyle: React.CSSProperties = {
-    background: colors.isDark ? "#111827" : "#ffffff",
-    color: colors.isDark ? "#ffffff" : "#0f172a",
+    background: colors.isDark ? "#0f1829" : "#ffffff",
+    color: colors.isDark ? "#ffffff" : "#0f1829",
   };
 
   const subtleCard = (): React.CSSProperties => ({
@@ -274,7 +274,7 @@ export default function TransferFormPanel({
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.96 }}
-                className="flex h-12 w-12 items-center justify-center rounded-2xl border transition-all"
+                className="flex h-12 w-12 items-center justify-center rounded-card border transition-all"
                 style={{
                   borderColor: colors.border,
                   background: colors.surface,
@@ -528,7 +528,7 @@ export default function TransferFormPanel({
                 borderRadius: "14px",
                 color: colors.primaryBtnText,
                 background: colors.primaryBtn,
-                boxShadow: "0 12px 24px rgba(249,115,22,0.22)",
+                boxShadow: "0 12px 24px rgba(42, 86, 220,0.22)",
                 opacity: ctaEnabled ? 1 : 0.65,
                 cursor: ctaEnabled ? "pointer" : "not-allowed",
               }}

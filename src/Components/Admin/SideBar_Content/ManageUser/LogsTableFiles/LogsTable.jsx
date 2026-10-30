@@ -50,16 +50,16 @@ const LogsTable = () => {
   });
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
         <h2 className="text-lg font-semibold">📜 User Login Logs</h2>
 
         <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-2.5 text-subtle" size={18} />
           <input
             type="text"
             placeholder="Search logs..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-indigo-800/40 border border-indigo-700 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-2 rounded-field bg-surface border border-line text-sm text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-primary"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -67,46 +67,46 @@ const LogsTable = () => {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading logs...</p>
+        <p className="text-subtle text-sm">Loading logs...</p>
       ) : filteredLogs.length === 0 ? (
-        <p className="text-gray-400 text-sm">No matching logs found.</p>
+        <p className="text-subtle text-sm">No matching logs found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-indigo-800 text-sm">
+          <table className="min-w-full border-collapse border border-line text-sm table-stack">
             <thead>
-              <tr className="bg-indigo-800/50">
-                <th className="p-3 text-left border border-indigo-800">Name</th>
-                <th className="p-3 text-left border border-indigo-800">Email</th>
-                <th className="p-3 text-left border border-indigo-800">Phone</th>
-                <th className="p-3 text-left border border-indigo-800">IP</th>
-                <th className="p-3 text-left border border-indigo-800">Browser</th>
-                <th className="p-3 text-left border border-indigo-800">OS</th>
-                <th className="p-3 text-left border border-indigo-800">Country</th>
-                <th className="p-3 text-left border border-indigo-800">Date</th>
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">Name</th>
+                <th className="p-3 text-left border border-line">Email</th>
+                <th className="p-3 text-left border border-line">Phone</th>
+                <th className="p-3 text-left border border-line">IP</th>
+                <th className="p-3 text-left border border-line">Browser</th>
+                <th className="p-3 text-left border border-line">OS</th>
+                <th className="p-3 text-left border border-line">Country</th>
+                <th className="p-3 text-left border border-line">Date</th>
               </tr>
             </thead>
             <tbody>
               {filteredLogs.map((log) => (
                 <tr
                   key={log._id}
-                  className="hover:bg-indigo-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Name" className="p-3 border border-line">
                     {log?.userId?.firstName} {log?.userId?.lastName}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Email" className="p-3 border border-line">
                     <div className="flex items-center gap-2">
                       <Mail size={16} /> {log?.userId?.email}
                     </div>
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Phone" className="p-3 border border-line">
                     {log?.userId?.phone}
                   </td>
-                  <td className="p-3 border border-indigo-800">{log?.ip}</td>
-                  <td className="p-3 border border-indigo-800">{log?.browser}</td>
-                  <td className="p-3 border border-indigo-800">{log?.os}</td>
-                  <td className="p-3 border border-indigo-800">{log?.country}</td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="IP" className="p-3 border border-line">{log?.ip}</td>
+                  <td data-label="Browser" className="p-3 border border-line">{log?.browser}</td>
+                  <td data-label="OS" className="p-3 border border-line">{log?.os}</td>
+                  <td data-label="Country" className="p-3 border border-line">{log?.country}</td>
+                  <td data-label="Date" className="p-3 border border-line">
                     {log?.createdAt ? new Date(log.createdAt).toLocaleString() : "-"}
                   </td>
                 </tr>

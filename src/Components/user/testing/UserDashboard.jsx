@@ -60,7 +60,7 @@ export default function UserDashboard() {
 
     return () => clearInterval(intervalId);
   }, []);
-  const COLORS = ["#4f46e5", "#38bdf8", "#10b981"];
+  const COLORS = ["#4f46e5", "#4f7df6", "#0f9f6e"];
 
   return (
     <motion.div
@@ -72,7 +72,7 @@ export default function UserDashboard() {
       {/* Main 2-column layout */}
       <div className="flex flex-col md:flex-row gap-6">
         {/* Left Column */}
-        <div className="md:w-1/3 w-full ">
+        <div className="md:w-1/3 w-full">
           <motion.div
             className="mb-6"
             initial={{ opacity: 0, y: 20 }}
@@ -89,10 +89,10 @@ export default function UserDashboard() {
         {/* Right Column */}
         <div className="md:w-2/3 w-full flex flex-col gap-6">
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-6`}>
-            <Card className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm text-white shadow-md">
+            <Card className="p-3 rounded-sm text-text">
               <CardContent className="p-0">
                 <div className="p-4">
-                  <h2 className="text-lg text-white font-semibold mb-4">
+                  <h2 className="text-lg text-text font-semibold mb-4">
                     Open Trade Analysis
                   </h2>
                   <ResponsiveContainer width="100%" height={250}>
@@ -106,7 +106,7 @@ export default function UserDashboard() {
                           color: "#fff",
                         }}
                       />
-                      <Bar dataKey="orders" fill="#38bdf8" />
+                      <Bar dataKey="orders" fill="#4f7df6" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -116,9 +116,9 @@ export default function UserDashboard() {
             <UserDashboardAccount />
             
 
-            {/* <Card className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm text-white shadow-md">
+            {/* <Card className="p-3 rounded-sm text-text">
                <CardContent className="p-4">
-                 <h2 className="text-lg text-white font-semibold mb-4">
+                 <h2 className="text-lg text-text font-semibold mb-4">
                    User Types
                  </h2>
                  <ResponsiveContainer width="100%" height={250}>
@@ -164,10 +164,10 @@ export default function UserDashboard() {
           </motion.div>
 
           {/* <motion.div>
-            <Card className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm text-white shadow-md">
+            <Card className="p-3 rounded-sm text-text">
               <CardContent className="p-0">
                 <div className="p-4">
-                  <h2 className="text-lg text-white font-semibold mb-4">
+                  <h2 className="text-lg text-text font-semibold mb-4">
                     MT5 Account
                   </h2>
                   <ResponsiveContainer width="100%" height={250}>
@@ -181,7 +181,7 @@ export default function UserDashboard() {
                           color: "#fff",
                         }}
                       />
-                      <Bar dataKey="orders" fill="#38bdf8" />
+                      <Bar dataKey="orders" fill="#4f7df6" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -200,7 +200,7 @@ export default function UserDashboard() {
                     <XAxis dataKey="category" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="orders" fill="#38bdf8" />
+                    <Bar dataKey="orders" fill="#4f7df6" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

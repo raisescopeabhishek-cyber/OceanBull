@@ -52,20 +52,14 @@ export default function Group({ refresh }) {
     <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div
         className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+          "rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div
               className={[
-                "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                isDark
-                  ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                  : "border-orange-200 bg-orange-50 text-orange-700",
+                "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
               ].join(" ")}
             >
               <Layers3 size={14} />
@@ -74,8 +68,7 @@ export default function Group({ refresh }) {
 
             <h2
               className={[
-                "text-2xl font-bold tracking-tight",
-                isDark ? "text-white" : "text-slate-900",
+                "text-2xl font-bold tracking-tight","text-text",
               ].join(" ")}
             >
               Existing Groups
@@ -83,8 +76,7 @@ export default function Group({ refresh }) {
 
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/50" : "text-slate-600",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               View and manage all custom group mappings.
@@ -95,10 +87,7 @@ export default function Group({ refresh }) {
             onClick={fetchData}
             disabled={isLoading}
             className={[
-              "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-              isDark
-                ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.25)]",
+              "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-primary-soft text-text hover:bg-primary",
             ].join(" ")}
           >
             {isLoading ? (
@@ -113,26 +102,19 @@ export default function Group({ refresh }) {
         {isLoading ? (
           <div
             className={[
-              "flex justify-center items-center rounded-[18px] border py-10",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-slate-200 bg-slate-50",
+              "flex justify-center items-center rounded-card border py-10","border-line bg-surface-2",
             ].join(" ")}
           >
             <Loader2
               className={[
-                "h-8 w-8 animate-spin",
-                isDark ? "text-blue-300" : "text-orange-500",
+                "h-8 w-8 animate-spin","text-primary",
               ].join(" ")}
             />
           </div>
         ) : customGroups.length === 0 ? (
           <div
             className={[
-              "rounded-[18px] border py-10 text-center text-sm",
-              isDark
-                ? "border-white/10 bg-white/[0.03] text-white/55"
-                : "border-slate-200 bg-slate-50 text-slate-500",
+              "rounded-card border py-10 text-center text-sm","border-line bg-surface-2 text-subtle",
             ].join(" ")}
           >
             No custom groups found
@@ -143,16 +125,12 @@ export default function Group({ refresh }) {
             <div className="hidden sm:block overflow-x-auto">
               <div
                 className={[
-                  "overflow-hidden rounded-[20px] border",
-                  isDark ? "border-white/10" : "border-slate-200",
+                  "overflow-hidden rounded-card border","border-line",
                 ].join(" ")}
               >
-                <table className="min-w-full">
+                <table className="min-w-full table-stack">
                   <thead
-                    className={[
-                      isDark
-                        ? "bg-white/[0.06] text-white/80"
-                        : "bg-slate-100/80 text-slate-700",
+                    className={["bg-surface-2 text-muted",
                     ].join(" ")}
                   >
                     <tr>
@@ -171,55 +149,46 @@ export default function Group({ refresh }) {
                     </tr>
                   </thead>
 
-                  <tbody className={isDark ? "bg-transparent" : "bg-white/40"}>
+                  <tbody className={"bg-transparent"}>
                     {customGroups.map((value, index) => (
                       <tr
                         key={value._id || index}
                         className={[
-                          "border-t transition-colors duration-200",
-                          isDark
-                            ? "border-white/10 hover:bg-white/[0.03]"
-                            : "border-slate-200 hover:bg-slate-50/80",
+                          "border-t transition-colors duration-200","border-line hover:bg-surface-2",
                         ].join(" ")}
                       >
-                        <td
+                        <td data-label="Sr. No."
                           className={[
-                            "py-4 px-6 text-center text-sm font-medium",
-                            isDark ? "text-white/85" : "text-slate-800",
+                            "py-4 px-6 text-center text-sm font-medium","text-muted",
                           ].join(" ")}
                         >
                           {index + 1}
                         </td>
 
-                        <td
+                        <td data-label="API Group"
                           className={[
-                            "py-4 px-6 text-center text-sm",
-                            isDark ? "text-white/70" : "text-slate-700",
+                            "py-4 px-6 text-center text-sm","text-muted",
                           ].join(" ")}
                         >
                           {value?.apiGroup}
                         </td>
 
-                        <td
+                        <td data-label="Custom Group"
                           className={[
-                            "py-4 px-6 text-center text-sm font-medium",
-                            isDark ? "text-white/85" : "text-slate-800",
+                            "py-4 px-6 text-center text-sm font-medium","text-muted",
                           ].join(" ")}
                         >
                           {value?.customGroup}
                         </td>
 
-                        <td className="py-4 px-6 text-center">
+                        <td data-label="Action" className="py-4 px-6 text-center">
                           <button
                             onClick={() =>
                               deleteHandler(value._id, value.customGroup)
                             }
                             disabled={isLoading}
                             className={[
-                              "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
-                              isDark
-                                ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                                : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                              "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300 disabled:opacity-50","text-danger hover:bg-danger-soft hover:text-danger",
                             ].join(" ")}
                           >
                             <Trash2 className="h-5 w-5" />
@@ -238,26 +207,21 @@ export default function Group({ refresh }) {
                 <div
                   key={value._id || index}
                   className={[
-                    "rounded-[18px] border p-4 transition-all duration-300",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-slate-200 bg-white/80",
+                    "rounded-card border p-4 transition-all duration-300","border-line bg-surface-2",
                   ].join(" ")}
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div>
                       <p
                         className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
+                          "text-[11px] uppercase tracking-[0.16em]","text-subtle",
                         ].join(" ")}
                       >
                         Group #{index + 1}
                       </p>
                       <h3
                         className={[
-                          "mt-1 text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
+                          "mt-1 text-base font-semibold","text-text",
                         ].join(" ")}
                       >
                         {value?.customGroup}
@@ -270,10 +234,7 @@ export default function Group({ refresh }) {
                       }
                       disabled={isLoading}
                       className={[
-                        "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
-                        isDark
-                          ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                          : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                        "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300 disabled:opacity-50","text-danger hover:bg-danger-soft hover:text-danger",
                       ].join(" ")}
                     >
                       <Trash2 className="h-5 w-5" />
@@ -284,16 +245,14 @@ export default function Group({ refresh }) {
                     <div>
                       <p
                         className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
+                          "text-[11px] uppercase tracking-[0.16em]","text-subtle",
                         ].join(" ")}
                       >
                         API Group
                       </p>
                       <p
                         className={[
-                          "mt-1 text-sm",
-                          isDark ? "text-white/80" : "text-slate-700",
+                          "mt-1 text-sm","text-muted",
                         ].join(" ")}
                       >
                         {value?.apiGroup}
@@ -303,16 +262,14 @@ export default function Group({ refresh }) {
                     <div>
                       <p
                         className={[
-                          "text-[11px] uppercase tracking-[0.16em]",
-                          isDark ? "text-white/40" : "text-slate-500",
+                          "text-[11px] uppercase tracking-[0.16em]","text-subtle",
                         ].join(" ")}
                       >
                         Custom Group
                       </p>
                       <p
                         className={[
-                          "mt-1 text-sm font-medium",
-                          isDark ? "text-white" : "text-slate-900",
+                          "mt-1 text-sm font-medium","text-text",
                         ].join(" ")}
                       >
                         {value?.customGroup}

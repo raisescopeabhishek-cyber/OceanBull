@@ -26,7 +26,7 @@ const AnimatedGrid = () => (
       className="absolute inset-0 opacity-10"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(16,185,129,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.22) 1px, transparent 1px)",
+          "linear-gradient(rgba(15, 159, 110,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 159, 110,0.22) 1px, transparent 1px)",
         backgroundSize: "44px 44px",
         maskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
         WebkitMaskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
@@ -38,7 +38,7 @@ const AnimatedGrid = () => (
       transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
       style={{
         background:
-          "repeating-linear-gradient(90deg, rgba(59,130,246,0.08) 0 2px, transparent 2px 8px)",
+          "repeating-linear-gradient(90deg, rgba(79, 125, 246,0.08) 0 2px, transparent 2px 8px)",
       }}
     />
   </div>
@@ -57,10 +57,10 @@ const FloatingOrbs = () => (
           top: `${(i * 53) % 100}%`,
           background:
             i % 3 === 0
-              ? "radial-gradient(circle at center, rgba(16,185,129,0.25), transparent 60%)"
+              ? "radial-gradient(circle at center, rgba(15, 159, 110,0.25), transparent 60%)"
               : i % 3 === 1
               ? "radial-gradient(circle at center, rgba(34,211,238,0.25), transparent 60%)"
-              : "radial-gradient(circle at center, rgba(99,102,241,0.25), transparent 60%)",
+              : "radial-gradient(circle at center, rgba(23, 157, 166,0.25), transparent 60%)",
         }}
         animate={{ y: [0, i % 2 ? -20 : 20, 0], x: [0, i % 2 ? 10 : -10, 0], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 6 + (i % 5), repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
@@ -75,18 +75,18 @@ const GlassCard = ({ className = "", children }) => (
     animate={{ y: 0, scale: 1, opacity: 1 }}
     exit={{ y: 12, scale: 0.98, opacity: 0 }}
     transition={{ type: "spring", stiffness: 200, damping: 20 }}
-    className={`relative rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-slate-900/80 backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.10)] ${className}`}
+    className={`relative rounded-2xl border border-success bg-gradient-to-br    backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.10)] ${className}`}
   >
-    <div className="absolute inset-px rounded-[calc(1rem-1px)] bg-gradient-to-br from-emerald-300/7 via-cyan-300/7 to-indigo-300/7 pointer-events-none" />
+    <div className="absolute inset-px rounded-[calc(1rem-1px)] pointer-events-none" />
     {children}
   </motion.div>
 );
 
 const NeonDivider = () => (
   <div className="relative w-full my-4">
-    <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
+    <div className="h-px w-full" />
     <motion.div
-      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-emerald-400/60 blur-md"
+      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-success-soft blur-md"
       animate={{ left: ["0%", "100%"] }}
       transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
     />
@@ -96,22 +96,22 @@ const NeonDivider = () => (
 /* ============================== HELPERS ============================== */
 const getPriorityTone = (priority) => {
   const map = {
-    Low: "text-emerald-300",
-    Medium: "text-yellow-300",
-    High: "text-orange-300",
-    Critical: "text-rose-300",
+    Low: "text-success",
+    Medium: "text-warning",
+    High: "text-primary",
+    Critical: "text-danger",
   };
-  return map[priority] || "text-white/80";
+  return map[priority] || "text-muted";
 };
 
 const getStatusBadge = (status) => {
   const tone = {
-    open: "from-sky-500/60 to-sky-500/30",
-    "in-progress": "from-yellow-500/60 to-yellow-500/30",
-    resolved: "from-emerald-500/60 to-emerald-500/30",
-    closed: "from-slate-500/60 to-slate-500/30",
-  }[String(status || "").toLowerCase()] || "from-sky-500/60 to-sky-500/30";
-  return `bg-gradient-to-r ${tone} text-white px-3 py-1 text-xs rounded-full`;
+    open: "",
+    "in-progress": "bg-warning-soft",
+    resolved: "",
+    closed: "",
+  }[String(status || "").toLowerCase()] || "";
+  return `bg-gradient-to-r ${tone} text-text px-3 py-1 text-xs rounded-full`;
 };
 
 /* ============================== COMPONENT ============================= */
@@ -292,7 +292,7 @@ export default function TicketChat({
     <AnimatePresence>
 
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -305,10 +305,10 @@ export default function TicketChat({
 
         <GlassCard className="w-full max-w-3xl h-[86vh] relative flex flex-col">
           {/* Header */}
-          <div className="p-5 border-b border-white/15 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent">
+          <div className="p-5 border-b border-line">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <h2 className="text-xl md:text-2xl font-extrabold text-white break-words pr-8">
+                <h2 className="text-xl md:text-2xl font-extrabold text-text break-words pr-8">
                   {ticket.subject}
                 </h2>
 
@@ -324,12 +324,12 @@ export default function TicketChat({
                       {String(ticket.status).replace("-", " ").replace(/^\w/, (c) => c.toUpperCase())}
                     </span>
                   )}
-                  <span className="flex items-center gap-1 text-white/70 font-medium">
+                  <span className="flex items-center gap-1 text-muted font-medium">
                     <User size={16} />
                     {ticket.user?.name || ticket.user?.email || "Customer"}
                   </span>
                   {ticket.createdAt && (
-                    <span className="flex items-center gap-1 text-white/70 font-medium">
+                    <span className="flex items-center gap-1 text-muted font-medium">
                       <Clock size={16} />
                       {dayjs(ticket.createdAt).format("DD/MM/YYYY HH:mm")}
                     </span>
@@ -342,8 +342,7 @@ export default function TicketChat({
                   onClick={copyTranscript}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-black
-                             bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-field text-text"
                 >
                   {copied ? <CheckCircle2 className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                   {copied ? "Copied" : "Copy Transcript"}
@@ -351,7 +350,7 @@ export default function TicketChat({
 
                 <button
                   onClick={onClose}
-                  className="text-white/70 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+                  className="text-muted hover:text-text transition-colors p-1.5 rounded-field hover:bg-surface-2"
                   aria-label="Close"
                 >
                   <X className="w-6 h-6" />
@@ -361,16 +360,16 @@ export default function TicketChat({
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 bg-black/20">
+          <div className="flex-1 overflow-y-auto p-5 bg-black/60">
            <FloatingParticles/>
 
             {loadingChats ? (
-              <div className="h-full w-full flex items-center justify-center text-white/80 gap-2">
+              <div className="h-full w-full flex items-center justify-center text-muted gap-2">
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Loading messages…
               </div>
             ) : chats.length === 0 ? (
-              <div className="h-full w-full flex flex-col items-center justify-center text-center text-white/70">
+              <div className="h-full w-full flex flex-col items-center justify-center text-center text-muted">
                 <MessageSquare size={48} className="mb-3 opacity-80" />
                 <p className="text-lg font-semibold">No messages yet</p>
                 <p className="text-sm">Start the conversation by sending a message.</p>
@@ -388,7 +387,7 @@ export default function TicketChat({
                           exit={{ opacity: 0, y: -6 }}
                           className="flex justify-center"
                         >
-                          <div className="text-xs text-white/80 bg-white/10 px-4 py-2 rounded-full shadow">
+                          <div className="text-xs text-muted bg-surface-2 px-4 py-2 rounded-full shadow">
                             {chat.message}
                           </div>
                         </motion.div>
@@ -404,8 +403,8 @@ export default function TicketChat({
                         animate="visible"
                         className={`max-w-[78%] p-3 rounded-2xl shadow-md ${
                           mine
-                            ? "ml-auto bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-400/30 text-emerald-100 rounded-br-sm"
-                            : "mr-auto bg-white/10 border border-white/15 text-white/90 rounded-bl-sm"
+                            ? "ml-auto border border-success text-success rounded-br-sm"
+                            : "mr-auto bg-surface-2 border border-line text-muted rounded-bl-sm"
                         }`}
                       >
                         <div className="text-[11px] opacity-70 mb-1">
@@ -429,9 +428,9 @@ export default function TicketChat({
           {/* Feedback banners */}
           {ticket.userFeedback === "pending" && (ticket.status === "closed" || ticket.status === "resolved") && (
             <div className="px-5 pb-3">
-              <div className="bg-white/8 border border-white/15 rounded-2xl p-4 text-center">
-                <p className="text-white font-semibold">Was your issue resolved?</p>
-                <p className="text-white/70 text-sm">
+              <div className="bg-surface border border-line rounded-card p-4 text-center">
+                <p className="text-text font-semibold">Was your issue resolved?</p>
+                <p className="text-muted text-sm">
                   Help us improve by letting us know if this ticket was successfully handled.
                 </p>
                 <div className="flex items-center justify-center gap-3 mt-3">
@@ -439,7 +438,7 @@ export default function TicketChat({
                     onClick={() => handleUserFeedback("resolved")}
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                    className="px-4 py-2 rounded-card bg-success hover:bg-success text-text font-semibold"
                   >
                     ✅ Yes, resolved
                   </motion.button>
@@ -447,7 +446,7 @@ export default function TicketChat({
                     onClick={() => handleUserFeedback("not-resolved")}
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+                    className="px-4 py-2 rounded-card bg-danger hover:bg-danger text-text font-semibold"
                   >
                     ❌ Not resolved
                   </motion.button>
@@ -458,23 +457,23 @@ export default function TicketChat({
 
           {ticket.userFeedback === "resolved" && (
             <div className="px-5 mb-2">
-              <div className="bg-emerald-700/70 border border-emerald-600 rounded-2xl p-4 text-center">
-                <p className="text-white text-sm font-semibold">🎉 Thank you! Glad we could help.</p>
+              <div className="bg-success-soft border border-success rounded-card p-4 text-center">
+                <p className="text-text text-sm font-semibold">🎉 Thank you! Glad we could help.</p>
               </div>
             </div>
           )}
 
           {ticket.userFeedback === "not-resolved" && (
             <div className="px-5 mb-2">
-              <div className="bg-rose-700/70 border border-rose-600 rounded-2xl p-4 text-center">
-                <p className="text-white text-sm font-semibold">😔 We’ll follow up shortly.</p>
+              <div className="bg-danger-soft border border-danger rounded-card p-4 text-center">
+                <p className="text-text text-sm font-semibold">😔 We’ll follow up shortly.</p>
               </div>
             </div>
           )}
 
           {/* Input / Status bar */}
           {allowInput ? (
-            <div className="p-5 border-t border-white/10">
+            <div className="p-5 border-t border-line">
               <div className="flex items-end gap-2">
                 <div className="flex-1 relative">
                   <textarea
@@ -484,10 +483,9 @@ export default function TicketChat({
                     disabled={isLoading}
                     rows={1}
                     placeholder="Type your message…"
-                    className="w-full resize-none px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white
-                               outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400/50 transition"
+                    className="w-full resize-none px-4 py-3 rounded-card bg-surface-2 border border-line text-text outline-none focus:ring-2 focus:ring-success focus:border-success transition"
                   />
-                  <div className="pointer-events-none absolute inset-px rounded-[calc(.75rem-1px)] bg-gradient-to-br from-white/5 to-transparent" />
+                  <div className="pointer-events-none absolute inset-px rounded-[calc(.75rem-1px)] to-transparent" />
                 </div>
 
                 <motion.button
@@ -495,15 +493,12 @@ export default function TicketChat({
                   disabled={!message.trim() || isLoading}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  className="relative inline-flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-black
-                             bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400
-                             shadow-[0_10px_30px_rgba(16,185,129,0.35)]
-                             disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center gap-2 px-4 py-3 rounded-card font-semibold text-text disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   {isLoading ? "Sending…" : "Send"}
                   <motion.span
-                    className="absolute inset-0 rounded-xl opacity-0"
+                    className="absolute inset-0 rounded-card opacity-0"
                     whileHover={{ opacity: 1 }}
                     transition={{ duration: 0.35 }}
                     style={{
@@ -515,8 +510,8 @@ export default function TicketChat({
               </div>
             </div>
           ) : (
-            <div className="border-t border-white/10">
-              <div className="w-full px-4 py-3 text-center text-white/90 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20">
+            <div className="border-t border-line">
+              <div className="w-full px-4 py-3 text-center text-muted">
                 {ticket.status === "in-progress" && "🤔 We’re working on it… Please wait a moment."}
                 {ticket.status === "closed" && "😔 This ticket is closed."}
                 {ticket.status === "resolved" && "😍 Great! Issue resolved successfully."}

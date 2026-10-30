@@ -79,20 +79,14 @@ const getTradeSideClass = (buySell, isDark) => {
   const value = Number(buySell);
 
   if (value === 0) {
-    return isDark
-      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-      : "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border-success bg-success-soft text-success";
   }
 
   if (value === 1) {
-    return isDark
-      ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-      : "border-rose-200 bg-rose-50 text-rose-700";
+    return "border-danger bg-danger-soft text-danger";
   }
 
-  return isDark
-    ? "border-white/10 bg-white/[0.04] text-white/60"
-    : "border-slate-200 bg-slate-50 text-slate-600";
+  return "border-line bg-surface-2 text-subtle";
 };
 
 const getStatusText = (row) => {
@@ -651,32 +645,21 @@ const UserReferralCloseTrades = () => {
   ];
 
   const toneClasses = {
-    emerald: isDark
-      ? "border-emerald-400/15 bg-emerald-400/10 text-emerald-200"
-      : "border-emerald-100 bg-emerald-50 text-emerald-700",
-    cyan: isDark
-      ? "border-cyan-400/15 bg-cyan-400/10 text-cyan-200"
-      : "border-cyan-100 bg-cyan-50 text-cyan-700",
-    violet: isDark
-      ? "border-violet-400/15 bg-violet-400/10 text-violet-200"
-      : "border-violet-100 bg-violet-50 text-violet-700",
-    rose: isDark
-      ? "border-rose-400/15 bg-rose-400/10 text-rose-200"
-      : "border-rose-100 bg-rose-50 text-rose-700",
+    emerald:"border-success bg-success-soft text-success",
+    cyan:"border-line bg-primary-soft text-primary",
+    violet:"border-line bg-primary-soft text-primary",
+    rose:"border-danger bg-danger-soft text-danger",
   };
 
   return (
     <div className="space-y-5">
       <section
         className={cx(
-          "relative overflow-hidden rounded-[28px] border p-4 sm:p-5 lg:p-6",
-          isDark
-            ? "border-white/10 bg-slate-950/50"
-            : "border-sky-100 bg-gradient-to-br from-white via-sky-50/70 to-white"
+          "relative overflow-hidden rounded-card border p-4 sm:p-5 lg:p-6","border-line bg-surface"
         )}
       >
-        <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-primary-soft blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-primary-soft blur-3xl" />
 
         <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-4">
@@ -684,10 +667,7 @@ const UserReferralCloseTrades = () => {
               type="button"
               onClick={() => navigate(-1)}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition-all hover:-translate-x-0.5",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-sky-100 bg-white text-slate-700 shadow-sm hover:bg-sky-50"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-sm font-semibold transition-all hover:-translate-x-0.5","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -697,10 +677,7 @@ const UserReferralCloseTrades = () => {
             <div>
               <div
                 className={cx(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]",
-                  isDark
-                    ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
-                    : "border-cyan-100 bg-cyan-50 text-cyan-700"
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
                 )}
               >
                 <Activity className="h-3.5 w-3.5" />
@@ -709,14 +686,13 @@ const UserReferralCloseTrades = () => {
 
               <h2
                 className={cx(
-                  "mt-3 text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl",
-                  isDark ? "text-white" : "text-slate-950"
+                  "mt-3 text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl","text-text"
                 )}
               >
                 {pageUserName || "IB User"} Trade Ledger
               </h2>
 
-              <p className={cx("mt-2 max-w-3xl text-sm leading-6", isDark ? "text-white/60" : "text-slate-600")}>
+              <p className={cx("mt-2 max-w-3xl text-sm leading-6","text-subtle")}>
                 Multiple accounts are grouped below. Expand each account to inspect
                 close trades, commission level, rebate, volume, price, and status.
               </p>
@@ -726,10 +702,7 @@ const UserReferralCloseTrades = () => {
           <div className="flex flex-wrap gap-2">
             <div
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/75"
-                  : "border-sky-100 bg-white text-slate-700 shadow-sm"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-sm font-semibold","border-line bg-surface-2 text-muted"
               )}
             >
               <UserRound className="h-4 w-4" />
@@ -738,10 +711,7 @@ const UserReferralCloseTrades = () => {
 
             <div
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/75"
-                  : "border-sky-100 bg-white text-slate-700 shadow-sm"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-sm font-semibold","border-line bg-surface-2 text-muted"
               )}
             >
               <Clock3 className="h-4 w-4" />
@@ -758,26 +728,23 @@ const UserReferralCloseTrades = () => {
               <div
                 key={card.label}
                 className={cx(
-                  "rounded-3xl border p-4 shadow-sm backdrop-blur",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04]"
-                    : "border-white/70 bg-white/80"
+                  "rounded-card border p-4 shadow-sm backdrop-blur","border-line bg-surface-2"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className={cx("text-xs font-bold uppercase tracking-[0.16em]", isDark ? "text-white/45" : "text-slate-500")}>
+                    <p className={cx("text-xs font-bold uppercase tracking-[0.16em]","text-subtle")}>
                       {card.label}
                     </p>
-                    <p className={cx("mt-2 text-2xl font-black", isDark ? "text-white" : "text-slate-950")}>
+                    <p className={cx("mt-2 text-2xl font-black","text-text")}>
                       {card.value}
                     </p>
-                    <p className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                    <p className={cx("mt-1 text-xs","text-subtle")}>
                       {card.sub}
                     </p>
                   </div>
 
-                  <div className={cx("grid h-11 w-11 place-items-center rounded-2xl border", toneClasses[card.tone])}>
+                  <div className={cx("grid h-11 w-11 place-items-center rounded-card border", toneClasses[card.tone])}>
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -789,26 +756,23 @@ const UserReferralCloseTrades = () => {
 
       <section
         className={cx(
-          "rounded-[28px] border p-4 sm:p-5",
-          isDark ? "border-white/10 bg-slate-950/50" : "border-sky-100 bg-white shadow-sm"
+          "rounded-card border p-4 sm:p-5","border-line bg-surface"
         )}
       >
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px_180px_150px] xl:min-w-[720px]">
             <div
               className={cx(
-                "flex items-center gap-2 rounded-2xl border px-4 py-3",
-                isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-slate-50"
+                "flex items-center gap-2 rounded-card border px-4 py-3","border-line bg-surface-2"
               )}
             >
-              <Search className={cx("h-4 w-4", isDark ? "text-white/45" : "text-slate-400")} />
+              <Search className={cx("h-4 w-4","text-subtle")} />
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search account, ticket, symbol, position..."
                 className={cx(
-                  "w-full bg-transparent text-sm outline-none placeholder:text-slate-400",
-                  isDark ? "text-white" : "text-slate-900"
+                  "w-full bg-transparent text-sm outline-none placeholder:text-subtle","text-text"
                 )}
               />
             </div>
@@ -817,10 +781,7 @@ const UserReferralCloseTrades = () => {
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
               className={cx(
-                "rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-                isDark
-                  ? "border-white/10 bg-slate-950 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-700"
+                "rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
               )}
             >
               <option value="all">All Status</option>
@@ -832,10 +793,7 @@ const UserReferralCloseTrades = () => {
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
               className={cx(
-                "rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-                isDark
-                  ? "border-white/10 bg-slate-950 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-700"
+                "rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
               )}
             >
               <option value="closeTime">Sort: Close Time</option>
@@ -850,10 +808,7 @@ const UserReferralCloseTrades = () => {
               type="button"
               onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
               className={cx(
-                "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                "inline-flex items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -866,10 +821,7 @@ const UserReferralCloseTrades = () => {
               type="button"
               onClick={expandAllAccounts}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               Expand all
@@ -879,10 +831,7 @@ const UserReferralCloseTrades = () => {
               type="button"
               onClick={collapseAllAccounts}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               Collapse all
@@ -893,10 +842,7 @@ const UserReferralCloseTrades = () => {
               onClick={exportToExcel}
               disabled={!canExport}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45",
-                isDark
-                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
-                  : "border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45","border-success bg-success-soft text-success hover:bg-success-soft"
               )}
             >
               <RiFileExcel2Line className="h-4 w-4" />
@@ -908,10 +854,7 @@ const UserReferralCloseTrades = () => {
               onClick={exportToCSV}
               disabled={!canExport}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45",
-                isDark
-                  ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15"
-                  : "border-cyan-100 bg-cyan-50 text-cyan-700 hover:bg-cyan-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45","border-line bg-primary-soft text-primary hover:bg-primary-soft"
               )}
             >
               <PiFileCsvDuotone className="h-4 w-4" />
@@ -923,10 +866,7 @@ const UserReferralCloseTrades = () => {
               onClick={exportToPDF}
               disabled={!canExport}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45",
-                isDark
-                  ? "border-rose-400/20 bg-rose-400/10 text-rose-200 hover:bg-rose-400/15"
-                  : "border-rose-100 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45","border-danger bg-danger-soft text-danger hover:bg-danger-soft"
               )}
             >
               <GrDocumentPdf className="h-4 w-4" />
@@ -938,10 +878,7 @@ const UserReferralCloseTrades = () => {
               onClick={fetchCommissions}
               disabled={isLoading}
               className={cx(
-                "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-sky-100 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               <RefreshCw className={cx("h-4 w-4", isLoading && "animate-spin")} />
@@ -954,10 +891,7 @@ const UserReferralCloseTrades = () => {
       {errorText && (
         <div
           className={cx(
-            "rounded-3xl border p-4 text-sm font-semibold",
-            isDark
-              ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-              : "border-rose-100 bg-rose-50 text-rose-700"
+            "rounded-card border p-4 text-sm font-semibold","border-danger bg-danger-soft text-danger"
           )}
         >
           {errorText}
@@ -967,10 +901,7 @@ const UserReferralCloseTrades = () => {
       {accountErrors.length > 0 && (
         <div
           className={cx(
-            "rounded-3xl border p-4 text-sm",
-            isDark
-              ? "border-amber-400/20 bg-amber-400/10 text-amber-100"
-              : "border-amber-100 bg-amber-50 text-amber-700"
+            "rounded-card border p-4 text-sm","border-line bg-primary-soft text-primary"
           )}
         >
           <p className="font-bold">Some accounts could not be loaded:</p>
@@ -986,8 +917,7 @@ const UserReferralCloseTrades = () => {
 
       <section
         className={cx(
-          "overflow-hidden rounded-[28px] border",
-          isDark ? "border-white/10 bg-slate-950/50" : "border-sky-100 bg-white shadow-sm"
+          "overflow-hidden rounded-card border","border-line bg-surface"
         )}
       >
         {isLoading ? (
@@ -998,26 +928,23 @@ const UserReferralCloseTrades = () => {
           <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 p-8 text-center">
             <div
               className={cx(
-                "grid h-14 w-14 place-items-center rounded-3xl border",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/60"
-                  : "border-slate-200 bg-slate-50 text-slate-500"
+                "grid h-14 w-14 place-items-center rounded-card border","border-line bg-surface-2 text-subtle"
               )}
             >
               <Info className="h-6 w-6" />
             </div>
 
             <div>
-              <h3 className={cx("text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+              <h3 className={cx("text-lg font-black","text-text")}>
                 No accounts found
               </h3>
-              <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+              <p className={cx("mt-1 text-sm","text-subtle")}>
                 Open this page from the IB users list or pass accounts in the URL.
               </p>
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-slate-200/70 dark:divide-white/10">
+          <div className="divide-y divide-line">
             {accountGroups.map((group) => {
               const expanded = !!expandedAccounts[group.accountNumber];
 
@@ -1027,17 +954,13 @@ const UserReferralCloseTrades = () => {
                     type="button"
                     onClick={() => toggleAccount(group.accountNumber)}
                     className={cx(
-                      "flex w-full flex-col gap-4 p-4 text-left transition-all sm:p-5 lg:flex-row lg:items-center lg:justify-between",
-                      isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/60"
+                      "flex w-full flex-col gap-4 p-4 text-left transition-all sm:p-5 lg:flex-row lg:items-center lg:justify-between","hover:bg-surface-2"
                     )}
                   >
                     <div className="flex items-start gap-3">
                       <div
                         className={cx(
-                          "grid h-11 w-11 shrink-0 place-items-center rounded-2xl border",
-                          isDark
-                            ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
-                            : "border-sky-100 bg-sky-50 text-sky-700"
+                          "grid h-11 w-11 shrink-0 place-items-center rounded-card border","border-line bg-primary-soft text-primary"
                         )}
                       >
                         {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
@@ -1045,23 +968,20 @@ const UserReferralCloseTrades = () => {
 
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className={cx("text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+                          <h3 className={cx("text-lg font-black","text-text")}>
                             Account {group.accountNumber}
                           </h3>
 
                           <span
                             className={cx(
-                              "rounded-full border px-2.5 py-1 text-xs font-black",
-                              isDark
-                                ? "border-violet-400/20 bg-violet-400/10 text-violet-200"
-                                : "border-violet-100 bg-violet-50 text-violet-700"
+                              "rounded-full border px-2.5 py-1 text-xs font-black","border-line bg-primary-soft text-primary"
                             )}
                           >
                             Level {group.level || explicitLevel || "-"}
                           </span>
                         </div>
 
-                        <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+                        <p className={cx("mt-1 text-sm","text-subtle")}>
                           {group.email || pageUserEmail || "-"} · {group.country || "-"}
                         </p>
                       </div>
@@ -1070,65 +990,57 @@ const UserReferralCloseTrades = () => {
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[560px]">
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                          "rounded-card border p-3","border-line bg-surface-2"
                         )}
                       >
-                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                        <p className={cx("text-xs","text-subtle")}>
                           Trades
                         </p>
-                        <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                        <p className={cx("mt-1 font-black","text-text")}>
                           {group.rows.length}
                         </p>
                       </div>
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                          "rounded-card border p-3","border-line bg-surface-2"
                         )}
                       >
-                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                        <p className={cx("text-xs","text-subtle")}>
                           Volume
                         </p>
-                        <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                        <p className={cx("mt-1 font-black","text-text")}>
                           {format4(group.totalLot)}
                         </p>
                       </div>
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                          "rounded-card border p-3","border-line bg-surface-2"
                         )}
                       >
-                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                        <p className={cx("text-xs","text-subtle")}>
                           Rebate
                         </p>
-                        <p className={cx("mt-1 font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                        <p className={cx("mt-1 font-black","text-primary")}>
                           ${format4(group.totalRebate)}
                         </p>
                       </div>
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark ? "border-white/10 bg-white/[0.04]" : "border-slate-100 bg-white"
+                          "rounded-card border p-3","border-line bg-surface-2"
                         )}
                       >
-                        <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                        <p className={cx("text-xs","text-subtle")}>
                           Profit
                         </p>
                         <p
                           className={cx(
                             "mt-1 font-black",
                             group.totalProfit >= 0
-                              ? isDark
-                                ? "text-emerald-300"
-                                : "text-emerald-700"
-                              : isDark
-                                ? "text-rose-300"
-                                : "text-rose-700"
+                              ?"text-success"
+                              :"text-danger"
                           )}
                         >
                           {format4(group.totalProfit)}
@@ -1142,24 +1054,18 @@ const UserReferralCloseTrades = () => {
                       {group.rows.length === 0 ? (
                         <div
                           className={cx(
-                            "rounded-3xl border p-8 text-center text-sm",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03] text-white/55"
-                              : "border-slate-100 bg-slate-50 text-slate-500"
+                            "rounded-card border p-8 text-center text-sm","border-line bg-surface-2 text-subtle"
                           )}
                         >
                           No close trades found for this account with current filters.
                         </div>
                       ) : (
                         <>
-                          <div className="hidden overflow-x-auto rounded-3xl border lg:block">
-                            <table className="w-full min-w-[1120px] border-collapse">
+                          <div className="hidden overflow-x-auto rounded-card border lg:block">
+                            <table className="w-full min-w-[1120px] border-collapse table-stack">
                               <thead
                                 className={cx(
-                                  "border-b text-left text-xs font-black uppercase tracking-[0.14em]",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.04] text-white/45"
-                                    : "border-slate-100 bg-slate-50 text-slate-500"
+                                  "border-b text-left text-xs font-black uppercase tracking-[0.14em]","border-line bg-surface-2 text-subtle"
                                 )}
                               >
                                 <tr>
@@ -1173,7 +1079,7 @@ const UserReferralCloseTrades = () => {
                                 </tr>
                               </thead>
 
-                              <tbody className={cx("divide-y", isDark ? "divide-white/10" : "divide-slate-100")}>
+                              <tbody className={cx("divide-y","divide-line")}>
                                 {group.rows.map((row) => {
                                   const isCompleted = row?.commission?.isCalculated === true;
                                   const profit = safeNumber(row?.profit);
@@ -1182,91 +1088,82 @@ const UserReferralCloseTrades = () => {
                                     <tr
                                       key={row._rowKey}
                                       className={cx(
-                                        "transition-all",
-                                        isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/60"
+                                        "transition-all","hover:bg-surface-2"
                                       )}
                                     >
-                                      <td className="px-5 py-4">
+                                      <td data-label="Trade" className="px-5 py-4">
                                         <div className="flex items-center gap-2">
                                           <span className={cx("rounded-full border px-2.5 py-1 text-xs font-black", getTradeSideClass(row?.buySell, isDark))}>
                                             {tradeSideLabel(row?.buySell)}
                                           </span>
 
-                                          <span className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                          <span className={cx("font-bold","text-text")}>
                                             {row?.symbol || "-"}
                                           </span>
                                         </div>
 
-                                        <div className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        <div className={cx("mt-1 text-xs","text-subtle")}>
                                           Ticket: {row?.ticket || "-"} · Position: {row?.positionId || "-"} · Level{" "}
                                           {row?.commission?.level || "-"}
                                         </div>
                                       </td>
 
-                                      <td className="px-5 py-4">
-                                        <div className={cx("flex items-center gap-2 text-xs", isDark ? "text-white/75" : "text-slate-700")}>
+                                      <td data-label="Timing" className="px-5 py-4">
+                                        <div className={cx("flex items-center gap-2 text-xs","text-muted")}>
                                           <CalendarClock className="h-3.5 w-3.5" />
                                           Open: {normalizeDateText(row?.openTime)}
                                         </div>
 
-                                        <div className={cx("mt-1 flex items-center gap-2 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        <div className={cx("mt-1 flex items-center gap-2 text-xs","text-subtle")}>
                                           <Clock3 className="h-3.5 w-3.5" />
                                           Close: {normalizeDateText(row?.closeTime)}
                                         </div>
                                       </td>
 
-                                      <td className="px-5 py-4 text-right">
-                                        <div className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                      <td data-label="Prices" className="px-5 py-4 text-right">
+                                        <div className={cx("font-bold","text-text")}>
                                           {format4(row?.closePrice)}
                                         </div>
 
-                                        <div className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        <div className={cx("mt-1 text-xs","text-subtle")}>
                                           Open {format4(row?.openPrice)}
                                         </div>
                                       </td>
 
-                                      <td className="px-5 py-4 text-right">
+                                      <td data-label="Profit" className="px-5 py-4 text-right">
                                         <span
                                           className={cx(
                                             "font-black",
                                             profit >= 0
-                                              ? isDark
-                                                ? "text-emerald-300"
-                                                : "text-emerald-700"
-                                              : isDark
-                                                ? "text-rose-300"
-                                                : "text-rose-700"
+                                              ?"text-success"
+                                              :"text-danger"
                                           )}
                                         >
                                           {format4(row?.profit)}
                                         </span>
                                       </td>
 
-                                      <td className={cx("px-5 py-4 text-right font-bold", isDark ? "text-white" : "text-slate-900")}>
+                                      <td data-label="Volume" className={cx("px-5 py-4 text-right font-bold","text-text")}>
                                         {format4(row?.lotSize)}
                                       </td>
 
-                                      <td className="px-5 py-4 text-right">
-                                        <div className={cx("text-lg font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                                      <td data-label="Rebate" className="px-5 py-4 text-right">
+                                        <div className={cx("text-lg font-black","text-primary")}>
                                           ${format4(row?.commission?.commissionAmount)}
                                         </div>
 
-                                        <div className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                        <div className={cx("text-xs","text-subtle")}>
                                           IB: {row?.commission?.ibAccountNumber || "-"}
                                         </div>
                                       </td>
 
-                                      <td className="px-5 py-4 text-center">
+                                      <td data-label="Status" className="px-5 py-4 text-center">
                                         <span
                                           className={cx(
                                             "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black",
                                             isCompleted
-                                              ? isDark
-                                                ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                                                : "border-emerald-100 bg-emerald-50 text-emerald-700"
-                                              : isDark
-                                                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                                                : "border-rose-100 bg-rose-50 text-rose-700"
+                                              ?"border-success bg-success-soft text-success"
+                                              :"border-danger bg-danger-soft text-danger"
                                           )}
                                         >
                                           {isCompleted ? <CheckCheck className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
@@ -1289,23 +1186,20 @@ const UserReferralCloseTrades = () => {
                                 <div
                                   key={row._rowKey}
                                   className={cx(
-                                    "rounded-3xl border p-4",
-                                    isDark
-                                      ? "border-white/10 bg-white/[0.04]"
-                                      : "border-slate-100 bg-slate-50"
+                                    "rounded-card border p-4","border-line bg-surface-2"
                                   )}
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div>
-                                      <p className={cx("text-xs font-bold uppercase tracking-[0.14em]", isDark ? "text-white/45" : "text-slate-500")}>
+                                      <p className={cx("text-xs font-bold uppercase tracking-[0.14em]","text-subtle")}>
                                         {row?.symbol || "-"} · Level {row?.commission?.level || "-"}
                                       </p>
 
-                                      <h3 className={cx("mt-1 text-lg font-black", isDark ? "text-white" : "text-slate-950")}>
+                                      <h3 className={cx("mt-1 text-lg font-black","text-text")}>
                                         {row?.ticket || row?.positionId || "-"}
                                       </h3>
 
-                                      <p className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                      <p className={cx("mt-1 text-xs","text-subtle")}>
                                         Position: {row?.positionId || "-"}
                                       </p>
                                     </div>
@@ -1316,46 +1210,42 @@ const UserReferralCloseTrades = () => {
                                   </div>
 
                                   <div className="mt-4 grid grid-cols-2 gap-3">
-                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
-                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                    <div className={cx("rounded-card border p-3","border-line bg-surface")}>
+                                      <p className={cx("text-xs","text-subtle")}>
                                         Rebate
                                       </p>
-                                      <p className={cx("mt-1 font-black", isDark ? "text-cyan-200" : "text-cyan-700")}>
+                                      <p className={cx("mt-1 font-black","text-primary")}>
                                         ${format4(row?.commission?.commissionAmount)}
                                       </p>
                                     </div>
 
-                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
-                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                    <div className={cx("rounded-card border p-3","border-line bg-surface")}>
+                                      <p className={cx("text-xs","text-subtle")}>
                                         Profit
                                       </p>
                                       <p
                                         className={cx(
                                           "mt-1 font-black",
                                           profit >= 0
-                                            ? isDark
-                                              ? "text-emerald-300"
-                                              : "text-emerald-700"
-                                            : isDark
-                                              ? "text-rose-300"
-                                              : "text-rose-700"
+                                            ?"text-success"
+                                            :"text-danger"
                                         )}
                                       >
                                         {format4(row?.profit)}
                                       </p>
                                     </div>
 
-                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
-                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                    <div className={cx("rounded-card border p-3","border-line bg-surface")}>
+                                      <p className={cx("text-xs","text-subtle")}>
                                         Volume
                                       </p>
-                                      <p className={cx("mt-1 font-black", isDark ? "text-white" : "text-slate-950")}>
+                                      <p className={cx("mt-1 font-black","text-text")}>
                                         {format4(row?.lotSize)}
                                       </p>
                                     </div>
 
-                                    <div className={cx("rounded-2xl border p-3", isDark ? "border-white/10 bg-slate-950/40" : "border-white bg-white")}>
-                                      <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+                                    <div className={cx("rounded-card border p-3","border-line bg-surface")}>
+                                      <p className={cx("text-xs","text-subtle")}>
                                         Status
                                       </p>
 
@@ -1363,12 +1253,8 @@ const UserReferralCloseTrades = () => {
                                         className={cx(
                                           "mt-1 inline-flex items-center gap-1.5 font-black",
                                           isCompleted
-                                            ? isDark
-                                              ? "text-emerald-300"
-                                              : "text-emerald-700"
-                                            : isDark
-                                              ? "text-rose-300"
-                                              : "text-rose-700"
+                                            ?"text-success"
+                                            :"text-danger"
                                         )}
                                       >
                                         {isCompleted ? <CheckCheck className="h-4 w-4" /> : <X className="h-4 w-4" />}
@@ -1379,10 +1265,7 @@ const UserReferralCloseTrades = () => {
 
                                   <div
                                     className={cx(
-                                      "mt-4 rounded-2xl border p-3 text-xs leading-6",
-                                      isDark
-                                        ? "border-white/10 bg-slate-950/40 text-white/60"
-                                        : "border-white bg-white text-slate-600"
+                                      "mt-4 rounded-card border p-3 text-xs leading-6","border-line bg-surface text-subtle"
                                     )}
                                   >
                                     <div>Open: {normalizeDateText(row?.openTime)}</div>

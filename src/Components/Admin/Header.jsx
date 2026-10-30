@@ -1,55 +1,25 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  User,
-  LogOut,
-  Bell,
-  X,
-  Sun,
-  Moon,
-  Menu,
-} from "lucide-react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { LogOut, Bell, X, Menu } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { adminApi } from "../../utils/apiClients";
 import { setNotification } from "../../redux/adminSlice";
-import { handleToggleSidebar } from "../../redux/user/userSlice";
-import { toggleAdminTheme } from "../../redux/adminThemeSlice";
-import { FloatingParticles } from "../../utils/FloatingParticles";
+import ThemeToggle from "@/Components/ui/ThemeToggle";
+import { IconButton } from "@/Components/ui/Button";
+import { useSidebar } from "@/Components/ui/SidebarContext";
 import { mt5AccountsStore } from "../../services/mt5Accounts";
 
-/* helpers */
-const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
-
-const getThemeColors = (isDark) => {
-  return isDark
-    ? {
-        fg: "255,255,255",
-        muted: "255,255,255",
-        bg: "5,7,11",
-        surface: "17,24,39",
-        surface2: "30,41,59",
-        border: "255,255,255",
-        accent: "59,130,246",
-        danger: "244,63,94",
-        success: "16,185,129",
-      }
-    : {
-        fg: "15,23,42",
-        muted: "71,85,105",
-        bg: "255,250,247",
-        surface: "255,255,255",
-        surface2: "255,244,235",
-        border: "251,146,60",
-        accent: "249,115,22",
-        danger: "244,63,94",
-        success: "5,150,105",
-      };
-};
+/**
+ * The two dropdowns used to be drawn from a `getThemeColors(isDark)` map of
+ * raw rgb triples, turned into inline `rgba()` strings at render. That froze
+ * their colours at render time and kept a second, divergent palette alive
+ * next to the design tokens. They are plain token classes now, so they follow
+ * the theme with everything else.
+ */
 
 /* Notification Dropdown */
-const NotificationDropdown = ({ isOpen, onClose, adminId, colors }) => {
+const NotificationDropdown = ({ isOpen, onClose, adminId }) => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -100,94 +70,60 @@ const NotificationDropdown = ({ isOpen, onClose, adminId, colors }) => {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div ref={dropdownRef} className="relative">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-50 right-0 top-10 w-80 overflow-hidden rounded-2xl border backdrop-blur-xl"
-            style={{
-              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
-              borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
-              color: rgba(...colors.fg.split(",").map(Number), 1),
-              boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
-            }}
-          >
-            <div
-              className="flex items-center justify-between px-4 py-3 border-b"
-              style={{
-                borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.12),
-              }}
-            >
-              <p className="font-semibold">Notifications</p>
-              <button onClick={onClose}>
-                <X size={16} />
-              </button>
-            </div>
+      <div className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-card border border-line bg-surface shadow-raised">
+        <div className="flex items-center justify-between border-b border-line bg-surface-2 px-3 py-2">
+          <p className="lbl-sm text-text">Notifications</p>
+          <IconButton label="Close notifications" onClick={onClose} size="sm">
+            <X className="h-4 w-4" />
+          </IconButton>
+        </div>
 
-            <div className="max-h-64 overflow-y-auto">
-              {notifications.length > 0 ? (
-                notifications.map((note, index) => {
-                  const unread = !note.isRead;
-                  return (
-                    <motion.button
-                      key={note._id}
-                      onClick={() => handleNotificationClick(note)}
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="w-full text-left px-4 py-3 transition-all flex flex-col border-b"
-                      style={{
-                        borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.08),
-                        background: unread
-                          ? rgba(...colors.accent.split(",").map(Number), 0.08)
-                          : "transparent",
-                      }}
-                    >
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium">{note.title}</p>
-                        <span
-                          className="text-[10px]"
-                          style={{
-                            color: rgba(...colors.muted.split(",").map(Number), 0.75),
-                          }}
-                        >
-                          {new Date(note.createdAt).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs mt-1"
-                        style={{
-                          color: rgba(...colors.muted.split(",").map(Number), 0.9),
-                        }}
-                      >
-                        {note.message}
-                      </p>
-                    </motion.button>
-                  );
-                })
-              ) : (
-                <p
-                  className="px-4 py-3 text-sm"
-                  style={{ color: rgba(...colors.muted.split(",").map(Number), 0.9) }}
+        <div className="max-h-72 overflow-y-auto">
+          {notifications.length > 0 ? (
+            notifications.map((note) => {
+              const unread = !note.isRead;
+
+              return (
+                <button
+                  key={note._id}
+                  type="button"
+                  onClick={() => handleNotificationClick(note)}
+                  className={[
+                    "flex w-full flex-col border-b border-line px-3 py-2.5 text-left transition-colors last:border-b-0",
+                    unread
+                      ? "border-l-2 border-l-primary bg-primary-soft"
+                      : "hover:bg-surface-2",
+                  ].join(" ")}
                 >
-                  No notifications
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="min-w-0 truncate text-sm font-medium text-text">
+                      {note.title}
+                    </p>
+                    <span className="numeric shrink-0 text-[10px] text-subtle">
+                      {new Date(note.createdAt).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted">{note.message}</p>
+                </button>
+              );
+            })
+          ) : (
+            <p className="px-3 py-4 text-center text-sm text-subtle">
+              No notifications
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
 /* Admin Dropdown */
-const AdminDropdown = ({ isOpen, onClose, admin, colors }) => {
+const AdminDropdown = ({ isOpen, onClose, admin }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -207,238 +143,177 @@ const AdminDropdown = ({ isOpen, onClose, admin, colors }) => {
     navigate("/auth/admin/login");
   };
 
+  const links = [
+    ["Logs", "/admin/login-logs"],
+    ["Gateway settings", "/admin/getway/manual"],
+    ["Referral zone", "/admin/ib-zone"],
+    ["Rules", "/admin/RulesManagement"],
+  ];
+
+  if (!isOpen) return null;
+
   return (
     <div ref={dropdownRef} className="relative">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-50 right-0 top-10 w-48 overflow-hidden rounded-2xl border backdrop-blur-xl"
-            style={{
-              background: `linear-gradient(180deg, ${rgba(...colors.bg.split(",").map(Number), 0.96)}, ${rgba(...colors.surface.split(",").map(Number), 0.94)})`,
-              borderColor: rgba(...colors.border.split(",").map(Number), 0.14),
-              color: rgba(...colors.fg.split(",").map(Number), 1),
-              boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
-            }}
-          >
-            <div className="py-2">
-              <div className="px-4 py-2 text-sm font-semibold">
-                {admin?.firstName || "Admin"}
-              </div>
+      <div className="absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-card border border-line bg-surface shadow-raised">
+        <div className="border-b border-line bg-surface-2 px-3 py-2">
+          <p className="truncate text-sm font-semibold text-text">
+            {admin?.firstName || "Admin"}
+          </p>
+          {admin?.email ? (
+            <p className="numeric truncate text-[11px] text-subtle">
+              {admin.email}
+            </p>
+          ) : null}
+        </div>
 
+        <div className="py-1">
+          {links.map(([label, path]) => (
+            <button
+              key={path}
+              type="button"
+              onClick={() => {
+                navigate(path);
+                onClose();
+              }}
+              className="block w-full px-3 py-2 text-left text-[13px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-  <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/login-logs")}}>
-                Logs
-              </div>
-
-
-
-                <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/getway/manual")}}>
-                Gateway Settings
-              </div>
-
-
-                <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/ib-zone")}}>
-                Referral Zone
-              </div>
-
-
-                  <div className="px-4 cursor-pointer py-2 text-sm font-semibold" onClick={()=>{navigate("/admin/RulesManagement")}}>
-                Rules
-              </div>
-
-
-              <button
-                onClick={logoutHandler}
-                className="flex items-center w-full px-4 py-2 text-sm font-semibold transition-all"
-                style={{
-                  color: rgba(...colors.danger.split(",").map(Number), 1),
-                }}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <button
+          type="button"
+          onClick={logoutHandler}
+          className="flex w-full items-center gap-2 border-t border-line px-3 py-2.5 text-[13px] font-semibold text-danger transition-colors hover:bg-danger-soft"
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
+        </button>
+      </div>
     </div>
   );
 };
 
+/**
+ * Admin command bar.
+ *
+ * Replaces the old 64px gradient nav (with animated particles behind it) with
+ * a 48px bar carrying the breadcrumb, the site logo and the account controls.
+ * The mobile sidebar trigger lives in NavRail now, so the bar leaves room for
+ * it at phone width instead of rendering a second, dead toggle.
+ */
+/**
+ * Admin top bar — 64px, glass over the canvas, per the prototype.
+ *
+ * Carries the section/page trail on the left and the account controls on the
+ * right, with the sidebar trigger shown below `lg` where the sidebar becomes
+ * a drawer.
+ */
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const isSidebarOpen = useSelector((store) => store.admin?.isSidebarOpen);
   const admin = useSelector((store) => store.admin?.adminUser);
   const adminSiteConfig = useSelector((store) => store.admin?.siteConfig);
   const userSiteConfig = useSelector((store) => store.user?.siteConfig);
   const notifications = useSelector((store) => store.admin?.notification) || [];
-  const mode = useSelector((store) => store.adminTheme?.mode || "light");
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { openSidebar } = useSidebar();
 
-  const isDark = mode === "dark";
-  const colors = getThemeColors(isDark);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const siteConfig = adminSiteConfig || userSiteConfig || {};
-  const baseHeight = siteConfig.logoSize || 4;
 
-  const sidebarHandler = () => {
-    dispatch(handleToggleSidebar(!isSidebarOpen));
-  };
-
-  const toggleThemeHandler = () => {
-    dispatch(toggleAdminTheme());
-  };
+  const name = admin?.name || admin?.email || "Administrator";
+  const initials = String(name)
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
 
   return (
-    <nav
-      className="sticky top-0 z-50 h-16 w-full border-b backdrop-blur-xl"
-      style={{
-        color: rgba(...colors.fg.split(",").map(Number), 1),
-        background: `linear-gradient(90deg, ${rgba(...colors.bg.split(",").map(Number), 0.92)}, ${rgba(...colors.surface2.split(",").map(Number), 0.78)}, ${rgba(...colors.bg.split(",").map(Number), 0.92)})`,
-        borderBottomColor: rgba(...colors.border.split(",").map(Number), 0.14),
-      }}
-    >
-      <FloatingParticles />
+    <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line px-4 sm:px-6 lg:px-8">
+      <IconButton
+        label="Open menu"
+        onClick={openSidebar}
+        className="lg:hidden"
+      >
+        <Menu className="h-[18px] w-[18px]" />
+      </IconButton>
 
-      <div className="flex justify-between items-center px-3 md:px-5 h-full">
-        <div className="flex gap-2 items-center">
-          <button
-            className="md:hidden flex items-center justify-center"
-            onClick={sidebarHandler}
-            aria-label="Toggle sidebar"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
-          >
-            <Menu className="w-4 h-4" />
-          </button>
+      <div className="min-w-0">
+        <p className="text-[11.5px] leading-4 text-subtle">Administration</p>
+        <h1 className="truncate text-[15px] font-semibold leading-5 tracking-[-0.01em]">
+          {siteConfig?.siteName || "Ocean Bull"}
+        </h1>
+      </div>
 
-          <Link to="/admin/dashboard" className="mr-2">
-            {siteConfig.logo ? (
-              <img
-                src={siteConfig.logo}
-                alt={siteConfig.siteName || "Logo"}
-                className="block md:hidden object-contain w-auto"
-                style={{ height: `${baseHeight * 0.8}rem` }}
-              />
-            ) : null}
-          </Link>
-        </div>
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/ib-users")}
+          className="hidden text-[13px] font-medium text-muted transition-colors hover:text-text sm:block"
+        >
+          Network
+        </button>
 
-        <div className="flex-1 flex items-center justify-center">
-          {siteConfig?.logo ? (
-            <img
-              src={siteConfig.logo}
-              alt={siteConfig?.siteName || "Logo"}
-              className="object-contain w-40 md:w-44"
-              style={{ height: `${baseHeight}rem` }}
-            />
-          ) : (
-            <h1 className="font-bold text-sm md:text-base">Admin Panel</h1>
-          )}
-        </div>
+        <ThemeToggle />
 
-        <div className="relative flex items-center gap-2 md:gap-3">
-
-            <p className="hidden cursor-pointer sm:block text-sm font-semibold whitespace-nowrap" onClick={()=>{navigate("/admin/ib-users")}}>
-            Network
-          </p>
-          <button
-            onClick={toggleThemeHandler}
-            className="flex items-center justify-center transition"
-            aria-label="Toggle theme"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          
-
-          <button
+        <div className="relative">
+          <IconButton
+            label={
+              unreadCount > 0
+                ? `Notifications, ${unreadCount} unread`
+                : "Notifications"
+            }
             onClick={() => {
               setIsNotificationOpen((prev) => !prev);
               setIsDropdownOpen(false);
             }}
-            className="relative flex items-center justify-center transition"
-            aria-label="Notifications"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
           >
-
-            
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] flex items-center justify-center rounded-full"
-                style={{
-                  background: rgba(...colors.danger.split(",").map(Number), 1),
-                  color: "#fff",
-                }}
-              >
+            <Bell className="h-[18px] w-[18px]" />
+            {unreadCount > 0 ? (
+              <span className="numeric absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-[color:rgb(var(--canvas))]">
                 {unreadCount}
               </span>
-            )}
-          </button>
+            ) : null}
+          </IconButton>
 
           <NotificationDropdown
             isOpen={isNotificationOpen}
             onClose={() => setIsNotificationOpen(false)}
             adminId={admin?._id}
-            colors={colors}
           />
+        </div>
 
-
-
+        <div className="relative">
           <button
+            type="button"
             onClick={() => {
               setIsDropdownOpen((prev) => !prev);
               setIsNotificationOpen(false);
             }}
-            className="flex items-center justify-center transition"
-            aria-label="Open admin menu"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
-            }}
+            aria-label="Account menu"
+            className="flex h-[38px] items-center gap-2 rounded-field border border-line bg-surface py-0 pl-1 pr-2 transition-colors hover:border-line-strong hover:bg-surface-3"
           >
-            <User className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary-text">
+              {initials || "AD"}
+            </span>
+            <span className="hidden max-w-[120px] truncate text-[13px] font-medium sm:block">
+              {name}
+            </span>
           </button>
 
           <AdminDropdown
             isOpen={isDropdownOpen}
             onClose={() => setIsDropdownOpen(false)}
             admin={admin}
-            colors={colors}
           />
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

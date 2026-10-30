@@ -58,9 +58,9 @@ const DashboardBase = () => {
 
   return (
     <div className="p-8 min-h-screen w-full mx-auto">
-      <h2 className="text-4xl flex flex-col text-center  text-white font-thin  mb-8 tracking-tight">
+      <h2 className="text-4xl flex flex-col text-center text-text font-thin mb-8 tracking-tight">
         <span>📈 Forex CRM Dashboard</span>
-        <span className="border-b-2 mt-5 w-28 mx-auto opacity-20 "></span>
+        <span className="border-b-2 mt-5 w-28 mx-auto opacity-20"></span>
       </h2>
 
       <StatCards

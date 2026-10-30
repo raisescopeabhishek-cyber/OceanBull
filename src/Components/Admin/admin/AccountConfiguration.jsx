@@ -13,7 +13,7 @@ export default function AccountConfiguration() {
     <div>
       <PlatformConfiguration></PlatformConfiguration>
       <Divider></Divider>
-      <div className=" bg-primary-700/40  shadow-2xl">
+      <div className="bg-primary-700/40">
         <AccountGroup refresh={refresh} setRefresh={setRefresh}></AccountGroup>
         <CustomGroupList
           refresh={refresh}

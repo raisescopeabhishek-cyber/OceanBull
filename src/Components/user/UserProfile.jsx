@@ -25,6 +25,7 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import UseUserHook from "../../hooks/user/UseUserHook";
 import { userApi } from "../../utils/apiClients";
+import { PageHeader } from "@/Components/ui";
 
 /* -------------------- helpers -------------------- */
 const cx = (...classes) => classes.filter(Boolean).join(" ");
@@ -74,73 +75,49 @@ const getCompletion = (formData) => {
 };
 
 const getTheme = (isDark) => ({
-  pageText: isDark ? "text-white" : "text-slate-900",
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/55" : "text-slate-500",
-  softText: isDark ? "text-white/70" : "text-slate-600",
+  pageText:"text-text",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  header: isDark
-    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-amber-300/40 bg-[linear-gradient(135deg,#fb923c,#f59e0b)] shadow-[0_18px_45px_rgba(245,158,11,0.16)]",
+  header:"border-line",
 
-  headerText: "text-white",
-  headerMuted: "text-white/80",
-  headerBadge: "border-white/20 bg-white/10 text-white",
-  headerIcon: "border-white/20 bg-white/10 text-white",
-  headerStat: "border-white/20 bg-white/10 text-white backdrop-blur-xl",
-  headerStatMuted: "text-white/75",
+  headerText: "text-text",
+  headerMuted: "text-muted",
+  headerBadge: "border-line bg-surface-2 text-text",
+  headerIcon: "border-line bg-surface-2 text-text",
+  headerStat: "border-line bg-surface-2 text-text backdrop-blur-xl",
+  headerStatMuted: "text-muted",
 
-  card: isDark
-    ? "border-white/10 bg-white/[0.045] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-amber-100/90 bg-white/80 shadow-[0_18px_45px_rgba(245,158,11,0.08)]",
+  card:"border-line bg-surface-2",
 
-  cardSoft: isDark
-    ? "border-white/10 bg-white/[0.035]"
-    : "border-amber-100/80 bg-white/70",
+  cardSoft:"border-line bg-surface-2",
 
-  input: isDark
-    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
-    : "border-amber-300 bg-amber-50/80 text-slate-900 placeholder:text-amber-400 shadow-[0_0_0_3px_rgba(245,158,11,0.06)] focus:border-amber-500 focus:bg-white focus:ring-amber-300/60",
+  input:"border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-primary",
 
-  readOnlyInput: isDark
-    ? "border-white/10 bg-white/[0.035] text-white/65 placeholder:text-white/25"
-    : "border-amber-200 bg-amber-50/55 text-slate-600 placeholder:text-slate-400",
+  readOnlyInput:"border-line bg-surface-2 text-muted placeholder:text-subtle",
 
-  iconBox: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-amber-200 bg-amber-50 text-amber-600",
+  iconBox:"border-line bg-primary-soft text-primary",
 
-  badge: isDark
-    ? "border-white/10 bg-white/[0.05] text-white/60"
-    : "border-amber-100 bg-white/80 text-amber-600",
+  badge:"border-line bg-surface-2 text-subtle",
 
-  successBadge: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+  successBadge:"border-success bg-success-soft text-success",
 
-  warningBadge: isDark
-    ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
-    : "border-amber-200 bg-amber-50 text-amber-700",
+  warningBadge:"border-line bg-primary-soft text-primary",
 
-  button: isDark
-    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300/70",
+  button:"bg-primary text-text hover:bg-primary focus:ring-primary",
 
-  buttonDisabled: isDark
-    ? "bg-slate-600 text-white/60"
-    : "bg-slate-300 text-slate-600",
+  buttonDisabled:"bg-surface-3 text-subtle",
 
-  progressTrack: isDark ? "bg-white/10" : "bg-amber-100",
-  progress: isDark
-    ? "bg-gradient-to-r from-blue-400 to-cyan-300"
-    : "bg-gradient-to-r from-amber-400 to-amber-500",
+  progressTrack:"bg-surface-2",
+  progress:"",
 });
 
 /* -------------------- shared ui -------------------- */
 const Card = ({ children, className = "", theme }) => (
   <div
     className={cx(
-      "rounded-[26px] border p-4 transition-all duration-300 sm:p-5",
+      "rounded-card border p-4 transition-all duration-300 sm:p-5",
       theme.card,
       className
     )}
@@ -152,7 +129,7 @@ const Card = ({ children, className = "", theme }) => (
 const HeaderCard = ({ children, className = "", theme }) => (
   <div
     className={cx(
-      "relative overflow-hidden rounded-[26px] border p-5 transition-all duration-300 sm:p-6",
+      "relative overflow-hidden rounded-card border p-5 transition-all duration-300 sm:p-6",
       theme.header,
       className
     )}
@@ -162,7 +139,7 @@ const HeaderCard = ({ children, className = "", theme }) => (
 );
 
 const SoftCard = ({ children, className = "", theme }) => (
-  <div className={cx("rounded-2xl border p-4", theme.cardSoft, className)}>
+  <div className={cx("rounded-card border p-4", theme.cardSoft, className)}>
     {children}
   </div>
 );
@@ -170,7 +147,7 @@ const SoftCard = ({ children, className = "", theme }) => (
 const IconBox = ({ children, theme, className = "" }) => (
   <div
     className={cx(
-      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+      "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
       theme.iconBox,
       className
     )}
@@ -182,7 +159,7 @@ const IconBox = ({ children, theme, className = "" }) => (
 const HeaderIconBox = ({ children, theme }) => (
   <div
     className={cx(
-      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-card border",
       theme.headerIcon
     )}
   >
@@ -199,11 +176,11 @@ const StatBox = ({ icon, label, value, theme, tone = "default" }) => {
       : theme.badge;
 
   return (
-    <div className={cx("rounded-2xl border px-4 py-3", theme.cardSoft)}>
+    <div className={cx("rounded-card border px-4 py-3", theme.cardSoft)}>
       <div className="flex items-center gap-3">
         <div
           className={cx(
-            "flex h-10 w-10 items-center justify-center rounded-xl border",
+            "flex h-10 w-10 items-center justify-center rounded-card border",
             toneClass
           )}
         >
@@ -222,15 +199,15 @@ const StatBox = ({ icon, label, value, theme, tone = "default" }) => {
 };
 
 const HeaderStatBox = ({ icon, label, value, theme }) => (
-  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+  <div className={cx("rounded-card border px-4 py-3", theme.headerStat)}>
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+      <div className="flex h-10 w-10 items-center justify-center rounded-card border border-line bg-surface-2">
         {icon}
       </div>
 
       <div className="min-w-0">
         <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
-        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+        <p className="mt-1 truncate text-base font-bold text-text">{value}</p>
       </div>
     </div>
   </div>
@@ -268,14 +245,14 @@ const InputField = ({
       )}
     >
       {label}
-      {required ? <span className="ml-1 text-amber-500">*</span> : null}
+      {required ? <span className="ml-1 text-primary">*</span> : null}
     </label>
 
     <div className="relative">
       <div
         className={cx(
           "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
-          readOnly ? theme.muted : "text-amber-500"
+          readOnly ? theme.muted : "text-primary"
         )}
       >
         {icon}
@@ -290,7 +267,7 @@ const InputField = ({
         readOnly={readOnly}
         placeholder={placeholder}
         className={cx(
-          "w-full rounded-2xl border py-3 pl-10 text-sm outline-none transition-all duration-200 focus:ring-4",
+          "w-full rounded-card border py-3 pl-10 text-sm outline-none transition-all duration-200 focus:ring-4",
           readOnly ? "pr-20" : "pr-4",
           readOnly ? theme.readOnlyInput : theme.input,
           readOnly && "cursor-not-allowed"
@@ -314,7 +291,7 @@ const InputField = ({
 const InfoRow = ({ label, value, theme }) => (
   <div
     className={cx(
-      "flex items-start justify-between gap-4 rounded-2xl border px-4 py-3",
+      "flex items-start justify-between gap-4 rounded-card border px-4 py-3",
       theme.cardSoft
     )}
   >
@@ -542,57 +519,11 @@ const UserProfile = () => {
   return (
     <div className={cx("w-full space-y-5", theme.pageText)}>
       {/* Header */}
-      <HeaderCard theme={theme}>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: isDark
-              ? "radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 36%), radial-gradient(circle at bottom right, rgba(34,211,238,0.10), transparent 32%)"
-              : "radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 30%), radial-gradient(circle at bottom right, rgba(255,251,235,0.22), transparent 36%)",
-          }}
-        />
-
-        <div className="relative z-[1] flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <HeaderIconBox theme={theme}>
-              <UserCog className="h-6 w-6" />
-            </HeaderIconBox>
-
-            <div>
-              <div
-                className={cx(
-                  "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
-                  theme.headerBadge
-                )}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Account Profile
-              </div>
-
-              <h1 className={cx("text-2xl font-bold tracking-tight sm:text-3xl", theme.headerText)}>
-                Profile Settings
-              </h1>
-
-              <p className={cx("mt-2 max-w-2xl text-sm leading-6", theme.headerMuted)}>
-                Update your personal information and review your account security details.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[520px]">
-            {profileStats.map((item) => (
-              <HeaderStatBox
-                key={item.label}
-                theme={theme}
-                icon={item.icon}
-                label={item.label}
-                value={item.value}
-              />
-            ))}
-          </div>
-        </div>
-      </HeaderCard>
+      <PageHeader
+        breadcrumb="Account / Profile"
+        title="Profile settings"
+        description="Update your personal information and review your account security details."
+      />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
         {/* Left Profile Summary */}
@@ -600,7 +531,7 @@ const UserProfile = () => {
           <Card theme={theme} className="text-center">
             <div
               className={cx(
-                "mx-auto flex h-28 w-28 items-center justify-center rounded-[30px] border text-4xl font-black",
+                "mx-auto flex h-28 w-28 items-center justify-center rounded-card border text-4xl font-black",
                 theme.iconBox
               )}
             >
@@ -642,7 +573,7 @@ const UserProfile = () => {
                 <p className={cx("text-sm font-semibold", theme.text)}>
                   Profile Completion
                 </p>
-                <p className="text-sm font-bold text-amber-500">{completion}%</p>
+                <p className="text-sm font-bold text-primary">{completion}%</p>
               </div>
 
               <div className={cx("h-2 overflow-hidden rounded-full", theme.progressTrack)}>
@@ -679,14 +610,14 @@ const UserProfile = () => {
                   <div
                     key={item.label}
                     className={cx(
-                      "flex items-center justify-between gap-3 rounded-2xl border p-3",
+                      "flex items-center justify-between gap-3 rounded-card border p-3",
                       theme.cardSoft
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div
                         className={cx(
-                          "flex h-9 w-9 items-center justify-center rounded-xl border",
+                          "flex h-9 w-9 items-center justify-center rounded-card border",
                           badgeClass
                         )}
                       >
@@ -743,7 +674,7 @@ const UserProfile = () => {
               {fields.map((section, sectionIndex) => (
                 <div key={section.section}>
                   <div className="mb-4 flex items-start gap-3">
-                    <IconBox theme={theme} className="h-10 w-10 rounded-xl">
+                    <IconBox theme={theme} className="h-10 w-10 rounded-card">
                       {section.icon}
                     </IconBox>
 
@@ -777,8 +708,7 @@ const UserProfile = () => {
                   {sectionIndex !== fields.length - 1 ? (
                     <div
                       className={cx(
-                        "my-7 h-px w-full",
-                        isDark ? "bg-white/10" : "bg-amber-100"
+                        "my-7 h-px w-full","bg-surface-2"
                       )}
                     />
                   ) : null}
@@ -788,12 +718,12 @@ const UserProfile = () => {
 
             <div
               className={cx(
-                "mt-8 flex flex-col gap-4 rounded-[24px] border p-4 sm:flex-row sm:items-center sm:justify-between",
+                "mt-8 flex flex-col gap-4 rounded-card border p-4 sm:flex-row sm:items-center sm:justify-between",
                 theme.cardSoft
               )}
             >
               <div className="flex items-start gap-3">
-                <IconBox theme={theme} className="h-10 w-10 rounded-xl">
+                <IconBox theme={theme} className="h-10 w-10 rounded-card">
                   <LockKeyhole size={18} />
                 </IconBox>
 
@@ -811,7 +741,7 @@ const UserProfile = () => {
                 type="submit"
                 disabled={isLoading}
                 className={cx(
-                  "inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
+                  "inline-flex items-center justify-center gap-2 rounded-card px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
                   isLoading ? theme.buttonDisabled : theme.button
                 )}
               >

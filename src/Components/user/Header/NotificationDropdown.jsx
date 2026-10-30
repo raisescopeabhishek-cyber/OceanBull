@@ -124,25 +124,25 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
             className="absolute z-50 right-0 top-10 w-80"
           >
             {/* Glass card with neon rim + subtle glow sweep */}
-            <div className="relative rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-slate-950/90 via-slate-900/40 to-slate-950/90 backdrop-blur-xl shadow-[0_0_60px_rgba(16,185,129,0.12)] overflow-hidden text-white">
+            <div className="relative rounded-card border border-success backdrop-blur-xl overflow-hidden text-text">
               {/* Neon gradient sweep */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    "radial-gradient(120% 60% at 10% 0%, rgba(16,185,129,0.18), transparent 40%)"
+                    "radial-gradient(120% 60% at 10% 0%, rgba(15, 159, 110,0.18), transparent 40%)"
                 }}
                 animate={{ opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
 
               {/* Header */}
-              <div className="relative flex items-center justify-between px-4 py-3 border-b border-white/10 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent">
+              <div className="relative flex items-center justify-between px-4 py-3 border-b border-line">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-emerald-300" />
+                  <Bell className="w-4 h-4 text-success" />
                   <p className="font-semibold tracking-wide">Notifications</p>
                   {unreadCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                    <span className="ml-1 inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-success-soft text-success border border-success">
                       {unreadCount} new
                     </span>
                   )}
@@ -152,14 +152,14 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllRead}
-                      className="text-emerald-300/90 hover:text-emerald-200 text-xs font-semibold px-2 py-1 rounded-md hover:bg-emerald-400/10 transition"
+                      className="text-success hover:text-success text-xs font-semibold px-2 py-1 rounded-field hover:bg-success-soft transition"
                     >
                       Mark all read
                     </button>
                   )}
                   <button
                     onClick={onClose}
-                    className="text-white/60 hover:text-white transition"
+                    className="text-subtle hover:text-text transition"
                     aria-label="Close notifications"
                   >
                     <X size={16} />
@@ -174,7 +174,7 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
                   className="pointer-events-none absolute inset-0 opacity-10"
                   style={{
                     backgroundImage:
-                      "linear-gradient(rgba(34,197,94,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.2) 1px, transparent 1px)",
+                      "linear-gradient(rgba(15, 159, 110,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 159, 110,0.2) 1px, transparent 1px)",
                     backgroundSize: "28px 28px",
                   }}
                 />
@@ -188,16 +188,16 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
                         variants={skeletonVariants}
                         initial="hidden"
                         animate="visible"
-                        className="px-4 py-3 border-b border-white/10"
+                        className="px-4 py-3 border-b border-line"
                       >
-                        <div className="h-3 w-1/2 bg-white/10 rounded mb-2 animate-pulse" />
-                        <div className="h-3 w-3/4 bg-white/10 rounded mb-1.5 animate-pulse" />
-                        <div className="h-2.5 w-24 bg-white/10 rounded animate-pulse" />
+                        <div className="h-3 w-1/2 bg-surface-2 rounded mb-2 animate-pulse" />
+                        <div className="h-3 w-3/4 bg-surface-2 rounded mb-1.5 animate-pulse" />
+                        <div className="h-2.5 w-24 bg-surface-2 rounded animate-pulse" />
                       </motion.div>
                     ))}
                   </div>
                 ) : notifications.length > 0 ? (
-                  <div className="divide-y divide-white/10">
+                  <div className="divide-y divide-line">
                     {notifications.map((note, index) => (
                       <motion.button
                         key={note._id}
@@ -207,39 +207,39 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
                         animate="visible"
                         onClick={() => handleNotificationClick(note)}
                         className={`w-full text-left px-4 py-3 relative group transition-all ${
-                          !note.isRead ? "bg-white/[0.03]" : ""
-                        } hover:bg-white/[0.06]`}
+                          !note.isRead ? "bg-surface-2" : ""
+                        } hover:bg-surface/[0.06]`}
                       >
                         {/* Unread neon bar */}
                         {!note.isRead && (
-                          <span className="absolute left-0 top-0 h-full w-0.5 bg-emerald-400/70 rounded-r-md shadow-[0_0_12px_rgba(16,185,129,0.6)]" />
+                          <span className="absolute left-0 top-0 h-full w-0.5 bg-success-soft rounded-r-md" />
                         )}
 
                         <div className="flex items-start gap-3">
                           <div className="mt-0.5">
                             <span
                               className={`inline-block w-2 h-2 rounded-full ${
-                                note.isRead ? "bg-white/25" : "bg-emerald-400"
+                                note.isRead ? "bg-surface-3" : "bg-success"
                               }`}
                             />
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm font-semibold text-white/90 truncate">
+                              <p className="text-sm font-semibold text-muted truncate">
                                 {note.title}
                               </p>
-                              <span className="text-[10px] text-white/50 shrink-0">
+                              <span className="text-[10px] text-subtle shrink-0">
                                 {new Date(note.createdAt).toLocaleTimeString()}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-xs text-white/70 leading-snug line-clamp-2">
+                            <p className="mt-0.5 text-xs text-muted leading-snug line-clamp-2">
                               {note.message}
                             </p>
                           </div>
 
                           <motion.span
-                            className="opacity-0 group-hover:opacity-100 text-emerald-300/80"
+                            className="opacity-0 group-hover:opacity-100 text-success"
                             initial={false}
                             animate={{ x: 0 }}
                           >
@@ -251,17 +251,17 @@ const NotificationDropdown = ({ isOpen, onClose, userId }) => {
                   </div>
                 ) : (
                   <div className="px-4 py-10 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 mb-2">
-                      <Sparkles className="w-6 h-6 text-emerald-300" />
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-card bg-surface-2 border border-line mb-2">
+                      <Sparkles className="w-6 h-6 text-success" />
                     </div>
-                    <p className="text-sm text-white/70">No notifications</p>
-                    <p className="text-xs text-white/50 mt-1">You’re all caught up ✨</p>
+                    <p className="text-sm text-muted">No notifications</p>
+                    <p className="text-xs text-subtle mt-1">You’re all caught up ✨</p>
                   </div>
                 )}
               </div>
 
               {/* Footer hint */}
-              <div className="relative px-4 py-2 text-[11px] text-white/50 border-t border-white/10">
+              <div className="relative px-4 py-2 text-[11px] text-subtle border-t border-line">
                 Tip: Click a notification to jump to the relevant page.
               </div>
             </div>

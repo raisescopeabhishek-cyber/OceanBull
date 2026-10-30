@@ -36,7 +36,7 @@ export const FloatingParticles = ({ count = 20 }: { count?: number }) => {
     [count]
   );
 
-  const c = theme?.accent || "59 130 246";
+  const c = theme?.accent || "79 125 246";
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">

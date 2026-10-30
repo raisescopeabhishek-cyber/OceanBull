@@ -32,6 +32,7 @@ import {
 import { userApi } from "../../utils/apiClients";
 import { useMt5Account } from "../../hooks/useMt5Accounts";
 import { withdrawRequestMail } from "./emails/WithdrwalsMails";
+import { Button, FormPage } from "@/Components/ui";
 
 /* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
@@ -201,10 +202,10 @@ function TxnTime({
         style={{
           borderColor: colors.isDark
             ? "rgba(255,255,255,0.10)"
-            : "rgba(245,158,11,0.14)",
+            : "rgba(42, 86, 220,0.14)",
           background: colors.isDark
             ? "rgba(255,255,255,0.04)"
-            : "rgba(245,158,11,0.05)",
+            : "rgba(42, 86, 220,0.05)",
           color: toneColor,
         }}
       >
@@ -231,47 +232,47 @@ function StatCard({
     tone === "success"
       ? {
           iconBg: colors.isDark
-            ? "rgba(16,185,129,0.14)"
-            : "rgba(16,185,129,0.1)",
+            ? "rgba(15, 159, 110,0.14)"
+            : "rgba(15, 159, 110,0.1)",
           iconColor: colors.success,
           border: colors.isDark
-            ? "rgba(16,185,129,0.22)"
-            : "rgba(16,185,129,0.18)",
+            ? "rgba(15, 159, 110,0.22)"
+            : "rgba(15, 159, 110,0.18)",
         }
       : tone === "info"
       ? {
           iconBg: colors.isDark
-            ? "rgba(59,130,246,0.14)"
-            : "rgba(245,158,11,0.06)",
+            ? "rgba(79, 125, 246,0.14)"
+            : "rgba(42, 86, 220,0.06)",
           iconColor: colors.accent,
           border: colors.isDark
-            ? "rgba(59,130,246,0.22)"
-            : "rgba(245,158,11,0.14)",
+            ? "rgba(79, 125, 246,0.22)"
+            : "rgba(42, 86, 220,0.14)",
         }
       : tone === "warning"
       ? {
           iconBg: colors.isDark
-            ? "rgba(245,158,11,0.14)"
-            : "rgba(245,158,11,0.1)",
+            ? "rgba(42, 86, 220,0.14)"
+            : "rgba(42, 86, 220,0.1)",
           iconColor: colors.warning,
           border: colors.isDark
-            ? "rgba(245,158,11,0.22)"
-            : "rgba(245,158,11,0.16)",
+            ? "rgba(42, 86, 220,0.22)"
+            : "rgba(42, 86, 220,0.16)",
         }
       : tone === "danger"
       ? {
           iconBg: colors.isDark
-            ? "rgba(239,68,68,0.14)"
-            : "rgba(239,68,68,0.1)",
+            ? "rgba(220, 58, 58,0.14)"
+            : "rgba(220, 58, 58,0.1)",
           iconColor: colors.danger,
           border: colors.isDark
-            ? "rgba(239,68,68,0.22)"
-            : "rgba(239,68,68,0.16)",
+            ? "rgba(220, 58, 58,0.22)"
+            : "rgba(220, 58, 58,0.16)",
         }
       : {
           iconBg: colors.isDark
             ? "rgba(255,255,255,0.05)"
-            : "rgba(245,158,11,0.05)",
+            : "rgba(42, 86, 220,0.05)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -287,7 +288,7 @@ function StatCard({
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -404,7 +405,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(245,158,11,0.06)",
+                        : "rgba(42, 86, 220,0.06)",
                     }}
                   />
                 </td>
@@ -455,7 +456,7 @@ function CheckoutStep({
       >
         <div className="flex min-w-0 items-start gap-3">
           <div
-            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold"
+            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-card text-xs font-bold"
             style={{
               background: isOpen ? colors.accent : colors.surfaceSoft,
               color: isOpen ? "#ffffff" : colors.text,
@@ -522,70 +523,70 @@ export default function UserWithdraw() {
 
   const colors = useMemo(() => {
     const accent = isDark
-      ? rgba(theme?.accent || "96 165 250", 0.95)
-      : "#f59e0b";
+      ? rgba(theme?.accent || "79 125 246", 0.95)
+      : "#2a56dc";
 
     return {
       isDark,
-      pageBg: isDark ? "#0b1120" : "#fffaf5",
+      pageBg: isDark ? "#0a111f" : "#f7f9fc",
 
       heroBg: isDark
-        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #fb923c, #f59e0b)",
+        ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+        : "linear-gradient(135deg, #4f7df6, #2a56dc)",
 
-      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
+      surface: isDark ? "rgba(15, 24, 41,0.92)" : "rgba(255,255,255,0.94)",
       surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,251,235,0.75)",
       surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,250,245,0.95)",
 
-      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
-      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#7b879a",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#4a5669",
 
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+      accentSoft: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
 
-      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
-      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
-      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#0f9f6e",
+      warning: isDark ? "rgba(224, 191, 108,0.95)" : "#2245b4",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a",
 
-      link: isDark ? "rgba(147,197,253,1)" : "#d97706",
+      link: isDark ? "rgba(147,197,253,1)" : "#2245b4",
 
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.16)",
+        : "rgba(42, 86, 220,0.16)",
 
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(245,158,11,0.10)",
+        : "rgba(42, 86, 220,0.10)",
 
       inputBg: isDark
-        ? "rgba(15,23,42,0.92)"
+        ? "rgba(15, 24, 41,0.92)"
         : "linear-gradient(180deg, rgba(255,251,235,0.98), rgba(255,255,255,0.98))",
 
       inputBorder: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.30)",
+        : "rgba(42, 86, 220,0.30)",
 
-      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#f59e0b",
+      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#2a56dc",
 
       inputShadow: isDark
         ? "0 0 0 1px rgba(255,255,255,0.03)"
-        : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+        : "0 0 0 4px rgba(42, 86, 220,0.05), 0 10px 22px rgba(42, 86, 220,0.07)",
 
       inputFocusShadow: isDark
-        ? "0 0 0 4px rgba(96,165,250,0.18)"
-        : "0 0 0 5px rgba(245,158,11,0.09), 0 12px 26px rgba(245,158,11,0.09)",
+        ? "0 0 0 4px rgba(79, 125, 246,0.18)"
+        : "0 0 0 5px rgba(42, 86, 220,0.09), 0 12px 26px rgba(42, 86, 220,0.09)",
 
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 14px 30px rgba(245,158,11,0.07)",
+        : "0 14px 30px rgba(42, 86, 220,0.07)",
 
-      primaryBtn: "#f59e0b",
-      primaryBtnHover: "#d97706",
+      primaryBtn: "#2a56dc",
+      primaryBtnHover: "#2245b4",
       primaryBtnText: "#ffffff",
 
-      stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(245,158,11,0.06)",
+      stepActiveBg: isDark ? "rgba(79, 125, 246,0.08)" : "rgba(42, 86, 220,0.06)",
       tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
 
       modalOverlay: "rgba(2,6,23,0.72)",
@@ -863,9 +864,9 @@ export default function UserWithdraw() {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
+        background: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(22,163,74,0.09)",
         border: isDark
-          ? "1px solid rgba(16,185,129,0.22)"
+          ? "1px solid rgba(15, 159, 110,0.22)"
           : "1px solid rgba(22,163,74,0.16)",
         color: colors.success,
       };
@@ -873,20 +874,20 @@ export default function UserWithdraw() {
 
     if (tone === "pending") {
       return {
-        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
+        background: isDark ? "rgba(42, 86, 220,0.12)" : "rgba(42, 86, 220,0.08)",
         border: isDark
-          ? "1px solid rgba(245,158,11,0.22)"
-          : "1px solid rgba(245,158,11,0.16)",
+          ? "1px solid rgba(42, 86, 220,0.22)"
+          : "1px solid rgba(42, 86, 220,0.16)",
         color: colors.warning,
       };
     }
 
     if (tone === "rejected") {
       return {
-        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
+        background: isDark ? "rgba(220, 58, 58,0.12)" : "rgba(220, 58, 58,0.08)",
         border: isDark
-          ? "1px solid rgba(239,68,68,0.22)"
-          : "1px solid rgba(239,68,68,0.16)",
+          ? "1px solid rgba(220, 58, 58,0.22)"
+          : "1px solid rgba(220, 58, 58,0.16)",
         color: colors.danger,
       };
     }
@@ -1118,8 +1119,8 @@ export default function UserWithdraw() {
   };
 
   const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#fffaf5",
-    color: isDark ? "#ffffff" : "#0f172a",
+    background: isDark ? "#0f1829" : "#f7f9fc",
+    color: isDark ? "#ffffff" : "#0f1829",
   };
 
   const subtleCard = (): React.CSSProperties => ({
@@ -1133,7 +1134,7 @@ export default function UserWithdraw() {
     borderRadius: "14px",
     color: colors.primaryBtnText,
     background: colors.primaryBtn,
-    boxShadow: "0 10px 22px rgba(245,158,11,0.14)",
+    boxShadow: "0 10px 22px rgba(42, 86, 220,0.14)",
   };
 
   const walletAddress = getWalletAddress(selectWallet);
@@ -1167,7 +1168,7 @@ export default function UserWithdraw() {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(245,158,11,0.14)",
+                      : "0 30px 80px rgba(42, 86, 220,0.14)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -1231,10 +1232,10 @@ export default function UserWithdraw() {
                           className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
-                              ? "rgba(239,68,68,0.24)"
-                              : "rgba(239,68,68,0.18)",
+                              ? "rgba(220, 58, 58,0.24)"
+                              : "rgba(220, 58, 58,0.18)",
                             background: isDark
-                              ? "rgba(239,68,68,0.08)"
+                              ? "rgba(220, 58, 58,0.08)"
                               : "rgba(254,242,242,0.92)",
                             color: colors.danger,
                             borderRadius: "14px",
@@ -1293,7 +1294,7 @@ export default function UserWithdraw() {
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, method, wallet, status, just now..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-amber-400"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-primary"
                           style={{
                             borderColor: colors.inputBorder,
                             background: colors.inputBg,
@@ -1370,7 +1371,7 @@ export default function UserWithdraw() {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -12 }}
                             >
-                              <table className="w-full text-sm">
+                              <table className="w-full text-sm table-stack">
                                 <thead
                                   style={{
                                     background: colors.tableHead,
@@ -1407,14 +1408,14 @@ export default function UserWithdraw() {
                                         borderBottom: `1px solid ${colors.borderSoft}`,
                                       }}
                                     >
-                                      <td
+                                      <td data-label="Account"
                                         className="px-4 py-3 text-center font-mono text-sm"
                                         style={{ color: titleColor }}
                                       >
                                         #{item?.mt5Account || "N/A"}
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Type" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
                                           style={{
@@ -1427,14 +1428,14 @@ export default function UserWithdraw() {
                                         </span>
                                       </td>
 
-                                      <td
+                                      <td data-label="Amount"
                                         className="px-4 py-3 text-center font-semibold"
                                         style={{ color: titleColor }}
                                       >
                                         ${money(item?.amount)}
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Method" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                           style={{
@@ -1447,7 +1448,7 @@ export default function UserWithdraw() {
                                         </span>
                                       </td>
 
-                                      <td
+                                      <td data-label="Wallet / Address"
                                         className="px-4 py-3 text-center text-xs"
                                         style={{ color: mutedTextColor }}
                                       >
@@ -1456,11 +1457,11 @@ export default function UserWithdraw() {
                                         </span>
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Requested" className="px-4 py-3 text-center">
                                         <TxnTime date={item?.createdAt} colors={colors} />
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Status" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
                                           style={statusStyle(item?.status)}
@@ -1469,7 +1470,7 @@ export default function UserWithdraw() {
                                         </span>
                                       </td>
 
-                                      <td className="px-4 py-4 align-top">
+                                      <td data-label="Timeline" className="px-4 py-4 align-top">
                                         <div className="space-y-3">
                                           <TxnTime
                                             date={item.updatedAt}
@@ -1500,46 +1501,93 @@ export default function UserWithdraw() {
 
   return (
     <>
-      <div
-        className="min-h-screen w-full"
-        style={{
-          background: colors.pageBg,
+      <FormPage
+        wide
+        breadcrumb="Funds / Payout"
+        title="Withdraw funds"
+        description="Complete your withdrawal in three steps. An OTP confirms the request."
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() => setShowTxnModal(true)}
+            leftIcon={<History className="h-4 w-4" />}
+          >
+            Withdrawal transactions
+          </Button>
+        }
+        steps={[
+          {
+            key: "amount",
+            label: "Account & amount",
+            state: step1Completed ? "done" : openStep === 1 ? "active" : "todo",
+          },
+          {
+            key: "method",
+            label: "Payout method",
+            state: step2Completed ? "done" : openStep === 2 ? "active" : "todo",
+          },
+          {
+            key: "verify",
+            label: "Verify with OTP",
+            state: step3Completed ? "done" : openStep === 3 ? "active" : "todo",
+          },
+        ]}
+        summary={{
+          title: "Summary",
+          rows: [
+            { label: "Account", value: account || "—" },
+            {
+              label: "Available balance",
+              value: balanceReady ? "$" + money(numericBalance) : "—",
+            },
+            {
+              label: "Withdrawal amount",
+              value: Number(amount) > 0 ? "$" + money(Number(amount)) : "—",
+              weight: "bold",
+            },
+            { label: "Method", value: selectedGateway || "—" },
+            { label: "Wallet", value: selectWallet || "—" },
+          ],
+          total: {
+            label: "You receive",
+            value: Number(amount) > 0 ? "$" + money(Number(amount)) : "$0.00",
+            tone: "profit",
+          },
+          checks: [
+            {
+              ok: canContinueStep1,
+              text: canContinueStep1
+                ? "Amount is within your available balance."
+                : "Enter an amount up to your available balance.",
+            },
+            {
+              ok: canContinueStep2,
+              text: canContinueStep2
+                ? "Payout method selected."
+                : "Choose a payout method and wallet.",
+            },
+            {
+              ok: otpSent,
+              text: otpSent
+                ? "Verification code sent to your email."
+                : "Request a verification code to continue.",
+            },
+          ],
+        }}
+        submit={{
+          label: "Submit withdrawal",
+          onClick: verifyOtpHandler,
+          disabled: !ctaEnabled,
+          loading: apiLoader || isWithdrawing,
+          reason: !canContinueStep1
+            ? "Enter a valid amount for this account"
+            : !canContinueStep2
+            ? "Choose a payout method"
+            : !otpSent
+            ? "Request a verification code"
+            : "Enter the verification code to continue",
         }}
       >
-        <div className="w-full" style={{ background: colors.heroBg }}>
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
-            <div className="leading-none">
-              <div className="text-[28px] font-bold text-white sm:text-[32px]">
-                Withdraw Funds
-              </div>
-
-              <div className="mt-2 text-sm text-white/80">
-                Complete your withdrawal securely in 3 simple steps
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  OTP Protected
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowTxnModal(true)}
-                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
-                style={{ borderRadius: "14px" }}
-              >
-                <History className="h-4 w-4" />
-                Withdrawal Transactions
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
           <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatCard
               colors={colors}
@@ -1648,7 +1696,7 @@ export default function UserWithdraw() {
                           placeholder="Enter amount"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          className="w-full py-[13px] pl-10 pr-10 text-sm font-semibold placeholder:text-amber-400"
+                          className="w-full py-[13px] pl-10 pr-10 text-sm font-semibold placeholder:text-primary"
                           style={inputStyle}
                         />
 
@@ -1764,9 +1812,9 @@ export default function UserWithdraw() {
                               background: active ? colors.accentSoft : colors.surface,
                               borderRadius: "18px",
                               boxShadow: active
-                                ? "0 0 0 4px rgba(245,158,11,0.06), 0 10px 22px rgba(245,158,11,0.08)"
+                                ? "0 0 0 4px rgba(42, 86, 220,0.06), 0 10px 22px rgba(42, 86, 220,0.08)"
                                 : !isDark
-                                ? "0 6px 16px rgba(245,158,11,0.04)"
+                                ? "0 6px 16px rgba(42, 86, 220,0.04)"
                                 : "none",
                             }}
                           >
@@ -1830,9 +1878,9 @@ export default function UserWithdraw() {
                                   background: active ? colors.accentSoft : colors.surface,
                                   borderRadius: "18px",
                                   boxShadow: active
-                                    ? "0 0 0 4px rgba(245,158,11,0.06), 0 10px 22px rgba(245,158,11,0.08)"
+                                    ? "0 0 0 4px rgba(42, 86, 220,0.06), 0 10px 22px rgba(42, 86, 220,0.08)"
                                     : !isDark
-                                    ? "0 6px 16px rgba(245,158,11,0.04)"
+                                    ? "0 6px 16px rgba(42, 86, 220,0.04)"
                                     : "none",
                                 }}
                               >
@@ -1888,7 +1936,7 @@ export default function UserWithdraw() {
                         </div>
 
                         <div
-                          className="rounded-xl border px-3 py-3 font-mono text-xs"
+                          className="rounded-card border px-3 py-3 font-mono text-xs"
                           style={{
                             borderColor: colors.inputBorder,
                             background: colors.inputBg,
@@ -2007,7 +2055,7 @@ export default function UserWithdraw() {
                         onChange={(e) => setOtp(e.target.value)}
                         maxLength={6}
                         placeholder="000000"
-                        className="w-full rounded-2xl border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none placeholder:text-amber-400"
+                        className="w-full rounded-card border px-4 py-4 text-center text-2xl font-mono tracking-[0.35em] outline-none placeholder:text-primary"
                         style={inputStyle}
                       />
 
@@ -2041,9 +2089,9 @@ export default function UserWithdraw() {
                       className="mt-5 border px-4 py-4"
                       style={{
                         borderRadius: "16px",
-                        borderColor: "rgba(16,185,129,0.18)",
+                        borderColor: "rgba(15, 159, 110,0.18)",
                         background: isDark
-                          ? "rgba(16,185,129,0.08)"
+                          ? "rgba(15, 159, 110,0.08)"
                           : "rgba(240,253,244,0.85)",
                       }}
                     >
@@ -2063,13 +2111,13 @@ export default function UserWithdraw() {
 
                   {error ? (
                     <div
-                      className="mt-5 flex items-center gap-3 rounded-2xl border p-4 text-sm"
+                      className="mt-5 flex items-center gap-3 rounded-card border p-4 text-sm"
                       style={{
                         borderColor: isDark
-                          ? "rgba(239,68,68,0.18)"
-                          : "rgba(239,68,68,0.16)",
+                          ? "rgba(220, 58, 58,0.18)"
+                          : "rgba(220, 58, 58,0.16)",
                         background: isDark
-                          ? "rgba(239,68,68,0.08)"
+                          ? "rgba(220, 58, 58,0.08)"
                           : "rgba(254,242,242,0.92)",
                         color: colors.danger,
                       }}
@@ -2147,11 +2195,11 @@ export default function UserWithdraw() {
                       className="mt-4 border px-4 py-3"
                       style={{
                         background: isDark
-                          ? "rgba(245,158,11,0.08)"
-                          : "rgba(245,158,11,0.06)",
+                          ? "rgba(42, 86, 220,0.08)"
+                          : "rgba(42, 86, 220,0.06)",
                         borderColor: isDark
-                          ? "rgba(245,158,11,0.16)"
-                          : "rgba(245,158,11,0.14)",
+                          ? "rgba(42, 86, 220,0.16)"
+                          : "rgba(42, 86, 220,0.14)",
                         borderRadius: "16px",
                       }}
                     >
@@ -2163,47 +2211,8 @@ export default function UserWithdraw() {
                       </div>
                     </div>
 
-                    <motion.div
-                      animate={
-                        highlightSubmit
-                          ? {
-                              scale: [1, 1.03, 1, 1.03, 1],
-                              opacity: [1, 0.7, 1, 0.7, 1],
-                            }
-                          : {
-                              scale: 1,
-                              opacity: 1,
-                            }
-                      }
-                      transition={{
-                        duration: highlightSubmit ? 2.2 : 0.2,
-                        repeat: highlightSubmit ? 1 : 0,
-                      }}
-                    >
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: ctaEnabled ? 1.01 : 1 }}
-                        whileTap={{ scale: ctaEnabled ? 0.99 : 1 }}
-                        onClick={verifyOtpHandler}
-                        disabled={!ctaEnabled}
-                        className="mt-5 inline-flex w-full items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
-                        style={{
-                          ...primaryButtonStyle,
-                          opacity: ctaEnabled ? 1 : 0.65,
-                          cursor: ctaEnabled ? "pointer" : "not-allowed",
-                          boxShadow: highlightSubmit
-                            ? "0 0 0 4px rgba(245,158,11,0.10), 0 0 22px rgba(245,158,11,0.14)"
-                            : primaryButtonStyle.boxShadow,
-                        }}
-                      >
-                        {apiLoader || isWithdrawing ? (
-                          <LoaderIcon color="#ffffff" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-                        <span>SUBMIT WITHDRAWAL</span>
-                      </motion.button>
-                    </motion.div>
+                    {/* The submit lives in the FormPage summary rail, and
+                        as a sticky bar on phones. */}
                   </div>
                 </SectionCard>
 
@@ -2217,7 +2226,7 @@ export default function UserWithdraw() {
                   <div className="p-5">
                     <div className="mb-4 flex items-center gap-3">
                       <div
-                        className="flex h-11 w-11 items-center justify-center rounded-xl"
+                        className="flex h-11 w-11 items-center justify-center rounded-card"
                         style={{ background: colors.accentSoft, color: accentColor }}
                       >
                         <CreditCard size={20} />
@@ -2235,7 +2244,7 @@ export default function UserWithdraw() {
                     {selectedGateway ? (
                       <div className="space-y-3">
                         <div
-                          className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                          className="flex items-center justify-between rounded-card border px-4 py-3"
                           style={subtleCard()}
                         >
                           <span style={{ color: mutedTextColor }}>Method</span>
@@ -2245,7 +2254,7 @@ export default function UserWithdraw() {
                         </div>
 
                         <div
-                          className="flex items-center justify-between rounded-2xl border px-4 py-3"
+                          className="flex items-center justify-between rounded-card border px-4 py-3"
                           style={subtleCard()}
                         >
                           <span style={{ color: mutedTextColor }}>Wallet Type</span>
@@ -2254,12 +2263,12 @@ export default function UserWithdraw() {
                           </span>
                         </div>
 
-                        <div className="rounded-2xl border px-4 py-3" style={subtleCard()}>
+                        <div className="rounded-card border px-4 py-3" style={subtleCard()}>
                           <p className="mb-2 text-sm" style={{ color: mutedTextColor }}>
                             Address
                           </p>
                           <p
-                            className="break-all rounded-xl px-3 py-2 text-xs font-medium"
+                            className="break-all rounded-card px-3 py-2 text-xs font-medium"
                             style={{
                               background: colors.inputBg,
                               color: titleColor,
@@ -2300,20 +2309,7 @@ export default function UserWithdraw() {
             </div>
           </div>
 
-          <div
-            className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm"
-            style={{ color: colors.muted }}
-          >
-            <div className="flex flex-wrap items-center gap-4">
-              <span>Policies: Returns Policy</span>
-              <span>Terms of use</span>
-              <span>Security</span>
-              <span>Privacy</span>
-            </div>
-            <div>© 2007-2026 secure withdrawal</div>
-          </div>
-        </div>
-      </div>
+      </FormPage>
 
       {txnModal}
     </>

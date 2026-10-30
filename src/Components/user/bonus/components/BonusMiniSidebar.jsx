@@ -50,49 +50,29 @@ const menu = [
 ];
 
 const getTheme = (isDark) => ({
-  sidebar: isDark
-    ? "border-white/10 bg-white/[0.035] shadow-[0_18px_55px_rgba(0,0,0,0.34)]"
-    : "border-orange-100/80 bg-white/85 shadow-[0_14px_34px_rgba(251,146,60,0.08)]",
+  sidebar:"border-line bg-surface-2",
 
-  hero: isDark
-    ? "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))]"
-    : "border-orange-100/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(255,247,237,0.72))]",
+  hero:"border-line",
 
-  heroIcon: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200/70 bg-orange-50/70 text-orange-500 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  heroIcon:"border-line bg-primary-soft text-primary",
 
-  pill: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-    : "border-orange-200/70 bg-orange-50/65 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.035)]",
+  pill:"border-success bg-success-soft text-success",
 
-  title: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/50" : "text-slate-500",
-  softText: isDark ? "text-white/65" : "text-slate-600",
+  title:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  navBase: isDark
-    ? "border-white/10 bg-white/[0.025] text-white/70 hover:bg-white/[0.055] hover:text-white"
-    : "border-orange-100/75 bg-white/70 text-slate-700 hover:border-orange-200/80 hover:bg-orange-50/35 hover:text-slate-900",
+  navBase:"border-line bg-surface-2 text-muted hover:bg-surface-2 hover:text-text",
 
-  navActive: isDark
-    ? "border-blue-400/25 bg-blue-500/10 text-white shadow-[0_0_0_3px_rgba(59,130,246,0.06)]"
-    : "border-orange-200/90 bg-orange-50/65 text-slate-900 shadow-[0_0_0_3px_rgba(251,146,60,0.06)]",
+  navActive:"border-line bg-primary-soft text-text",
 
-  iconBase: isDark
-    ? "border-white/10 bg-white/[0.045] text-white/65"
-    : "border-orange-100/80 bg-white/85 text-orange-500",
+  iconBase:"border-line bg-surface-2 text-muted",
 
-  iconActive: isDark
-    ? "border-blue-400/25 bg-blue-500/12 text-blue-300"
-    : "border-orange-200/90 bg-white text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  iconActive:"border-line bg-primary-soft text-primary",
 
-  footer: isDark
-    ? "border-white/10 bg-white/[0.025]"
-    : "border-orange-100/75 bg-orange-50/25",
+  footer:"border-line bg-surface-2",
 
-  footerBadge: isDark
-    ? "border-white/10 bg-white/[0.04] text-white/60"
-    : "border-orange-100/80 bg-white/75 text-orange-600",
+  footerBadge:"border-line bg-surface-2 text-subtle",
 });
 
 const BonusMiniSidebar = ({ isDark }) => {
@@ -101,7 +81,7 @@ const BonusMiniSidebar = ({ isDark }) => {
   return (
     <aside
       className={cx(
-        "overflow-hidden rounded-[28px] border backdrop-blur-xl",
+        "overflow-hidden rounded-card border backdrop-blur-xl",
         "xl:sticky xl:top-4 xl:self-start",
         "xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto",
         theme.sidebar
@@ -109,9 +89,9 @@ const BonusMiniSidebar = ({ isDark }) => {
     >
       <div className="p-4 sm:p-5">
         {/* Header Card */}
-        <div className={cx("rounded-[24px] border p-5", theme.hero)}>
+        <div className={cx("rounded-card border p-5", theme.hero)}>
           <div className="mb-4 flex items-start justify-between gap-3">
-            <div className={cx("flex h-12 w-12 items-center justify-center rounded-2xl border", theme.heroIcon)}>
+            <div className={cx("flex h-12 w-12 items-center justify-center rounded-card border", theme.heroIcon)}>
               <Gift className="h-6 w-6" />
             </div>
 
@@ -135,12 +115,12 @@ const BonusMiniSidebar = ({ isDark }) => {
           </p>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className={cx("rounded-2xl border px-3 py-2", theme.footerBadge)}>
+            <div className={cx("rounded-card border px-3 py-2", theme.footerBadge)}>
               <p className="text-[10px] font-medium opacity-75">Module</p>
               <p className="mt-0.5 text-xs font-bold">Bonus</p>
             </div>
 
-            <div className={cx("rounded-2xl border px-3 py-2", theme.footerBadge)}>
+            <div className={cx("rounded-card border px-3 py-2", theme.footerBadge)}>
               <p className="text-[10px] font-medium opacity-75">Status</p>
               <p className="mt-0.5 text-xs font-bold">Synced</p>
             </div>
@@ -158,7 +138,7 @@ const BonusMiniSidebar = ({ isDark }) => {
                 to={item.path}
                 className={({ isActive }) =>
                   cx(
-                    "group relative flex items-center justify-between overflow-hidden rounded-2xl border px-3.5 py-3 transition-all duration-200",
+                    "group relative flex items-center justify-between overflow-hidden rounded-card border px-3.5 py-3 transition-all duration-200",
                     isActive ? theme.navActive : theme.navBase
                   )
                 }
@@ -169,9 +149,7 @@ const BonusMiniSidebar = ({ isDark }) => {
                       className={cx(
                         "absolute left-0 top-1/2 h-9 w-1 -translate-y-1/2 rounded-r-full transition-all duration-200",
                         isActive
-                          ? isDark
-                            ? "bg-blue-400"
-                            : "bg-orange-400"
+                          ?"bg-primary"
                           : "bg-transparent"
                       )}
                     />
@@ -179,7 +157,7 @@ const BonusMiniSidebar = ({ isDark }) => {
                     <div className="flex min-w-0 items-center gap-3">
                       <div
                         className={cx(
-                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
+                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border transition-all duration-200",
                           isActive ? theme.iconActive : theme.iconBase
                         )}
                       >
@@ -195,9 +173,7 @@ const BonusMiniSidebar = ({ isDark }) => {
                           className={cx(
                             "mt-0.5 truncate text-xs",
                             isActive
-                              ? isDark
-                                ? "text-white/55"
-                                : "text-slate-500"
+                              ?"text-subtle"
                               : theme.muted
                           )}
                         >
@@ -221,9 +197,9 @@ const BonusMiniSidebar = ({ isDark }) => {
         </div>
 
         {/* Footer Info */}
-        <div className={cx("mt-5 rounded-[22px] border p-4", theme.footer)}>
+        <div className={cx("mt-5 rounded-card border p-4", theme.footer)}>
           <div className="flex items-start gap-3">
-            <div className={cx("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", theme.heroIcon)}>
+            <div className={cx("flex h-10 w-10 shrink-0 items-center justify-center rounded-card border", theme.heroIcon)}>
               <ShieldCheck className="h-5 w-5" />
             </div>
 
@@ -241,7 +217,7 @@ const BonusMiniSidebar = ({ isDark }) => {
 
         {/* Bottom Mini Label */}
         <div className="mt-4 flex items-center justify-center gap-2">
-          <WalletCards className={cx("h-4 w-4", isDark ? "text-white/35" : "text-orange-400")} />
+          <WalletCards className={cx("h-4 w-4","text-subtle")} />
           <span className={cx("text-xs font-medium", theme.muted)}>
             Bonus Wallet Center
           </span>

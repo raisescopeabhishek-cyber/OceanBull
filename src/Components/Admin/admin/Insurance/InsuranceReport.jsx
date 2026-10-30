@@ -1,20 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import {
-  BadgeDollarSign,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  RefreshCw,
-  Search,
-  ShieldCheck,
-  WalletCards,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+
 import { adminApi } from "../../../../utils/apiClients";
+import {
+  Badge,
+  BlotterPage,
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  StatusBadge,
+} from "@/Components/ui";
 
 const API_ENDPOINT = "/insurance/report";
+
+/**
+ * Insurance report.
+ *
+ * A blotter: one column set drives the desktop table and the phone rows, and
+ * the deposit a policy was bought against is a secondary line on the row
+ * rather than its own wide column group. The date range and MT5 account are
+ * in the filter bar's `extra` slot on a desktop and in its drawer on a phone.
+ */
 
 const formatAmount = (value, currency = "USD") => {
   if (value === undefined || value === null || value === "") return "-";
@@ -43,102 +50,12 @@ const formatDateTime = (value) => {
   });
 };
 
-const getUserName = (row) => {
-  return row?.user?.name?.trim() || row?.user?.email || "Unknown User";
-};
+const getUserName = (row) =>
+  row?.user?.name?.trim() || row?.user?.email || "Unknown User";
 
-const hasDepositData = (row) => {
-  return Boolean(row?.deposit?.id || row?.deposit?._id);
-};
-
-const getStatusClasses = (status, isDark) => {
-  const normalized = String(status || "").toLowerCase();
-
-  if (normalized === "active") {
-    return isDark
-      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-      : "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-
-  if (normalized === "claimed") {
-    return isDark
-      ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-      : "border-blue-200 bg-blue-50 text-blue-700";
-  }
-
-  return isDark
-    ? "border-white/10 bg-white/[0.06] text-white/70"
-    : "border-slate-200 bg-slate-50 text-slate-600";
-};
-
-const StatCard = ({ icon, label, value, helper, isDark }) => {
-  return (
-    <div
-      className={[
-        "relative overflow-hidden rounded-2xl border p-4 transition-all duration-300",
-        isDark
-          ? "border-white/10 bg-white/[0.04] shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
-          : "border-orange-100 bg-white shadow-[0_14px_34px_rgba(251,146,60,0.10)]",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl",
-          isDark ? "bg-blue-500/10" : "bg-orange-300/20",
-        ].join(" ")}
-      />
-
-      <div className="relative flex items-start justify-between gap-3">
-        <div>
-          <p
-            className={[
-              "text-xs font-semibold uppercase tracking-[0.16em]",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            {label}
-          </p>
-
-          <h3
-            className={[
-              "mt-2 text-2xl font-bold",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            {value}
-          </h3>
-
-          {helper && (
-            <p
-              className={[
-                "mt-1 text-xs",
-                isDark ? "text-white/40" : "text-slate-500",
-              ].join(" ")}
-            >
-              {helper}
-            </p>
-          )}
-        </div>
-
-        <div
-          className={[
-            "grid h-11 w-11 shrink-0 place-items-center rounded-2xl border",
-            isDark
-              ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-              : "border-orange-200 bg-orange-50 text-orange-700",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-};
+const hasDepositData = (row) => Boolean(row?.deposit?.id || row?.deposit?._id);
 
 const InsuranceReport = () => {
-  const mode = useSelector((store) => store.adminTheme?.mode || "light");
-  const isDark = mode === "dark";
-
   const [loading, setLoading] = useState(false);
   const [reportRows, setReportRows] = useState([]);
   const [summary, setSummary] = useState({
@@ -326,675 +243,254 @@ const InsuranceReport = () => {
     }));
   };
 
-  return (
-    <div
-      className={[
-        "min-h-full rounded-[22px] p-2 transition-all duration-300 sm:p-3",
-        isDark ? "text-white" : "text-slate-900",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "relative overflow-hidden rounded-[26px] border p-5",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-orange-100 bg-white",
-        ].join(" ")}
-      >
-        <div
-          aria-hidden
-          className={[
-            "absolute -right-16 -top-20 h-56 w-56 rounded-full blur-3xl",
-            isDark ? "bg-blue-500/10" : "bg-orange-300/20",
-          ].join(" ")}
+  const columns = [
+    {
+      key: "user",
+      header: "User",
+      primary: true,
+      cell: (row) => (
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-text">
+            {getUserName(row)}
+          </div>
+          <div className="numeric mt-0.5 truncate text-xs text-subtle">
+            {row?.user?.email || "—"}
+            {row?.user?.phone ? ` · ${row.user.phone}` : ""}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "mt5Account",
+      header: "MT5 account",
+      secondary: true,
+      numeric: true,
+      cell: (row) => row?.mt5Account || "—",
+    },
+    {
+      key: "insuranceAmount",
+      header: "Cover",
+      align: "right",
+      numeric: true,
+      cell: (row) => formatAmount(row?.insuranceAmount),
+    },
+    {
+      key: "claimAmount",
+      header: "Claimed",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (row) =>
+        row?.claimAmount ? (
+          <span className="font-semibold text-loss">
+            {formatAmount(row.claimAmount)}
+          </span>
+        ) : (
+          <span className="text-subtle">—</span>
+        ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (row) => <StatusBadge status={row?.status} />,
+    },
+    {
+      key: "deposit",
+      header: "Bought against",
+      cell: (row) =>
+        hasDepositData(row) ? (
+          <div className="min-w-0">
+            <div className="numeric truncate text-xs text-text">
+              {formatAmount(row?.deposit?.depositAmount)}
+              {row?.deposit?.method ? ` · ${row.deposit.method}` : ""}
+            </div>
+            <div className="numeric truncate text-[11px] text-subtle">
+              {row?.deposit?.transactionId || row?.deposit?.orderId || "—"}
+            </div>
+          </div>
+        ) : (
+          <span className="text-subtle">No deposit linked</span>
+        ),
+    },
+    {
+      key: "dateTime",
+      header: "Opened",
+      cell: (row) => (
+        <span className="numeric text-xs text-subtle">
+          {formatDateTime(row?.dateTime)}
+        </span>
+      ),
+    },
+    {
+      key: "claimedAt",
+      header: "Claimed at",
+      cell: (row) =>
+        row?.claimedAt ? (
+          <span className="numeric text-xs text-subtle">
+            {formatDateTime(row.claimedAt)}
+          </span>
+        ) : (
+          <span className="text-subtle">—</span>
+        ),
+    },
+  ];
+
+  /* The same controls serve the desktop filter bar and the phone drawer. */
+  const rangeControls = (
+    <>
+      <Field label="MT5" className="w-[120px]">
+        <Input
+          value={filters.mt5Account}
+          onChange={(e) => handleFilterChange("mt5Account", e.target.value)}
+          placeholder="Account"
+          aria-label="MT5 account"
+          className="!min-h-8"
         />
+      </Field>
+      <Field label="From" className="w-[140px]">
+        <Input
+          type="date"
+          value={filters.fromDate}
+          onChange={(e) => handleFilterChange("fromDate", e.target.value)}
+          aria-label="From date"
+          className="!min-h-8"
+        />
+      </Field>
+      <Field label="To" className="w-[140px]">
+        <Input
+          type="date"
+          value={filters.toDate}
+          onChange={(e) => handleFilterChange("toDate", e.target.value)}
+          aria-label="To date"
+          className="!min-h-8"
+        />
+      </Field>
+    </>
+  );
 
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div
-              className={[
-                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                isDark
-                  ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                  : "border-orange-200 bg-orange-50 text-orange-700",
-              ].join(" ")}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Insurance Section
-            </div>
-
-            <h1
-              className={[
-                "mt-3 text-2xl font-bold tracking-tight sm:text-3xl",
-                isDark ? "text-white" : "text-slate-950",
-              ].join(" ")}
-            >
-              Insurance Report
-            </h1>
-
-            <p
-              className={[
-                "mt-1 max-w-2xl text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              Track user insurance charges, claimable amount, coverage status,
-              deposit source, and claim activity.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={fetchInsuranceReport}
-              disabled={loading}
-              className={[
-                "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.05] text-white/80 hover:bg-white/[0.08]"
-                  : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50",
-                loading ? "cursor-not-allowed opacity-60" : "",
-              ].join(" ")}
-            >
-              <RefreshCw
-                className={["h-4 w-4", loading ? "animate-spin" : ""].join(
-                  " "
-                )}
-              />
-              Refresh
-            </button>
-
-            <button
-              type="button"
-              onClick={handleExportCsv}
-              className={[
-                "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition",
-                isDark
-                  ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-              ].join(" ")}
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
-            </button>
-          </div>
-        </div>
-
-        <div className="relative mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            isDark={isDark}
-            label="Total Records"
-            value={summary.totalRecords}
-            helper="All insurance coverages"
-            icon={<ShieldCheck className="h-5 w-5" />}
-          />
-
-          <StatCard
-            isDark={isDark}
-            label="Active"
-            value={summary.activeCount}
-            helper="Available for claim"
-            icon={<WalletCards className="h-5 w-5" />}
-          />
-
-          <StatCard
-            isDark={isDark}
-            label="Claimed"
-            value={summary.claimedCount}
-            helper="Already claimed"
-            icon={<CalendarDays className="h-5 w-5" />}
-          />
-
-          <StatCard
-            isDark={isDark}
-            label="Insurance Amount"
-            value={formatAmount(summary.totalInsuranceAmount)}
-            helper={`Claim total: ${formatAmount(summary.totalClaimAmount)}`}
-            icon={<BadgeDollarSign className="h-5 w-5" />}
-          />
-        </div>
-      </div>
-
-      <div
-        className={[
-          "mt-5 rounded-[24px] border p-4",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-orange-100 bg-white",
-        ].join(" ")}
-      >
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <div className="xl:col-span-2">
-            <label
-              className={[
-                "mb-1 block text-xs font-semibold uppercase tracking-[0.14em]",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              Search
-            </label>
-
-            <div
-              className={[
-                "flex items-center gap-2 rounded-xl border px-3 py-2",
-                isDark
-                  ? "border-white/10 bg-black/20"
-                  : "border-orange-100 bg-orange-50/40",
-              ].join(" ")}
-            >
-              <Search
-                className={
-                  isDark
-                    ? "h-4 w-4 text-white/40"
-                    : "h-4 w-4 text-slate-400"
-                }
-              />
-
-              <input
-                value={filters.search}
-                onChange={(event) =>
-                  handleFilterChange("search", event.target.value)
-                }
-                placeholder="User, email, phone, order, transaction..."
-                className={[
-                  "w-full bg-transparent text-sm outline-none",
-                  isDark
-                    ? "text-white placeholder:text-white/30"
-                    : "text-slate-800 placeholder:text-slate-400",
-                ].join(" ")}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              className={[
-                "mb-1 block text-xs font-semibold uppercase tracking-[0.14em]",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              Status
-            </label>
-
-            <select
-              value={filters.status}
-              onChange={(event) =>
-                handleFilterChange("status", event.target.value)
-              }
-              className={[
-                "h-[42px] w-full rounded-xl border px-3 text-sm outline-none",
-                isDark
-                  ? "border-white/10 bg-[#0b1018] text-white"
-                  : "border-orange-100 bg-orange-50/40 text-slate-800",
-              ].join(" ")}
-            >
-              <option value="">All</option>
-              <option value="active">Active</option>
-              <option value="claimed">Claimed</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              className={[
-                "mb-1 block text-xs font-semibold uppercase tracking-[0.14em]",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              MT5 Account
-            </label>
-
-            <input
-              value={filters.mt5Account}
-              onChange={(event) =>
-                handleFilterChange("mt5Account", event.target.value)
-              }
-              placeholder="Account no."
-              className={[
-                "h-[42px] w-full rounded-xl border px-3 text-sm outline-none",
-                isDark
-                  ? "border-white/10 bg-black/20 text-white placeholder:text-white/30"
-                  : "border-orange-100 bg-orange-50/40 text-slate-800 placeholder:text-slate-400",
-              ].join(" ")}
-            />
-          </div>
-
-          <div>
-            <label
-              className={[
-                "mb-1 block text-xs font-semibold uppercase tracking-[0.14em]",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              From Date
-            </label>
-
-            <input
-              type="date"
-              value={filters.fromDate}
-              onChange={(event) =>
-                handleFilterChange("fromDate", event.target.value)
-              }
-              className={[
-                "h-[42px] w-full rounded-xl border px-3 text-sm outline-none",
-                isDark
-                  ? "border-white/10 bg-[#0b1018] text-white"
-                  : "border-orange-100 bg-orange-50/40 text-slate-800",
-              ].join(" ")}
-            />
-          </div>
-
-          <div>
-            <label
-              className={[
-                "mb-1 block text-xs font-semibold uppercase tracking-[0.14em]",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              To Date
-            </label>
-
-            <input
-              type="date"
-              value={filters.toDate}
-              onChange={(event) =>
-                handleFilterChange("toDate", event.target.value)
-              }
-              className={[
-                "h-[42px] w-full rounded-xl border px-3 text-sm outline-none",
-                isDark
-                  ? "border-white/10 bg-[#0b1018] text-white"
-                  : "border-orange-100 bg-orange-50/40 text-slate-800",
-              ].join(" ")}
-            />
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p
-            className={[
-              "text-xs",
-              isDark ? "text-white/40" : "text-slate-500",
-            ].join(" ")}
+  return (
+    <BlotterPage
+      breadcrumb="Reports / Insurance"
+      title="Insurance report"
+      description="Cover bought against deposits, and the claims made against it."
+      actions={
+        <>
+          <Button
+            variant="secondary"
+            onClick={handleExportCsv}
+            disabled={!reportRows.length}
           >
-            Showing page {pagination.page} of {pagination.totalPages}
-          </p>
-
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className={[
-              "rounded-xl border px-4 py-2 text-sm font-semibold transition",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
-                : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50",
-            ].join(" ")}
+            Export CSV
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={fetchInsuranceReport}
+            loading={loading}
           >
-            Reset Filters
-          </button>
-        </div>
-      </div>
-
-      <div
-        className={[
-          "mt-5 overflow-hidden rounded-[24px] border",
-          isDark
-            ? "border-white/10 bg-white/[0.025]"
-            : "border-orange-100 bg-white",
-        ].join(" ")}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-[1180px] w-full border-collapse">
-            <thead
-              className={[
-                isDark
-                  ? "bg-white/[0.04] text-white/55"
-                  : "bg-orange-50/80 text-slate-500",
-              ].join(" ")}
-            >
-              <tr>
-                {[
-                  "User",
-                  "MT5 Account",
-                  "Insurance Amount",
-                  "Claim Amount",
-                  "Status",
-                  "Date & Time",
-                  "Deposit",
-                  "Claim Info",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.14em]"
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <RefreshCw
-                        className={[
-                          "h-7 w-7 animate-spin",
-                          isDark ? "text-blue-300" : "text-orange-600",
-                        ].join(" ")}
-                      />
-
-                      <p
-                        className={[
-                          "text-sm font-medium",
-                          isDark ? "text-white/60" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Loading insurance report...
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : reportRows.length ? (
-                reportRows.map((row) => {
-                  const depositExists = hasDepositData(row);
-
-                  return (
-                    <tr
-                      key={row?.coverageId || row?._id}
-                      className={[
-                        "border-t transition",
-                        isDark
-                          ? "border-white/10 hover:bg-white/[0.035]"
-                          : "border-orange-100 hover:bg-orange-50/50",
-                      ].join(" ")}
-                    >
-                      <td className="px-4 py-4">
-                        <div>
-                          <p
-                            className={[
-                              "text-sm font-semibold",
-                              isDark ? "text-white" : "text-slate-900",
-                            ].join(" ")}
-                          >
-                            {getUserName(row)}
-                          </p>
-
-                          <p
-                            className={[
-                              "mt-1 text-xs",
-                              isDark ? "text-white/40" : "text-slate-500",
-                            ].join(" ")}
-                          >
-                            {row?.user?.email || "-"}
-                          </p>
-
-                          <p
-                            className={[
-                              "mt-0.5 text-xs",
-                              isDark ? "text-white/35" : "text-slate-400",
-                            ].join(" ")}
-                          >
-                            {row?.user?.phone || "-"}
-                          </p>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <span
-                          className={[
-                            "rounded-xl border px-3 py-1.5 text-xs font-semibold",
-                            isDark
-                              ? "border-white/10 bg-white/[0.04] text-white/75"
-                              : "border-slate-200 bg-slate-50 text-slate-700",
-                          ].join(" ")}
-                        >
-                          {row?.mt5Account || "-"}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <p
-                          className={[
-                            "text-sm font-bold",
-                            isDark ? "text-emerald-300" : "text-emerald-700",
-                          ].join(" ")}
-                        >
-                          {formatAmount(row?.insuranceAmount)}
-                        </p>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <p
-                          className={[
-                            "text-sm font-bold",
-                            isDark ? "text-blue-300" : "text-blue-700",
-                          ].join(" ")}
-                        >
-                          {formatAmount(row?.claimAmount)}
-                        </p>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <span
-                          className={[
-                            "inline-flex rounded-full border px-3 py-1 text-xs font-bold capitalize",
-                            getStatusClasses(row?.status, isDark),
-                          ].join(" ")}
-                        >
-                          {row?.status || "-"}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <p
-                          className={[
-                            "text-sm",
-                            isDark ? "text-white/70" : "text-slate-700",
-                          ].join(" ")}
-                        >
-                          {formatDateTime(row?.dateTime)}
-                        </p>
-
-                        {row?.claimedAt && (
-                          <p
-                            className={[
-                              "mt-1 text-xs",
-                              isDark ? "text-white/35" : "text-slate-400",
-                            ].join(" ")}
-                          >
-                            Claimed: {formatDateTime(row.claimedAt)}
-                          </p>
-                        )}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {depositExists ? (
-                          <>
-                            <p
-                              className={[
-                                "text-sm font-semibold",
-                                isDark ? "text-white/80" : "text-slate-800",
-                              ].join(" ")}
-                            >
-                              {formatAmount(row?.deposit?.depositAmount)}
-                            </p>
-
-                            <p
-                              className={[
-                                "mt-1 text-xs",
-                                isDark ? "text-white/40" : "text-slate-500",
-                              ].join(" ")}
-                            >
-                              {row?.deposit?.method || "-"} •{" "}
-                              {row?.deposit?.status || "-"}
-                            </p>
-
-                            <p
-                              className={[
-                                "mt-0.5 text-xs",
-                                isDark ? "text-white/30" : "text-slate-400",
-                              ].join(" ")}
-                            >
-                              TXN: {row?.deposit?.transactionId || "-"}
-                            </p>
-                          </>
-                        ) : (
-                          <div>
-                            <p
-                              className={[
-                                "text-sm font-semibold",
-                                isDark ? "text-red-300" : "text-red-600",
-                              ].join(" ")}
-                            >
-                              No deposit found
-                            </p>
-
-                            <p
-                              className={[
-                                "mt-1 text-xs",
-                                isDark ? "text-white/35" : "text-slate-400",
-                              ].join(" ")}
-                            >
-                              Deposit link missing
-                            </p>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {row?.claim?.id ? (
-                          <div>
-                            <p
-                              className={[
-                                "text-sm font-semibold capitalize",
-                                isDark ? "text-white/80" : "text-slate-800",
-                              ].join(" ")}
-                            >
-                              {row?.claim?.status || "-"}
-                            </p>
-
-                            <p
-                              className={[
-                                "mt-1 text-xs",
-                                isDark ? "text-white/40" : "text-slate-500",
-                              ].join(" ")}
-                            >
-                              Type: {row?.claim?.claimType || "-"}
-                            </p>
-
-                            <p
-                              className={[
-                                "mt-0.5 text-xs",
-                                isDark ? "text-white/35" : "text-slate-400",
-                              ].join(" ")}
-                            >
-                              Credit TXN:{" "}
-                              {row?.claim?.creditTransactionId || "-"}
-                            </p>
-                          </div>
-                        ) : (
-                          <span
-                            className={[
-                              "text-sm",
-                              isDark ? "text-white/35" : "text-slate-400",
-                            ].join(" ")}
-                          >
-                            No claim
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
-                    <p
-                      className={[
-                        "text-sm font-semibold",
-                        isDark ? "text-white/70" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      No insurance records found
-                    </p>
-
-                    <p
-                      className={[
-                        "mt-1 text-xs",
-                        isDark ? "text-white/35" : "text-slate-400",
-                      ].join(" ")}
-                    >
-                      Try changing filters or refreshing the report.
-                    </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          className={[
-            "flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
-            isDark ? "border-white/10" : "border-orange-100",
-          ].join(" ")}
-        >
-          <p
-            className={[
-              "text-xs",
-              isDark ? "text-white/40" : "text-slate-500",
-            ].join(" ")}
-          >
-            Total records: {summary.totalRecords}
-          </p>
-
+            Refresh
+          </Button>
+        </>
+      }
+      readouts={[
+        {
+          key: "records",
+          label: "Policies",
+          value: summary.totalRecords.toLocaleString("en-US"),
+          helper: `${pagination.totalPages} pages`,
+          tone: "brand",
+        },
+        {
+          key: "cover",
+          label: "Total cover",
+          value: formatAmount(summary.totalInsuranceAmount),
+          tone: "ok",
+        },
+        {
+          key: "claims",
+          label: "Total claimed",
+          value: formatAmount(summary.totalClaimAmount),
+          tone: "bad",
+        },
+        {
+          key: "split",
+          label: "Active / claimed",
+          value: `${summary.activeCount} / ${summary.claimedCount}`,
+          helper: summary.claimedCount ? "Claims settled" : "No claims yet",
+        },
+      ]}
+      filter={{
+        search: filters.search,
+        onSearchChange: (v) => handleFilterChange("search", v),
+        searchPlaceholder: "name, email, MT5 account",
+        activeChip: filters.status,
+        onChipChange: (key) => handleFilterChange("status", key),
+        chips: [
+          { key: "", label: "All", tone: "primary" },
+          {
+            key: "active",
+            label: "Active",
+            tone: "success",
+            count: summary.activeCount,
+          },
+          {
+            key: "claimed",
+            label: "Claimed",
+            tone: "warning",
+            count: summary.claimedCount,
+          },
+        ],
+        extra: rangeControls,
+        summary: `${summary.totalRecords.toLocaleString("en-US")} policies`,
+      }}
+      filterPanel={<div className="space-y-3">{rangeControls}</div>}
+      columns={columns}
+      rows={reportRows}
+      loading={loading}
+      rowEdge={(row) =>
+        String(row?.status).toLowerCase() === "claimed" ? "warning" : null
+      }
+      empty={
+        <EmptyState
+          title="No insurance records"
+          description="Nothing matches the current search, status or date range."
+          action={
+            <Button variant="soft" onClick={handleResetFilters}>
+              Reset filters
+            </Button>
+          }
+        />
+      }
+      footer={
+        <>
+          <span className="numeric text-xs text-subtle">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={goToPreviousPage}
-              disabled={pagination.page <= 1 || loading}
-              className={[
-                "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/70 disabled:opacity-40"
-                  : "border-orange-100 bg-white text-slate-700 disabled:opacity-40",
-              ].join(" ")}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </button>
-
-            <span
-              className={[
-                "rounded-xl px-3 py-2 text-sm font-bold",
-                isDark
-                  ? "bg-white/[0.04] text-white/70"
-                  : "bg-orange-50 text-slate-700",
-              ].join(" ")}
-            >
-              {pagination.page} / {pagination.totalPages}
-            </span>
-
-            <button
-              type="button"
-              onClick={goToNextPage}
-              disabled={pagination.page >= pagination.totalPages || loading}
-              className={[
-                "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/70 disabled:opacity-40"
-                  : "border-orange-100 bg-white text-slate-700 disabled:opacity-40",
-              ].join(" ")}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <Badge tone="neutral" dot={false}>
+              {reportRows.length} shown
+            </Badge>
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={goToPreviousPage}
+                disabled={pagination.page <= 1 || loading}
+              >
+                Prev
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={goToNextPage}
+                disabled={pagination.page >= pagination.totalPages || loading}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 };
 

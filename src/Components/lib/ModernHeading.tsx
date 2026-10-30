@@ -42,9 +42,9 @@ export default function ModernHeading({
   const themeConfig = useSelector((s: any) => s.user?.themeConfig);
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
 
-  const from = theme?.gradientFrom || theme?.accent || "59 130 246";
+  const from = theme?.gradientFrom || theme?.accent || "79 125 246";
   const mid = theme?.accent || from;
-  const to = theme?.gradientTo || theme?.primary || "147 51 234";
+  const to = theme?.gradientTo || theme?.primary || "23 157 166";
 
   const h1CommonStyle: React.CSSProperties = {
     backgroundImage: `linear-gradient(90deg, ${rgb(from)}, ${rgb(mid)}, ${rgb(to)})`,

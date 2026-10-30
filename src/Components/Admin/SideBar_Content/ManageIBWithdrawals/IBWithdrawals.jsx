@@ -58,7 +58,7 @@ export default function IBWithdrawals() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4">
         IB Withdrawals — {status || "All"}
       </h2>
@@ -68,44 +68,44 @@ export default function IBWithdrawals() {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
             placeholder="Search by name, email, or MT5 account..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-gray-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-line text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading withdrawals...</p>
+        <p className="text-muted">Loading withdrawals...</p>
       ) : data.length === 0 ? (
-        <p className="text-gray-300">No withdrawals found.</p>
+        <p className="text-muted">No withdrawals found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-gray-700">
+          <table className="min-w-full border-collapse border border-line table-stack">
             <thead>
-              <tr className="bg-gray-800/50">
-                <th className="p-3 text-left border border-gray-700">MT5 AC</th>
-                <th className="p-3 text-left border border-gray-700">Status</th>
-                <th className="p-3 text-left border border-gray-700">Amount</th>
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">MT5 AC</th>
+                <th className="p-3 text-left border border-line">Status</th>
+                <th className="p-3 text-left border border-line">Amount</th>
               </tr>
             </thead>
             <tbody>
               {data.map((item) => (
                 <tr
                   key={item._id}
-                  className="hover:bg-gray-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="MT5 AC" className="p-3 border border-line">
                     {item.mt5Account}
                   </td>
-                  <td className="p-3 border border-gray-700">{item.status}</td>
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="Status" className="p-3 border border-line">{item.status}</td>
+                  <td data-label="Amount" className="p-3 border border-line">
                     ${item.deposit}
                   </td>
                 </tr>
@@ -120,17 +120,17 @@ export default function IBWithdrawals() {
         <button
           disabled={page === 1}
           onClick={() => handlePageChange(page - 1)}
-          className="px-3 py-1 bg-gray-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-surface-3 text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => handlePageChange(page + 1)}
-          className="px-3 py-1 bg-gray-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-surface-3 text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

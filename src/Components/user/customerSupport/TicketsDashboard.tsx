@@ -29,7 +29,7 @@ const AnimatedGrid = () => (
       className="absolute inset-0 opacity-10"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(34,197,94,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.2) 1px, transparent 1px)",
+          "linear-gradient(rgba(15, 159, 110,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 159, 110,0.2) 1px, transparent 1px)",
         backgroundSize: "42px 42px",
         maskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
         WebkitMaskImage: "radial-gradient(ellipse at center, black 55%, transparent 85%)",
@@ -41,7 +41,7 @@ const AnimatedGrid = () => (
       transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
       style={{
         background:
-          "repeating-linear-gradient(90deg, rgba(59,130,246,0.08) 0 2px, transparent 2px 8px)",
+          "repeating-linear-gradient(90deg, rgba(79, 125, 246,0.08) 0 2px, transparent 2px 8px)",
       }}
     />
   </div>
@@ -60,10 +60,10 @@ const FloatingOrbs = () => (
           top: `${(i * 53) % 100}%`,
           background:
             i % 3 === 0
-              ? "radial-gradient(circle at center, rgba(16,185,129,0.25), transparent 60%)"
+              ? "radial-gradient(circle at center, rgba(15, 159, 110,0.25), transparent 60%)"
               : i % 3 === 1
               ? "radial-gradient(circle at center, rgba(34,211,238,0.25), transparent 60%)"
-              : "radial-gradient(circle at center, rgba(99,102,241,0.25), transparent 60%)",
+              : "radial-gradient(circle at center, rgba(23, 157, 166,0.25), transparent 60%)",
         }}
         animate={{
           y: [0, i % 2 ? -22 : 22, 0],
@@ -80,18 +80,18 @@ const GlassCard: React.FC<{ className?: string; children: React.ReactNode }> = (
   <motion.div
     whileHover={{ y: -2 }}
     transition={{ type: "spring", stiffness: 250, damping: 20 }}
-    className={`relative rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-slate-900/70 via-slate-900/30 to-slate-900/70 backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.08)] ${className}`}
+    className={`relative rounded-2xl border border-success bg-gradient-to-br    backdrop-blur-xl shadow-[0_0_80px_rgba(16,185,129,0.08)] ${className}`}
   >
-    <div className="absolute inset-px rounded-[calc(1rem-1px)] bg-gradient-to-br from-emerald-300/5 via-cyan-300/5 to-indigo-300/5 pointer-events-none" />
+    <div className="absolute inset-px rounded-[calc(1rem-1px)] pointer-events-none" />
     {children}
   </motion.div>
 );
 
 const NeonDivider = () => (
   <div className="relative w-full my-4">
-    <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
+    <div className="h-px w-full" />
     <motion.div
-      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-emerald-400/60 blur-md"
+      className="absolute -top-[3px] left-0 h-[7px] w-16 rounded-full bg-success-soft blur-md"
       animate={{ left: ["0%", "100%"] }}
       transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
     />
@@ -102,11 +102,11 @@ const NeonDivider = () => (
 
 const statusChip = (s: string) => {
   const m: Record<string, string> = {
-    open: "bg-red-500/20 text-red-300 border-red-400/30",
-    "in-progress": "bg-yellow-500/20 text-yellow-300 border-yellow-400/30",
-    resolved: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+    open: "bg-danger-soft text-danger border-danger",
+    "in-progress": "bg-warning-soft text-warning border-warning",
+    resolved: "bg-success-soft text-success border-success",
   };
-  return m[s] || "bg-white/10 text-white/80 border-white/20";
+  return m[s] || "bg-surface-2 text-muted border-line";
 };
 
 const StatusChip: React.FC<{ status: string }> = ({ status }) => (
@@ -126,11 +126,11 @@ const SkeletonRow: React.FC<{ i: number }> = ({ i }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: i * 0.05 }}
-    className="border-t border-white/10"
+    className="border-t border-line"
   >
     {Array.from({ length: 5 }).map((_, idx) => (
       <td key={idx} className="p-3">
-        <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
+        <div className="h-4 w-full bg-surface-2 rounded animate-pulse" />
       </td>
     ))}
   </motion.tr>
@@ -289,7 +289,7 @@ export default function TicketsDashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white"
+      className="relative min-h-screen overflow-hidden text-text"
     >
       <AnimatedGrid />
       <FloatingOrbs />
@@ -298,8 +298,8 @@ export default function TicketsDashboard() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={18} className="text-emerald-400" />
-            <span className="uppercase tracking-[0.25em] text-xs text-emerald-300/80 font-semibold">
+            <Sparkles size={18} className="text-success" />
+            <span className="uppercase tracking-[0.25em] text-xs text-success font-semibold">
               help · tickets · support
             </span>
           </div>
@@ -311,7 +311,7 @@ export default function TicketsDashboard() {
           >
             ⚡ My Support Tickets
           </motion.h1>
-          <p className="text-white/70 mt-1">
+          <p className="text-muted mt-1">
             Track issues, chat with support, and raise new tickets—fast and secure.
           </p>
         </div>
@@ -325,8 +325,7 @@ export default function TicketsDashboard() {
               onClick={() => setShowForm(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full relative inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full font-semibold text-black
-                bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400 shadow-[0_10px_30px_rgba(16,185,129,0.35)]"
+              className="w-full relative inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full font-semibold text-text"
             >
               <PlusCircle className="w-5 h-5" />
               New Ticket
@@ -346,17 +345,17 @@ export default function TicketsDashboard() {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Total", value: stats.total, tone: "from-white/10 to-white/5", text: "text-white/90" },
-                { label: "Open", value: stats.open, tone: "from-red-500/20 to-red-500/10", text: "text-red-300" },
-                { label: "In Progress", value: stats.prog, tone: "from-yellow-500/20 to-yellow-500/10", text: "text-yellow-300" },
-                { label: "Resolved", value: stats.res, tone: "from-emerald-500/20 to-emerald-500/10", text: "text-emerald-300" },
+                { label: "Total", value: stats.total, tone: "", text: "text-muted" },
+                { label: "Open", value: stats.open, tone: "", text: "text-danger" },
+                { label: "In Progress", value: stats.prog, tone: "bg-warning-soft", text: "text-warning" },
+                { label: "Resolved", value: stats.res, tone: "", text: "text-success" },
               ].map((s) => (
                 <div
                   key={s.label}
-                  className={`rounded-xl border border-white/10 bg-gradient-to-br ${s.tone} p-3 text-center`}
+                  className={`rounded-xl border border-line bg-gradient-to-br ${s.tone} p-3 text-center`}
                 >
                   <div className={`text-lg font-bold ${s.text}`}>{s.value}</div>
-                  <div className="text-xs text-white/70">{s.label}</div>
+                  <div className="text-xs text-muted">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -366,19 +365,17 @@ export default function TicketsDashboard() {
             {/* Filters */}
             <div className="space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/80" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-success" size={16} />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search by ID / subject"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl outline-none text-white/90
-                    bg-gradient-to-br from-slate-900/70 to-slate-900/30 border border-emerald-400/20
-                    focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400/50 transition"
+                  className="w-full pl-9 pr-3 py-2 rounded-card outline-none text-muted border border-success focus:ring-2 focus:ring-success focus:border-success transition"
                 />
               </div>
 
-              <div className="flex items-center gap-2 text-white/70 text-sm">
+              <div className="flex items-center gap-2 text-muted text-sm">
                 <Filter size={16} />
                 <span>Status</span>
               </div>
@@ -389,8 +386,8 @@ export default function TicketsDashboard() {
                     onClick={() => setStatusFilter(s)}
                     className={`px-3 py-2 rounded-xl border text-sm ${
                       statusFilter === s
-                        ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
-                        : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                        ? "border-success bg-success-soft text-success"
+                        : "border-line bg-surface-2 text-muted hover:bg-surface-2"
                     }`}
                   >
                     {s.replace("-", " ").replace(/^\w/, (c) => c.toUpperCase())}
@@ -402,18 +399,18 @@ export default function TicketsDashboard() {
 
           {/* Main Table */}
           <GlassCard className="p-0 lg:col-span-8 xl:col-span-9 overflow-hidden">
-            <div className="p-5 border-b border-white/10 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent">
+            <div className="p-5 border-b border-line">
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-emerald-300" />
+                <MessageSquare className="w-5 h-5 text-success" />
                 <h2 className="text-lg font-semibold">Tickets</h2>
-                <span className="text-white/60 text-sm">({filtered.length})</span>
+                <span className="text-subtle text-sm">({filtered.length})</span>
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-white/5 text-white/70">
-                  <tr className="border-b border-white/10">
+              <table className="table-stack w-full text-sm">
+                <thead className="bg-surface-2 text-muted">
+                  <tr className="border-b border-line">
                     <th className="p-3 text-left">ID</th>
                     <th className="p-3 text-left">Subject</th>
                     <th className="p-3 text-left">Status</th>
@@ -428,7 +425,7 @@ export default function TicketsDashboard() {
 
                   {!loading && filtered.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-6 text-center text-white/60">
+                      <td colSpan={5} className="p-6 text-center text-subtle">
                         {userId
                           ? "No tickets found. Try adjusting your filters."
                           : "Sign in to view your tickets."}
@@ -446,34 +443,33 @@ export default function TicketsDashboard() {
                           animate="visible"
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ delay: i * 0.02 }}
-                          className={`border-t border-white/10 hover:bg-white/5 ${
-                            highlightTicketId === ticket._id ? "bg-emerald-500/10" : ""
+                          className={`border-t border-line hover:bg-surface-2 ${
+                            highlightTicketId === ticket._id ? "bg-success-soft" : ""
                           }`}
                           whileHover={{
                             backgroundColor: "rgba(51,65,85,0.3)",
                             transition: { duration: 0.18 },
                           }}
                         >
-                          <td className="p-3">
-                            <span className="font-mono text-white/80">#{String(ticket._id).slice(0, 8)}</span>
+                          <td data-label="ID" className="p-3">
+                            <span className="font-mono text-muted">#{String(ticket._id).slice(0, 8)}</span>
                           </td>
-                          <td className="p-3 font-medium text-white/90">{ticket.subject}</td>
-                          <td className="p-3">
+                          <td data-label="Subject" className="p-3 font-medium text-muted">{ticket.subject}</td>
+                          <td data-label="Status" className="p-3">
                             <StatusChip status={ticket.status} />
                           </td>
-                          <td className="p-3 text-white/70">
+                          <td data-label="Created" className="p-3 text-muted">
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
                               {dayjs(ticket.createdAt).format("DD/MM/YYYY HH:mm")}
                             </div>
                           </td>
-                          <td className="p-3">
+                          <td data-label="Action" className="p-3">
                             <motion.button
                               onClick={() => setActiveTicket(ticket)}
                               whileHover={{ scale: 1.04 }}
                               whileTap={{ scale: 0.98 }}
-                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
-                                bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 border border-emerald-400/30 text-emerald-200"
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-field border border-success text-success"
                             >
                               <MessageCircle className="w-4 h-4" />
                               Chat
@@ -490,7 +486,7 @@ export default function TicketsDashboard() {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-white/50 mt-8 text-sm">
+        <div className="text-center text-subtle mt-8 text-sm">
           We’re here to help—quickly and transparently.
         </div>
       </div>
@@ -514,7 +510,7 @@ export default function TicketsDashboard() {
               <GlassCard className="p-6">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="absolute top-3 right-3 text-white/70 hover:text-white"
+                  className="absolute top-3 right-3 text-muted hover:text-text"
                   aria-label="Close"
                 >
                   <X />
@@ -545,7 +541,7 @@ export default function TicketsDashboard() {
               <GlassCard className="p-4">
                 <button
                   onClick={() => setActiveTicket(null)}
-                  className="absolute top-3 right-3 text-white/70 hover:text-white"
+                  className="absolute top-3 right-3 text-muted hover:text-text"
                   aria-label="Close"
                 >
                   <X />

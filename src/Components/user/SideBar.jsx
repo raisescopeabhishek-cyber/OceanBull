@@ -228,13 +228,13 @@ const Sidebar = () => {
     <>
       {isOpen && !isLargeScreen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-30 z-40 lg:hidden"
+          className="fixed inset-0 bg-surface bg-opacity-30 z-40 lg:hidden"
           onClick={closeSidebar}
         />
       )}
       <motion.div
         ref={sidebarRef}
-        className={`fixed left-0 h-screen top-0 bg-primary-800 text-white overflow-hidden z-50 ${
+        className={`fixed left-0 h-screen top-0 bg-primary-800 text-text overflow-hidden z-50 ${
           isLargeScreen ? "lg:relative lg:top-0 lg:h-screen" : ""
         }`}
         initial={false}
@@ -248,12 +248,12 @@ const Sidebar = () => {
         >
           <a
             href="/user/dashboard"
-            className=" flex  lg:hidden my-4 justify-center"
+            className="flex lg:hidden my-4 justify-center"
           >
             <img
               src={siteConfig?.logo}
               alt="Forex Logo"
-              className="block  object-contain w-auto dynamic-logo"
+              className="block object-contain w-auto dynamic-logo"
             />
 
             <style jsx>{`
@@ -313,7 +313,7 @@ const Sidebar = () => {
                 <AnimatePresence>
                   {item.nested && openSections.has(item.label) && (
                     <motion.ul
-                      className="ml-6 mt-1 space-y-1 bg-primary-700 rounded-lg shadow-md overflow-hidden"
+                      className="ml-6 mt-1 space-y-1 bg-primary-700 rounded-field overflow-hidden"
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -325,7 +325,7 @@ const Sidebar = () => {
                             to={subItem.route}
                             onClick={closeSidebar}
                             className={({ isActive }) =>
-                              `flex items-center p-2 text-left text-gray-300 hover:bg-primary-600 rounded-lg transition-colors duration-200 ${
+                              `flex items-center p-2 text-left text-muted hover:bg-primary-600 rounded-lg transition-colors duration-200 ${
                                 isActive ? "bg-primary-600" : ""
                               }`
                             }

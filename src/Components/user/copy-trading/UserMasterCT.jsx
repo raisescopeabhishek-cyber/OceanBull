@@ -78,8 +78,8 @@ export default function UserMasterCT() {
 
   return (
     <div className="max-w-3xl px-6 py-12 mx-auto text-center">
-      <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-200/90 sm:text-5xl md:text-6xl">
-        <span className=" text-secondary-500"> Confident in your trades?</span>
+      <h1 className="mb-6 text-4xl font-bold tracking-tight text-muted sm:text-5xl md:text-6xl">
+        <span className="text-secondary-500"> Confident in your trades?</span>
 
         <span className="block mt-4">
           {" "}
@@ -87,14 +87,14 @@ export default function UserMasterCT() {
         </span>
       </h1>
 
-      <p className="max-w-2xl mx-auto mb-8 text-lg text-gray-300/80">
+      <p className="max-w-2xl mx-auto mb-8 text-lg text-muted">
         Turn your trading expertise into a source of passive income by allowing
         others to copy your moves and follow your performance.{" "}
       </p>
 
       <button
         onClick={() => setIsDialogOpen(true)}
-        className="inline-flex items-center px-6 py-3 text-lg font-medium text-white bg-secondary-500 rounded-full hover:px-10 transition-all hover:bg-secondary-500-80 focus:outline-none"
+        className="inline-flex items-center px-6 py-3 text-lg font-medium text-text bg-secondary-500 rounded-full hover:px-10 transition-all hover:bg-secondary-500-80 focus:outline-none"
       >
         Become a Master
         <ArrowRight className="w-5 h-5 ml-2" />
@@ -105,7 +105,7 @@ export default function UserMasterCT() {
           <AlertDialogContent>
             {/* Dialog content remains the same */}
             <AlertDialogHeader>
-              <AlertDialogTitle className=" ">
+              <AlertDialogTitle className="">
                 {"Setup With Your Account"}
               </AlertDialogTitle>
               <AlertDialogDescription>
@@ -113,14 +113,14 @@ export default function UserMasterCT() {
                   {loggedUser?.accounts?.map((account) => (
                     <div
                       key={account?.accountNumber}
-                      className="flex items-center justify-between p-4 rounded-lg shadow-sm bg-secondary-800/40"
+                      className="flex items-center justify-between p-4 rounded-field shadow-sm bg-secondary-800/40"
                     >
                       {/* Account Information */}
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-100">
+                        <h2 className="text-lg font-semibold text-text">
                           Account #{account?.accountNumber}
                         </h2>
-                        <p className="text-sm text-gray-200">
+                        <p className="text-sm text-muted">
                           {account?.accountType || "Account Type Unavailable"}
                         </p>
                       </div>
@@ -144,7 +144,7 @@ export default function UserMasterCT() {
                             becomeMasterHandler(account?.accountNumber);
                           }
                         }}
-                        className="bg-secondary-500 flex items-center gap-1 text-white px-5 py-2 rounded-full shadow-md hover:bg-secondary-500-80 transition"
+                        className="bg-secondary-500 flex items-center gap-1 text-text px-5 py-2 rounded-full hover:bg-secondary-500-80 transition"
                       >
                         {linkedAccounts?.includes(
                           Number(account?.accountNumber)

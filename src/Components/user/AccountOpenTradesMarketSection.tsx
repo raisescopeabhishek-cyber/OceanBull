@@ -804,19 +804,15 @@ const maxTime =
   }, [stopPanning]);
 
   const sectionShell = cx(
-    "rounded-[30px] border backdrop-blur-xl",
-    isDark
-      ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-      : "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+    "rounded-card border backdrop-blur-xl","border-line bg-surface-2"
   );
 
   const softCard = cx(
-    "rounded-[22px] border",
-    isDark ? "border-white/10 bg-white/[0.03]" : "border-orange-100 bg-white/85"
+    "rounded-card border","border-line bg-surface-2"
   );
 
-  const mutedText = isDark ? "text-white/55" : "text-slate-500";
-  const strongText = isDark ? "text-white" : "text-slate-900";
+  const mutedText ="text-subtle";
+  const strongText ="text-text";
 
   const handleManualRefresh = useCallback(async () => {
     if (!selectedAccountId) return;
@@ -862,10 +858,7 @@ const maxTime =
         <div className="min-w-0">
           <div
             className={cx(
-              "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700"
+              "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
             )}
           >
             <CandlestickChart size={14} />
@@ -878,10 +871,7 @@ const maxTime =
           type="button"
           onClick={handleManualRefresh}
           className={cx(
-            "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/[0.07]"
-              : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
+            "inline-flex items-center gap-2 rounded-card border px-4 py-2.5 text-sm font-medium transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
           )}
         >
           <RefreshCw size={16} className={cx(refreshing && "animate-spin")} />
@@ -899,10 +889,7 @@ const maxTime =
             value={selectedAccountId}
             onChange={(e) => setSelectedAccountId(e.target.value)}
             className={cx(
-              "w-full rounded-xl border px-3 py-2 text-sm outline-none",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white"
-                : "border-orange-100 bg-white text-slate-900"
+              "w-full rounded-card border px-3 py-2 text-sm outline-none","border-line bg-surface-2 text-text"
             )}
             disabled={!accountOptions.length}
           >
@@ -967,12 +954,8 @@ const maxTime =
                   className={cx(
                     "rounded-full px-3 py-1.5 text-xs font-semibold transition",
                     selectedSymbol === item.symbol
-                      ? isDark
-                        ? "bg-cyan-500/15 text-cyan-300"
-                        : "bg-orange-100 text-orange-700"
-                      : isDark
-                      ? "bg-white/[0.05] text-white/65 hover:bg-white/[0.08]"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ?"bg-primary-soft text-primary"
+                      :"bg-surface-2 text-muted hover:bg-surface-2"
                   )}
                 >
                   <span className="mr-1">{getSymbolBadge(item.symbol)}</span>
@@ -999,14 +982,10 @@ const maxTime =
                 type="button"
                 onClick={() => setTimeframe(tf)}
                 className={cx(
-                  "rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition",
+                  "rounded-card px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition",
                   timeframe === tf
-                    ? isDark
-                      ? "bg-emerald-500/15 text-emerald-300"
-                      : "bg-emerald-100 text-emerald-700"
-                    : isDark
-                    ? "bg-white/[0.04] text-white/60 hover:bg-white/[0.08]"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ?"bg-success-soft text-success"
+                    :"bg-surface-2 text-subtle hover:bg-surface-2"
                 )}
               >
                 {tf}
@@ -1027,14 +1006,10 @@ const maxTime =
                 type="button"
                 onClick={() => setChartMode(modeItem)}
                 className={cx(
-                  "rounded-xl px-3 py-2 text-xs font-semibold transition",
+                  "rounded-card px-3 py-2 text-xs font-semibold transition",
                   chartMode === modeItem
-                    ? isDark
-                      ? "bg-cyan-500/15 text-cyan-300"
-                      : "bg-orange-100 text-orange-700"
-                    : isDark
-                    ? "bg-white/[0.04] text-white/60 hover:bg-white/[0.08]"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ?"bg-primary-soft text-primary"
+                    :"bg-surface-2 text-subtle hover:bg-surface-2"
                 )}
               >
                 {modeItem}
@@ -1092,10 +1067,7 @@ const maxTime =
               type="button"
               onClick={() => zoomAtRatio(0.82, 0.5)}
               className={cx(
-                "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-                  : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
+                "inline-flex items-center gap-2 rounded-card border px-3 py-2 text-xs font-semibold transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
               )}
             >
               <ZoomIn size={14} />
@@ -1106,10 +1078,7 @@ const maxTime =
               type="button"
               onClick={() => zoomAtRatio(1.22, 0.5)}
               className={cx(
-                "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-                  : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
+                "inline-flex items-center gap-2 rounded-card border px-3 py-2 text-xs font-semibold transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
               )}
             >
               <ZoomOut size={14} />
@@ -1120,10 +1089,7 @@ const maxTime =
               type="button"
               onClick={resetZoom}
               className={cx(
-                "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]"
-                  : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
+                "inline-flex items-center gap-2 rounded-card border px-3 py-2 text-xs font-semibold transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
               )}
             >
               <RotateCcw size={14} />
@@ -1135,7 +1101,7 @@ const maxTime =
         <div
           ref={chartRef}
           className={cx(
-            "relative h-[380px] w-full overflow-hidden rounded-[20px]",
+            "relative h-[380px] w-full overflow-hidden rounded-card",
             isPanning ? "cursor-grabbing" : "cursor-grab"
           )}
           onWheel={handleWheel}
@@ -1150,8 +1116,7 @@ const maxTime =
               <div
                 key={index}
                 className={cx(
-                  "border-t border-dashed",
-                  isDark ? "border-white/10" : "border-slate-200"
+                  "border-t border-dashed","border-line"
                 )}
               />
             ))}
@@ -1160,10 +1125,7 @@ const maxTime =
           {showSoftUpdating ? (
             <div
               className={cx(
-                "absolute right-3 top-3 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold",
-                isDark
-                  ? "border-cyan-400/20 bg-slate-900/70 text-cyan-300"
-                  : "border-orange-200 bg-white/90 text-orange-700"
+                "absolute right-3 top-3 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold","border-line bg-surface text-primary"
               )}
             >
               <RefreshCw size={12} className="animate-spin" />
@@ -1174,10 +1136,7 @@ const maxTime =
           {errorText && canRenderChart ? (
             <div
               className={cx(
-                "absolute left-3 top-3 z-20 rounded-full border px-3 py-1.5 text-[11px] font-semibold",
-                isDark
-                  ? "border-rose-400/20 bg-slate-900/70 text-rose-300"
-                  : "border-rose-200 bg-white/90 text-rose-700"
+                "absolute left-3 top-3 z-20 rounded-full border px-3 py-1.5 text-[11px] font-semibold","border-danger bg-surface text-danger"
               )}
             >
               {errorText}
@@ -1186,10 +1145,7 @@ const maxTime =
 
           <div
             className={cx(
-              "pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold",
-              isDark
-                ? "border-white/10 bg-slate-900/70 text-white/65"
-                : "border-slate-200 bg-white/90 text-slate-600"
+              "pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold","border-line bg-surface text-muted"
             )}
           >
             <MoveHorizontal size={12} />
@@ -1229,11 +1185,11 @@ const maxTime =
                 <linearGradient id="selectedSymbolAreaFill" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor={isDark ? "rgba(34,211,238,0.24)" : "rgba(59,130,246,0.20)"}
+                    stopColor={isDark ? "rgba(34,211,238,0.24)" : "rgba(79, 125, 246,0.20)"}
                   />
                   <stop
                     offset="100%"
-                    stopColor={isDark ? "rgba(34,211,238,0.02)" : "rgba(59,130,246,0.03)"}
+                    stopColor={isDark ? "rgba(34,211,238,0.02)" : "rgba(79, 125, 246,0.03)"}
                   />
                 </linearGradient>
               </defs>
@@ -1248,14 +1204,14 @@ const maxTime =
                       y1={y}
                       x2={chartWidth - chartPaddingRight}
                       y2={y}
-                      stroke={isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0"}
+                      stroke={isDark ? "rgba(255,255,255,0.08)" : "#e3e8f0"}
                       strokeDasharray="5 6"
                     />
                     <text
                       x={chartWidth - chartPaddingRight + 10}
                       y={y + 4}
                       fontSize="11"
-                      fill={isDark ? "rgba(255,255,255,0.45)" : "#64748b"}
+                      fill={isDark ? "rgba(255,255,255,0.45)" : "#7b879a"}
                     >
                       {formatPrice(value)}
                     </text>
@@ -1289,7 +1245,7 @@ const maxTime =
                       y1={yHigh}
                       x2={x}
                       y2={yLow}
-                      stroke={isBull ? "#22c55e" : "#ef4444"}
+                      stroke={isBull ? "#0f9f6e" : "#dc3a3a"}
                       strokeWidth="1.8"
                     />
                     <rect
@@ -1298,7 +1254,7 @@ const maxTime =
                       width={candleWidth}
                       height={bodyHeight}
                       rx="2"
-                      fill={isBull ? "#22c55e" : "#ef4444"}
+                      fill={isBull ? "#0f9f6e" : "#dc3a3a"}
                       opacity={0.92}
                     />
                   </g>
@@ -1313,7 +1269,7 @@ const maxTime =
                   <path
                     d={closePath}
                     fill="none"
-                    stroke={isDark ? "#22d3ee" : "#2563eb"}
+                    stroke={isDark ? "#22d3ee" : "#2245b4"}
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1328,7 +1284,7 @@ const maxTime =
                     y1={yForPrice(avgEntry)}
                     x2={chartWidth - chartPaddingRight}
                     y2={yForPrice(avgEntry)}
-                    stroke={isDark ? "rgba(250,204,21,0.7)" : "rgba(245,158,11,0.9)"}
+                    stroke={isDark ? "rgba(250,204,21,0.7)" : "rgba(42, 86, 220,0.9)"}
                     strokeDasharray="6 6"
                   />
                   <text
@@ -1368,7 +1324,7 @@ const maxTime =
                 const tradeTime = new Date(trade.openTime).getTime();
                 const x = xForTime(tradeTime);
                 const y = yForPrice(trade.openPrice);
-                const fill = trade.side === "BUY" ? "#22c55e" : "#ef4444";
+                const fill = trade.side === "BUY" ? "#0f9f6e" : "#dc3a3a";
 
                 return (
                   <g key={`${trade.id}-${index}`}>
@@ -1384,7 +1340,7 @@ const maxTime =
                       />
                     )}
 
-                    <circle cx={x} cy={y} r="3" fill={isDark ? "#ffffff" : "#0f172a"} />
+                    <circle cx={x} cy={y} r="3" fill={isDark ? "#ffffff" : "#0f1829"} />
 
                     <title>
                       {`${trade.symbol} | ${trade.side} | Open ${formatPrice(
@@ -1402,7 +1358,7 @@ const maxTime =
                   y={chartHeight - 8}
                   textAnchor="middle"
                   fontSize="11"
-                  fill={isDark ? "rgba(255,255,255,0.45)" : "#64748b"}
+                  fill={isDark ? "rgba(255,255,255,0.45)" : "#7b879a"}
                 >
                   {tickItem.label}
                 </text>
@@ -1414,7 +1370,7 @@ const maxTime =
 
       <div className="mt-4">
         <div className="mb-3 flex items-center gap-2">
-          <Activity size={16} className={isDark ? "text-cyan-300" : "text-orange-600"} />
+          <Activity size={16} className={"text-primary"} />
           <h3 className={cx("text-base font-semibold", strongText)}>
             Open Trades for {selectedSymbol || "selected symbol"}
           </h3>
@@ -1431,10 +1387,7 @@ const maxTime =
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={cx(
-                    "rounded-2xl border px-4 py-3",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-orange-100 bg-white"
+                    "rounded-card border px-4 py-3","border-line bg-surface-2"
                   )}
                 >
                   <div className="mb-2 flex items-start justify-between gap-3">
@@ -1452,12 +1405,8 @@ const maxTime =
                       className={cx(
                         "rounded-full px-2.5 py-1 text-[11px] font-semibold",
                         trade.side === "BUY"
-                          ? isDark
-                            ? "bg-emerald-500/12 text-emerald-300"
-                            : "bg-emerald-50 text-emerald-700"
-                          : isDark
-                          ? "bg-rose-500/12 text-rose-300"
-                          : "bg-rose-50 text-rose-700"
+                          ?"bg-success-soft text-success"
+                          :"bg-danger-soft text-danger"
                       )}
                     >
                       {trade.side}
@@ -1492,12 +1441,8 @@ const maxTime =
                         className={cx(
                           "mt-1 font-semibold",
                           pnlPositive
-                            ? isDark
-                              ? "text-emerald-300"
-                              : "text-emerald-700"
-                            : isDark
-                            ? "text-rose-300"
-                            : "text-rose-700"
+                            ?"text-success"
+                            :"text-danger"
                         )}
                       >
                         {toNumber(trade.profit).toFixed(2)}
@@ -1508,7 +1453,7 @@ const maxTime =
               );
             })
           ) : (
-            <div className={cx("rounded-2xl border px-4 py-6 text-sm", mutedText, softCard)}>
+            <div className={cx("rounded-card border px-4 py-6 text-sm", mutedText, softCard)}>
               No open trades found for selected symbol.
             </div>
           )}

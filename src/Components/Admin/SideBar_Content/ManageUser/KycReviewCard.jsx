@@ -2,7 +2,7 @@ import React from "react";
 
 const KycReviewCard = () => {
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6 border border-gray-200">
+    <div className="max-w-3xl mx-auto bg-surface rounded-field p-6 space-y-6 border border-line">
       {/* Section: Account Details */}
       <div>
         <h2 className="text-xl font-semibold border-b pb-2 mb-4">Account Details</h2>
@@ -35,7 +35,7 @@ const KycReviewCard = () => {
             href="/front-document.jpg"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-primary hover:underline"
           >
             View Full Image
           </a>
@@ -48,7 +48,7 @@ const KycReviewCard = () => {
             href="/back-document.jpg"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-primary hover:underline"
           >
             View Full Image
           </a>
@@ -61,7 +61,7 @@ const KycReviewCard = () => {
             href="/selfie-document.jpg"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-primary hover:underline"
           >
             View Full Image
           </a>
@@ -72,16 +72,16 @@ const KycReviewCard = () => {
       <div className="flex items-center gap-4 border-t pt-4">
         <textarea
           placeholder="Add a comment..."
-          className="flex-1 border rounded-lg p-2 resize-none"
+          className="flex-1 border rounded-field p-2 resize-none"
           rows={2}
         ></textarea>
-        <button className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg">
+        <button className="px-4 py-2 bg-surface-3 hover:bg-surface-3 rounded-field">
           Close
         </button>
-        <button className="px-4 py-2 bg-green-500 text-white hover:bg-green-600 rounded-lg">
+        <button className="px-4 py-2 bg-success text-text hover:bg-success rounded-field">
           Approve
         </button>
-        <button className="px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded-lg">
+        <button className="px-4 py-2 bg-danger text-text hover:bg-danger rounded-field">
           Reject
         </button>
       </div>

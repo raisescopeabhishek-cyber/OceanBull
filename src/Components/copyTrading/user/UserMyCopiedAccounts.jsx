@@ -106,8 +106,7 @@ const UserMyCopiedAccounts = () => {
     return (
       <div
         className={cx(
-          "p-5 text-sm",
-          isDark ? "text-white/70" : "text-slate-600"
+          "p-5 text-sm","text-muted"
         )}
       >
         Loading copied accounts...
@@ -131,17 +130,13 @@ const UserMyCopiedAccounts = () => {
     <div className="space-y-5 p-5 sm:p-6">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 lg:grid-cols-[1fr_auto]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 lg:grid-cols-[1fr_auto]","border-line bg-surface-2"
         )}
       >
         <div className="relative">
           <Search
             className={cx(
-              "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2",
-              isDark ? "text-white/45" : "text-slate-400"
+              "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2","text-subtle"
             )}
           />
 
@@ -150,10 +145,7 @@ const UserMyCopiedAccounts = () => {
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by master account, copier account, commission..."
             className={cx(
-              "w-full rounded-2xl border px-11 py-3 text-sm outline-none transition-all",
-              isDark
-                ? "border-white/10 bg-slate-950 text-white placeholder:text-white/40 focus:border-emerald-400/60"
-                : "border-emerald-100 bg-white text-slate-900 placeholder:text-slate-400 focus:border-emerald-400"
+              "w-full rounded-card border px-11 py-3 text-sm outline-none transition-all","border-line bg-surface text-text placeholder:text-subtle focus:border-success"
             )}
           />
 
@@ -162,10 +154,7 @@ const UserMyCopiedAccounts = () => {
               type="button"
               onClick={() => setSearch("")}
               className={cx(
-                "absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-1.5",
-                isDark
-                  ? "text-white/50 hover:bg-white/10 hover:text-white"
-                  : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                "absolute right-3 top-1/2 -translate-y-1/2 rounded-card p-1.5","text-subtle hover:bg-surface-2 hover:text-text"
               )}
               aria-label="Clear search"
             >
@@ -179,10 +168,7 @@ const UserMyCopiedAccounts = () => {
           onClick={loadRows}
           disabled={loading}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-              : "border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+            "inline-flex items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60","border-line bg-surface-2 text-text hover:bg-surface-2"
           )}
         >
           <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -192,10 +178,7 @@ const UserMyCopiedAccounts = () => {
 
       <div
         className={cx(
-          "rounded-[18px] border px-4 py-3 text-sm",
-          isDark
-            ? "border-white/10 bg-white/[0.025] text-white/65"
-            : "border-emerald-100 bg-emerald-50/60 text-slate-600"
+          "rounded-card border px-4 py-3 text-sm","border-line bg-surface-2 text-muted"
         )}
       >
         Showing <b>{filteredRows.length}</b> of <b>{rows.length}</b> copied
@@ -229,10 +212,7 @@ const UserMyCopiedAccounts = () => {
               <tr
                 key={`${masterAccount}-${copierAccount}-${index}`}
                 className={cx(
-                  "border-t transition-colors",
-                  isDark
-                    ? "border-white/10 hover:bg-white/[0.035]"
-                    : "border-emerald-100 hover:bg-emerald-50/40"
+                  "border-t transition-colors","border-line hover:bg-surface-2"
                 )}
               >
                 <td className="whitespace-nowrap px-4 py-4 font-bold">
@@ -250,7 +230,7 @@ const UserMyCopiedAccounts = () => {
                 <td className="whitespace-nowrap px-4 py-4">${minInvest}</td>
 
                 <td className="whitespace-nowrap px-4 py-4">
-                  <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600">
+                  <span className="rounded-full bg-success-soft px-3 py-1 text-xs font-bold text-success">
                     Active
                   </span>
                 </td>

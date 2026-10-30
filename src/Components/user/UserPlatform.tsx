@@ -52,19 +52,19 @@ function SectionCard({
 }) {
   return (
     <div
-      className={["rounded-[24px] border transition-all duration-300", className].join(
+      className={["rounded-card border transition-all duration-300", className].join(
         " "
       )}
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
+          : "rgba(79, 125, 246,0.14)",
         background: isDark
           ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
           : "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,250,246,0.82))",
         boxShadow: isDark
           ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(251,146,60,0.10)",
+          : "0 14px 40px rgba(79, 125, 246,0.10)",
         backdropFilter: "blur(10px)",
       }}
     >
@@ -84,29 +84,29 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+          iconBg: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(15, 159, 110,0.10)",
           iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
-          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+          border: isDark ? "rgba(15, 159, 110,0.18)" : "rgba(15, 159, 110,0.16)",
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(249,115,22,0.10)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(251,146,60,0.16)",
+          iconBg: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.10)",
+          iconColor: isDark ? "rgba(79, 125, 246,0.95)" : "rgba(42, 86, 220,0.95)",
+          border: isDark ? "rgba(79, 125, 246,0.18)" : "rgba(79, 125, 246,0.16)",
         }
       : {
           iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
           iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
           border: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(251,146,60,0.14)",
+            : "rgba(79, 125, 246,0.14)",
         };
 
   return (
     <SectionCard theme={theme} isDark={isDark} className="p-4">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -122,7 +122,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(100,116,139,0.96)",
+                : "rgba(123, 135, 154,0.96)",
             }}
           >
             {label}
@@ -132,7 +132,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(15,23,42,0.98)",
+                : "rgba(15, 24, 41,0.98)",
             }}
           >
             {value}
@@ -158,22 +158,22 @@ function FeatureRow({
 }) {
   return (
     <div
-      className="flex items-start gap-4 rounded-2xl border p-4"
+      className="flex items-start gap-4 rounded-card border p-4"
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(251,146,60,0.14)",
+          : "rgba(79, 125, 246,0.14)",
         background: isDark ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.80)",
       }}
     >
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border"
         style={{
           borderColor: isDark
-            ? "rgba(59,130,246,0.18)"
-            : "rgba(251,146,60,0.16)",
-          background: isDark ? "rgba(59,130,246,0.10)" : "rgba(249,115,22,0.10)",
-          color: isDark ? "rgba(96,165,250,0.95)" : "rgba(249,115,22,0.95)",
+            ? "rgba(79, 125, 246,0.18)"
+            : "rgba(79, 125, 246,0.16)",
+          background: isDark ? "rgba(79, 125, 246,0.10)" : "rgba(42, 86, 220,0.10)",
+          color: isDark ? "rgba(79, 125, 246,0.95)" : "rgba(42, 86, 220,0.95)",
         }}
       >
         {icon}
@@ -185,7 +185,7 @@ function FeatureRow({
           style={{
             color: isDark
               ? rgba(theme?.fg || "255 255 255", 0.92)
-              : "rgba(30,41,59,0.96)",
+              : "rgba(19, 32, 52,0.96)",
           }}
         >
           {title}
@@ -195,7 +195,7 @@ function FeatureRow({
           style={{
             color: isDark
               ? rgba(theme?.fg || "255 255 255", 0.58)
-              : "rgba(100,116,139,0.96)",
+              : "rgba(123, 135, 154,0.96)",
           }}
         >
           {description}
@@ -221,8 +221,8 @@ function DownloadCard({
   isDark: boolean;
 }) {
   const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "rgba(249,115,22,0.95)";
+    ? "rgba(79, 125, 246,0.95)"
+    : "rgba(42, 86, 220,0.95)";
 
   return (
     <motion.a
@@ -236,12 +236,12 @@ function DownloadCard({
       <SectionCard theme={theme} isDark={isDark} className="h-full p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+            className="flex h-11 w-11 items-center justify-center rounded-card border"
             style={{
               borderColor: isDark
-                ? "rgba(59,130,246,0.18)"
-                : "rgba(251,146,60,0.16)",
-              background: isDark ? "rgba(59,130,246,0.10)" : "rgba(249,115,22,0.10)",
+                ? "rgba(79, 125, 246,0.18)"
+                : "rgba(79, 125, 246,0.16)",
+              background: isDark ? "rgba(79, 125, 246,0.10)" : "rgba(42, 86, 220,0.10)",
               color: accentColor,
             }}
           >
@@ -249,11 +249,11 @@ function DownloadCard({
           </div>
 
           <div
-            className="grid h-10 w-10 place-items-center rounded-xl border"
+            className="grid h-10 w-10 place-items-center rounded-card border"
             style={{
               borderColor: isDark
                 ? rgba(theme?.border || "255 255 255", 0.12)
-                : "rgba(251,146,60,0.14)",
+                : "rgba(79, 125, 246,0.14)",
               background: isDark
                 ? "rgba(255,255,255,0.03)"
                 : "rgba(255,255,255,0.80)",
@@ -269,7 +269,7 @@ function DownloadCard({
           style={{
             color: isDark
               ? rgba(theme?.fg || "255 255 255", 0.94)
-              : "rgba(15,23,42,0.98)",
+              : "rgba(15, 24, 41,0.98)",
           }}
         >
           {title}
@@ -280,7 +280,7 @@ function DownloadCard({
           style={{
             color: isDark
               ? rgba(theme?.fg || "255 255 255", 0.58)
-              : "rgba(100,116,139,0.96)",
+              : "rgba(123, 135, 154,0.96)",
           }}
         >
           {description}
@@ -307,27 +307,16 @@ const UserPlatform = () => {
 
   const titleColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(15,23,42,0.98)";
+    : "rgba(15, 24, 41,0.98)";
 
   const mutedTextColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
+    : "rgba(123, 135, 154,0.96)";
 
   const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "rgba(249,115,22,0.95)";
+    ? "rgba(79, 125, 246,0.95)"
+    : "rgba(42, 86, 220,0.95)";
 
-  const pageBackground = isDark
-    ? `
-      radial-gradient(circle at top left, rgba(59,130,246,0.10), transparent 30%),
-      radial-gradient(circle at top right, rgba(168,85,247,0.08), transparent 28%),
-      linear-gradient(180deg, rgba(2,6,23,1) 0%, rgba(10,15,23,1) 100%)
-    `
-    : `
-      radial-gradient(circle at top left, rgba(251,146,60,0.12), transparent 32%),
-      radial-gradient(circle at top right, rgba(249,115,22,0.07), transparent 30%),
-      linear-gradient(180deg, #fff7ed 0%, #fffaf5 45%, #ffffff 100%)
-    `;
 
   const highlights = [
     {
@@ -398,10 +387,11 @@ const UserPlatform = () => {
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="min-h-screen w-full"
-      style={{ background: pageBackground }}
+      className="w-full"
     >
-      <div className="mx-auto w-full max-w-7xl p-4 sm:p-5 md:p-6">
+      {/* The layout paints the canvas and caps the width, so this page only
+          needs its own vertical rhythm. */}
+      <div className="w-full">
         {!loggedUser?.kycVerified ? (
           <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
             <div
@@ -409,7 +399,7 @@ const UserPlatform = () => {
               style={{
                 borderColor: isDark
                   ? rgba(theme?.border || "255 255 255", 0.1)
-                  : "rgba(251,146,60,0.12)",
+                  : "rgba(79, 125, 246,0.12)",
                 background: isDark
                   ? "rgba(255,255,255,0.02)"
                   : "rgba(255,255,255,0.38)",
@@ -502,14 +492,14 @@ const UserPlatform = () => {
                       className="h-full p-4 sm:p-5"
                     >
                       <div
-                        className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border"
+                        className="mb-4 flex h-12 w-12 items-center justify-center rounded-card border"
                         style={{
                           borderColor: isDark
-                            ? "rgba(59,130,246,0.18)"
-                            : "rgba(251,146,60,0.16)",
+                            ? "rgba(79, 125, 246,0.18)"
+                            : "rgba(79, 125, 246,0.16)",
                           background: isDark
-                            ? "rgba(59,130,246,0.10)"
-                            : "rgba(249,115,22,0.10)",
+                            ? "rgba(79, 125, 246,0.10)"
+                            : "rgba(42, 86, 220,0.10)",
                           color: accentColor,
                         }}
                       >
@@ -539,15 +529,15 @@ const UserPlatform = () => {
                   <motion.button
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.985 }}
-                    className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition-all duration-300"
+                    className="inline-flex items-center gap-2 rounded-card px-5 py-3 text-sm font-semibold transition-all duration-300"
                     style={{
                       background: isDark
-                        ? "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(96,165,250,0.88))"
-                        : "linear-gradient(135deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+                        ? "linear-gradient(135deg, rgba(79, 125, 246,0.95), rgba(79, 125, 246,0.88))"
+                        : "linear-gradient(135deg, rgba(42, 86, 220,0.96), rgba(79, 125, 246,0.92))",
                       color: "#fff",
                       boxShadow: isDark
-                        ? "0 14px 36px rgba(59,130,246,0.24)"
-                        : "0 14px 36px rgba(249,115,22,0.22)",
+                        ? "0 14px 36px rgba(79, 125, 246,0.24)"
+                        : "0 14px 36px rgba(42, 86, 220,0.22)",
                     }}
                   >
                     Start Verification
@@ -564,7 +554,7 @@ const UserPlatform = () => {
               style={{
                 borderColor: isDark
                   ? rgba(theme?.border || "255 255 255", 0.1)
-                  : "rgba(251,146,60,0.12)",
+                  : "rgba(79, 125, 246,0.12)",
                 background: isDark
                   ? "rgba(255,255,255,0.02)"
                   : "rgba(255,255,255,0.38)",
@@ -661,14 +651,14 @@ const UserPlatform = () => {
                           className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold"
                           style={{
                             borderColor: isDark
-                              ? "rgba(59,130,246,0.18)"
-                              : "rgba(251,146,60,0.16)",
+                              ? "rgba(79, 125, 246,0.18)"
+                              : "rgba(79, 125, 246,0.16)",
                             background: isDark
-                              ? "rgba(59,130,246,0.10)"
+                              ? "rgba(79, 125, 246,0.10)"
                               : "rgba(255,237,213,0.70)",
                             color: isDark
-                              ? "rgba(96,165,250,0.95)"
-                              : "rgba(194,65,12,0.95)",
+                              ? "rgba(79, 125, 246,0.95)"
+                              : "rgba(31, 58, 143,0.95)",
                           }}
                         >
                           {item.icon}
@@ -707,14 +697,14 @@ const UserPlatform = () => {
                         >
                           <div className="mb-3 flex items-center gap-3">
                             <div
-                              className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                              className="flex h-11 w-11 items-center justify-center rounded-card border"
                               style={{
                                 borderColor: isDark
-                                  ? "rgba(59,130,246,0.18)"
-                                  : "rgba(251,146,60,0.16)",
+                                  ? "rgba(79, 125, 246,0.18)"
+                                  : "rgba(79, 125, 246,0.16)",
                                 background: isDark
-                                  ? "rgba(59,130,246,0.10)"
-                                  : "rgba(249,115,22,0.10)",
+                                  ? "rgba(79, 125, 246,0.10)"
+                                  : "rgba(42, 86, 220,0.10)",
                                 color: accentColor,
                               }}
                             >
@@ -742,14 +732,14 @@ const UserPlatform = () => {
                       <SectionCard theme={theme} isDark={isDark} className="h-full p-4 sm:p-5">
                         <div className="mb-3 flex items-center gap-3">
                           <div
-                            className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                            className="flex h-11 w-11 items-center justify-center rounded-card border"
                             style={{
                               borderColor: isDark
-                                ? "rgba(16,185,129,0.18)"
-                                : "rgba(16,185,129,0.16)",
+                                ? "rgba(15, 159, 110,0.18)"
+                                : "rgba(15, 159, 110,0.16)",
                               background: isDark
-                                ? "rgba(16,185,129,0.10)"
-                                : "rgba(16,185,129,0.08)",
+                                ? "rgba(15, 159, 110,0.10)"
+                                : "rgba(15, 159, 110,0.08)",
                               color: isDark
                                 ? "rgba(52,211,153,0.95)"
                                 : "rgba(5,150,105,0.95)",

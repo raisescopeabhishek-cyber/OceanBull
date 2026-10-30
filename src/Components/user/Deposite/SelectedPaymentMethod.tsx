@@ -135,7 +135,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
             <div
               className="relative h-screen w-screen overflow-auto p-5 sm:p-6"
               style={{
-                background: colors?.pageBg || (isDark ? "#0b1120" : "#f8fafc"),
+                background: colors?.pageBg || (isDark ? "#0a111f" : "#f3f5f9"),
                 borderRadius: "0px",
                 boxShadow: "0 30px 80px rgba(0,0,0,0.24)",
               }}
@@ -166,12 +166,12 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                     className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all"
                     style={{
                       borderColor: isDark
-                        ? "rgba(239,68,68,0.24)"
-                        : "rgba(239,68,68,0.18)",
+                        ? "rgba(220, 58, 58,0.24)"
+                        : "rgba(220, 58, 58,0.18)",
                       background: isDark
-                        ? "rgba(239,68,68,0.08)"
+                        ? "rgba(220, 58, 58,0.08)"
                         : "rgba(254,242,242,0.92)",
-                      color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc2626"),
+                      color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a"),
                     }}
                   >
                     <XIcon size={18} />
@@ -205,16 +205,16 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                                 onClick={() =>
                                   copyText(JSON.stringify(bt, null, 2))
                                 }
-                                className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold"
+                                className="inline-flex items-center gap-1 rounded-card px-3 py-1.5 text-xs font-semibold"
                                 style={{
                                   background: isDark
                                     ? rgba(C.accent, 0.14)
-                                    : "rgba(37,99,235,0.08)",
+                                    : "rgba(34, 69, 180,0.08)",
                                   color: textPrimary,
                                   border: `1px solid ${
                                     isDark
                                       ? rgba(C.accent, 0.22)
-                                      : "rgba(37,99,235,0.16)"
+                                      : "rgba(34, 69, 180,0.16)"
                                   }`,
                                 }}
                               >
@@ -295,7 +295,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                         }
                         className="flex w-full items-center justify-center gap-2 px-5 py-3 text-sm font-semibold"
                         style={{
-                          background: colors?.accent || "#2563eb",
+                          background: colors?.accent || "#2245b4",
                           color: "#ffffff",
                           borderRadius: "14px",
                         }}
@@ -374,7 +374,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                             <img
                               src={fullImageUrl}
                               alt="Payment QR"
-                              className="mx-auto h-48 w-48 rounded-2xl object-contain"
+                              className="mx-auto h-48 w-48 rounded-card object-contain"
                             />
 
                             <button
@@ -396,7 +396,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                               borderRadius: "16px",
                               background: colors?.surfaceSoft || (isDark
                                 ? "rgba(255,255,255,0.02)"
-                                : "#fafafa"),
+                                : "#f7f9fc"),
                               color: textSecondary,
                             }}
                           >
@@ -415,7 +415,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                     onClick={closeMainModal}
                     className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold uppercase"
                     style={{
-                      background: colors?.primaryBtn || "#f97316",
+                      background: colors?.primaryBtn || "#2a56dc",
                       color: "#fff",
                       borderRadius: "14px",
                     }}
@@ -469,12 +469,12 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all"
                   style={{
                     borderColor: isDark
-                      ? "rgba(239,68,68,0.24)"
-                      : "rgba(239,68,68,0.18)",
+                      ? "rgba(220, 58, 58,0.24)"
+                      : "rgba(220, 58, 58,0.18)",
                     background: isDark
-                      ? "rgba(239,68,68,0.08)"
+                      ? "rgba(220, 58, 58,0.08)"
                       : "rgba(254,242,242,0.92)",
-                    color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc2626"),
+                    color: colors?.danger || (isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a"),
                   }}
                 >
                   <XIcon size={18} />
@@ -493,7 +493,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                 <img
                   src={fullImageUrl}
                   alt="Payment QR Large Preview"
-                  className="max-h-[70vh] w-full rounded-2xl object-contain"
+                  className="max-h-[70vh] w-full rounded-card object-contain"
                 />
               </div>
 
@@ -505,12 +505,12 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   style={{
                     background: isDark
                       ? rgba(C.accent, 0.14)
-                      : "rgba(37,99,235,0.08)",
+                      : "rgba(34, 69, 180,0.08)",
                     color: textPrimary,
                     border: `1px solid ${
                       isDark
                         ? rgba(C.accent, 0.22)
-                        : "rgba(37,99,235,0.16)"
+                        : "rgba(34, 69, 180,0.16)"
                     }`,
                     borderRadius: "14px",
                   }}
@@ -526,7 +526,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                   }
                   className="inline-flex flex-1 items-center justify-center gap-2 px-5 py-3 text-sm font-semibold"
                   style={{
-                    background: colors?.accent || "#2563eb",
+                    background: colors?.accent || "#2245b4",
                     color: rgb(C.primaryFg),
                     borderRadius: "14px",
                   }}
@@ -562,7 +562,7 @@ export default function SelectedPaymentMethod(paymentProps: any) {
                 borderColor: isDark
                   ? rgba(C.border, 0.22)
                   : "rgba(0,0,0,0.14)",
-                background: isDark ? rgba(C.surface2, 0.1) : "#fafafa",
+                background: isDark ? rgba(C.surface2, 0.1) : "#f7f9fc",
                 borderRadius: "16px",
               }}
               onMouseEnter={(e) =>

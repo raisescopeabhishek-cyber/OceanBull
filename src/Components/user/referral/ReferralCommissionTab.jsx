@@ -269,23 +269,17 @@ const ReferralCommissionTab = () => {
     <div className="space-y-6">
       <section
         className={cx(
-          "relative overflow-hidden rounded-[28px] border p-5 sm:p-6",
-          isDark
-            ? "border-white/10 bg-slate-950/50"
-            : "border-sky-100 bg-gradient-to-br from-white via-sky-50/70 to-white"
+          "relative overflow-hidden rounded-card border p-5 sm:p-6","border-line bg-surface"
         )}
       >
-        <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 left-8 h-52 w-52 rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-success-soft blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-8 h-52 w-52 rounded-full bg-primary-soft blur-3xl" />
 
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div
               className={cx(
-                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]",
-                isDark
-                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]","border-success bg-success-soft text-success"
               )}
             >
               <BadgeDollarSign className="h-3.5 w-3.5" />
@@ -365,8 +359,7 @@ const ReferralCommissionTab = () => {
         <section className={panelCard(isDark, "overflow-hidden")}>
           <div
             className={cx(
-              "flex flex-col gap-4 border-b p-5 lg:flex-row lg:items-center lg:justify-between",
-              isDark ? "border-white/10" : "border-sky-100"
+              "flex flex-col gap-4 border-b p-5 lg:flex-row lg:items-center lg:justify-between","border-line"
             )}
           >
             <div>
@@ -383,8 +376,7 @@ const ReferralCommissionTab = () => {
               <Search
                 size={16}
                 className={cx(
-                  "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2",
-                  isDark ? "text-white/35" : "text-slate-400"
+                  "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2","text-subtle"
                 )}
               />
               <input
@@ -398,14 +390,11 @@ const ReferralCommissionTab = () => {
           </div>
 
           <div className="hidden overflow-x-auto lg:block">
-            <table className="min-w-[980px] w-full">
+            <table className="min-w-[980px] w-full table-stack">
               <thead>
                 <tr
                   className={cx(
-                    "border-b text-left text-xs uppercase tracking-[0.16em]",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03] text-white/45"
-                      : "border-sky-100 bg-sky-50/60 text-slate-500"
+                    "border-b text-left text-xs uppercase tracking-[0.16em]","border-line bg-surface-2 text-subtle"
                   )}
                 >
                   <th className="px-5 py-4">User</th>
@@ -419,8 +408,7 @@ const ReferralCommissionTab = () => {
 
               <tbody
                 className={cx(
-                  "divide-y",
-                  isDark ? "divide-white/5" : "divide-sky-100/80"
+                  "divide-y","divide-line"
                 )}
               >
                 {visibleGroups.length === 0 ? (
@@ -441,18 +429,14 @@ const ReferralCommissionTab = () => {
                         <tr
                           onClick={() => toggleExpand(group.email)}
                           className={cx(
-                            "cursor-pointer transition-all",
-                            isDark ? "hover:bg-white/[0.04]" : "hover:bg-sky-50/70"
+                            "cursor-pointer transition-all","hover:bg-surface-2"
                           )}
                         >
-                          <td className="px-5 py-4">
+                          <td data-label="User" className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <div
                                 className={cx(
-                                  "grid h-10 w-10 place-items-center rounded-2xl border",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.05] text-cyan-200"
-                                    : "border-sky-100 bg-white text-sky-700"
+                                  "grid h-10 w-10 place-items-center rounded-card border","border-line bg-surface-2 text-primary"
                                 )}
                               >
                                 {expanded ? (
@@ -473,13 +457,10 @@ const ReferralCommissionTab = () => {
                             </div>
                           </td>
 
-                          <td className="px-5 py-4">
+                          <td data-label="Accounts" className="px-5 py-4">
                             <span
                               className={cx(
-                                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
-                                isDark
-                                  ? "border-violet-400/20 bg-violet-400/10 text-violet-200"
-                                  : "border-violet-100 bg-violet-50 text-violet-700"
+                                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold","border-line bg-primary-soft text-primary"
                               )}
                             >
                               <Layers3 size={13} />
@@ -487,11 +468,11 @@ const ReferralCommissionTab = () => {
                             </span>
                           </td>
 
-                          <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
+                          <td data-label="Levels" className={cx("px-5 py-4 text-sm", muted(isDark))}>
                             {group.levelsText || "-"}
                           </td>
 
-                          <td
+                          <td data-label="Lots"
                             className={cx(
                               "px-5 py-4 text-right text-sm",
                               muted(isDark)
@@ -500,7 +481,7 @@ const ReferralCommissionTab = () => {
                             {format4(group.totalLot)}
                           </td>
 
-                          <td
+                          <td data-label="Commission"
                             className={cx(
                               "px-5 py-4 text-right text-sm font-black",
                               titleText(isDark)
@@ -509,7 +490,7 @@ const ReferralCommissionTab = () => {
                             {formatMoney(group.totalCommission, 4)}
                           </td>
 
-                          <td className="px-5 py-4 text-center">
+                          <td data-label="Action" className="px-5 py-4 text-center">
                             <button
                               type="button"
                               onClick={(event) => {
@@ -517,10 +498,7 @@ const ReferralCommissionTab = () => {
                                 openAllCloseTrades(group);
                               }}
                               className={cx(
-                                "inline-flex h-10 w-10 items-center justify-center rounded-2xl border transition-all",
-                                isDark
-                                  ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15"
-                                  : "border-sky-100 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                                "inline-flex h-10 w-10 items-center justify-center rounded-card border transition-all","border-line bg-primary-soft text-primary hover:bg-primary-soft"
                               )}
                               title="View all account close trades"
                             >
@@ -535,11 +513,10 @@ const ReferralCommissionTab = () => {
                               key={`${group.email}-${row?.accountNumber || index}-${
                                 row?.level || "level"
                               }`}
-                              className={cx(
-                                isDark ? "bg-white/[0.02]" : "bg-sky-50/40"
+                              className={cx("bg-surface-2"
                               )}
                             >
-                              <td className="px-5 py-4 pl-20">
+                              <td data-label="User" className="px-5 py-4 pl-20">
                                 <p className={cx("font-semibold", titleText(isDark))}>
                                   Account #{index + 1}
                                 </p>
@@ -548,7 +525,7 @@ const ReferralCommissionTab = () => {
                                 </p>
                               </td>
 
-                              <td
+                              <td data-label="Accounts"
                                 className={cx(
                                   "px-5 py-4 text-sm font-bold",
                                   titleText(isDark)
@@ -557,11 +534,11 @@ const ReferralCommissionTab = () => {
                                 {row?.accountNumber || "-"}
                               </td>
 
-                              <td className={cx("px-5 py-4 text-sm", muted(isDark))}>
+                              <td data-label="Levels" className={cx("px-5 py-4 text-sm", muted(isDark))}>
                                 Level {row?.level ?? "-"}
                               </td>
 
-                              <td
+                              <td data-label="Lots"
                                 className={cx(
                                   "px-5 py-4 text-right text-sm",
                                   muted(isDark)
@@ -570,7 +547,7 @@ const ReferralCommissionTab = () => {
                                 {format4(row?.totalLot)}
                               </td>
 
-                              <td
+                              <td data-label="Commission"
                                 className={cx(
                                   "px-5 py-4 text-right text-sm font-bold",
                                   titleText(isDark)
@@ -582,15 +559,12 @@ const ReferralCommissionTab = () => {
                                 )}
                               </td>
 
-                              <td className="px-5 py-4 text-center">
+                              <td data-label="Action" className="px-5 py-4 text-center">
                                 <button
                                   type="button"
                                   onClick={() => openSingleAccountCloseTrades(row)}
                                   className={cx(
-                                    "inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-all",
-                                    isDark
-                                      ? "border-white/10 bg-white/[0.05] text-cyan-200 hover:bg-white/[0.08]"
-                                      : "border-sky-100 bg-white text-sky-700 hover:bg-sky-50"
+                                    "inline-flex h-9 w-9 items-center justify-center rounded-card border transition-all","border-line bg-surface-2 text-primary hover:bg-surface-2"
                                   )}
                                   title="View this account close trades"
                                 >
@@ -620,10 +594,7 @@ const ReferralCommissionTab = () => {
                   <div
                     key={group.email}
                     className={cx(
-                      "rounded-3xl border p-4",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04]"
-                        : "border-sky-100 bg-sky-50/60"
+                      "rounded-card border p-4","border-line bg-surface-2"
                     )}
                   >
                     <button
@@ -642,10 +613,7 @@ const ReferralCommissionTab = () => {
 
                       <div
                         className={cx(
-                          "grid h-9 w-9 place-items-center rounded-2xl border",
-                          isDark
-                            ? "border-white/10 bg-white/[0.05] text-cyan-200"
-                            : "border-sky-100 bg-white text-sky-700"
+                          "grid h-9 w-9 place-items-center rounded-card border","border-line bg-surface-2 text-primary"
                         )}
                       >
                         {expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
@@ -655,10 +623,7 @@ const ReferralCommissionTab = () => {
                     <div className="mt-4 grid grid-cols-2 gap-3">
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          "rounded-card border p-3","border-line bg-surface"
                         )}
                       >
                         <p className={cx("text-xs", muted(isDark))}>Accounts</p>
@@ -669,10 +634,7 @@ const ReferralCommissionTab = () => {
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          "rounded-card border p-3","border-line bg-surface"
                         )}
                       >
                         <p className={cx("text-xs", muted(isDark))}>Earned</p>
@@ -683,10 +645,7 @@ const ReferralCommissionTab = () => {
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          "rounded-card border p-3","border-line bg-surface"
                         )}
                       >
                         <p className={cx("text-xs", muted(isDark))}>Volume</p>
@@ -697,10 +656,7 @@ const ReferralCommissionTab = () => {
 
                       <div
                         className={cx(
-                          "rounded-2xl border p-3",
-                          isDark
-                            ? "border-white/10 bg-slate-950/40"
-                            : "border-white bg-white"
+                          "rounded-card border p-3","border-line bg-surface"
                         )}
                       >
                         <p className={cx("text-xs", muted(isDark))}>Levels</p>
@@ -714,10 +670,7 @@ const ReferralCommissionTab = () => {
                       type="button"
                       onClick={() => openAllCloseTrades(group)}
                       className={cx(
-                        "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
-                        isDark
-                          ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
-                          : "border-sky-100 bg-sky-50 text-sky-700"
+                        "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-bold","border-line bg-primary-soft text-primary"
                       )}
                     >
                       View all close trades
@@ -732,10 +685,7 @@ const ReferralCommissionTab = () => {
                               row?.level || "level"
                             }`}
                             className={cx(
-                              "rounded-2xl border p-3",
-                              isDark
-                                ? "border-white/10 bg-slate-950/40"
-                                : "border-white bg-white"
+                              "rounded-card border p-3","border-line bg-surface"
                             )}
                           >
                             <div className="flex items-center justify-between gap-3">
@@ -752,10 +702,7 @@ const ReferralCommissionTab = () => {
                                 type="button"
                                 onClick={() => openSingleAccountCloseTrades(row)}
                                 className={cx(
-                                  "grid h-9 w-9 place-items-center rounded-xl border",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.05] text-cyan-200"
-                                    : "border-sky-100 bg-sky-50 text-sky-700"
+                                  "grid h-9 w-9 place-items-center rounded-card border","border-line bg-surface-2 text-primary"
                                 )}
                               >
                                 <Eye size={16} />
@@ -779,8 +726,7 @@ const ReferralCommissionTab = () => {
           {groupedUsers.length > MAX_GROUPS_IN_CENTER && (
             <div
               className={cx(
-                "flex flex-col gap-3 border-t p-5 sm:flex-row sm:items-center sm:justify-between",
-                isDark ? "border-white/10" : "border-sky-100"
+                "flex flex-col gap-3 border-t p-5 sm:flex-row sm:items-center sm:justify-between","border-line"
               )}
             >
               <p className={cx("text-sm", muted(isDark))}>
@@ -814,10 +760,7 @@ const ReferralCommissionTab = () => {
                 type="button"
                 onClick={() => navigate(item.path)}
                 className={cx(
-                  "flex w-full items-center justify-between rounded-2xl border p-4 text-left transition-all",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
-                    : "border-sky-100 bg-sky-50/50 hover:bg-sky-50"
+                  "flex w-full items-center justify-between rounded-card border p-4 text-left transition-all","border-line bg-surface-2 hover:bg-surface-2"
                 )}
               >
                 <div>
@@ -831,7 +774,7 @@ const ReferralCommissionTab = () => {
 
                 <ArrowRight
                   size={18}
-                  className={isDark ? "text-white/45" : "text-slate-500"}
+                  className={"text-subtle"}
                 />
               </button>
             ))}
@@ -839,10 +782,7 @@ const ReferralCommissionTab = () => {
 
           <div
             className={cx(
-              "mt-6 rounded-3xl border p-4",
-              isDark
-                ? "border-white/10 bg-white/[0.04]"
-                : "border-sky-100 bg-sky-50/60"
+              "mt-6 rounded-card border p-4","border-line bg-surface-2"
             )}
           >
             <div className="flex items-center justify-between gap-3">
@@ -862,10 +802,7 @@ const ReferralCommissionTab = () => {
 
               <div
                 className={cx(
-                  "grid h-12 w-12 place-items-center rounded-2xl border",
-                  isDark
-                    ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  "grid h-12 w-12 place-items-center rounded-card border","border-success bg-success-soft text-success"
                 )}
               >
                 <Users size={20} />

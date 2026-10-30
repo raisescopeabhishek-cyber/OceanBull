@@ -12,7 +12,7 @@ export default function UserCopyRequestHistory() {
   const { data, isLoading, isError, refresh } = useUserCopyRequest();
 
   return (
-    <div className=" w-full mx-auto">
+    <div className="w-full mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -22,7 +22,7 @@ export default function UserCopyRequestHistory() {
           <ModernHeading text="Request History" />
           <button
             onClick={refresh}
-            className="flex items-center gap-2  px-4 py-2 rounded-md text-blue-400 hover:text-blue-400/80 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-field text-primary hover:text-primary transition-colors disabled:opacity-50"
             disabled={isLoading}
           >
             <RefreshCw
@@ -34,7 +34,7 @@ export default function UserCopyRequestHistory() {
 
         {/* Error Message */}
         {isError && (
-          <div className=" mt-6 text-red-500 p-3 rounded mb-4 flex items-center justify-center gap-2">
+          <div className="mt-6 text-danger p-3 rounded mb-4 flex items-center justify-center gap-2">
             <AlertTriangle className="h-5 w-5" />
             Failed to load requests history. Please try again.
           </div>
@@ -51,14 +51,14 @@ export default function UserCopyRequestHistory() {
         {!isLoading && !isError && (
           <div className="mt-4 overflow-x-auto">
             {data?.length === 0 ? (
-              <p className="text-gray-400/60 flex items-center justify-center gap-2 text-center py-4">
+              <p className="text-subtle flex items-center justify-center gap-2 text-center py-4">
                 <Ban></Ban>
                 No requests found.
               </p>
             ) : (
-              <table className="w-full text-left text-gray-200">
+              <table className="w-full text-left text-muted table-stack">
                 <thead>
-                  <tr className="border-b border-gray-700">
+                  <tr className="border-b border-line">
                     <th className="py-3 px-4 text-sm font-medium">Timestamp</th>
                     <th className="py-3 px-4 text-sm font-medium">Role</th>
                     <th className="py-3 px-4 text-sm font-medium">Accounts</th>
@@ -69,16 +69,16 @@ export default function UserCopyRequestHistory() {
                   {data?.map((request) => (
                     <tr
                       key={request.id}
-                      className="border-b border-gray-700/60"
+                      className="border-b border-line"
                     >
-                      <td className="py-3 whitespace-nowrap px-4">
+                      <td data-label="Timestamp" className="py-3 whitespace-nowrap px-4">
                         <div>{CFformatDate(request?.createdAt)}</div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-subtle">
                           {CFcalculateTimeSinceJoined(request?.createdAt)}
                         </div>
                       </td>{" "}
-                      <td className="py-3 px-4 uppercase">{request.role}</td>
-                      <td className="py-3 px-4">
+                      <td data-label="Role" className="py-3 px-4 uppercase">{request.role}</td>
+                      <td data-label="Accounts" className="py-3 px-4">
                         <div className="flex flex-wrap gap-2">
                           {request.accounts.map((account, index) => (
                             <span
@@ -90,14 +90,14 @@ export default function UserCopyRequestHistory() {
                           ))}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td data-label="Status" className="py-3 px-4">
                         <span
                           className={`px-3 py-1 rounded-full text-xs ${
                             request.status === "Approved"
-                              ? "bg-green-500/20 text-green-500"
+                              ? "bg-success-soft text-success"
                               : request.status === "Pending"
-                              ? "bg-yellow-500/20 text-yellow-500"
-                              : "bg-red-500/20 text-red-500"
+                              ? "bg-warning-soft text-warning"
+                              : "bg-danger-soft text-danger"
                           }`}
                         >
                           {request.status}

@@ -23,8 +23,8 @@ export const AnimatedGrid = () => {
   if (!theme?.effectsEnabled) return null;
   if ((theme?.pattern || "grid") !== "grid") return null;
 
-  const gridLine = theme?.accent || "59 130 246";
-  const stripe = theme?.gradientTo || theme?.accent || "147 51 234";
+  const gridLine = theme?.accent || "79 125 246";
+  const stripe = theme?.gradientTo || theme?.accent || "23 157 166";
 
   return (
     <div className="pointer-events-none absolute inset-0">

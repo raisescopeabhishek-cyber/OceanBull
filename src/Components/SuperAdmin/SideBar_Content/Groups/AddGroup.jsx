@@ -71,19 +71,13 @@ const AddGroup = ({ refresh, setRefresh }) => {
     <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
       <div
         className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+          "rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="mb-5">
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <PlusCircle size={14} />
@@ -92,8 +86,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
 
           <h2
             className={[
-              "text-2xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl font-bold tracking-tight","text-text",
             ].join(" ")}
           >
             Add New Group
@@ -101,8 +94,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Select an API group and map it to a custom group name.
@@ -113,8 +105,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
           <div>
             <label
               className={[
-                "mb-2 block text-sm font-medium",
-                isDark ? "text-white/75" : "text-slate-700",
+                "mb-2 block text-sm font-medium","text-muted",
               ].join(" ")}
             >
               API Group
@@ -123,10 +114,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
             <div className="relative">
               <select
                 className={[
-                  "w-full appearance-none rounded-xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-300",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                    : "border-slate-200 bg-white text-slate-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                  "w-full appearance-none rounded-card border px-4 py-3 pr-10 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text focus:border-line focus:ring-2 focus:ring-primary",
                 ].join(" ")}
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
@@ -144,8 +132,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
 
               <div
                 className={[
-                  "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3",
-                  isDark ? "text-white/40" : "text-slate-500",
+                  "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3","text-subtle",
                 ].join(" ")}
               >
                 {isFetchingGroups ? (
@@ -160,8 +147,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
           <div>
             <label
               className={[
-                "mb-2 block text-sm font-medium",
-                isDark ? "text-white/75" : "text-slate-700",
+                "mb-2 block text-sm font-medium","text-muted",
               ].join(" ")}
             >
               Custom Group Name
@@ -174,10 +160,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
               onChange={(e) => setCustomGroup(e.target.value)}
               disabled={!editing}
               className={[
-                "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                  : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
               ].join(" ")}
             />
           </div>
@@ -189,10 +172,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
                   onClick={handleSave}
                   disabled={isLoading}
                   className={[
-                    "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                    isDark
-                      ? "bg-emerald-500/90 text-white hover:bg-emerald-500 shadow-[0_10px_25px_rgba(16,185,129,0.25)]"
-                      : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_10px_25px_rgba(16,185,129,0.20)]",
+                    "inline-flex items-center gap-2 rounded-card px-5 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-success-soft text-text hover:bg-success",
                   ].join(" ")}
                 >
                   {isLoading ? (
@@ -207,10 +187,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
                   onClick={handleCancel}
                   disabled={isLoading}
                   className={[
-                    "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                    isDark
-                      ? "bg-red-500/90 text-white hover:bg-red-500 shadow-[0_10px_25px_rgba(239,68,68,0.20)]"
-                      : "bg-red-500 text-white hover:bg-red-600 shadow-[0_10px_25px_rgba(239,68,68,0.18)]",
+                    "inline-flex items-center gap-2 rounded-card px-5 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-danger-soft text-text hover:bg-danger",
                   ].join(" ")}
                 >
                   <X className="h-4 w-4" />
@@ -222,10 +199,7 @@ const AddGroup = ({ refresh, setRefresh }) => {
                 onClick={() => setEditing(true)}
                 disabled={!apiGroups.length || isFetchingGroups}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                  isDark
-                    ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                    : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+                  "inline-flex items-center gap-2 rounded-card px-6 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-primary-soft text-text hover:bg-primary",
                 ].join(" ")}
               >
                 <PlusCircle className="h-4 w-4" />

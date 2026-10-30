@@ -18,9 +18,9 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../../utils/apiClients";
-import { useSelector } from "react-redux";
 
 import DepositDetailsModal from "../admin/DepositDetailsModal.jsx";
+import { BlotterPage, Button, EmptyState } from "@/Components/ui";
 
 const PAGE_LIMIT = 10;
 
@@ -87,7 +87,7 @@ const AlertDialogContent = ({
     >
       <Dialog.Panel
         className={cn(
-          "w-full overflow-hidden text-left align-middle shadow-2xl transition-all",
+          "w-full overflow-hidden text-left align-middle transition-all",
           className
         )}
       >
@@ -175,7 +175,7 @@ const AlertDialogCancel = ({
       type="button"
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-card px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
         className
       )}
       onClick={onClick}
@@ -201,7 +201,7 @@ const AlertDialogAction = ({
       type="button"
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-card px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
         className
       )}
       onClick={onClick}
@@ -212,9 +212,6 @@ const AlertDialogAction = ({
 };
 
 const DepositsStatus = () => {
-  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
-  const isDark = mode === "dark";
-
   const [depositData, setDepositData] = useState<any[]>([]);
   const [allDepositData, setAllDepositData] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>({});
@@ -520,10 +517,7 @@ const DepositsStatus = () => {
       return (
         <span
           className={[
-            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
-            isDark
-              ? "bg-emerald-500/10 text-emerald-300"
-              : "bg-emerald-50 text-emerald-700",
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium","bg-success-soft text-success",
           ].join(" ")}
         >
           <CircleCheckBig size={16} />
@@ -536,8 +530,7 @@ const DepositsStatus = () => {
       return (
         <span
           className={[
-            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
-            isDark ? "bg-red-500/10 text-red-300" : "bg-red-50 text-red-700",
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium","bg-danger-soft text-danger",
           ].join(" ")}
         >
           <CircleX size={16} />
@@ -549,10 +542,7 @@ const DepositsStatus = () => {
     return (
       <span
         className={[
-          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
-          isDark
-            ? "bg-yellow-500/10 text-yellow-300"
-            : "bg-yellow-50 text-yellow-700",
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium","bg-warning-soft text-warning",
         ].join(" ")}
       >
         <ArrowLeftRight size={16} />
@@ -566,10 +556,7 @@ const DepositsStatus = () => {
       return (
         <span
           className={[
-            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
-            isDark
-              ? "bg-white/10 text-white/65"
-              : "bg-slate-100 text-slate-600",
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium","bg-surface-2 text-muted",
           ].join(" ")}
         >
           <Shield size={14} />
@@ -584,10 +571,7 @@ const DepositsStatus = () => {
       return (
         <span
           className={[
-            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
-            isDark
-              ? "bg-blue-500/10 text-blue-300"
-              : "bg-blue-50 text-blue-700",
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium","bg-primary-soft text-primary",
           ].join(" ")}
         >
           <Shield size={14} />
@@ -600,10 +584,7 @@ const DepositsStatus = () => {
       return (
         <span
           className={[
-            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
-            isDark
-              ? "bg-yellow-500/10 text-yellow-300"
-              : "bg-yellow-50 text-yellow-700",
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium","bg-warning-soft text-warning",
           ].join(" ")}
         >
           <Shield size={14} />
@@ -615,10 +596,7 @@ const DepositsStatus = () => {
     return (
       <span
         className={[
-          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
-          isDark
-            ? "bg-emerald-500/10 text-emerald-300"
-            : "bg-emerald-50 text-emerald-700",
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium","bg-success-soft text-success",
         ].join(" ")}
       >
         <Shield size={14} />
@@ -632,927 +610,253 @@ const DepositsStatus = () => {
     return value;
   };
 
+  /* ---- blotter columns -------------------------------------------------
+     One definition drives both layouts. `primary` and `secondary` pick what
+     heads each phone row, `trailing` is its right-hand figure, and the rest
+     become labelled detail lines.
+     -------------------------------------------------------------------- */
+  const money = (v: any) =>
+    "$" +
+    Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const columns = [
+    {
+      key: "user",
+      header: "User",
+      primary: true,
+      cell: (item: any) => (
+        <div className="min-w-0">
+          <div className="truncate text-xs font-semibold text-text">
+            {item?.userId?.name || item?.name || "—"}
+          </div>
+          <div className="numeric mt-0.5 truncate text-[10px] text-subtle">
+            {item?.userId?.email || item?.email || "—"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "mt5Account",
+      header: "MT5 account",
+      secondary: true,
+      numeric: true,
+      cell: (item: any) => item?.mt5Account || "—",
+    },
+    {
+      key: "accountType",
+      header: "Account type",
+      cell: (item: any) => (
+        <span className="numeric text-[11px] text-muted">
+          {item?.accountType || item?.groupName || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "deposit",
+      header: "Deposit",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (item: any) => (
+        <span className="font-bold">{money(item?.deposit)}</span>
+      ),
+    },
+    {
+      key: "bonus",
+      header: "Bonus",
+      align: "right",
+      numeric: true,
+      cell: (item: any) =>
+        Number(item?.bonusDetails?.bonusAmount || 0) > 0 ? (
+          <span className="text-primary">
+            +{money(item.bonusDetails.bonusAmount)}
+          </span>
+        ) : (
+          <span className="text-subtle">—</span>
+        ),
+    },
+    {
+      key: "insurance",
+      header: "Insurance",
+      cell: (item: any) => getInsuranceBadge(item?.insuranceDetails),
+    },
+    {
+      key: "proof",
+      header: "Proof",
+      cell: (item: any) =>
+        item?.depositSS ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePreview(item);
+            }}
+            className="numeric text-[10px] font-bold uppercase tracking-[0.1em] text-info underline"
+          >
+            View
+          </button>
+        ) : (
+          <span className="numeric text-[10px] font-bold uppercase tracking-[0.1em] text-warning">
+            Missing
+          </span>
+        ),
+    },
+    {
+      key: "time",
+      header: "Requested",
+      cell: (item: any) => (
+        <span className="numeric text-[11px] text-subtle">
+          {getTimeAgo(getDepositTimeValue(item))}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (item: any) => getStatusBadge(item?.status),
+    },
+    {
+      key: "action",
+      header: "Action",
+      align: "right",
+      cardFull: true,
+      cell: (item: any) =>
+        String(item?.status).toLowerCase() === "pending" ? (
+          <div className="flex justify-end gap-1.5">
+            <Button
+              size="xs"
+              variant="success-soft"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                handleActionClick(item, "approve");
+              }}
+            >
+              Approve
+            </Button>
+            <Button
+              size="xs"
+              variant="danger-soft"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                handleActionClick(item, "reject");
+              }}
+            >
+              Reject
+            </Button>
+          </div>
+        ) : (
+          <span className="numeric text-[10px] text-subtle">—</span>
+        ),
+    },
+  ];
+
+  const pendingCount = allDepositData.filter(
+    (i: any) => i?.status === "pending"
+  ).length;
+
+  const totalRecords =
+    pagination?.totalDeposits || pagination?.totalRecords || 0;
+
   return (
-    <div className="w-full">
-      <div className="space-y-4 lg:space-y-5">
-        <div
-          className={[
-            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "border-b px-4 py-4 sm:px-5 sm:py-5",
-              isDark ? "border-white/10" : "border-orange-100/80",
-            ].join(" ")}
-          >
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex items-start gap-3">
-                <button
-                  onClick={() => window.history.back()}
-                  className={[
-                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-
-                <div>
-                  <h1
-                    className={[
-                      "text-xl font-bold sm:text-2xl",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    Funds Management
-                  </h1>
-                  <p
-                    className={[
-                      "mt-1 text-sm leading-6",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    Search, filter and manage all deposit requests from one
-                    place.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
-                <div className="relative w-full sm:min-w-[280px]">
-                  <Search
-                    size={18}
-                    className={[
-                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
-                      isDark ? "text-white/35" : "text-slate-400",
-                    ].join(" ")}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search by name, email or account"
-                    value={filters.search}
-                    onChange={(e) => updateFilter("search", e.target.value)}
-                    className={[
-                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
-                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
-                    ].join(" ")}
-                  />
-                </div>
-
-                <button
-                  onClick={resetFilters}
-                  className={[
-                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  <RotateCcw size={16} />
-                  Reset
-                </button>
-
-                <button
-                  onClick={() => setIsFiltersOpen((prev) => !prev)}
-                  className={[
-                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  {isFiltersOpen ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                  {isFiltersOpen ? "Collapse" : "Expand"}
-                </button>
-              </div>
+    <>
+      <BlotterPage
+        breadcrumb="Clients / Deposits"
+        title="Deposits"
+        description="Review and clear client deposit requests."
+        actions={
+          <Button variant="secondary" onClick={() => fetchApiData()}>
+            Refresh
+          </Button>
+        }
+        readouts={[
+          {
+            key: "pending",
+            label: "Pending value",
+            value: money(TotalPendingDeposits),
+            delta: pendingCount + " req",
+            trend: pendingCount ? "down" : "flat",
+          },
+          {
+            key: "approved",
+            label: "Approved value",
+            value: money(TotalSuccessfulDeposits),
+            trend: "up",
+          },
+          {
+            key: "total",
+            label: "All deposits",
+            value: money(TotalDeposits),
+            helper: allDepositData.length + " records",
+          },
+          {
+            key: "bonus",
+            label: "Bonus credited",
+            value: money(TotalBonus),
+            trend: "up",
+          },
+        ]}
+        filter={{
+          search: filters.search,
+          onSearchChange: (v: string) => updateFilter("search", v),
+          searchPlaceholder: "name, email, MT5 account",
+          activeChip: filters.status,
+          onChipChange: (key: string) => updateFilter("status", key),
+          chips: [
+            { key: "all", label: "All", tone: "primary" },
+            { key: "pending", label: "Pending", tone: "warning", count: pendingCount },
+            { key: "approved", label: "Approved", tone: "success" },
+            { key: "rejected", label: "Rejected", tone: "danger" },
+          ],
+          summary: totalRecords + " records",
+        }}
+        columns={columns}
+        rows={depositData}
+        loading={loading}
+        onRowClick={(item: any) => toggleDetails(item)}
+        rowEdge={(item: any) =>
+          String(item?.status).toLowerCase() === "pending" ? "warning" : null
+        }
+        empty={
+          <EmptyState
+            title="No deposits found"
+            description="Try a different search or filter."
+            action={
+              <Button variant="soft" onClick={resetFilters}>
+                Reset filters
+              </Button>
+            }
+          />
+        }
+        footer={
+          <>
+            <span className="numeric text-[10px] text-subtle">
+              Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handlePreviousPage}
+                disabled={currentPage <= 1 || loading}
+              >
+                Prev
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages || loading}
+              >
+                Next
+              </Button>
             </div>
-          </div>
+          </>
+        }
+      />
 
-          <div
-            className={[
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              isFiltersOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
-            ].join(" ")}
-          >
-            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
-              <div>
-                <label
-                  className={[
-                    "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Deposit Status
-                </label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => updateFilter("status", e.target.value)}
-                  className={[
-                    "h-11 w-full rounded-xl border px-3 text-sm outline-none transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
-                      : "border-orange-200 bg-white/80 text-slate-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
-                  ].join(" ")}
-                >
-                  <option value="all">All Deposits</option>
-                  <option value="approved">Approved Deposits</option>
-                  <option value="pending">Pending Deposits</option>
-                  <option value="rejected">Rejected Deposits</option>
-                </select>
-              </div>
-
-              <div
-                className={[
-                  "rounded-xl border px-4 py-3",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035]"
-                    : "border-orange-200 bg-white/55",
-                ].join(" ")}
-              >
-                <p
-                  className={[
-                    "text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Total Records
-                </p>
-                <p
-                  className={[
-                    "mt-1 text-lg font-bold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {summary?.totalRecords || pagination?.totalDeposits || 0}
-                </p>
-              </div>
-
-              <div
-                className={[
-                  "rounded-xl border px-4 py-3",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035]"
-                    : "border-orange-200/80 bg-white/55",
-                ].join(" ")}
-              >
-                <p
-                  className={[
-                    "text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Page
-                </p>
-                <p
-                  className={[
-                    "mt-1 text-lg font-bold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {currentPage} / {totalPages}
-                </p>
-              </div>
-
-              <div
-                className={[
-                  "rounded-xl border px-4 py-3",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035]"
-                    : "border-orange-200/80 bg-white/55",
-                ].join(" ")}
-              >
-                <p
-                  className={[
-                    "text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Current Filter
-                </p>
-                <p
-                  className={[
-                    "mt-1 text-lg font-bold capitalize",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {filters.status}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "Total Deposits",
-              amount: TotalDeposits,
-            },
-            {
-              label: "Successful Deposits",
-              amount: TotalSuccessfulDeposits,
-            },
-            {
-              label: "Total Bonus",
-              amount: TotalBonus,
-            },
-            {
-              label: "Pending Deposits",
-              amount: TotalPendingDeposits,
-            },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className={[
-                "rounded-[24px] border p-4 backdrop-blur-xl transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
-                  : "border-orange-200 bg-white/65 hover:bg-white/80",
-              ].join(" ")}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={[
-                    "flex h-11 w-11 items-center justify-center rounded-xl",
-                    isDark
-                      ? "bg-blue-500/10 text-blue-300"
-                      : "bg-orange-100 text-orange-600",
-                  ].join(" ")}
-                >
-                  <ArrowLeftRight size={20} />
-                </div>
-                <div>
-                  <p
-                    className={[
-                      "text-xs font-semibold uppercase tracking-[0.14em]",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    {stat.label}
-                  </p>
-                  <p
-                    className={[
-                      "mt-1 text-xl font-bold",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    {allLoading ? "Loading..." : `$${stat.amount}`}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className={[
-            "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
-            isDark
-              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-              : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1650px]">
-              <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
-                <tr
-                  className={[
-                    "border-b",
-                    isDark ? "border-white/10" : "border-orange-200",
-                  ].join(" ")}
-                >
-                  {[
-                    "User",
-                    "MT5 Account",
-                    "Account Type",
-                    "Deposit",
-                    "Insurance",
-                    "Details",
-                    "Proof",
-                    "Time",
-                    "Status / Action",
-                  ].map((heading) => (
-                    <th
-                      key={heading}
-                      className={[
-                        "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      {heading}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={9} className="px-5 py-12">
-                      <div
-                        className={[
-                          "flex items-center justify-center gap-3",
-                          isDark ? "text-white/65" : "text-slate-600",
-                        ].join(" ")}
-                      >
-                        <LoaderIcon className="animate-spin" />
-                        <span>Loading deposits...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : depositData.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-5 py-12 text-center">
-                      <p
-                        className={[
-                          "text-lg font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        No deposits found
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-sm",
-                          isDark ? "text-white/40" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Try changing your search or filter options.
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  depositData.map((item) => {
-                    const timeValue = getDepositTimeValue(item);
-
-                    return (
-                      <tr
-                        key={item?._id}
-                        className={[
-                          "border-b transition",
-                          isDark
-                            ? "border-white/10 hover:bg-white/[0.03]"
-                            : "border-orange-200 hover:bg-orange-50/40",
-                        ].join(" ")}
-                      >
-                        <td className="px-5 py-4">
-                          <div>
-                            <p
-                              className={[
-                                "font-semibold",
-                                isDark ? "text-white" : "text-slate-900",
-                              ].join(" ")}
-                            >
-                              {item?.user?.fullName ||
-                                `${item?.user?.firstName || ""} ${
-                                  item?.user?.lastName || ""
-                                }`.trim() ||
-                                "Not found"}
-                            </p>
-                            <p
-                              className={[
-                                "text-sm",
-                                isDark ? "text-blue-300" : "text-primary-600",
-                              ].join(" ")}
-                            >
-                              {item?.user?.email || "Not found"}
-                            </p>
-                          </div>
-                        </td>
-
-                        <td
-                          className={[
-                            "px-5 py-4 font-medium",
-                            isDark ? "text-white/80" : "text-slate-700",
-                          ].join(" ")}
-                        >
-                          {item?.mt5Account || "N/A"}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span
-                            className={[
-                              "inline-flex min-w-[44px] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold",
-                              isDark
-                                ? "bg-blue-500/10 text-blue-300"
-                                : "bg-orange-50 text-orange-700",
-                            ].join(" ")}
-                          >
-                            {item?.accountType || "--"}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="flex flex-col">
-                            <span
-                              className={[
-                                "text-sm font-semibold",
-                                isDark ? "text-white" : "text-slate-900",
-                              ].join(" ")}
-                            >
-                              ${Number(item?.deposit || 0).toFixed(2)}
-                            </span>
-                            <span
-                              className={[
-                                "mt-1 text-xs",
-                                isDark ? "text-white/40" : "text-slate-500",
-                              ].join(" ")}
-                            >
-                              Base: $
-                              {Number(item?.baseDepositAmount || 0).toFixed(2)}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="flex flex-col gap-2">
-                            {getInsuranceBadge(item?.insuranceDetails)}
-                            {item?.insuranceDetails ? (
-                              <div
-                                className={[
-                                  "space-y-1 text-xs",
-                                  isDark ? "text-white/55" : "text-slate-500",
-                                ].join(" ")}
-                              >
-                                <p>
-                                  Charge: $
-                                  {Number(
-                                    item?.insuranceDetails
-                                      ?.insuranceChargeAmount || 0
-                                  ).toFixed(2)}
-                                </p>
-                                <p>
-                                  Claim: $
-                                  {Number(
-                                    item?.insuranceDetails?.claimAmount || 0
-                                  ).toFixed(2)}
-                                </p>
-                              </div>
-                            ) : null}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <button
-                            onClick={() => toggleDetails(item)}
-                            className={[
-                              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
-                              isDark
-                                ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-                                : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
-                            ].join(" ")}
-                          >
-                            <Eye size={16} />
-                            Details
-                          </button>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <button
-                            onClick={() =>
-                              item?.depositSS && togglePreview(item)
-                            }
-                            disabled={!item?.depositSS}
-                            className={[
-                              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
-                              isDark
-                                ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                                : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-                            ].join(" ")}
-                          >
-                            <Image size={16} />
-                            {item?.depositSS ? "View" : "No Proof"}
-                          </button>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="min-w-[155px]">
-                            <p
-                              className={[
-                                "text-sm font-semibold",
-                                isDark ? "text-white" : "text-slate-900",
-                              ].join(" ")}
-                            >
-                              {formatDateTime(timeValue)}
-                            </p>
-                            <p
-                              className={[
-                                "mt-1 text-xs font-medium",
-                                isDark ? "text-white/45" : "text-slate-500",
-                              ].join(" ")}
-                            >
-                              {getTimeAgo(timeValue)}
-                            </p>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          {item?.status === "pending" ? (
-                            isActionLoading ? (
-                              <span
-                                className={
-                                  isDark ? "text-white/50" : "text-slate-500"
-                                }
-                              >
-                                Please wait...
-                              </span>
-                            ) : (
-                              <div className="flex items-center gap-3">
-                                <button
-                                  onClick={() =>
-                                    handleActionClick(item, "approve")
-                                  }
-                                  className={[
-                                    "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                                    isDark
-                                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                                  ].join(" ")}
-                                >
-                                  <CircleCheckBig size={16} />
-                                  Approve
-                                </button>
-
-                                <button
-                                  onClick={() =>
-                                    handleActionClick(item, "reject")
-                                  }
-                                  className={[
-                                    "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                                    isDark
-                                      ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-                                      : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-                                  ].join(" ")}
-                                >
-                                  <CircleX size={16} />
-                                  Reject
-                                </button>
-                              </div>
-                            )
-                          ) : (
-                            getStatusBadge(item?.status)
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 lg:hidden">
-          {loading ? (
-            <div
-              className={[
-                "rounded-[24px] border p-8 backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-orange-100/80 bg-white/65",
-              ].join(" ")}
-            >
-              <div
-                className={[
-                  "flex items-center justify-center gap-3",
-                  isDark ? "text-white/65" : "text-slate-600",
-                ].join(" ")}
-              >
-                <LoaderIcon className="animate-spin" />
-                <span>Loading deposits...</span>
-              </div>
-            </div>
-          ) : depositData.length === 0 ? (
-            <div
-              className={[
-                "rounded-[24px] border p-8 text-center backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-orange-100/80 bg-white/65",
-              ].join(" ")}
-            >
-              <p
-                className={[
-                  "text-lg font-semibold",
-                  isDark ? "text-white" : "text-slate-900",
-                ].join(" ")}
-              >
-                No deposits found
-              </p>
-              <p
-                className={[
-                  "mt-1 text-sm",
-                  isDark ? "text-white/40" : "text-slate-500",
-                ].join(" ")}
-              >
-                Try changing your search or filter options.
-              </p>
-            </div>
-          ) : (
-            depositData.map((item) => {
-              const timeValue = getDepositTimeValue(item);
-
-              return (
-                <div
-                  key={item?._id}
-                  className={[
-                    "rounded-[24px] border p-4 backdrop-blur-xl",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-orange-100/80 bg-white/65",
-                  ].join(" ")}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3
-                        className={[
-                          "truncate text-base font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {item?.user?.fullName ||
-                          `${item?.user?.firstName || ""} ${
-                            item?.user?.lastName || ""
-                          }`.trim() ||
-                          "Not found"}
-                      </h3>
-                      <p
-                        className={[
-                          "block truncate text-sm",
-                          isDark ? "text-blue-300" : "text-primary-600",
-                        ].join(" ")}
-                      >
-                        {item?.user?.email || "Not found"}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleDetails(item)}
-                        className={[
-                          "shrink-0 rounded-xl border p-2",
-                          isDark
-                            ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                            : "border-blue-200 bg-blue-50 text-blue-600",
-                        ].join(" ")}
-                      >
-                        <Eye size={18} />
-                      </button>
-
-                      <button
-                        onClick={() => item?.depositSS && togglePreview(item)}
-                        disabled={!item?.depositSS}
-                        className={[
-                          "shrink-0 rounded-xl border p-2 disabled:cursor-not-allowed disabled:opacity-50",
-                          isDark
-                            ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                            : "border-blue-200 bg-blue-50 text-blue-600",
-                        ].join(" ")}
-                      >
-                        <Image size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div
-                      className={[
-                        "rounded-xl p-3",
-                        isDark ? "bg-white/[0.035]" : "bg-white/55",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        MT5 Account
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-sm font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {item?.mt5Account || "N/A"}
-                      </p>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl p-3",
-                        isDark ? "bg-white/[0.035]" : "bg-white/55",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Status
-                      </p>
-                      <div className="mt-1">{getStatusBadge(item?.status)}</div>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl p-3",
-                        isDark ? "bg-white/[0.035]" : "bg-white/55",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Deposit
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-sm font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        ${Number(item?.deposit || 0).toFixed(2)}
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-xs",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Base: ${Number(item?.baseDepositAmount || 0).toFixed(2)}
-                      </p>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl p-3",
-                        isDark ? "bg-white/[0.035]" : "bg-white/55",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Time
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-sm font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {formatDateTime(timeValue)}
-                      </p>
-                      <p
-                        className={[
-                          "mt-1 text-xs font-medium",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        {getTimeAgo(timeValue)}
-                      </p>
-                    </div>
-
-                    <div
-                      className={[
-                        "rounded-xl p-3",
-                        isDark ? "bg-white/[0.035]" : "bg-white/55",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500",
-                        ].join(" ")}
-                      >
-                        Insurance
-                      </p>
-                      <div className="mt-1">
-                        {getInsuranceBadge(item?.insuranceDetails)}
-                      </div>
-                      {item?.insuranceDetails ? (
-                        <p
-                          className={[
-                            "mt-2 text-xs",
-                            isDark ? "text-white/45" : "text-slate-500",
-                          ].join(" ")}
-                        >
-                          Claim: $
-                          {Number(
-                            item?.insuranceDetails?.claimAmount || 0
-                          ).toFixed(2)}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    {item?.status === "pending" ? (
-                      isActionLoading ? (
-                        <span
-                          className={
-                            isDark ? "text-white/50" : "text-slate-500"
-                          }
-                        >
-                          Please wait...
-                        </span>
-                      ) : (
-                        <div className="flex flex-wrap gap-3">
-                          <button
-                            onClick={() => handleActionClick(item, "approve")}
-                            className={[
-                              "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                              isDark
-                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15"
-                                : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-                            ].join(" ")}
-                          >
-                            <CircleCheckBig size={16} />
-                            Approve
-                          </button>
-
-                          <button
-                            onClick={() => handleActionClick(item, "reject")}
-                            className={[
-                              "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                              isDark
-                                ? "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-                                : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-                            ].join(" ")}
-                          >
-                            <CircleX size={16} />
-                            Reject
-                          </button>
-                        </div>
-                      )
-                    ) : (
-                      <div>{getStatusBadge(item?.status)}</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage <= 1}
-            className={[
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
-                : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-            ].join(" ")}
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
-
-          <div
-            className={[
-              "text-sm font-medium",
-              isDark ? "text-white/65" : "text-slate-600",
-            ].join(" ")}
-          >
-            Page {currentPage} of {totalPages}
-          </div>
-
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage >= totalPages}
-            className={[
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
-                : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-            ].join(" ")}
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
 
       <AlertDialog
         open={isDialogOpen}
@@ -1562,10 +866,7 @@ const DepositsStatus = () => {
       >
         <AlertDialogContent
           className={[
-            "max-w-xl rounded-2xl border p-5 backdrop-blur-xl sm:p-6",
-            isDark
-              ? "border-white/10 bg-[#0b1220] text-white"
-              : "border-orange-200 bg-white text-slate-900",
+            "max-w-xl rounded-card border p-5 backdrop-blur-xl sm:p-6","border-line bg-surface text-text",
           ].join(" ")}
         >
           <AlertDialogHeader>
@@ -1573,7 +874,7 @@ const DepositsStatus = () => {
               Confirm {actionType === "approve" ? "Approval" : "Rejection"}
             </AlertDialogTitle>
             <AlertDialogDescription
-              className={isDark ? "mt-1 text-white/60" : "mt-1 text-slate-500"}
+              className={"mt-1 text-subtle"}
             >
               {actionType === "approve"
                 ? "Comment is optional for approval."
@@ -1590,10 +891,7 @@ const DepositsStatus = () => {
                 actionType === "approve" ? "approval" : "rejection"
               }...`}
               className={[
-                "w-full resize-none rounded-xl border p-3 text-sm outline-none transition",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-400/15"
-                  : "border-orange-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200/60",
+                "w-full resize-none rounded-card border p-3 text-sm outline-none transition","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
               ].join(" ")}
             />
           </div>
@@ -1602,10 +900,7 @@ const DepositsStatus = () => {
             <AlertDialogCancel
               disabled={isActionLoading}
               className={[
-                "border",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
-                  : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
+                "border","border-line bg-surface-2 text-text hover:bg-surface-2",
               ].join(" ")}
               onClick={() => {
                 setIsDialogOpen(false);
@@ -1623,10 +918,10 @@ const DepositsStatus = () => {
                 selectedDeposit && handleConfirmAction(selectedDeposit)
               }
               className={[
-                "border text-white",
+                "border text-text",
                 actionType === "approve"
-                  ? "border-emerald-500 bg-emerald-600 hover:bg-emerald-700"
-                  : "border-red-500 bg-red-600 hover:bg-red-700",
+                  ? "border-success bg-success hover:bg-success"
+                  : "border-danger bg-danger hover:bg-danger",
               ].join(" ")}
             >
               {isActionLoading
@@ -1643,7 +938,6 @@ const DepositsStatus = () => {
         showDetails={showDetails}
         setShowDetails={setShowDetails}
         selectedDeposit={selectedDeposit}
-        isDark={isDark}
         getStatusBadge={getStatusBadge}
         renderDetailValue={renderDetailValue}
       />
@@ -1651,10 +945,7 @@ const DepositsStatus = () => {
       <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
         <AlertDialogContent
           className={[
-            "max-w-4xl rounded-2xl border p-5 backdrop-blur-xl sm:p-6",
-            isDark
-              ? "border-white/10 bg-[#0b1220] text-white"
-              : "border-orange-200 bg-white text-slate-900",
+            "max-w-4xl rounded-card border p-5 backdrop-blur-xl sm:p-6","border-line bg-surface text-text",
           ].join(" ")}
         >
           <AlertDialogHeader>
@@ -1668,7 +959,7 @@ const DepositsStatus = () => {
                   <img
                     src={getDepositProofUrl(selectedDeposit?.depositSS)}
                     alt="Deposit proof"
-                    className="max-h-[70vh] w-full rounded-xl object-contain"
+                    className="max-h-[70vh] w-full rounded-card object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                       toast.error("Deposit proof image load nahi ho paayi");
@@ -1677,10 +968,7 @@ const DepositsStatus = () => {
                 ) : (
                   <div
                     className={[
-                      "rounded-xl border p-8 text-center",
-                      isDark
-                        ? "border-white/10 bg-white/[0.03] text-white/60"
-                        : "border-slate-200 bg-slate-50 text-slate-500",
+                      "rounded-card border p-8 text-center","border-line bg-surface-2 text-subtle",
                     ].join(" ")}
                   >
                     No screenshot uploaded.
@@ -1691,7 +979,7 @@ const DepositsStatus = () => {
           </AlertDialogHeader>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };
 

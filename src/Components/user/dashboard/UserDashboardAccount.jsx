@@ -39,8 +39,8 @@ const CredentialItem = ({
     animate="visible"
   >
     <div className="flex items-center space-x-3">
-      <Icon className="w-5 h-5 text-gray-300" />
-      <span className="text-sm font-medium text-gray-200">{label}</span>
+      <Icon className="w-5 h-5 text-muted" />
+      <span className="text-sm font-medium text-muted">{label}</span>
     </div>
     <Link to={link || "#"}>
       <motion.div
@@ -74,13 +74,13 @@ const UserDashboardAccount = () => {
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900  shadow-lg rounded-lg p-6 min-w-md "
+      className="rounded-field p-6 min-w-md"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
       <motion.div
-        className="text-2xl flex justify-between items-center gap-5 mb-2 whitespace-nowrap text-gray-200"
+        className="text-2xl flex justify-between items-center gap-5 mb-2 whitespace-nowrap text-muted"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -101,11 +101,11 @@ const UserDashboardAccount = () => {
                 onChange={handleAccountChange}
                 id="accountNumber"
                 name="accountNumber"
-                className="w-full border-none py-1 rounded-full bg-secondary-500-10 px-2 outline-none font-semibold border-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
+                className="w-full border-none py-1 rounded-full bg-secondary-500-10 px-2 outline-none font-semibold border-line focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
               >
                 <option
                   disabled
-                  className="bg-blue-950 text-white"
+                  className="bg-surface text-text"
                   value=""
                 >
                   Select Account
@@ -113,7 +113,7 @@ const UserDashboardAccount = () => {
                 {loggedUser.accounts?.map((account, index) => (
                   <option
                     key={index}
-                    className="bg-blue-950  font-semibold text-white"
+                    className="bg-surface font-semibold text-text"
                     value={account.accountNumber}
                   >
                     {account.accountNumber}
@@ -141,35 +141,35 @@ const UserDashboardAccount = () => {
           icon={User}
           label="Trading Account"
           value={currentAccount.accountNumber}
-          badgeColor="bg-blue-100 text-blue-800"
+          badgeColor="bg-primary-soft text-primary"
           delay={0.2}
         />
         <CredentialItem
           icon={MdOutlineAccountBalanceWallet}
           label="Balance"
           value={info?.Balance != null ? `$${info.Balance}` : "--"}
-          badgeColor="bg-sky-100 text-sky-800"
+          badgeColor="bg-primary-soft text-primary"
           delay={0.3}
         />
         <CredentialItem
           icon={CiMoneyBill}
           label="Equity"
           value={info?.Equity != null ? `$${info.Equity}` : "--"}
-          badgeColor="bg-sky-100 text-sky-800"
+          badgeColor="bg-primary-soft text-primary"
           delay={0.4}
         />
         <CredentialItem
           icon={CheckCircle}
           label="Leverage"
           value={currentAccount.leverage}
-          badgeColor="bg-indigo-100 text-indigo-800"
+          badgeColor="bg-primary-soft text-primary"
           delay={0.5}
         />
         <CredentialItem
           icon={PanelTopInactiveIcon}
           label="Account Type"
           value={currentAccount.accountType || "N/A"}
-          badgeColor="bg-orange-100 text-orange-800"
+          badgeColor="bg-surface-2 text-primary"
           delay={0.6}
         />
         <CredentialItem
@@ -178,8 +178,8 @@ const UserDashboardAccount = () => {
           value={loggedUser?.kycVerified ? "Active" : "Inactive"}
           badgeColor={
             loggedUser?.kycVerified
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-700"
+              ? "bg-success-soft text-success"
+              : "bg-danger-soft text-danger"
           }
           delay={0.7}
         />

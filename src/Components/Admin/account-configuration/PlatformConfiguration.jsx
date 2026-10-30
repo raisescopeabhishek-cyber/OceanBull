@@ -98,15 +98,15 @@ export default function PlatformConfiguration() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-text">
         List of Platforms
       </h2>
 
-      {loading && <p className="text-white">Loading platforms...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {loading && <p className="text-text">Loading platforms...</p>}
+      {error && <p className="text-danger">{error}</p>}
 
       {!loading && !error && (
-        <div className="mt-6 bg-primary-700/40 text-white rounded-lg shadow-lg p-4 sm:p-6">
+        <div className="mt-6 bg-primary-700/40 text-text rounded-field p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4">Add New Field</h3>
           <div className="flex flex-col sm:flex-row gap-4">
             <input
@@ -116,15 +116,15 @@ export default function PlatformConfiguration() {
               onChange={(e) =>
                 setNewField({ ...newField, name: e.target.value })
               }
-              className="w-full px-4 py-2 border text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border text-text rounded-field focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
               onClick={addField}
               disabled={!newField.name}
-              className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                 !newField.name
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600"
+                  ? "bg-surface-3 cursor-not-allowed"
+                  : "bg-primary hover:bg-primary"
               }`}
             >
               <Plus className="mx-auto" size={18} />
@@ -133,9 +133,9 @@ export default function PlatformConfiguration() {
 
           <div className="mt-6 overflow-x-auto">
             <div className="inline-block min-w-full align-middle">
-              <div className="overflow-hidden border border-gray-700 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-primary-400 text-white">
+              <div className="overflow-hidden border border-line rounded-field">
+                <table className="min-w-full divide-y divide-line table-stack">
+                  <thead className="bg-primary-400 text-text">
                     <tr>
                       <th className="px-3 py-3 text-left text-xs font-medium sm:px-6">
                         S.No.
@@ -151,16 +151,16 @@ export default function PlatformConfiguration() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-primary-700 divide-y text-white divide-gray-700">
+                  <tbody className="bg-primary-700 divide-y text-text divide-line">
                     {platformData?.map((platform, index) => (
                       <tr key={platform.id}>
-                        <td className="px-3 py-4 text-sm font-medium whitespace-nowrap sm:px-6">
+                        <td data-label="S.No." className="px-3 py-4 text-sm font-medium whitespace-nowrap sm:px-6">
                           {index + 1}
                         </td>
-                        <td className="px-3 py-4 text-sm whitespace-nowrap sm:px-6">
+                        <td data-label="Name" className="px-3 py-4 text-sm whitespace-nowrap sm:px-6">
                           {platform.name}
                         </td>
-                        <td className="px-3 py-4 text-sm whitespace-nowrap sm:px-6">
+                        <td data-label="Status" className="px-3 py-4 text-sm whitespace-nowrap sm:px-6">
                           <Switch
                             checked={platform.status === "active"}
                             onCheckedChange={() =>
@@ -168,13 +168,13 @@ export default function PlatformConfiguration() {
                             }
                           />
                         </td>
-                        <td className="px-3 py-4 text-sm text-right whitespace-nowrap sm:px-6">
+                        <td data-label="Actions" className="px-3 py-4 text-sm text-right whitespace-nowrap sm:px-6">
                           <button
                             onClick={() =>
                               window.confirm("Are you sure want to delete?") &&
                               deletePlatform(platform?._id)
                             }
-                            className="text-red-600 hover:text-red-900 hover:scale-110 transition-all"
+                            className="text-danger hover:text-danger hover:scale-110 transition-all"
                           >
                             <Trash2 size={20} />
                           </button>

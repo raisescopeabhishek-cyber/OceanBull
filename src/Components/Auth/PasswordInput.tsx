@@ -23,19 +23,19 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           id={id}
           type={show ? "text" : "password"}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 pr-12 text-white placeholder-white/40 outline-none backdrop-blur transition focus:border-fuchsia-400/50 focus:ring-2 focus:ring-fuchsia-400/30"
+          className="w-full rounded-card border border-line bg-surface-2 px-4 py-3 pr-12 text-text placeholder:text-subtle outline-none backdrop-blur transition focus:border-fuchsia-400/50 focus:ring-2 focus:ring-fuchsia-400/30"
           {...registration}
         />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute inset-y-0 right-2 my-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
+          className="absolute inset-y-0 right-2 my-auto inline-flex h-9 w-9 items-center justify-center rounded-field border border-line bg-surface-2 text-muted transition hover:bg-surface-2 hover:text-text"
         >
           {show ? <EyeOffIcon /> : <EyeIcon />}
         </button>
       </div>
-      {error && <p className="mt-1 text-xs font-medium text-rose-300">{error}</p>}
+      {error && <p className="mt-1 text-xs font-medium text-danger">{error}</p>}
     </>
   );
 };

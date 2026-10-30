@@ -23,7 +23,7 @@ const rgba = (v: any, a = 1) => {
 
 /* --- Ambient grid (theme driven) --- */
 const AmbientGrid = ({ theme }: { theme: any }) => {
-  const line = theme?.accent || "59 130 246";
+  const line = theme?.accent || "79 125 246";
   return (
     <div className="absolute inset-0 pointer-events-none">
       <div
@@ -70,9 +70,9 @@ const AnimatedNumber = ({ value = 0, decimals = 0, suffix = "" }: any) => {
 const NeonCard = ({ children, delay = 0, theme }: any) => {
   const border = `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`;
   const bg = `linear-gradient(135deg,
-    ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.78)},
+    ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.78)},
     ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.86)},
-    ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.78)}
+    ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.78)}
   )`;
 
   return (
@@ -81,7 +81,7 @@ const NeonCard = ({ children, delay = 0, theme }: any) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -3 }}
-      className="group relative overflow-hidden rounded-2xl p-4"
+      className="group relative overflow-hidden rounded-card p-4"
       style={{
         border,
         background: bg,
@@ -93,9 +93,9 @@ const NeonCard = ({ children, delay = 0, theme }: any) => {
         className="pointer-events-none absolute inset-px rounded-[calc(1rem-1px)]"
         style={{
           background: `linear-gradient(135deg,
-            ${rgba(theme?.accent || "59 130 246", 0.06)},
-            ${rgba(theme?.gradientTo || theme?.accent || "147 51 234", 0.05)},
-            ${rgba(theme?.accent || "59 130 246", 0.06)}
+            ${rgba(theme?.accent || "79 125 246", 0.06)},
+            ${rgba(theme?.gradientTo || theme?.accent || "23 157 166", 0.05)},
+            ${rgba(theme?.accent || "79 125 246", 0.06)}
           )`,
         }}
       />
@@ -113,12 +113,12 @@ const NeonCard = ({ children, delay = 0, theme }: any) => {
 
 /* --- Accent chooser for icon bubbles --- */
 const getAccentPair = (key: string, theme: any, isPositive?: boolean) => {
-  const accent = theme?.accent || "59 130 246";
-  const a2 = theme?.gradientTo || "147 51 234";
-  const success = theme?.success || theme?.primary || "34 197 94";
-  const danger = theme?.danger || "244 63 94";
+  const accent = theme?.accent || "79 125 246";
+  const a2 = theme?.gradientTo || "23 157 166";
+  const success = theme?.success || theme?.primary || "15 159 110";
+  const danger = theme?.danger || "220 58 58";
   const info = theme?.info || accent;
-  const warning = theme?.warning || "234 179 8";
+  const warning = theme?.warning || "163 113 37";
 
   switch (key) {
     case "accounts":
@@ -279,9 +279,9 @@ const fetch_TotalTransfer = async () => {
     borderRadius: "24px",
     border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
     background: `linear-gradient(135deg,
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.55)},
+      ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.55)},
       ${rgba(theme?.bg || "0 0 0", 0.55)},
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.55)}
+      ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.55)}
     )`,
     backdropFilter: "blur(16px)",
     color: rgb(theme?.fg || "255 255 255"),
@@ -303,7 +303,7 @@ const fetch_TotalTransfer = async () => {
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0.8 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border shadow-inner"
+                  className="flex h-11 w-11 items-center justify-center rounded-card border shadow-inner"
                   style={{
                     borderColor: rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14),
                     borderRadius: radius,
@@ -334,7 +334,7 @@ const fetch_TotalTransfer = async () => {
                 className="mt-4 h-[2px] rounded-full"
                 style={{
                   background: `linear-gradient(90deg, ${rgba(c1, 0.65)}, ${rgba(c2, 0.65)})`,
-                  boxShadow: `0 0 18px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.18)}`,
+                  boxShadow: `0 0 18px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.18)}`,
                 }}
               />
             </NeonCard>

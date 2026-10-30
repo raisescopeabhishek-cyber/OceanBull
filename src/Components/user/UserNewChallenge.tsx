@@ -45,54 +45,54 @@ const rgba = (v: any, a = 1) => {
 };
 
 const getTheme = (isDark: boolean, theme: any) => ({
-  overlay: isDark ? "rgba(2,6,23,0.74)" : "rgba(249,115,22,0.22)",
+  overlay: isDark ? "rgba(2,6,23,0.74)" : "rgba(42, 86, 220,0.22)",
 
   modalBg: isDark
-    ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
+    ? "linear-gradient(180deg, rgba(15, 24, 41,0.98), rgba(2,6,23,0.98))"
     : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,237,0.98))",
 
   headerBg: isDark
-    ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-    : "linear-gradient(135deg, #f97316, #ea580c)",
+    ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+    : "linear-gradient(135deg, #2a56dc, #2245b4)",
 
   surface: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.86)",
   surfaceSoft: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,237,213,0.62)",
-  activeSurface: isDark ? "rgba(59,130,246,0.11)" : "rgba(249,115,22,0.10)",
+  activeSurface: isDark ? "rgba(79, 125, 246,0.11)" : "rgba(42, 86, 220,0.10)",
 
-  text: isDark ? rgba(theme?.fg || "255 255 255", 0.96) : "#0f172a",
-  muted: isDark ? rgba(theme?.fg || "255 255 255", 0.58) : "#64748b",
-  softText: isDark ? rgba(theme?.fg || "255 255 255", 0.74) : "#475569",
+  text: isDark ? rgba(theme?.fg || "255 255 255", 0.96) : "#0f1829",
+  muted: isDark ? rgba(theme?.fg || "255 255 255", 0.58) : "#7b879a",
+  softText: isDark ? rgba(theme?.fg || "255 255 255", 0.74) : "#4a5669",
 
-  accent: isDark ? rgba(theme?.accent || "96 165 250", 0.95) : "#f97316",
-  accentText: isDark ? "rgba(224,242,254,0.98)" : "#c2410c",
+  accent: isDark ? rgba(theme?.accent || "79 125 246", 0.95) : "#2a56dc",
+  accentText: isDark ? "rgba(224,242,254,0.98)" : "#1f3a8f",
 
   border: isDark
     ? rgba(theme?.border || "255 255 255", 0.1)
-    : "rgba(249,115,22,0.20)",
+    : "rgba(42, 86, 220,0.20)",
   borderSoft: isDark
     ? rgba(theme?.border || "255 255 255", 0.08)
-    : "rgba(249,115,22,0.14)",
-  activeBorder: isDark ? "rgba(96,165,250,0.30)" : "rgba(249,115,22,0.46)",
+    : "rgba(42, 86, 220,0.14)",
+  activeBorder: isDark ? "rgba(79, 125, 246,0.30)" : "rgba(42, 86, 220,0.46)",
 
   inputShadow: isDark
     ? "0 0 0 1px rgba(255,255,255,0.03)"
-    : "0 0 0 4px rgba(249,115,22,0.10), 0 12px 28px rgba(249,115,22,0.12)",
+    : "0 0 0 4px rgba(42, 86, 220,0.10), 0 12px 28px rgba(42, 86, 220,0.12)",
 
   modalShadow: isDark
     ? "0 28px 80px rgba(0,0,0,0.48)"
-    : "0 28px 80px rgba(249,115,22,0.22)",
+    : "0 28px 80px rgba(42, 86, 220,0.22)",
 
   cardShadow: isDark
     ? "0 16px 36px rgba(0,0,0,0.22)"
-    : "0 14px 32px rgba(249,115,22,0.10)",
+    : "0 14px 32px rgba(42, 86, 220,0.10)",
 
   button: isDark
-    ? "linear-gradient(90deg, rgba(59,130,246,0.96), rgba(34,211,238,0.90))"
-    : "linear-gradient(90deg, #f97316, #ea580c)",
+    ? "linear-gradient(90deg, rgba(79, 125, 246,0.96), rgba(34,211,238,0.90))"
+    : "linear-gradient(90deg, #2a56dc, #2245b4)",
 
   buttonShadow: isDark
-    ? "0 14px 30px rgba(59,130,246,0.20)"
-    : "0 14px 30px rgba(249,115,22,0.28)",
+    ? "0 14px 30px rgba(79, 125, 246,0.20)"
+    : "0 14px 30px rgba(42, 86, 220,0.28)",
 });
 
 const GUIDE_STORAGE_KEY = "user_new_challenge_arrow_guide_seen";
@@ -127,15 +127,15 @@ function HeaderStat({
   colors: any;
 }) {
   return (
-    <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2.5 text-white backdrop-blur-xl">
+    <div className="rounded-card border border-line bg-surface-2 px-3 py-2.5 text-text backdrop-blur-xl">
       <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+        <div className="flex h-8 w-8 items-center justify-center rounded-card border border-line bg-surface-2">
           {icon}
         </div>
 
         <div className="min-w-0">
-          <div className="text-[10px] text-white/70">{label}</div>
-          <div className="truncate text-xs font-bold text-white">{value}</div>
+          <div className="text-[10px] text-muted">{label}</div>
+          <div className="truncate text-xs font-bold text-text">{value}</div>
         </div>
       </div>
     </div>
@@ -158,7 +158,7 @@ function SmallChip({
       type="button"
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="rounded-2xl border px-4 py-2.5 text-xs font-semibold transition-all duration-200"
+      className="rounded-card border px-4 py-2.5 text-xs font-semibold transition-all duration-200"
       style={{
         borderColor: active ? colors.activeBorder : colors.border,
         background: active ? colors.activeSurface : colors.surface,
@@ -186,7 +186,7 @@ function SectionLabel({
   return (
     <div className="mb-3 flex items-center gap-2">
       <div
-        className="flex h-8 w-8 items-center justify-center rounded-xl border"
+        className="flex h-8 w-8 items-center justify-center rounded-card border"
         style={{
           borderColor: colors.border,
           background: colors.activeSurface,
@@ -209,7 +209,7 @@ function SectionLabel({
 function EmptyOption({ text, colors }: { text: string; colors: any }) {
   return (
     <div
-      className="rounded-2xl border px-4 py-3 text-xs"
+      className="rounded-card border px-4 py-3 text-xs"
       style={{
         borderColor: colors.border,
         background: colors.surface,
@@ -289,18 +289,18 @@ function GuideBubble({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: placement === "bottom" ? -8 : 8, scale: 0.96 }}
       transition={{ duration: 0.18 }}
-      className="fixed z-[10050] rounded-[22px] border p-4"
+      className="fixed z-[10050] rounded-card border p-4"
       style={{
         width: bubbleWidth,
         top,
         left,
         borderColor: colors.activeBorder,
         background: colors.isDark
-          ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98))"
+          ? "linear-gradient(180deg, rgba(15, 24, 41,0.98), rgba(2,6,23,0.98))"
           : "linear-gradient(180deg, rgba(255,255,255,0.99), rgba(255,247,237,0.99))",
         boxShadow: colors.isDark
           ? "0 24px 60px rgba(0,0,0,0.46)"
-          : "0 24px 60px rgba(249,115,22,0.24)",
+          : "0 24px 60px rgba(42, 86, 220,0.24)",
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -314,7 +314,7 @@ function GuideBubble({
             placement === "bottom"
               ? `${colors.activeBorder} transparent transparent ${colors.activeBorder}`
               : `transparent ${colors.activeBorder} ${colors.activeBorder} transparent`,
-          background: colors.isDark ? "rgba(15,23,42,0.98)" : "#fff7ed",
+          background: colors.isDark ? "rgba(15, 24, 41,0.98)" : "#f3f5f9",
         }}
       />
 
@@ -355,7 +355,7 @@ function GuideBubble({
           type="button"
           onClick={onBack}
           disabled={index === 0}
-          className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex items-center gap-2 rounded-card border px-4 py-2.5 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45"
           style={{
             borderColor: colors.border,
             background: colors.surface,
@@ -369,7 +369,7 @@ function GuideBubble({
         <button
           type="button"
           onClick={onNext}
-          className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-white transition-all"
+          className="inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-xs font-bold text-text transition-all"
           style={{
             background: colors.button,
             boxShadow: colors.buttonShadow,
@@ -686,7 +686,7 @@ const guideSteps = useMemo(
             exit={{ opacity: 0, y: 14, scale: 0.98 }}
             transition={{ duration: 0.22 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[94vh] w-full max-w-5xl overflow-hidden rounded-[26px] border"
+            className="max-h-[94vh] w-full max-w-5xl overflow-hidden rounded-card border"
             style={{
               borderColor: colors.border,
               background: colors.modalBg,
@@ -716,7 +716,7 @@ const guideSteps = useMemo(
                     whileTap={{ scale: 0.97 }}
                     onClick={openGuide}
                     disabled={creatingLoading}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-full border border-line bg-surface-2 px-3 py-2 text-xs font-bold text-text backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <HelpCircle className="h-3.5 w-3.5" />
                     Guide
@@ -727,7 +727,7 @@ const guideSteps = useMemo(
                     whileTap={{ scale: 0.97 }}
                     onClick={handleClose}
                     disabled={creatingLoading}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface-2 text-text backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     aria-label="Close modal"
                   >
                     <X className="h-4 w-4" />
@@ -736,21 +736,21 @@ const guideSteps = useMemo(
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card border border-line bg-surface-2 text-text">
                       <Zap className="h-6 w-6" />
                     </div>
 
                     <div>
-                      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-line bg-surface-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text">
                         <Sparkles className="h-3.5 w-3.5" />
                         Trading Account Setup
                       </div>
 
-                      <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                      <h2 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
                         Create Trading Account
                       </h2>
 
-                      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                         Select account type, leverage, and platform to open your
                         MT5 account.
                       </p>
@@ -785,7 +785,7 @@ const guideSteps = useMemo(
             <div className="max-h-[calc(94vh-190px)] space-y-5 overflow-y-auto px-4 py-5 sm:px-6">
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_0.92fr]">
                 <div
-                  className="rounded-[22px] border p-4 sm:p-5"
+                  className="rounded-card border p-4 sm:p-5"
                   style={{
                     borderColor: colors.border,
                     background: colors.surface,
@@ -795,7 +795,7 @@ const guideSteps = useMemo(
                   <div className="space-y-6">
                     <div
                       ref={accountTypeRef}
-                      className="rounded-[18px] p-2 transition-all duration-200"
+                      className="rounded-card p-2 transition-all duration-200"
                       style={getHighlightStyle("accountType")}
                     >
                       <SectionLabel
@@ -833,7 +833,7 @@ const guideSteps = useMemo(
 
                     <div
                       ref={leverageRef}
-                      className="rounded-[18px] p-2 transition-all duration-200"
+                      className="rounded-card p-2 transition-all duration-200"
                       style={getHighlightStyle("leverage")}
                     >
                       <SectionLabel
@@ -868,7 +868,7 @@ const guideSteps = useMemo(
                     </div>
 
                     <div
-                      className="rounded-[18px] border px-4 py-3"
+                      className="rounded-card border px-4 py-3"
                       style={{
                         borderColor: colors.border,
                         background: colors.surfaceSoft,
@@ -876,7 +876,7 @@ const guideSteps = useMemo(
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card border"
                           style={{
                             borderColor: colors.activeBorder,
                             background: colors.activeSurface,
@@ -909,7 +909,7 @@ const guideSteps = useMemo(
 
                 <div
                   ref={platformRef}
-                  className="rounded-[22px] border p-4 transition-all duration-200 sm:p-5"
+                  className="rounded-card border p-4 transition-all duration-200 sm:p-5"
                   style={{
                     borderColor: colors.border,
                     background: colors.surface,
@@ -939,7 +939,7 @@ const guideSteps = useMemo(
                                 platform: platform.name,
                               }))
                             }
-                            className="flex w-full items-center justify-between rounded-[18px] border px-4 py-4 text-left transition-all duration-200"
+                            className="flex w-full items-center justify-between rounded-card border px-4 py-4 text-left transition-all duration-200"
                             style={{
                               borderColor: active
                                 ? colors.activeBorder
@@ -953,7 +953,7 @@ const guideSteps = useMemo(
                           >
                             <div className="flex min-w-0 items-center gap-3">
                               <div
-                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border text-sm"
                                 style={{
                                   borderColor: active
                                     ? colors.activeBorder
@@ -1003,7 +1003,7 @@ const guideSteps = useMemo(
                   </div>
 
                   <div
-                    className="mt-5 rounded-[18px] border px-4 py-3"
+                    className="mt-5 rounded-card border px-4 py-3"
                     style={{
                       borderColor: colors.border,
                       background: colors.surfaceSoft,
@@ -1011,7 +1011,7 @@ const guideSteps = useMemo(
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card border"
                         style={{
                           borderColor: colors.activeBorder,
                           background: colors.activeSurface,
@@ -1055,7 +1055,7 @@ const guideSteps = useMemo(
 
                 <div
                   ref={createButtonRef}
-                  className="rounded-[20px] transition-all duration-200"
+                  className="rounded-card transition-all duration-200"
                   style={getHighlightStyle("createButton")}
                 >
                   <motion.button
@@ -1064,7 +1064,7 @@ const guideSteps = useMemo(
                     whileTap={{ scale: createEnabled ? 0.985 : 1 }}
                     onClick={createAccountHandler}
                     disabled={!createEnabled}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 rounded-card px-7 py-3 text-sm font-bold text-text transition-all disabled:cursor-not-allowed"
                     style={{
                       background: colors.button,
                       boxShadow: colors.buttonShadow,

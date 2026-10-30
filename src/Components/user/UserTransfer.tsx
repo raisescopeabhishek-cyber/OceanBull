@@ -23,6 +23,7 @@ import {
 import { userApi } from "../../utils/apiClients";
 import { useMt5Accounts } from "../../hooks/useMt5Accounts";
 import TransferFormPanel from "./TransferFormPanel";
+import { Button, PageHeader } from "@/Components/ui";
 
 /* -------------------- types -------------------- */
 type AccountType = {
@@ -161,37 +162,37 @@ function StatCard({ icon, label, value, hint, colors, tone = "default" }: any) {
     tone === "success"
       ? {
           iconBg: colors.isDark
-            ? "rgba(16,185,129,0.14)"
-            : "rgba(16,185,129,0.1)",
+            ? "rgba(15, 159, 110,0.14)"
+            : "rgba(15, 159, 110,0.1)",
           iconColor: colors.success,
           border: colors.isDark
-            ? "rgba(16,185,129,0.22)"
-            : "rgba(16,185,129,0.18)",
+            ? "rgba(15, 159, 110,0.22)"
+            : "rgba(15, 159, 110,0.18)",
         }
       : tone === "info"
       ? {
           iconBg: colors.isDark
-            ? "rgba(59,130,246,0.14)"
-            : "rgba(245,158,11,0.08)",
+            ? "rgba(79, 125, 246,0.14)"
+            : "rgba(42, 86, 220,0.08)",
           iconColor: colors.accent,
           border: colors.isDark
-            ? "rgba(59,130,246,0.22)"
-            : "rgba(245,158,11,0.14)",
+            ? "rgba(79, 125, 246,0.22)"
+            : "rgba(42, 86, 220,0.14)",
         }
       : tone === "warning"
       ? {
           iconBg: colors.isDark
-            ? "rgba(245,158,11,0.14)"
-            : "rgba(245,158,11,0.1)",
+            ? "rgba(42, 86, 220,0.14)"
+            : "rgba(42, 86, 220,0.1)",
           iconColor: colors.warning,
           border: colors.isDark
-            ? "rgba(245,158,11,0.22)"
-            : "rgba(245,158,11,0.16)",
+            ? "rgba(42, 86, 220,0.22)"
+            : "rgba(42, 86, 220,0.16)",
         }
       : {
           iconBg: colors.isDark
             ? "rgba(255,255,255,0.05)"
-            : "rgba(245,158,11,0.06)",
+            : "rgba(42, 86, 220,0.06)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -207,7 +208,7 @@ function StatCard({ icon, label, value, hint, colors, tone = "default" }: any) {
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -325,7 +326,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(245,158,11,0.08)",
+                        : "rgba(42, 86, 220,0.08)",
                     }}
                   />
                 </td>
@@ -348,19 +349,19 @@ export default function UserTransfer() {
 
   const colors = useMemo(() => {
     const accent = isDark
-      ? rgba(theme?.accent || "96 165 250", 0.95)
-      : "#f59e0b";
+      ? rgba(theme?.accent || "79 125 246", 0.95)
+      : "#2a56dc";
 
     return {
       isDark,
 
-      pageBg: isDark ? "#0b1120" : "#fffaf5",
+      pageBg: isDark ? "#0a111f" : "#f7f9fc",
 
       heroBg: isDark
-        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #fb923c, #f59e0b)",
+        ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+        : "linear-gradient(135deg, #4f7df6, #2a56dc)",
 
-      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
+      surface: isDark ? "rgba(15, 24, 41,0.92)" : "rgba(255,255,255,0.94)",
       surfaceSoft: isDark
         ? "rgba(255,255,255,0.04)"
         : "rgba(255,251,235,0.75)",
@@ -368,46 +369,46 @@ export default function UserTransfer() {
         ? "rgba(255,255,255,0.03)"
         : "rgba(255,250,245,0.95)",
 
-      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
-      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#7b879a",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#4a5669",
 
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+      accentSoft: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
 
-      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
-      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
-      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#0f9f6e",
+      warning: isDark ? "rgba(224, 191, 108,0.95)" : "#2245b4",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a",
 
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.16)",
+        : "rgba(42, 86, 220,0.16)",
 
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(245,158,11,0.10)",
+        : "rgba(42, 86, 220,0.10)",
 
       inputBg: isDark
-        ? "rgba(15,23,42,0.92)"
+        ? "rgba(15, 24, 41,0.92)"
         : "linear-gradient(180deg, rgba(255,251,235,0.98), rgba(255,255,255,0.98))",
 
       inputBorder: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.30)",
+        : "rgba(42, 86, 220,0.30)",
 
-      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#f59e0b",
+      inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+      inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#2a56dc",
 
       inputShadow: isDark
         ? "0 0 0 1px rgba(255,255,255,0.03)"
-        : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+        : "0 0 0 4px rgba(42, 86, 220,0.05), 0 10px 22px rgba(42, 86, 220,0.07)",
 
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 14px 30px rgba(245,158,11,0.07)",
+        : "0 14px 30px rgba(42, 86, 220,0.07)",
 
-      primaryBtn: "#f59e0b",
-      primaryBtnHover: "#d97706",
+      primaryBtn: "#2a56dc",
+      primaryBtnHover: "#2245b4",
       primaryBtnText: "#ffffff",
 
       tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
@@ -626,9 +627,9 @@ export default function UserTransfer() {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
+        background: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(22,163,74,0.09)",
         border: isDark
-          ? "1px solid rgba(16,185,129,0.22)"
+          ? "1px solid rgba(15, 159, 110,0.22)"
           : "1px solid rgba(22,163,74,0.16)",
         color: colors.success,
       };
@@ -636,20 +637,20 @@ export default function UserTransfer() {
 
     if (tone === "pending") {
       return {
-        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
+        background: isDark ? "rgba(42, 86, 220,0.12)" : "rgba(42, 86, 220,0.08)",
         border: isDark
-          ? "1px solid rgba(245,158,11,0.22)"
-          : "1px solid rgba(245,158,11,0.16)",
+          ? "1px solid rgba(42, 86, 220,0.22)"
+          : "1px solid rgba(42, 86, 220,0.16)",
         color: colors.warning,
       };
     }
 
     if (tone === "rejected") {
       return {
-        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
+        background: isDark ? "rgba(220, 58, 58,0.12)" : "rgba(220, 58, 58,0.08)",
         border: isDark
-          ? "1px solid rgba(239,68,68,0.22)"
-          : "1px solid rgba(239,68,68,0.16)",
+          ? "1px solid rgba(220, 58, 58,0.22)"
+          : "1px solid rgba(220, 58, 58,0.16)",
         color: colors.danger,
       };
     }
@@ -688,7 +689,7 @@ export default function UserTransfer() {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(245,158,11,0.16)",
+                      : "0 30px 80px rgba(42, 86, 220,0.16)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -746,10 +747,10 @@ export default function UserTransfer() {
                           className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
-                              ? "rgba(239,68,68,0.24)"
-                              : "rgba(239,68,68,0.18)",
+                              ? "rgba(220, 58, 58,0.24)"
+                              : "rgba(220, 58, 58,0.18)",
                             background: isDark
-                              ? "rgba(239,68,68,0.08)"
+                              ? "rgba(220, 58, 58,0.08)"
                               : "rgba(254,242,242,0.92)",
                             color: colors.danger,
                             borderRadius: "14px",
@@ -807,7 +808,7 @@ export default function UserTransfer() {
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, direction, status..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-amber-400"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-primary"
                           style={{
                             borderColor: colors.inputBorder,
                             background: colors.inputBg,
@@ -884,7 +885,7 @@ export default function UserTransfer() {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -12 }}
                             >
-                              <table className="w-full text-sm">
+                              <table className="w-full text-sm table-stack">
                                 <thead
                                   style={{
                                     background: colors.tableHead,
@@ -937,7 +938,7 @@ export default function UserTransfer() {
                                           e.currentTarget.style.background = "transparent";
                                         }}
                                       >
-                                        <td className="px-4 py-3 text-center">
+                                        <td data-label="Direction" className="px-4 py-3 text-center">
                                           <span
                                             className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold"
                                             style={{
@@ -951,28 +952,28 @@ export default function UserTransfer() {
                                           </span>
                                         </td>
 
-                                        <td
+                                        <td data-label="From"
                                           className="px-4 py-3 text-center font-mono text-sm"
                                           style={{ color: colors.text }}
                                         >
                                           #{item?.fromAccountNumber || "—"}
                                         </td>
 
-                                        <td
+                                        <td data-label="To"
                                           className="px-4 py-3 text-center font-mono text-sm"
                                           style={{ color: colors.text }}
                                         >
                                           #{item?.toAccountNumber || "—"}
                                         </td>
 
-                                        <td
+                                        <td data-label="Amount"
                                           className="px-4 py-3 text-center font-semibold"
                                           style={{ color: colors.text }}
                                         >
                                           ${money(item?.amount)}
                                         </td>
 
-                                        <td
+                                        <td data-label="Note"
                                           className="px-4 py-3 text-center text-xs"
                                           style={{ color: colors.muted }}
                                         >
@@ -985,7 +986,7 @@ export default function UserTransfer() {
                                           ) : null}
                                         </td>
 
-                                        <td className="px-4 py-3 text-center">
+                                        <td data-label="Status" className="px-4 py-3 text-center">
                                           <span
                                             className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
                                             style={statusStyle(item?.status)}
@@ -994,7 +995,7 @@ export default function UserTransfer() {
                                           </span>
                                         </td>
 
-                                        <td
+                                        <td data-label="Time"
                                           className="px-4 py-3 text-center text-xs"
                                           style={{ color: colors.muted }}
                                         >
@@ -1021,38 +1022,25 @@ export default function UserTransfer() {
 
   return (
     <>
-      <div className="min-h-screen w-full" style={{ background: colors.pageBg }}>
-        <div className="w-full" style={{ background: colors.heroBg }}>
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
-            <div className="leading-none">
-              <div className="text-[28px] font-bold text-white sm:text-[32px]">
-                Transfer Funds
-              </div>
-
-              <div className="mt-2 text-sm text-white/80">
-                Move funds securely between your linked trading accounts
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Internal Transfer
-                </div>
-              </div>
-
-              <button
-                type="button"
+      <div className="w-full">
+        {/* This page lays out its own two columns with a sticky summary, so
+            it takes the page header rather than the FormPage shell, which
+            would wrap the existing cards in another card. */}
+        <div className="mx-auto max-w-[1400px] px-4 pt-1 lg:px-6">
+          <PageHeader
+            breadcrumb="Funds / Transfer"
+            title="Transfer funds"
+            description="Move balance between your own trading accounts."
+            actions={
+              <Button
+                variant="secondary"
                 onClick={() => setShowTxnModal(true)}
-                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
-                style={{ borderRadius: "14px" }}
+                leftIcon={<Activity className="h-4 w-4" />}
               >
-                <Activity className="h-4 w-4" />
-                Transfer Transactions
-              </button>
-            </div>
-          </div>
+                Transfer history
+              </Button>
+            }
+          />
         </div>
 
         <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
@@ -1211,11 +1199,11 @@ export default function UserTransfer() {
                       className="mt-4 border px-4 py-3"
                       style={{
                         background: isDark
-                          ? "rgba(245,158,11,0.08)"
-                          : "rgba(245,158,11,0.06)",
+                          ? "rgba(42, 86, 220,0.08)"
+                          : "rgba(42, 86, 220,0.06)",
                         borderColor: isDark
-                          ? "rgba(245,158,11,0.16)"
-                          : "rgba(245,158,11,0.14)",
+                          ? "rgba(42, 86, 220,0.16)"
+                          : "rgba(42, 86, 220,0.14)",
                         borderRadius: "16px",
                       }}
                     >
@@ -1260,24 +1248,24 @@ export default function UserTransfer() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm"
+              className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
             >
               <div
-                className="w-full max-w-md rounded-[28px] border p-6 text-center shadow-2xl"
+                className="w-full max-w-md rounded-card border p-6 text-center"
                 style={{
                   borderColor: colors.border,
                   background: colors.surface,
                   color: colors.text,
                   boxShadow: colors.isDark
                     ? "0 30px 80px rgba(0,0,0,0.45)"
-                    : "0 30px 80px rgba(245,158,11,0.16)",
+                    : "0 30px 80px rgba(42, 86, 220,0.16)",
                 }}
               >
                 <div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
                   style={{
                     background: isDark
-                      ? "rgba(16,185,129,0.10)"
+                      ? "rgba(15, 159, 110,0.10)"
                       : "rgba(240,253,244,0.90)",
                     color: colors.success,
                   }}

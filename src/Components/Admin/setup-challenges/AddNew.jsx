@@ -40,19 +40,19 @@ const AddNew = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogOverlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogOverlay className="fixed inset-0 bg-surface-3 bg-opacity-75 transition-opacity" />
       <DialogContent
         className="fixed inset-0 flex items-center justify-center p-4"
         ref={dialogRef}
       >
-        <div className="bg-white rounded-lg p-6 shadow-xl">
+        <div className="bg-surface rounded-field p-6">
           <DialogTitle className="text-2xl font-bold mb-4">
             Add New Plan
           </DialogTitle>
           <DialogDescription>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted">
                   Plan Name
                 </label>
                 <input
@@ -60,11 +60,11 @@ const AddNew = ({ isOpen, onClose, onSubmit }) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="mt-1 block w-full px-3 py-2 border border-line rounded-field shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted">
                   Phase
                 </label>
                 <input
@@ -72,11 +72,11 @@ const AddNew = ({ isOpen, onClose, onSubmit }) => {
                   value={phase}
                   onChange={(e) => setPhase(Number(e.target.value))}
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="mt-1 block w-full px-3 py-2 border border-line rounded-field shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted">
                   Tree Commission
                 </label>
                 <input
@@ -84,27 +84,27 @@ const AddNew = ({ isOpen, onClose, onSubmit }) => {
                   value={treeCommission}
                   onChange={(e) => setTreeCommission(Number(e.target.value))}
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="mt-1 block w-full px-3 py-2 border border-line rounded-field shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted">
                   Is Default
                 </label>
                 <Switch
                   checked={isDefault}
                   onCheckedChange={() => setIsDefault(!isDefault)}
-                  className="data-[state=checked]:bg-green-500"
+                  className="data-[state=checked]:bg-success"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted">
                   Status
                 </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="mt-1 block w-full px-3 py-2 border border-line rounded-field shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="Enabled">Enabled</option>
                   <option value="Disabled">Disabled</option>
@@ -113,7 +113,7 @@ const AddNew = ({ isOpen, onClose, onSubmit }) => {
               <div className="mt-5 sm:mt-6">
                 <button
                   type="submit"
-                  className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-500 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
+                  className="inline-flex justify-center w-full rounded-field border border-transparent shadow-sm px-4 py-2 bg-primary-500 text-base font-medium text-text hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
                 >
                   Save
                 </button>

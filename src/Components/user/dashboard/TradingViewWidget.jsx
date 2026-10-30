@@ -32,10 +32,10 @@ const TradingViewWidget = () => {
 
   return (
     <div className="flex justify-center items-center">
-      <div className=" w-full max-w-4xl p-4">
+      <div className="w-full max-w-4xl p-4">
         <div
           id="tradingview_0b60e"
-          className="rounded-3xl overflow-hidden"
+          className="rounded-card overflow-hidden"
         ></div>
         <div id="tradingview-script-container"></div>
       </div>

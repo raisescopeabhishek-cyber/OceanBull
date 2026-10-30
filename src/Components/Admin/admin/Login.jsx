@@ -77,18 +77,18 @@
 //       initial={{ opacity: 0 }}
 //       animate={{ opacity: 1 }}
 //       transition={{ duration: 0.5 }}
-//       className="min-h-screen flex items-center justify-center p-5 bg-gradient-to-br from-black to-primary-600/80"
+//       className="min-h-screen flex items-center justify-center p-5 to-primary-600/80"
 //     >
 //       <Toaster />
 //       <motion.div
 //         variants={containerVariants}
 //         initial="hidden"
 //         animate="visible"
-//         className="bg-white rounded-2xl shadow-2xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden"
+//         className="bg-surface rounded-card flex flex-col md:flex-row w-full max-w-4xl overflow-hidden"
 //       >
 //         <motion.div
 //           variants={itemVariants}
-//           className="w-full md:w-1/2 bg-primary-600 text-white flex flex-col justify-center relative overflow-hidden p-12"
+//           className="w-full md:w-1/2 bg-primary-600 text-text flex flex-col justify-center relative overflow-hidden p-12"
 //         >
 //           <motion.div
 //             initial={{ scale: 1.1 }}
@@ -150,7 +150,7 @@
 //           </div>
 //         </motion.div>
 
-//         <div className="w-full md:w-1/2 p-12 bg-gray-50">
+//         <div className="w-full md:w-1/2 p-12 bg-surface-2">
 //           <motion.div variants={containerVariants} className="max-w-md mx-auto">
 //             <motion.div
 //               variants={itemVariants}
@@ -160,7 +160,7 @@
 //             </motion.div>
 //             <motion.h2
 //               variants={itemVariants}
-//               className="text-3xl font-bold text-gray-800 mb-8 text-center"
+//               className="text-3xl font-bold text-text mb-8 text-center"
 //             >
 //               Admin Login
 //             </motion.h2>
@@ -168,7 +168,7 @@
 //               <motion.div variants={itemVariants}>
 //                 <label
 //                   htmlFor="email"
-//                   className="block text-sm font-medium text-gray-700"
+//                   className="block text-sm font-medium text-muted"
 //                 >
 //                   Email
 //                 </label>
@@ -179,13 +179,13 @@
 //                   value={formData.email}
 //                   onChange={handleChange}
 //                   required
-//                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-300"
+//                   className="mt-1 block w-full px-3 py-2 bg-surface border border-line rounded-field shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-300"
 //                 />
 //               </motion.div>
 //               <motion.div variants={itemVariants}>
 //                 <label
 //                   htmlFor="password"
-//                   className="block text-sm font-medium text-gray-700"
+//                   className="block text-sm font-medium text-muted"
 //                 >
 //                   Password
 //                 </label>
@@ -196,7 +196,7 @@
 //                   value={formData.password}
 //                   onChange={handleChange}
 //                   required
-//                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-300"
+//                   className="mt-1 block w-full px-3 py-2 bg-surface border border-line rounded-field shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-300"
 //                 />
 //               </motion.div>
 //               <motion.div variants={itemVariants}>
@@ -204,7 +204,7 @@
 //                   type="submit"
 //                   whileHover={{ scale: 1.05 }}
 //                   whileTap={{ scale: 0.95 }}
-//                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-300 ease-in-out"
+//                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-field text-sm font-medium text-text bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-300 ease-in-out"
 //                 >
 //                   Sign in to Dashboard
 //                 </motion.button>
@@ -212,7 +212,7 @@
 //             </form>
 //             <motion.p
 //               variants={itemVariants}
-//               className="mt-8 text-center text-sm text-gray-600"
+//               className="mt-8 text-center text-sm text-muted"
 //             >
 //               Need help? Contact{" "}
 //               <a

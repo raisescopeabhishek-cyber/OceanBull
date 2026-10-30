@@ -33,17 +33,17 @@ export default function UserReferralPendingDeposit() {
   ];
 
   return (
-    <div className=" max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-bold">Pending Deposits</h2>
-        <p className="text-gray-400 mt-1">
+        <p className="text-subtle mt-1">
           Track all pending deposit from users
         </p>
       </div>
 
-      <div className="bg-secondary-800 rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-secondary-800 rounded-field overflow-hidden">
         <div className="min-w-full overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-line table-stack">
             <thead className="bg-secondary-800">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">
@@ -63,45 +63,45 @@ export default function UserReferralPendingDeposit() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-secondary-800/10 divide-y divide-gray-200">
+            <tbody className="bg-secondary-800/10 divide-y divide-line">
               {pendingDeposits.map((deposit) => (
                 <tr
                   key={deposit.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-surface-2 transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td data-label="Name/Email" className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
-                      <div className="text-sm font-medium text-gray-100">
+                      <div className="text-sm font-medium text-text">
                         {deposit.name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-subtle">
                         {deposit.email}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                  <td data-label="Country" className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-text">
                       {deposit.country}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                  <td data-label="Amount" className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-text">
                       {deposit.amount}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td data-label="Status" className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                       ${
                         deposit.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-warning-soft text-warning"
+                          : "bg-primary-soft text-primary"
                       }`}
                     >
                       {deposit.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td data-label="Timestamp" className="px-6 py-4 whitespace-nowrap text-sm text-subtle">
                     {deposit.timestamp}
                   </td>
                 </tr>

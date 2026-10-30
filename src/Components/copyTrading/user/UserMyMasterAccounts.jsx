@@ -81,10 +81,10 @@ const getLossAmount = (value) => {
 const getProfitClass = (value, isDark) => {
   const number = toNumber(value, 0);
 
-  if (number > 0) return "text-emerald-500";
-  if (number < 0) return "text-red-500";
+  if (number > 0) return "text-success";
+  if (number < 0) return "text-danger";
 
-  return isDark ? "text-white/60" : "text-slate-500";
+  return "text-subtle";
 };
 
 const getUserMt5Accounts = (user) => {
@@ -537,10 +537,7 @@ const AgoBadge = ({ isDark, children }) => {
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-bold",
-        isDark
-          ? "border-white/10 bg-white/[0.04] text-white/70"
-          : "border-emerald-100 bg-emerald-50 text-emerald-700"
+        "inline-flex items-center gap-1 rounded-card border px-3 py-1.5 text-xs font-bold","border-line bg-surface-2 text-muted"
       )}
     >
       <Clock3 className="h-3.5 w-3.5" />
@@ -552,32 +549,22 @@ const AgoBadge = ({ isDark, children }) => {
 const MiniStat = ({ isDark, icon, label, value, hint, tone = "emerald" }) => {
   const toneClass =
     tone === "red"
-      ? isDark
-        ? "border-red-400/20 bg-red-500/10 text-red-300"
-        : "border-red-100 bg-red-50 text-red-700"
+      ?"border-danger bg-danger-soft text-danger"
       : tone === "blue"
-      ? isDark
-        ? "border-sky-400/20 bg-sky-500/10 text-sky-300"
-        : "border-sky-100 bg-sky-50 text-sky-700"
-      : isDark
-      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-      : "border-emerald-100 bg-emerald-50 text-emerald-700";
+      ?"border-line bg-primary-soft text-primary"
+      :"border-success bg-success-soft text-success";
 
   return (
     <div
       className={cx(
-        "rounded-2xl border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.025]"
-          : "border-emerald-100 bg-white/90"
+        "rounded-card border p-4","border-line bg-surface-2"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
           <p
             className={cx(
-              "text-xs font-black uppercase tracking-[0.14em]",
-              isDark ? "text-white/45" : "text-slate-500"
+              "text-xs font-black uppercase tracking-[0.14em]","text-subtle"
             )}
           >
             {label}
@@ -585,8 +572,7 @@ const MiniStat = ({ isDark, icon, label, value, hint, tone = "emerald" }) => {
 
           <p
             className={cx(
-              "mt-2 text-xl font-black",
-              isDark ? "text-white" : "text-slate-950"
+              "mt-2 text-xl font-black","text-text"
             )}
           >
             {value}
@@ -595,8 +581,7 @@ const MiniStat = ({ isDark, icon, label, value, hint, tone = "emerald" }) => {
           {hint ? (
             <p
               className={cx(
-                "mt-1 text-xs",
-                isDark ? "text-white/45" : "text-slate-500"
+                "mt-1 text-xs","text-subtle"
               )}
             >
               {hint}
@@ -606,7 +591,7 @@ const MiniStat = ({ isDark, icon, label, value, hint, tone = "emerald" }) => {
 
         <div
           className={cx(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-card border",
             toneClass
           )}
         >
@@ -701,10 +686,7 @@ const TradeRows = ({
         summary.commission === 0 && (
           <div
             className={cx(
-              "rounded-2xl border p-4 text-sm leading-6",
-              isDark
-                ? "border-yellow-400/20 bg-yellow-500/10 text-yellow-100"
-                : "border-yellow-100 bg-yellow-50 text-yellow-800"
+              "rounded-card border p-4 text-sm leading-6","border-warning bg-warning-soft text-warning"
             )}
           >
             <b>Commission is showing 0.</b> Commission is calculated only on
@@ -753,10 +735,7 @@ const TradeRows = ({
             <tr
               key={`${getTradeTicket(row)}-${index}`}
               className={cx(
-                "border-t transition-colors",
-                isDark
-                  ? "border-white/10 hover:bg-white/[0.035]"
-                  : "border-emerald-100 hover:bg-emerald-50/40"
+                "border-t transition-colors","border-line hover:bg-surface-2"
               )}
             >
               <td className="whitespace-nowrap px-4 py-4 font-bold">
@@ -791,10 +770,8 @@ const TradeRows = ({
                 className={cx(
                   "whitespace-nowrap px-4 py-4 font-black",
                   profitAmount > 0
-                    ? "text-emerald-500"
-                    : isDark
-                    ? "text-white/35"
-                    : "text-slate-400"
+                    ? "text-success"
+                    :"text-subtle"
                 )}
               >
                 {profitAmount > 0 ? formatMoney(profitAmount) : "-"}
@@ -804,10 +781,8 @@ const TradeRows = ({
                 className={cx(
                   "whitespace-nowrap px-4 py-4 font-black",
                   lossAmount > 0
-                    ? "text-red-500"
-                    : isDark
-                    ? "text-white/35"
-                    : "text-slate-400"
+                    ? "text-danger"
+                    :"text-subtle"
                 )}
               >
                 {lossAmount > 0 ? formatMoney(lossAmount) : "-"}
@@ -821,10 +796,8 @@ const TradeRows = ({
                 className={cx(
                   "whitespace-nowrap px-4 py-4 font-black",
                   commission > 0
-                    ? "text-emerald-500"
-                    : isDark
-                    ? "text-white/45"
-                    : "text-slate-400"
+                    ? "text-success"
+                    :"text-subtle"
                 )}
               >
                 {formatMoney(commission)}
@@ -835,12 +808,8 @@ const TradeRows = ({
                   className={cx(
                     "rounded-full border px-2.5 py-1 text-xs font-black uppercase",
                     status === "closed"
-                      ? isDark
-                        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                        : "border-emerald-100 bg-emerald-50 text-emerald-700"
-                      : isDark
-                      ? "border-sky-400/20 bg-sky-500/10 text-sky-300"
-                      : "border-sky-100 bg-sky-50 text-sky-700"
+                      ?"border-success bg-success-soft text-success"
+                      :"border-line bg-primary-soft text-primary"
                   )}
                 >
                   {status}
@@ -856,21 +825,18 @@ const TradeRows = ({
         footer={
           <tr
             className={cx(
-              "border-t text-sm font-black",
-              isDark
-                ? "border-white/10 bg-white/[0.035] text-white"
-                : "border-emerald-100 bg-emerald-50/80 text-slate-950"
+              "border-t text-sm font-black","border-line bg-surface-2 text-text"
             )}
           >
             <td className="px-4 py-4" colSpan={7}>
               Total
             </td>
 
-            <td className="whitespace-nowrap px-4 py-4 text-emerald-500">
+            <td className="whitespace-nowrap px-4 py-4 text-success">
               {formatMoney(summary.grossProfit)}
             </td>
 
-            <td className="whitespace-nowrap px-4 py-4 text-red-500">
+            <td className="whitespace-nowrap px-4 py-4 text-danger">
               {formatMoney(summary.grossLoss)}
             </td>
 
@@ -878,7 +844,7 @@ const TradeRows = ({
               {formatPercent(fallbackCommission)}
             </td>
 
-            <td className="whitespace-nowrap px-4 py-4 text-emerald-500">
+            <td className="whitespace-nowrap px-4 py-4 text-success">
               {formatMoney(summary.commission)}
             </td>
 
@@ -976,12 +942,10 @@ const AccountTradePanel = ({
                 loadTrades(item);
               }}
               className={cx(
-                "rounded-xl border px-4 py-2 text-xs font-bold capitalize",
+                "rounded-card border px-4 py-2 text-xs font-bold capitalize",
                 status === item
-                  ? "border-emerald-400 bg-emerald-500 text-white"
-                  : isDark
-                  ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
-                  : "border-emerald-100 bg-white text-slate-600 hover:bg-emerald-50"
+                  ? "border-success bg-success text-text"
+                  :"border-line bg-surface-2 text-muted hover:bg-surface-2"
               )}
             >
               {item} Trades
@@ -993,10 +957,7 @@ const AccountTradePanel = ({
             onClick={() => loadTrades(status)}
             disabled={loading}
             className={cx(
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white"
-                : "border-emerald-100 bg-white text-emerald-700"
+              "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-bold disabled:opacity-60","border-line bg-surface-2 text-text"
             )}
           >
             <RefreshCw
@@ -1009,10 +970,7 @@ const AccountTradePanel = ({
         {responseInfo ? (
           <div
             className={cx(
-              "rounded-xl border px-3 py-2 text-xs font-bold",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white/70"
-                : "border-emerald-100 bg-white text-slate-600"
+              "rounded-card border px-3 py-2 text-xs font-bold","border-line bg-surface-2 text-muted"
             )}
           >
             {responseInfo.role} · {responseInfo.selectedStatus} ·{" "}
@@ -1024,10 +982,7 @@ const AccountTradePanel = ({
       {loading ? (
         <div
           className={cx(
-            "rounded-2xl border p-5 text-sm font-bold",
-            isDark
-              ? "border-white/10 bg-white/[0.025] text-white/60"
-              : "border-emerald-100 bg-white text-slate-500"
+            "rounded-card border p-5 text-sm font-bold","border-line bg-surface-2 text-subtle"
           )}
         >
           Loading trades...
@@ -1045,15 +1000,12 @@ const AccountTradePanel = ({
       {mode === "copier" ? (
         <div
           className={cx(
-            "rounded-2xl border p-4 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.025] text-white/65"
-              : "border-emerald-100 bg-white text-slate-600"
+            "rounded-card border p-4 text-sm","border-line bg-surface-2 text-muted"
           )}
         >
           <b>Copier {fallbackCopierAccount || account}</b> estimated master
           commission:{" "}
-          <span className="font-black text-emerald-500">
+          <span className="font-black text-success">
             {formatMoney(summary.commission)}
           </span>
         </div>
@@ -1066,21 +1018,17 @@ const FilterInput = ({ isDark, value, onChange }) => {
   return (
     <div
       className={cx(
-        "flex items-center gap-2 rounded-2xl border px-4 py-3",
-        isDark
-          ? "border-white/10 bg-white/[0.04] text-white"
-          : "border-emerald-100 bg-white text-slate-900"
+        "flex items-center gap-2 rounded-card border px-4 py-3","border-line bg-surface-2 text-text"
       )}
     >
-      <Search className="h-4 w-4 text-emerald-600" />
+      <Search className="h-4 w-4 text-success" />
 
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search master, copier, name, commission..."
         className={cx(
-          "w-full bg-transparent text-sm font-semibold outline-none placeholder:text-slate-400",
-          isDark ? "text-white" : "text-slate-900"
+          "w-full bg-transparent text-sm font-semibold outline-none placeholder:text-subtle","text-text"
         )}
       />
     </div>
@@ -1092,8 +1040,7 @@ const FilterSelect = ({ isDark, label, value, onChange, children }) => {
     <label className="space-y-2">
       <span
         className={cx(
-          "text-xs font-black uppercase tracking-[0.14em]",
-          isDark ? "text-white/45" : "text-slate-500"
+          "text-xs font-black uppercase tracking-[0.14em]","text-subtle"
         )}
       >
         {label}
@@ -1103,10 +1050,7 @@ const FilterSelect = ({ isDark, label, value, onChange, children }) => {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cx(
-          "w-full rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
-          isDark
-            ? "border-white/10 bg-slate-950 text-white"
-            : "border-emerald-100 bg-white text-slate-900"
+          "w-full rounded-card border px-4 py-3 text-sm font-bold outline-none","border-line bg-surface text-text"
         )}
       >
         {children}
@@ -1123,10 +1067,7 @@ const PaginationButton = ({ isDark, disabled, onClick, children, label }) => {
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40",
-        isDark
-          ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-          : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+        "inline-flex h-10 min-w-10 items-center justify-center rounded-card border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40","border-line bg-surface-2 text-text hover:bg-surface-2"
       )}
     >
       {children}
@@ -1388,8 +1329,7 @@ const UserMyMasterAccounts = () => {
     return (
       <div
         className={cx(
-          "p-5 text-sm",
-          isDark ? "text-white/70" : "text-slate-600"
+          "p-5 text-sm","text-muted"
         )}
       >
         Loading your master accounts...
@@ -1411,16 +1351,12 @@ const UserMyMasterAccounts = () => {
     <div className="space-y-5">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-4",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 md:grid-cols-4","border-line bg-surface-2"
         )}
       >
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10" : "border-emerald-100"
+            "rounded-card border p-4","border-line"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -1433,8 +1369,7 @@ const UserMyMasterAccounts = () => {
 
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10" : "border-emerald-100"
+            "rounded-card border p-4","border-line"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -1447,8 +1382,7 @@ const UserMyMasterAccounts = () => {
 
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10" : "border-emerald-100"
+            "rounded-card border p-4","border-line"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -1463,8 +1397,7 @@ const UserMyMasterAccounts = () => {
 
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10" : "border-emerald-100"
+            "rounded-card border p-4","border-line"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -1481,8 +1414,7 @@ const UserMyMasterAccounts = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p
           className={cx(
-            "text-sm",
-            isDark ? "text-white/55" : "text-slate-500"
+            "text-sm","text-subtle"
           )}
         >
           Showing{" "}
@@ -1499,10 +1431,7 @@ const UserMyMasterAccounts = () => {
             onClick={expandAllOnPage}
             disabled={!paginatedMasters.length}
             className={cx(
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-50",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white"
-                : "border-emerald-100 bg-white text-emerald-700"
+              "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-bold disabled:opacity-50","border-line bg-surface-2 text-text"
             )}
           >
             <ChevronDown className="h-3.5 w-3.5" />
@@ -1514,10 +1443,7 @@ const UserMyMasterAccounts = () => {
             onClick={collapseAllOnPage}
             disabled={!paginatedMasters.length}
             className={cx(
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-50",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white"
-                : "border-emerald-100 bg-white text-emerald-700"
+              "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-bold disabled:opacity-50","border-line bg-surface-2 text-text"
             )}
           >
             <ChevronUp className="h-3.5 w-3.5" />
@@ -1529,10 +1455,7 @@ const UserMyMasterAccounts = () => {
             onClick={loadMasters}
             disabled={loading}
             className={cx(
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-60",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white"
-                : "border-emerald-100 bg-white text-emerald-700"
+              "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-bold disabled:opacity-60","border-line bg-surface-2 text-text"
             )}
           >
             <RefreshCw
@@ -1548,19 +1471,13 @@ const UserMyMasterAccounts = () => {
           type="button"
           onClick={() => setFiltersOpen((prev) => !prev)}
           className={cx(
-            "flex w-full items-center justify-between gap-4 rounded-[22px] border p-4 text-left transition-all",
-            isDark
-              ? "border-white/10 bg-white/[0.035] text-white hover:bg-white/[0.06]"
-              : "border-emerald-100 bg-white text-slate-950 shadow-[0_10px_24px_rgba(16,185,129,0.06)] hover:bg-emerald-50/40"
+            "flex w-full items-center justify-between gap-4 rounded-card border p-4 text-left transition-all","border-line bg-surface-2 text-text hover:bg-surface-2"
           )}
         >
           <div className="flex items-center gap-3">
             <div
               className={cx(
-                "flex h-11 w-11 items-center justify-center rounded-2xl border",
-                isDark
-                  ? "border-white/10 bg-white/[0.04]"
-                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                "flex h-11 w-11 items-center justify-center rounded-card border","border-line bg-surface-2"
               )}
             >
               <Filter className="h-5 w-5" />
@@ -1570,8 +1487,7 @@ const UserMyMasterAccounts = () => {
               <h3 className="text-sm font-black">Search & Filters</h3>
               <p
                 className={cx(
-                  "mt-1 text-xs",
-                  isDark ? "text-white/45" : "text-slate-500"
+                  "mt-1 text-xs","text-subtle"
                 )}
               >
                 Search master/copier accounts, filter by copiers or commission,
@@ -1582,7 +1498,7 @@ const UserMyMasterAccounts = () => {
 
           <div className="flex items-center gap-3">
             {activeFilterCount ? (
-              <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white">
+              <span className="rounded-full bg-success px-3 py-1 text-xs font-black text-text">
                 {activeFilterCount} Active
               </span>
             ) : null}
@@ -1598,10 +1514,7 @@ const UserMyMasterAccounts = () => {
         {filtersOpen && (
           <div
             className={cx(
-              "rounded-[24px] border p-4",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+              "rounded-card border p-4","border-line bg-surface-2"
             )}
           >
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.3fr_1fr_1fr_1fr_0.8fr_auto]">
@@ -1675,10 +1588,7 @@ const UserMyMasterAccounts = () => {
                   type="button"
                   onClick={resetFilters}
                   className={cx(
-                    "inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                      : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+                    "inline-flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-black","border-line bg-surface-2 text-text hover:bg-surface-2"
                   )}
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -1709,10 +1619,7 @@ const UserMyMasterAccounts = () => {
               <div
                 key={`${masterAccount}-${startIndex + index}`}
                 className={cx(
-                  "overflow-hidden rounded-[24px] border",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+                  "overflow-hidden rounded-card border","border-line bg-surface-2"
                 )}
               >
                 <button
@@ -1727,7 +1634,7 @@ const UserMyMasterAccounts = () => {
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-success">
                         Master Account
                       </p>
 
@@ -1737,10 +1644,7 @@ const UserMyMasterAccounts = () => {
 
                       <span
                         className={cx(
-                          "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-black",
-                          isDark
-                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                            : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                          "inline-flex items-center gap-1 rounded-card border px-3 py-1.5 text-xs font-black","border-success bg-success-soft text-success"
                         )}
                       >
                         <Percent className="h-3.5 w-3.5" />
@@ -1754,8 +1658,7 @@ const UserMyMasterAccounts = () => {
 
                     <p
                       className={cx(
-                        "mt-2 text-sm",
-                        isDark ? "text-white/55" : "text-slate-500"
+                        "mt-2 text-sm","text-subtle"
                       )}
                     >
                       Name: {getMasterName(master)} · Commission:{" "}
@@ -1765,8 +1668,7 @@ const UserMyMasterAccounts = () => {
 
                     <p
                       className={cx(
-                        "mt-1 text-xs",
-                        isDark ? "text-emerald-200/70" : "text-emerald-700"
+                        "mt-1 text-xs","text-success"
                       )}
                     >
                       Created: {formatMasterCreatedDate(master)}
@@ -1779,8 +1681,7 @@ const UserMyMasterAccounts = () => {
                 {isOpen && (
                   <div
                     className={cx(
-                      "space-y-5 border-t p-5",
-                      isDark ? "border-white/10" : "border-emerald-100"
+                      "space-y-5 border-t p-5","border-line"
                     )}
                   >
                     <div>
@@ -1821,16 +1722,13 @@ const UserMyMasterAccounts = () => {
                               <div
                                 key={`${copierAccount}-${copierIndex}`}
                                 className={cx(
-                                  "rounded-[20px] border p-4",
-                                  isDark
-                                    ? "border-white/10 bg-slate-950/40"
-                                    : "border-emerald-100 bg-emerald-50/40"
+                                  "rounded-card border p-4","border-line bg-surface"
                                 )}
                               >
                                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                                   <div>
                                     <div className="flex flex-wrap items-center gap-2">
-                                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">
+                                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-success">
                                         Copier Account
                                       </p>
 
@@ -1840,10 +1738,7 @@ const UserMyMasterAccounts = () => {
 
                                       <span
                                         className={cx(
-                                          "inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-black",
-                                          isDark
-                                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                                            : "border-emerald-100 bg-white text-emerald-700"
+                                          "inline-flex items-center gap-1 rounded-card border px-3 py-1.5 text-xs font-black","border-success bg-success-soft text-success"
                                         )}
                                       >
                                         <Wallet className="h-3.5 w-3.5" />
@@ -1857,10 +1752,7 @@ const UserMyMasterAccounts = () => {
 
                                     <p
                                       className={cx(
-                                        "mt-1 text-xs",
-                                        isDark
-                                          ? "text-white/45"
-                                          : "text-slate-500"
+                                        "mt-1 text-xs","text-subtle"
                                       )}
                                     >
                                       Created: {formatCopierCreatedDate(copier)}
@@ -1869,10 +1761,7 @@ const UserMyMasterAccounts = () => {
 
                                   <div
                                     className={cx(
-                                      "rounded-xl border px-3 py-2 text-xs font-bold",
-                                      isDark
-                                        ? "border-white/10 bg-white/[0.04] text-white/70"
-                                        : "border-emerald-100 bg-white text-slate-600"
+                                      "rounded-card border px-3 py-2 text-xs font-bold","border-line bg-surface-2 text-muted"
                                     )}
                                   >
                                     Master {masterAccount}
@@ -1910,17 +1799,13 @@ const UserMyMasterAccounts = () => {
 
           <div
             className={cx(
-              "flex flex-col gap-3 rounded-[22px] border p-4 sm:flex-row sm:items-center sm:justify-between",
-              isDark
-                ? "border-white/10 bg-white/[0.035]"
-                : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+              "flex flex-col gap-3 rounded-card border p-4 sm:flex-row sm:items-center sm:justify-between","border-line bg-surface-2"
             )}
           >
             <div>
               <p
                 className={cx(
-                  "text-sm font-bold",
-                  isDark ? "text-white" : "text-slate-900"
+                  "text-sm font-bold","text-text"
                 )}
               >
                 Page {safePage} / {totalPages}
@@ -1928,8 +1813,7 @@ const UserMyMasterAccounts = () => {
 
               <p
                 className={cx(
-                  "mt-1 text-xs",
-                  isDark ? "text-white/45" : "text-slate-500"
+                  "mt-1 text-xs","text-subtle"
                 )}
               >
                 Showing {filteredMasters.length ? startIndex + 1 : 0}-{endIndex}{" "}
@@ -1958,10 +1842,7 @@ const UserMyMasterAccounts = () => {
 
               <div
                 className={cx(
-                  "rounded-xl border px-4 py-2 text-sm font-black",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white"
-                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  "rounded-card border px-4 py-2 text-sm font-black","border-line bg-surface-2 text-text"
                 )}
               >
                 {safePage} / {totalPages}

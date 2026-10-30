@@ -130,11 +130,11 @@ const AccountTypes = () => {
   return (
     <div className="mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Configure Account Types</h1>
+        <h1 className="text-3xl font-bold text-text">Configure Account Types</h1>
         <button
           onClick={handleRefresh}
           disabled={isFetching}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-text rounded-field"
         >
           {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
           <span>Refresh</span>

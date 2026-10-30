@@ -249,20 +249,14 @@ const UserCopyTradeHistory = () => {
     <div className="space-y-5 p-5 sm:p-6">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 lg:grid-cols-[220px_1fr_140px]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 lg:grid-cols-[220px_1fr_140px]","border-line bg-surface-2"
         )}
       >
         <select
           value={tab}
           onChange={(event) => setTab(event.target.value)}
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm outline-none",
-            isDark
-              ? "border-white/10 bg-slate-950 text-white"
-              : "border-emerald-100 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm outline-none","border-line bg-surface text-text"
           )}
         >
           <option value="all">All Trades</option>
@@ -280,10 +274,7 @@ const UserCopyTradeHistory = () => {
           }}
           placeholder="Enter master or copier account"
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm outline-none",
-            isDark
-              ? "border-white/10 bg-slate-950 text-white placeholder:text-white/40"
-              : "border-emerald-100 bg-white text-slate-900 placeholder:text-slate-400"
+            "rounded-card border px-4 py-3 text-sm outline-none","border-line bg-surface text-text placeholder:text-subtle"
           )}
         />
 
@@ -292,8 +283,8 @@ const UserCopyTradeHistory = () => {
           onClick={loadTrades}
           disabled={loading}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60",
-            loading ? "bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+            "inline-flex items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-bold text-text disabled:cursor-not-allowed disabled:opacity-60",
+            loading ? "bg-success" : "bg-success hover:bg-success"
           )}
         >
           <Search className="h-4 w-4" />
@@ -304,10 +295,7 @@ const UserCopyTradeHistory = () => {
       {accountInfo && (
         <div
           className={cx(
-            "grid grid-cols-1 gap-3 rounded-[22px] border p-4 text-sm md:grid-cols-4",
-            isDark
-              ? "border-white/10 bg-white/[0.035] text-white"
-              : "border-emerald-100 bg-white text-slate-700"
+            "grid grid-cols-1 gap-3 rounded-card border p-4 text-sm md:grid-cols-4","border-line bg-surface-2 text-text"
           )}
         >
           <div>
@@ -331,10 +319,7 @@ const UserCopyTradeHistory = () => {
       {loading ? (
         <div
           className={cx(
-            "rounded-[22px] border p-5 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.035] text-white/70"
-              : "border-emerald-100 bg-white text-slate-600"
+            "rounded-card border p-5 text-sm","border-line bg-surface-2 text-muted"
           )}
         >
           Loading trades...
@@ -369,8 +354,7 @@ const UserCopyTradeHistory = () => {
               <tr
                 key={`${getTradeTicket(row)}-${getTradeAccount(row)}-${index}`}
                 className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "border-t","border-line"
                 )}
               >
                 <td className="whitespace-nowrap px-4 py-4">
@@ -378,8 +362,8 @@ const UserCopyTradeHistory = () => {
                     className={cx(
                       "rounded-full px-2.5 py-1 text-xs font-bold capitalize",
                       pickStatus(row) === "open"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-success-soft text-success"
+                        : "bg-surface-3 text-muted"
                     )}
                   >
                     {pickStatus(row)}
@@ -418,12 +402,10 @@ const UserCopyTradeHistory = () => {
                   className={cx(
                     "whitespace-nowrap px-4 py-4 font-bold",
                     profit > 0
-                      ? "text-emerald-600"
+                      ? "text-success"
                       : profit < 0
-                      ? "text-red-500"
-                      : isDark
-                      ? "text-white"
-                      : "text-slate-900"
+                      ? "text-danger"
+                      :"text-text"
                   )}
                 >
                   {getTradeProfit(row)}

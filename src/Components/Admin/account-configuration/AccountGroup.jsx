@@ -63,16 +63,16 @@ const AccountGroup = ({ refresh, setRefresh }) => {
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
-      <h2 className="text-white text-3xl font-bold mb-6">Add New Group</h2>
-      <div className="bg-primary-800 rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl">
+      <h2 className="text-text text-3xl font-bold mb-6">Add New Group</h2>
+      <div className="bg-primary-800 rounded-card p-6 transition-all duration-300">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">
+            <label className="block text-sm font-medium text-muted mb-2">
               API Group
             </label>
             <div className="relative">
               <select
-                className="w-full p-3 bg-white text-gray-900 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 disabled:opacity-50 transition-all appearance-none"
+                className="w-full p-3 bg-surface text-text rounded-field border border-line focus:ring-2 focus:ring-primary focus:border-transparent pr-10 disabled:opacity-50 transition-all appearance-none"
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
                 disabled={editing || isFetchingGroups}
@@ -88,16 +88,16 @@ const AccountGroup = ({ refresh, setRefresh }) => {
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 {isFetchingGroups ? (
-                  <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                  <Loader2 className="h-5 w-5 text-subtle animate-spin" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                  <ChevronDown className="h-5 w-5 text-subtle" />
                 )}
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">
+            <label className="block text-sm font-medium text-muted mb-2">
               Custom Group Name
             </label>
             <input
@@ -105,7 +105,7 @@ const AccountGroup = ({ refresh, setRefresh }) => {
               placeholder="Enter custom group name"
               value={customGroup}
               onChange={(e) => setCustomGroup(e.target.value)}
-              className="w-full p-3 bg-white text-gray-900 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
+              className="w-full p-3 bg-surface text-text rounded-field border border-line focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 transition-all"
               disabled={editing}
             />
           </div>
@@ -116,7 +116,7 @@ const AccountGroup = ({ refresh, setRefresh }) => {
                 <button
                   onClick={handleSave}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+                  className="flex items-center gap-2 px-6 py-2 bg-success text-text rounded-field hover:bg-success focus:ring-2 focus:ring-success focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
                 >
                   {isLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -128,7 +128,7 @@ const AccountGroup = ({ refresh, setRefresh }) => {
                 <button
                   onClick={handleCancel}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+                  className="flex items-center gap-2 px-6 py-2 bg-danger text-text rounded-field hover:bg-danger focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
                 >
                   <X className="h-5 w-5" />
                   <span>Cancel</span>
@@ -138,7 +138,7 @@ const AccountGroup = ({ refresh, setRefresh }) => {
               <button
                 onClick={() => setEditing(true)}
                 disabled={!apiGroups.length || isFetchingGroups}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all duration-200"
+                className="px-8 py-3 bg-primary text-text rounded-field hover:bg-primary-soft focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all duration-200"
               >
                 Add Group
               </button>

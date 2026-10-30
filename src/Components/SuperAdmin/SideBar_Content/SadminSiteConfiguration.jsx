@@ -69,10 +69,7 @@ const SadminSiteConfiguration = () => {
   const isDark = mode === "dark";
 
   const inputClass = [
-    "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-    isDark
-      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-      : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+    "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
     "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
   ].join(" ");
 
@@ -316,10 +313,7 @@ const SadminSiteConfiguration = () => {
         <div>
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <Settings2 size={14} />
@@ -328,8 +322,7 @@ const SadminSiteConfiguration = () => {
 
           <h2
             className={[
-              "text-2xl sm:text-3xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
             ].join(" ")}
           >
             Site Configuration
@@ -337,8 +330,7 @@ const SadminSiteConfiguration = () => {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Manage website core settings, media assets, links, and interface behavior.
@@ -352,10 +344,7 @@ const SadminSiteConfiguration = () => {
                 onClick={handleSave}
                 disabled={saving}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                  isDark
-                    ? "bg-emerald-500/90 text-white hover:bg-emerald-500 shadow-[0_10px_25px_rgba(16,185,129,0.25)]"
-                    : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_10px_25px_rgba(16,185,129,0.20)]",
+                  "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-success-soft text-text hover:bg-success",
                 ].join(" ")}
               >
                 {saving ? (
@@ -370,10 +359,7 @@ const SadminSiteConfiguration = () => {
                 onClick={handleCancel}
                 disabled={saving}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                  isDark
-                    ? "bg-red-500/90 text-white hover:bg-red-500 shadow-[0_10px_25px_rgba(239,68,68,0.20)]"
-                    : "bg-red-500 text-white hover:bg-red-600 shadow-[0_10px_25px_rgba(239,68,68,0.18)]",
+                  "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-danger-soft text-text hover:bg-danger",
                 ].join(" ")}
               >
                 <X className="h-4 w-4" />
@@ -384,10 +370,7 @@ const SadminSiteConfiguration = () => {
             <button
               onClick={() => setIsEditing(true)}
               className={[
-                "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300",
-                isDark
-                  ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+                "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300","bg-primary-soft text-text hover:bg-primary",
               ].join(" ")}
             >
               <Pencil className="h-4 w-4" />
@@ -400,10 +383,7 @@ const SadminSiteConfiguration = () => {
       {saveSuccess && (
         <div
           className={[
-            "mb-6 flex items-center gap-2 rounded-[18px] border px-4 py-3 text-sm font-medium",
-            isDark
-              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700",
+            "mb-6 flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-medium","border-success bg-success-soft text-success",
           ].join(" ")}
         >
           <CheckCircle2 className="h-5 w-5" />
@@ -414,16 +394,12 @@ const SadminSiteConfiguration = () => {
       {loading ? (
         <div
           className={[
-            "rounded-[24px] border p-6 flex items-center gap-3",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 text-slate-700 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "rounded-card border p-6 flex items-center gap-3","border-line bg-surface-2 text-text",
           ].join(" ")}
         >
           <Loader2
             className={[
-              "h-5 w-5 animate-spin",
-              isDark ? "text-blue-300" : "text-orange-500",
+              "h-5 w-5 animate-spin","text-primary",
             ].join(" ")}
           />
           <p>Loading configuration...</p>
@@ -529,8 +505,7 @@ const SadminSiteConfiguration = () => {
             {isEditing && hasChanges && (
               <p
                 className={[
-                  "mt-4 text-xs",
-                  isDark ? "text-white/45" : "text-slate-500",
+                  "mt-4 text-xs","text-subtle",
                 ].join(" ")}
               >
                 Selected images will be uploaded after you click Save.
@@ -546,17 +521,13 @@ const SadminSiteConfiguration = () => {
 const Section = ({ title, subtitle, children, isDark }) => (
   <div
     className={[
-      "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-      isDark
-        ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-        : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+      "mt-6 rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
     ].join(" ")}
   >
     <div className="mb-4">
       <h3
         className={[
-          "text-lg font-semibold",
-          isDark ? "text-white" : "text-slate-900",
+          "text-lg font-semibold","text-text",
         ].join(" ")}
       >
         {title}
@@ -565,8 +536,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
       {subtitle && (
         <p
           className={[
-            "mt-1 text-sm",
-            isDark ? "text-white/45" : "text-slate-500",
+            "mt-1 text-sm","text-subtle",
           ].join(" ")}
         >
           {subtitle}
@@ -576,10 +546,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
 
     <div
       className={[
-        "rounded-[20px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-slate-200 bg-white/50",
+        "rounded-card border p-4","border-line bg-surface-2",
       ].join(" ")}
     >
       {children}
@@ -602,16 +569,12 @@ const SettingCard = ({
   return (
     <div
       className={[
-        "rounded-[18px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-slate-200 bg-white/70",
+        "rounded-card border p-4","border-line bg-surface-2",
       ].join(" ")}
     >
       <p
         className={[
-          "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
-          isDark ? "text-white/45" : "text-slate-500",
+          "mb-2 text-xs font-medium uppercase tracking-[0.12em]","text-subtle",
         ].join(" ")}
       >
         {formatLabel(field.name)}
@@ -637,31 +600,28 @@ const SettingCard = ({
       ) : (
         <div
           className={[
-            "rounded-xl border px-4 py-3 text-sm min-h-[46px] flex items-center",
-            isDark
-              ? "border-white/10 bg-white/[0.03]"
-              : "border-slate-200 bg-slate-50",
+            "rounded-card border px-4 py-3 text-sm min-h-[46px] flex items-center","border-line bg-surface-2",
           ].join(" ")}
         >
           {value !== "" && value !== null ? (
             field.type === "color" ? (
               <div className="flex items-center gap-3">
                 <span
-                  className="h-6 w-10 rounded-lg border border-white/20"
+                  className="h-6 w-10 rounded-field border border-line"
                   style={{ backgroundColor: value }}
                 />
-                <span className={isDark ? "text-white" : "text-slate-900"}>
+                <span className={"text-text"}>
                   {String(value)}
                 </span>
               </div>
             ) : (
-              <span className={isDark ? "text-white" : "text-slate-900"}>
+              <span className={"text-text"}>
                 {String(value)}
               </span>
             )
           ) : (
             <span
-              className={isDark ? "text-white/40 italic" : "text-slate-400 italic"}
+              className={"text-subtle italic"}
             >
               Not Set
             </span>
@@ -683,17 +643,13 @@ const ToggleCard = ({
 }) => (
   <div
     className={[
-      "rounded-[18px] border p-4 flex items-center justify-between gap-4",
-      isDark
-        ? "border-white/10 bg-white/[0.03]"
-        : "border-slate-200 bg-white/70",
+      "rounded-card border p-4 flex items-center justify-between gap-4","border-line bg-surface-2",
     ].join(" ")}
   >
     <div>
       <p
         className={[
-          "text-sm font-semibold",
-          isDark ? "text-white" : "text-slate-900",
+          "text-sm font-semibold","text-text",
         ].join(" ")}
       >
         {formatLabel(setting.name)}
@@ -701,8 +657,7 @@ const ToggleCard = ({
 
       <p
         className={[
-          "mt-1 text-xs",
-          isDark ? "text-white/45" : "text-slate-500",
+          "mt-1 text-xs","text-subtle",
         ].join(" ")}
       >
         {setting.description}
@@ -720,12 +675,8 @@ const ToggleCard = ({
         className={[
           "px-3 py-1 rounded-full text-xs font-medium border",
           details[setting.name]
-            ? isDark
-              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-              : "bg-emerald-50 text-emerald-700 border-emerald-200"
-            : isDark
-            ? "bg-red-500/20 text-red-300 border-red-500/40"
-            : "bg-red-50 text-red-600 border-red-200",
+            ?"bg-success-soft text-success border-success"
+            :"bg-danger-soft text-danger border-danger",
         ].join(" ")}
       >
         {details[setting.name] ? "Enabled" : "Disabled"}
@@ -750,16 +701,12 @@ const MediaUploadCard = ({
   return (
     <div
       className={[
-        "rounded-[18px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-slate-200 bg-white/70",
+        "rounded-card border p-4","border-line bg-surface-2",
       ].join(" ")}
     >
       <p
         className={[
-          "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
-          isDark ? "text-white/45" : "text-slate-500",
+          "mb-2 text-xs font-medium uppercase tracking-[0.12em]","text-subtle",
         ].join(" ")}
       >
         {asset.label}
@@ -769,10 +716,7 @@ const MediaUploadCard = ({
         <div className="flex flex-col gap-4">
           <div
             className={[
-              "h-32 w-full flex items-center justify-center rounded-xl overflow-hidden border p-3",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-slate-200 bg-white",
+              "h-32 w-full flex items-center justify-center rounded-card overflow-hidden border p-3","border-line bg-surface-2",
             ].join(" ")}
           >
             <img
@@ -792,10 +736,7 @@ const MediaUploadCard = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={[
-                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm border",
-                  isDark
-                    ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
-                    : "bg-orange-50 text-orange-700 border-orange-200",
+                  "inline-flex items-center gap-1 rounded-field px-3 py-1.5 text-sm border","bg-primary-soft text-primary border-line",
                 ].join(" ")}
               >
                 <ExternalLink className="w-4 h-4" />
@@ -809,10 +750,7 @@ const MediaUploadCard = ({
                 onClick={() => onRemoveImage(asset.name)}
                 disabled={saving}
                 className={[
-                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm border disabled:opacity-50",
-                  isDark
-                    ? "bg-red-500/10 text-red-300 border-red-500/20"
-                    : "bg-red-50 text-red-600 border-red-200",
+                  "inline-flex items-center gap-1 rounded-field px-3 py-1.5 text-sm border disabled:opacity-50","bg-danger-soft text-danger border-danger",
                 ].join(" ")}
               >
                 <Trash2 className="w-4 h-4" />
@@ -824,10 +762,7 @@ const MediaUploadCard = ({
       ) : (
         <div
           className={[
-            "h-32 rounded-xl border border-dashed flex items-center justify-center text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.03] text-white/40"
-              : "border-slate-200 bg-slate-50 text-slate-400",
+            "h-32 rounded-card border border-dashed flex items-center justify-center text-sm","border-line bg-surface-2 text-subtle",
           ].join(" ")}
         >
           No {asset.label} Uploaded
@@ -837,11 +772,8 @@ const MediaUploadCard = ({
       {isEditing && (
         <label
           className={[
-            "mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300",
-            saving ? "pointer-events-none opacity-50" : "",
-            isDark
-              ? "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-              : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
+            "mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold transition-all duration-300",
+            saving ? "pointer-events-none opacity-50" : "","border-line bg-primary-soft text-primary hover:bg-primary-soft",
           ].join(" ")}
         >
           <UploadCloud className="h-4 w-4" />
@@ -859,8 +791,7 @@ const MediaUploadCard = ({
       {existingUrl && (
         <p
           className={[
-            "mt-3 break-all text-xs",
-            isDark ? "text-white/40" : "text-slate-500",
+            "mt-3 break-all text-xs","text-subtle",
           ].join(" ")}
         >
           {existingUrl}

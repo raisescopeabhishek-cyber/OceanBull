@@ -299,7 +299,7 @@ export const FloatingParticles = () => {
       {[...Array(20)].map((_, i) => (
         <div
           key={i}
-          className="absolute w-1 h-1 bg-cyan-400/30 rounded-full animate-pulse"
+          className="absolute w-1 h-1 bg-primary-soft rounded-full animate-pulse"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
@@ -317,7 +317,7 @@ export const AnimatedGrid = () => {
   return (
     <div className="absolute inset-0 opacity-10">
       <div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent animate-pulse"
+        className="absolute inset-0 animate-pulse"
         style={{
           backgroundImage:
             "linear-gradient(cyan 1px, transparent 1px), linear-gradient(90deg, cyan 1px, transparent 1px)",
@@ -331,12 +331,12 @@ export const AnimatedGrid = () => {
 // Simple toast notification
 const showToast = (message, type = "info") => {
   const toast = document.createElement("div");
-  toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium transition-all transform translate-x-0 ${
+  toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-text font-medium transition-all transform translate-x-0 ${
     type === "success"
-      ? "bg-green-500"
+      ? "bg-success"
       : type === "error"
-      ? "bg-red-500"
-      : "bg-blue-500"
+      ? "bg-danger"
+      : "bg-primary"
   }`;
   toast.textContent = message;
 
@@ -474,7 +474,7 @@ export default function UserDeposit() {
         <button
           key={index}
           onClick={() => window.open(part, "_blank", "noopener,noreferrer")}
-          className="bg-gradient-to-r from-cyan-500 to-blue-500 mx-2 text-white px-6 py-2 rounded-full hover:from-cyan-400 hover:to-blue-400 transition-all duration-300 shadow-lg transform hover:scale-105"
+          className="mx-2 text-text px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
         >
           <span className="flex items-center gap-2">
             <ZapIcon />
@@ -482,7 +482,7 @@ export default function UserDeposit() {
           </span>
         </button>
       ) : (
-        <span key={index} className="text-gray-200">
+        <span key={index} className="text-muted">
           {part}
         </span>
       )
@@ -568,8 +568,7 @@ export default function UserDeposit() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800
- relative overflow-hidden"
+      className="min-h-screen relative overflow-hidden"
     >
       <FloatingParticles />
       <AnimatedGrid />
@@ -578,12 +577,12 @@ export default function UserDeposit() {
       <div className="relative z-10 p-6 animate-fade-in">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4 animate-slide-in-left">
-            <div className="p-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
+            <div className="p-3 rounded-card backdrop-blur-sm border border-line">
               <TrendingUpIcon />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Deposit Funds</h1>
-              <p className="text-gray-400">
+              <h1 className="text-3xl font-bold text-text">Deposit Funds</h1>
+              <p className="text-subtle">
                 Fund your trading account instantly
               </p>
             </div>
@@ -591,14 +590,14 @@ export default function UserDeposit() {
 
           <div className="flex gap-4 animate-slide-in-right">
             {mockSiteConfig?.inrUi !== false && (
-              <div className="p-4 bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/30">
-                <div className="text-cyan-400 text-sm">INR Amount</div>
-                <div className="text-2xl font-bold text-white">
+              <div className="p-4 bg-black/60 backdrop-blur-md rounded-card border border-line">
+                <div className="text-primary text-sm">INR Amount</div>
+                <div className="text-2xl font-bold text-text">
                   ₹{" "}
                   {formData.depositAmount * mockSiteConfig?.dollarDepositRate ||
                     0}
                 </div>
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-subtle">
                   Rate: ₹{mockSiteConfig?.dollarDepositRate}
                 </div>
               </div>
@@ -614,17 +613,17 @@ export default function UserDeposit() {
           {/* Left panel - Account & Amount */}
           <div className="lg:col-span-1 space-y-6 animate-slide-in-left">
             {/* Account Selection Card */}
-            <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl">
+            <div className="p-6 backdrop-blur-xl rounded-card border border-line">
               <div className="flex items-center gap-3 mb-4">
                 <ActivityIcon />
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-text">
                   Trading Account
                 </h3>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-gray-300 mb-2 block">
+                  <label className="text-sm text-muted mb-2 block">
                     Select Account
                   </label>
                   <div className="relative">
@@ -637,7 +636,7 @@ export default function UserDeposit() {
                         setAccountType(selectedValue?.accountType || "");
                         handleInputChange(e);
                       }}
-                      className="w-full bg-gray-900/80 text-white px-4 py-3 rounded-xl border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                      className="w-full bg-surface text-text px-4 py-3 rounded-card border border-line focus:border-line focus:ring-2 focus:ring-primary transition-all"
                     >
                       <option value="">Choose your account</option>
                       {mockLoggedUser.accounts?.map((account, index) => (
@@ -651,20 +650,20 @@ export default function UserDeposit() {
 
                 {/* Balance Display */}
                 <div
-                  className={`p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 transition-all duration-500 ${
+                  className={`p-4 bg-gradient-to-r   rounded-xl border border-success transition-all duration-500 ${
                     accountBalance
                       ? "opacity-100 transform translate-y-0"
                       : "opacity-0 transform translate-y-2"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-green-400 text-sm">
+                    <span className="text-success text-sm">
                       Current Balance
                     </span>
                     {balanceLoading ? (
                       <LoaderIcon />
                     ) : (
-                      <span className="text-2xl font-bold text-white">
+                      <span className="text-2xl font-bold text-text">
                         ${accountBalance}
                       </span>
                     )}
@@ -674,10 +673,10 @@ export default function UserDeposit() {
             </div>
 
             {/* Deposit Amount Card */}
-            <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl">
+            <div className="p-6 backdrop-blur-xl rounded-card border border-line">
               <div className="flex items-center gap-3 mb-4">
                 <WalletIcon />
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-text">
                   Deposit Amount
                 </h3>
               </div>
@@ -690,7 +689,7 @@ export default function UserDeposit() {
                   placeholder="Enter amount"
                   value={formData.depositAmount}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-900/80 text-white pl-10 pr-4 py-4 rounded-xl border border-gray-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-lg font-semibold"
+                  className="w-full bg-surface text-text pl-10 pr-4 py-4 rounded-card border border-line focus:border-success focus:ring-2 focus:ring-success transition-all text-lg font-semibold"
                 />
               </div>
 
@@ -704,7 +703,7 @@ export default function UserDeposit() {
                         depositAmount: amount.toString(),
                       }))
                     }
-                    className="py-2 px-3 bg-gray-800 hover:bg-emerald-600/20 text-gray-300 hover:text-emerald-400 rounded-lg transition-all text-sm border border-gray-600 hover:border-emerald-500/50 transform hover:scale-105"
+                    className="py-2 px-3 bg-surface hover:bg-success-soft text-muted hover:text-success rounded-field transition-all text-sm border border-line hover:border-success transform hover:scale-105"
                   >
                     ${amount}
                   </button>
@@ -716,10 +715,10 @@ export default function UserDeposit() {
           {/* Right panel - Payment Methods & Details */}
           <div className="lg:col-span-2 space-y-6 animate-slide-in-right">
             {/* Payment Methods */}
-            <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl">
+            <div className="p-6 backdrop-blur-xl rounded-card border border-line">
               <div className="flex items-center gap-3 mb-6">
                 <ShieldIcon />
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-text">
                   Payment Methods
                 </h3>
                 <div className="ml-auto animate-spin-slow">
@@ -734,25 +733,25 @@ export default function UserDeposit() {
                     onClick={() => setSelectedPayment(method.name)}
                     className={`p-4 cursor-pointer rounded-xl transition-all duration-300 transform hover:scale-105 ${
                       selectedPayment === method.name
-                        ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-cyan-400 shadow-xl shadow-cyan-500/25 scale-105"
-                        : "bg-gray-800/60 border-gray-600 hover:border-gray-500"
+                        ? "border-line shadow-cyan-500/25 scale-105"
+                        : "bg-surface border-line hover:border-line"
                     } border backdrop-blur-sm`}
                   >
                     <div className="flex flex-col items-center space-y-3">
                       <div
                         className={`p-3 rounded-full transition-all ${
                           selectedPayment === method.name
-                            ? "bg-cyan-500/20 text-cyan-400"
-                            : "bg-gray-700/50 text-gray-400"
+                            ? "bg-primary-soft text-primary"
+                            : "bg-surface-3 text-subtle"
                         }`}
                       >
                         {getPaymentIcon(method.name)}
                       </div>
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-text">
                         {method.name}
                       </span>
                       {selectedPayment === method.name && (
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                       )}
                     </div>
                   </div>
@@ -762,27 +761,27 @@ export default function UserDeposit() {
 
             {/* Payment Details */}
             {selectedPayment && (
-              <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl animate-slide-in-up">
+              <div className="p-6 backdrop-blur-xl rounded-card border border-line animate-slide-in-up">
                 {paymentDetails && selectedPayment !== "Online Payment" && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-white">
+                      <h3 className="text-xl font-semibold text-text">
                         Payment Details
                       </h3>
-                      <span className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 rounded-full text-sm font-medium border border-cyan-500/30">
+                      <span className="px-4 py-2 text-primary rounded-full text-sm font-medium border border-line">
                         {selectedPayment}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="p-4 bg-gray-900/60 rounded-xl border border-gray-600">
-                          <div className="text-gray-300 text-sm leading-relaxed">
+                        <div className="p-4 bg-surface rounded-card border border-line">
+                          <div className="text-muted text-sm leading-relaxed">
                             {formatTextWithLinks(paymentDetails)}
                           </div>
                           <button
                             onClick={() => copyText(paymentDetails)}
-                            className="mt-3 flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors transform hover:scale-105"
+                            className="mt-3 flex items-center gap-2 text-primary hover:text-primary transition-colors transform hover:scale-105"
                           >
                             <ClipboardIcon />
                             <span className="text-sm">
@@ -793,11 +792,11 @@ export default function UserDeposit() {
                       </div>
 
                       <div className="flex justify-center">
-                        <div className="p-4 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 rounded-xl border border-gray-600">
-                          <div className="w-48 h-48 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg flex items-center justify-center text-6xl">
+                        <div className="p-4 rounded-card border border-line">
+                          <div className="w-48 h-48 rounded-field flex items-center justify-center text-6xl">
                             📱
                           </div>
-                          <p className="text-center text-cyan-400 mt-2 text-sm">
+                          <p className="text-center text-primary mt-2 text-sm">
                             QR Code Available
                           </p>
                         </div>
@@ -811,12 +810,12 @@ export default function UserDeposit() {
                     {bankTransfers?.map((bank, index) => (
                       <div
                         key={index}
-                        className="p-6 bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-xl border border-emerald-500/30 animate-slide-in-up"
+                        className="p-6 rounded-card border border-success animate-slide-in-up"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
                         <div className="flex items-center gap-3 mb-4">
                           <BanknoteIcon />
-                          <h4 className="text-lg font-semibold text-white">
+                          <h4 className="text-lg font-semibold text-text">
                             Bank #{index + 1}
                           </h4>
                         </div>
@@ -825,10 +824,10 @@ export default function UserDeposit() {
                           {Object.entries(bank.bankTransfer || {}).map(
                             ([key, value]) => (
                               <div key={key} className="flex justify-between">
-                                <span className="text-gray-400 capitalize">
+                                <span className="text-subtle capitalize">
                                   {key.replace(/([A-Z])/g, " $1").trim()}:
                                 </span>
-                                <span className="text-white font-medium">
+                                <span className="text-text font-medium">
                                   {value}
                                 </span>
                               </div>
@@ -845,7 +844,7 @@ export default function UserDeposit() {
                     href={paymentDetails}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full text-center bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-400 hover:to-green-500 transition-all transform hover:scale-105 shadow-lg"
+                    className="block w-full text-center text-text font-semibold py-3 rounded-field transition-all transform hover:scale-105"
                   >
                     Pay Now
                   </a>
@@ -856,16 +855,16 @@ export default function UserDeposit() {
             {/* Upload & Transaction */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* File Upload */}
-              <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 animate-slide-in-up">
-                <h4 className="text-lg font-semibold text-white mb-4">
+              <div className="p-6 backdrop-blur-xl rounded-card border border-line animate-slide-in-up">
+                <h4 className="text-lg font-semibold text-text mb-4">
                   Upload Proof
                 </h4>
 
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-xl cursor-pointer hover:border-cyan-500 transition-colors group">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-line rounded-card cursor-pointer hover:border-line transition-colors group">
                   <div className="group-hover:scale-110 transition-transform">
                     <UploadIcon />
                   </div>
-                  <span className="text-sm text-gray-400 mt-2 group-hover:text-cyan-400 transition-colors">
+                  <span className="text-sm text-subtle mt-2 group-hover:text-primary transition-colors">
                     Click to upload image
                   </span>
                   <input
@@ -878,22 +877,22 @@ export default function UserDeposit() {
                 </label>
 
                 {file && (
-                  <div className="mt-4 flex items-center justify-between p-3 bg-gray-800/60 rounded-lg animate-slide-in-up">
-                    <span className="text-sm text-gray-300 truncate">
+                  <div className="mt-4 flex items-center justify-between p-3 bg-surface rounded-field animate-slide-in-up">
+                    <span className="text-sm text-muted truncate">
                       {file.name}
                     </span>
                     <div className="flex gap-2">
                       {previewUrl && (
                         <button
                           onClick={togglePreview}
-                          className="text-cyan-400 hover:text-cyan-300 transition-colors transform hover:scale-110"
+                          className="text-primary hover:text-primary transition-colors transform hover:scale-110"
                         >
                           <EyeIcon />
                         </button>
                       )}
                       <button
                         onClick={handleRemoveFile}
-                        className="text-red-400 hover:text-red-300 transition-colors transform hover:scale-110"
+                        className="text-danger hover:text-danger transition-colors transform hover:scale-110"
                       >
                         <XIcon />
                       </button>
@@ -903,8 +902,8 @@ export default function UserDeposit() {
               </div>
 
               {/* Transaction ID */}
-              <div className="p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 animate-slide-in-up">
-                <h4 className="text-lg font-semibold text-white mb-4">
+              <div className="p-6 backdrop-blur-xl rounded-card border border-line animate-slide-in-up">
+                <h4 className="text-lg font-semibold text-text mb-4">
                   Transaction ID
                 </h4>
                 <input
@@ -913,27 +912,27 @@ export default function UserDeposit() {
                   placeholder="Enter transaction ID"
                   value={formData.transactionId}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-900/80 text-white px-4 py-3 rounded-xl border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                  className="w-full bg-surface text-text px-4 py-3 rounded-card border border-line focus:border-line focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
             </div>
 
             {/* Terms and Submit */}
             <div className="space-y-6">
-              <label className="flex items-center gap-3 p-4 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-xl border border-gray-700/50 cursor-pointer hover:border-cyan-500/50 transition-all transform hover:scale-[1.02] animate-slide-in-up">
+              <label className="flex items-center gap-3 p-4 backdrop-blur-xl rounded-card border border-line cursor-pointer hover:border-line transition-all transform hover:scale-[1.02] animate-slide-in-up">
                 <input
                   type="checkbox"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="w-5 h-5 text-cyan-500 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500 focus:ring-2"
+                  className="w-5 h-5 text-primary bg-surface-3 border-line rounded focus:ring-primary focus:ring-2"
                 />
-                <span className="text-white">
+                <span className="text-text">
                   I agree to the{" "}
                   <a
                     href={mockSiteConfig?.tNcLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-cyan-400 hover:text-cyan-300 underline"
+                    className="text-primary hover:text-primary underline"
                   >
                     Terms & Conditions
                   </a>
@@ -951,14 +950,14 @@ export default function UserDeposit() {
                     !formData.depositAmount ||
                     !formData.accountNumber
                   }
-                  className={`flex items-center justify-center py-4 px-12 rounded-full text-white font-semibold text-lg transition-all transform ${
+                  className={`flex items-center justify-center py-4 px-12 rounded-full text-text font-semibold text-lg transition-all transform ${
                     selectedPayment &&
                     agreeToTerms &&
                     formData.depositAmount &&
                     formData.accountNumber &&
                     !isSubmitting
-                      ? "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 hover:scale-105 shadow-xl shadow-cyan-500/25"
-                      : "bg-gray-600 cursor-not-allowed opacity-50"
+                      ? "hover:scale-105 shadow-cyan-500/25"
+                      : "bg-surface-3 cursor-not-allowed opacity-50"
                   }`}
                 >
                   {(creatingLoading || isSubmitting) && <LoaderIcon />}
@@ -975,16 +974,16 @@ export default function UserDeposit() {
 
         {/* Preview Modal */}
         {showPreview && previewUrl && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-gray-900 p-6 rounded-2xl max-w-3xl max-h-[90vh] overflow-auto border border-gray-700 animate-scale-in">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
+            <div className="bg-surface p-6 rounded-card max-w-3xl max-h-[90vh] overflow-auto border border-line animate-scale-in">
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="max-w-full h-auto rounded-lg shadow-2xl"
+                className="max-w-full h-auto rounded-field"
               />
               <button
                 onClick={togglePreview}
-                className="mt-4 w-full bg-red-500/80 text-white px-6 py-3 rounded-full hover:bg-red-600/70 transition-all transform hover:scale-105"
+                className="mt-4 w-full bg-danger-soft text-text px-6 py-3 rounded-full hover:bg-danger-soft transition-all transform hover:scale-105"
               >
                 Close Preview
               </button>
@@ -994,26 +993,26 @@ export default function UserDeposit() {
 
         {/* Payment Modal */}
         {showPaymentModal && paymentData && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-gray-900 p-8 rounded-2xl max-w-md w-full mx-4 border border-gray-700 animate-scale-in">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
+            <div className="bg-surface p-8 rounded-card max-w-md w-full mx-4 border border-line animate-scale-in">
               <div className="text-center space-y-4">
-                <div className="p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                <div className="p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
                   <div className="text-3xl">✅</div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-2xl font-bold text-text">
                   Payment Initiated
                 </h3>
 
                 <div className="space-y-2">
-                  <p className="text-gray-300">Payment ID: {paymentData.id}</p>
-                  <p className="text-gray-300">Amount: ${paymentData.amount}</p>
-                  <p className="text-gray-300">Status: {paymentData.status}</p>
+                  <p className="text-muted">Payment ID: {paymentData.id}</p>
+                  <p className="text-muted">Amount: ${paymentData.amount}</p>
+                  <p className="text-muted">Status: {paymentData.status}</p>
                 </div>
 
                 <button
                   onClick={() => setShowPaymentModal(false)}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white py-3 rounded-full hover:from-cyan-400 hover:to-purple-500 transition-all transform hover:scale-105"
+                  className="w-full text-text py-3 rounded-full transition-all transform hover:scale-105"
                 >
                   Continue
                 </button>

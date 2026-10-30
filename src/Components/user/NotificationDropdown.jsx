@@ -37,11 +37,11 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 right-0 top-10 w-64 bg-indigo-950 text-white rounded-xl shadow-lg overflow-hidden"
+            className="absolute z-50 right-0 top-10 w-64 bg-surface text-text rounded-card overflow-hidden"
           >
-            <div className="flex items-center justify-between px-4 py-2 border-b border-indigo-800">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-line">
               <p className="font-semibold">Notifications</p>
-              <button onClick={onClose} className="text-gray-400 hover:text-white">
+              <button onClick={onClose} className="text-subtle hover:text-text">
                 <X size={16} />
               </button>
             </div>
@@ -54,14 +54,14 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
-                    className="w-full text-left px-4 py-2 hover:bg-indigo-900 transition-all"
+                    className="w-full text-left px-4 py-2 hover:bg-surface transition-all"
                   >
                     <p className="text-sm">{note.text}</p>
-                    <span className="text-xs text-gray-400">{note.time}</span>
+                    <span className="text-xs text-subtle">{note.time}</span>
                   </motion.button>
                 ))
               ) : (
-                <p className="px-4 py-2 text-sm text-gray-400">No notifications</p>
+                <p className="px-4 py-2 text-sm text-subtle">No notifications</p>
               )}
             </div>
           </motion.div>

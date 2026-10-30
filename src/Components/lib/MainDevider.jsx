@@ -7,22 +7,22 @@ export const MainDivider = ({
   color = "primary", // primary, success, warning, danger
 }) => {
   const colors = {
-    primary: "from-blue-600 to-indigo-600 text-blue-600 border-blue-200",
+    primary: "text-primary border-line",
     success:
-      "from-emerald-600 to-green-600 text-emerald-600 border-emerald-200",
-    warning: "from-amber-600 to-yellow-600 text-amber-600 border-amber-200",
-    danger: "from-red-600 to-rose-600 text-red-600 border-red-200",
+      "text-success border-success",
+    warning: "text-warning border-line",
+    danger: "text-danger border-danger",
   };
 
   const colorClass = colors[color];
 
   const headingStyles = {
-    default: `relative px-4 bg-white font-semibold ${colorClass.split(" ")[2]}`,
-    pill: `relative px-6 py-1 rounded-full bg-white font-semibold ${
+    default: `relative px-4 bg-surface font-semibold ${colorClass.split(" ")[2]}`,
+    pill: `relative px-6 py-1 rounded-full bg-surface font-semibold ${
       colorClass.split(" ")[2]
     } shadow-sm`,
-    minimal: `relative px-4 bg-white font-medium text-gray-600`,
-    gradient: `relative px-6 py-1 rounded-full font-semibold text-white bg-gradient-to-r ${
+    minimal: `relative px-4 bg-surface font-medium text-muted`,
+    gradient: `relative px-6 py-1 rounded-full font-semibold text-text bg-gradient-to-r ${
       colorClass.split(" ")[0]
     } ${colorClass.split(" ")[1]}`,
   };
@@ -31,10 +31,10 @@ export const MainDivider = ({
     return (
       <div className="flex h-full items-center">
         <div
-          className={`h-full w-0.5 bg-gradient-to-b from-transparent via-gray-200 to-transparent ${className}`}
+          className={`h-full w-0.5 bg-gradient-to-b from-transparent  to-transparent ${className}`}
         />
         {heading && (
-          <span className="rotate-90 transform whitespace-nowrap px-4 text-sm text-gray-500">
+          <span className="rotate-90 transform whitespace-nowrap px-4 text-sm text-subtle">
             {heading}
           </span>
         )}
@@ -67,7 +67,7 @@ export const MainDivider = ({
     return (
       <div className="relative flex items-center w-full py-5">
         <div className="flex-grow">
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          <div className="h-px" />
         </div>
         {heading && (
           <div className="relative px-4">
@@ -78,13 +78,13 @@ export const MainDivider = ({
                 } ${colorClass.split(" ")[1]} opacity-10`}
               />
             </div>
-            <span className="relative font-medium text-gray-900">
+            <span className="relative font-medium text-text">
               {heading}
             </span>
           </div>
         )}
         <div className="flex-grow">
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          <div className="h-px" />
         </div>
       </div>
     );
@@ -94,7 +94,7 @@ export const MainDivider = ({
     return (
       <div className="relative flex items-center w-full py-5">
         <div className="flex-grow flex items-center justify-center space-x-2">
-          <div className="h-px flex-grow bg-gradient-to-r from-transparent via-gray-200 to-gray-200" />
+          <div className="h-px flex-grow from-transparent" />
           <div
             className={`h-1.5 w-1.5 rounded-full bg-gradient-to-r ${
               colorClass.split(" ")[0]
@@ -110,7 +110,7 @@ export const MainDivider = ({
               colorClass.split(" ")[0]
             } ${colorClass.split(" ")[1]}`}
           />
-          <div className="h-px flex-grow bg-gradient-to-r from-gray-200 via-gray-200 to-transparent" />
+          <div className="h-px flex-grow to-transparent" />
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export const MainDivider = ({
   // Default simple gradient divider
   return (
     <div
-      className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent my-8 ${className}`}
+      className={`h-px w-full bg-gradient-to-r from-transparent  to-transparent my-8 ${className}`}
     />
   );
 };

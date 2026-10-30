@@ -14,7 +14,7 @@ import ThemeConfig from "./Theme/ThemeConfig";
 
 const SuperAdmin_DashboardRouting = () => {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
+    <div className="relative min-h-screen overflow-hidden bg-surface">
       {/* ✅ SUPERADMIN SECURITY WORLD: dotted / tech background */}
       <div
         aria-hidden
@@ -48,18 +48,16 @@ const SuperAdmin_DashboardRouting = () => {
       <div className="relative flex flex-col min-h-screen md:ml-72">
         <Header />
 
-        <main className="flex-1 overflow-y-auto text-white p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto text-text p-4 sm:p-6">
           {/* ✅ Framed container (same theme) */}
-          <div className="mx-auto w-full max-w-[1400px] rounded-2xl border border-black/50 shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden 
-          
-          bg-gradient-to-b from-black to-black backdrop-blur-sm">
+          <div className="mx-auto w-full max-w-[1400px] rounded-card border border-line overflow-hidden backdrop-blur-sm">
             {/* Title strip */}
-            <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
+            <div className="px-6 py-4 border-b border-line to-transparent">
               <div className="flex items-center justify-between">
-                <h1 className="tracking-[0.22em] text-xs sm:text-sm font-semibold text-white/75">
+                <h1 className="tracking-[0.22em] text-xs sm:text-sm font-semibold text-muted">
                   SUPERADMIN SECURITY WORLD
                 </h1>
-                <div className="text-[11px] text-white/35 hidden sm:block">
+                <div className="text-[11px] text-subtle hidden sm:block">
                   Protected Area • Authorized Personnel Only
                 </div>
               </div>
@@ -84,7 +82,7 @@ const SuperAdmin_DashboardRouting = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3 border-t border-white/10 text-center text-[11px] text-white/30">
+            <div className="px-6 py-3 border-t border-line text-center text-[11px] text-subtle">
               © {new Date().getFullYear()} • Super Admin Dashboard
             </div>
           </div>

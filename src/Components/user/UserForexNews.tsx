@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import Loader from "../Loader/Loader";
+import { PageHeader } from "@/Components/ui";
 
 /* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
@@ -48,19 +49,19 @@ function SectionCard({
   return (
     <div
       className={[
-        "rounded-[24px] border transition-all duration-300",
+        "rounded-card border transition-all duration-300",
         className,
       ].join(" ")}
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(245,158,11,0.14)",
+          : "rgba(42, 86, 220,0.14)",
         background: isDark
           ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
           : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
         boxShadow: isDark
           ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(245,158,11,0.08)",
+          : "0 14px 40px rgba(42, 86, 220,0.08)",
         backdropFilter: "blur(10px)",
       }}
     >
@@ -81,35 +82,35 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+          iconBg: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(15, 159, 110,0.10)",
           iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
-          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+          border: isDark ? "rgba(15, 159, 110,0.18)" : "rgba(15, 159, 110,0.16)",
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(245,158,11,0.08)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(245,158,11,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(245,158,11,0.14)",
+          iconBg: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
+          iconColor: isDark ? "rgba(79, 125, 246,0.95)" : "rgba(42, 86, 220,0.95)",
+          border: isDark ? "rgba(79, 125, 246,0.18)" : "rgba(42, 86, 220,0.14)",
         }
       : tone === "warning"
       ? {
-          iconBg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.10)",
-          iconColor: isDark ? "rgba(251,191,36,0.95)" : "rgba(217,119,6,0.95)",
-          border: isDark ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.16)",
+          iconBg: isDark ? "rgba(42, 86, 220,0.12)" : "rgba(42, 86, 220,0.10)",
+          iconColor: isDark ? "rgba(224, 191, 108,0.95)" : "rgba(34, 69, 180,0.95)",
+          border: isDark ? "rgba(42, 86, 220,0.18)" : "rgba(42, 86, 220,0.16)",
         }
       : {
           iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
           iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
           border: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(245,158,11,0.14)",
+            : "rgba(42, 86, 220,0.14)",
         };
 
   return (
     <SectionCard theme={theme} isDark={isDark} className="p-4">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -125,7 +126,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(100,116,139,0.96)",
+                : "rgba(123, 135, 154,0.96)",
             }}
           >
             {label}
@@ -136,7 +137,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(15,23,42,0.98)",
+                : "rgba(15, 24, 41,0.98)",
             }}
           >
             {value}
@@ -148,7 +149,7 @@ function StatCard({
               style={{
                 color: isDark
                   ? rgba(theme?.fg || "255 255 255", 0.48)
-                  : "rgba(100,116,139,0.88)",
+                  : "rgba(123, 135, 154,0.88)",
               }}
             >
               {hint}
@@ -246,31 +247,31 @@ export default function UserForexNews() {
 
   const titleColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(15,23,42,0.98)";
+    : "rgba(15, 24, 41,0.98)";
 
   const mutedTextColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
+    : "rgba(123, 135, 154,0.96)";
 
   const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "rgba(245,158,11,0.95)";
+    ? "rgba(79, 125, 246,0.95)"
+    : "rgba(42, 86, 220,0.95)";
 
   const heroBg = isDark
-    ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-    : "linear-gradient(135deg, #fb923c, #f59e0b)";
+    ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+    : "linear-gradient(135deg, #4f7df6, #2a56dc)";
 
   const iframeCardStyle: React.CSSProperties = {
     borderRadius: "22px",
     border: isDark
       ? `1px solid ${rgba(theme?.border || "255 255 255", 0.12)}`
-      : "1px solid rgba(245,158,11,0.14)",
+      : "1px solid rgba(42, 86, 220,0.14)",
     background: isDark
       ? "rgba(255,255,255,0.03)"
       : "rgba(255,255,255,0.88)",
     overflow: "hidden",
     position: "relative",
-    boxShadow: isDark ? "none" : "0 10px 24px rgba(245,158,11,0.06)",
+    boxShadow: isDark ? "none" : "0 10px 24px rgba(42, 86, 220,0.06)",
   };
 
   return (
@@ -280,69 +281,39 @@ export default function UserForexNews() {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="w-full"
     >
+      <PageHeader
+        breadcrumb="Market / News"
+        title="Forex news"
+        description="Major pairs, market structure and live chart activity."
+      />
+
       <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
-        <div
-          className="relative overflow-hidden px-5 py-6 sm:px-6"
-          style={{
-            background: heroBg,
-          }}
-        >
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -right-12 top-0 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
-            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-          </div>
-
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-white" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
-                  market · forex · news
-                </span>
-              </div>
-
-              <h1
-                className="text-3xl font-bold text-white sm:text-4xl"
-                style={{
-                  fontFamily: "'Poppins', sans-serif",
-                }}
-              >
-                Forex News
-              </h1>
-
-              <p className="mt-2 max-w-3xl text-sm text-white/80 sm:text-[15px]">
-                Follow major forex pairs, market structure, and live chart-based
-                activity from a clean embedded TradingView workspace.
-              </p>
-            </div>
-          </div>
-        </div>
 
         <div className="p-4 sm:p-5 md:p-6">
           <div className="mb-6">
             <button
               type="button"
               onClick={() => setShowStatsOverview((prev) => !prev)}
-              className="flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition-all duration-300"
+              className="flex w-full items-center justify-between rounded-card border px-4 py-3 text-left transition-all duration-300"
               style={{
                 borderColor: isDark
                   ? rgba(theme?.border || "255 255 255", 0.1)
-                  : "rgba(245,158,11,0.14)",
+                  : "rgba(42, 86, 220,0.14)",
                 background: isDark
                   ? "rgba(255,255,255,0.03)"
                   : "rgba(255,255,255,0.84)",
-                boxShadow: isDark ? "none" : "0 8px 20px rgba(245,158,11,0.05)",
+                boxShadow: isDark ? "none" : "0 8px 20px rgba(42, 86, 220,0.05)",
               }}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border"
+                  className="flex h-10 w-10 items-center justify-center rounded-card border"
                   style={{
                     borderColor: isDark
                       ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(245,158,11,0.14)",
+                      : "rgba(42, 86, 220,0.14)",
                     background: isDark
-                      ? "rgba(59,130,246,0.10)"
+                      ? "rgba(79, 125, 246,0.10)"
                       : "rgba(255,251,235,0.75)",
                     color: accentColor,
                   }}
@@ -443,10 +414,10 @@ export default function UserForexNews() {
           <SectionCard theme={theme} isDark={isDark} className="p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-3">
               <div
-                className="flex h-11 w-11 items-center justify-center rounded-xl"
+                className="flex h-11 w-11 items-center justify-center rounded-card"
                 style={{
                   background: isDark
-                    ? "rgba(59,130,246,0.10)"
+                    ? "rgba(79, 125, 246,0.10)"
                     : "rgba(255,251,235,0.80)",
                   color: accentColor,
                 }}

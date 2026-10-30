@@ -138,12 +138,12 @@ export default function UserDeposit() {
         <button
           key={index}
           onClick={() => window.open(part, "_blank", "noopener,noreferrer")}
-          className="bg-blue-500/90 mx-2 text-white px-6 py-2 rounded-full hover:bg-blue-600/80 transition duration-200 ml-2"
+          className="bg-primary-soft mx-2 text-text px-6 py-2 rounded-full hover:bg-primary-soft transition duration-200 ml-2"
         >
           Pay Now
         </button>
       ) : (
-        <span key={index} className="text-gray-200">
+        <span key={index} className="text-muted">
           {part}
         </span>
       )
@@ -248,14 +248,14 @@ export default function UserDeposit() {
   )?.image;
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-950 p-10 min-h-screen">
+    <div className="p-10 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full bg-secondary-800/20 p-5 rounded-xl mx-auto bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-950"
+        className="w-full bg-secondary-800/20 p-5 rounded-card mx-auto"
       >
-        <div className="space-y-6 text-white">
+        <div className="space-y-6 text-text">
           {/* Header */}
           <motion.div
             initial={{ x: -20, opacity: 0 }}
@@ -267,7 +267,7 @@ export default function UserDeposit() {
               {siteConfig?.inrUi !== false && (
                 <div>
                   <div className="flex whitespace-nowrap gap-3 items-center w-full">
-                    <h1 className="sm:text-sm font-semibold text-gray-300">
+                    <h1 className="sm:text-sm font-semibold text-muted">
                       INR Figure
                     </h1>
                     <p className="bg-secondary-500-10 text-secondary-500 txt px-4 sm:px-5 py-1 font-semibold rounded-full">
@@ -276,9 +276,9 @@ export default function UserDeposit() {
                     </p>
                   </div>
                   <div className="mt-1 flex items-center justify-center">
-                    <p className="text-[12px] mb-2 text-gray-500">
+                    <p className="text-[12px] mb-2 text-subtle">
                       USD to INR Rate:{" "}
-                      <span className="font-medium text-gray-400/80">
+                      <span className="font-medium text-subtle">
                         ₹ {siteConfig?.dollarDepositRate}
                       </span>
                     </p>
@@ -296,7 +296,7 @@ export default function UserDeposit() {
             className="flex flex-col items-center md:flex-row mt-10 justify-between gap-10"
           >
             <div className="flex flex-col gap-2 w-full">
-              <label className="text-sm font-medium w-full flex justify-between text-gray-200">
+              <label className="text-sm font-medium w-full flex justify-between text-muted">
                 <p>Select Account</p>
                 <div>
                   {balanceLoading ? (
@@ -327,15 +327,15 @@ export default function UserDeposit() {
                   setAccountType(selectedValue?.accountType || "");
                   handleInputChange(e);
                 }}
-                className="w-full bg-gradient-to-br from-indigo-950 via-blue-950 to-indigo-950 px-4 py-2 border bg-secondary-800/20 border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
+                className="w-full px-4 py-2 border bg-secondary-800/20 border-line rounded-field focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
               >
-                <option className="bg-indigo-950 text-white" value="">
+                <option className="bg-surface text-text" value="">
                   Select Account
                 </option>
                 {loggedUser.accounts?.map((value, index) => (
                   <option
                     key={index}
-                    className="bg-indigo-950 text-white"
+                    className="bg-surface text-text"
                     value={value.accountNumber}
                   >
                     {value.accountNumber}
@@ -347,7 +347,7 @@ export default function UserDeposit() {
             <div className="flex flex-col gap-2 w-full">
               <label
                 htmlFor="depositAmount"
-                className="text-sm font-medium text-gray-200"
+                className="text-sm font-medium text-muted"
               >
                 Deposit Amount
               </label>
@@ -357,7 +357,7 @@ export default function UserDeposit() {
                 name="depositAmount"
                 placeholder="Enter amount"
                 onChange={handleInputChange}
-                className="w-full bg-gradient-to-br from-indigo-950 via-blue-950 to-indigo-950 px-4 py-2 border bg-secondary-800/20 border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
+                className="w-full px-4 py-2 border bg-secondary-800/20 border-line rounded-field focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
               />
             </div>
           </motion.div>
@@ -383,8 +383,8 @@ export default function UserDeposit() {
                   onClick={() => setSelectedPayment(method.name)}
                   className={`p-4 flex flex-col items-center font-semibold justify-center rounded-xl transition-colors ${
                     selectedPayment === method.name
-                      ? "bg-gradient-to-br from-blue-950 via-indigo-700 to-violet-950 shadow-lg text-white"
-                      : "bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-900 shadow-sm hover:bg-secondary-700/40"
+                      ? "text-text"
+                      : "shadow-sm hover:bg-secondary-700/40"
                   }`}
                 >
                   <span className="text-2xl mb-2">{method.icon}</span>
@@ -402,26 +402,26 @@ export default function UserDeposit() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4 }}
-                className="bg-secondary-900/60 rounded-xl shadow-lg px-4 py-8 flex flex-col items-start space-y-4"
+                className="bg-secondary-900/60 rounded-card px-4 py-8 flex flex-col items-start space-y-4"
               >
                 {paymentDetails && selectedPayment !== "Online Payment" && (
                   <div className="flex flex-col gap-10 md:flex-row w-full justify-between items-center">
                     <div className="items-start w-full md:w-[50%]">
                       <div className="w-full whitespace-nowrap my-2 flex flex-col md:flex-row justify-between items-center">
-                        <h3 className="text-sm md:text-lg font-bold text-gray-100">
+                        <h3 className="text-sm md:text-lg font-bold text-text">
                           Account Details :
                         </h3>
                         <span className="text-sm md:text-lg text-secondary-500 bg-secondary-500-10 uppercase font-semibold px-3 py-1 rounded-full">
                           {selectedPayment}
                         </span>
                       </div>
-                      <div className="flex flex-col md:flex-row justify-start items-start gap-2 space-y-2 md:space-y-0 bg-secondary-800/30 p-4 rounded-lg">
-                        <p className="text-sm text-gray-300 leading-tight w-full break-words">
+                      <div className="flex flex-col md:flex-row justify-start items-start gap-2 space-y-2 md:space-y-0 bg-secondary-800/30 p-4 rounded-field">
+                        <p className="text-sm text-muted leading-tight w-full break-words">
                           {formatTextWithLinks(paymentDetails)}
                         </p>
                         <button
                           onClick={() => copyText(paymentDetails)}
-                          className="flex mb-2 items-center self-end text-blue-400 hover:text-blue-500 focus:outline-none space-x-1 text-xs"
+                          className="flex mb-2 items-center self-end text-primary hover:text-primary focus:outline-none space-x-1 text-xs"
                         >
                           <ClipboardIcon className="h-4 w-4" />
                           <span>{copied ? "Copied!" : "Copy"}</span>
@@ -437,7 +437,7 @@ export default function UserDeposit() {
                               import.meta.env.VITE_BACKEND_BASE_URL
                             }/${paymentImage}`}
                             alt="Payment Receipt"
-                            className="w-full h-full object-contain rounded-lg shadow-md"
+                            className="w-full h-full object-contain rounded-field"
                           />
                           <a
                             href={`${
@@ -445,7 +445,7 @@ export default function UserDeposit() {
                             }/${paymentImage}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-400 hover:text-blue-500"
+                            className="text-sm text-primary hover:text-primary"
                           >
                             View QR
                           </a>
@@ -460,23 +460,23 @@ export default function UserDeposit() {
                     {bankTransfers?.map((value, index) => (
                       <div
                         key={index}
-                        className="bg-secondary-800/30 text-white p-6 rounded-2xl shadow-lg min-w-lg max-w-xl w-full mx-auto"
+                        className="bg-secondary-800/30 text-text p-6 rounded-card min-w-lg max-w-xl w-full mx-auto"
                       >
                         <div className="flex items-center gap-3 mb-6">
-                          <Banknote className="text-green-500" size={30} />
+                          <Banknote className="text-success" size={30} />
                           <h2 className="text-md sm:text-lg font-semibold">
                             Bank Account #{index + 1}
                           </h2>
                         </div>
                         <div className="space-y-2 whitespace-nowrap text-base sm:text-lg">
                           <div className="flex flex-col sm:flex-row sm:justify-between">
-                            <span className="text-gray-300/80">Bank Name:</span>
+                            <span className="text-muted">Bank Name:</span>
                             <span className="text-md">
                               {value?.bankTransfer?.bankName}
                             </span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:justify-between">
-                            <span className="text-gray-300/80">
+                            <span className="text-muted">
                               Account Holder:
                             </span>
                             <span className="text-md">
@@ -484,7 +484,7 @@ export default function UserDeposit() {
                             </span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:justify-between">
-                            <span className="text-gray-300/80">
+                            <span className="text-muted">
                               Account Number:
                             </span>
                             <span className="text-md">
@@ -492,7 +492,7 @@ export default function UserDeposit() {
                             </span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:justify-between">
-                            <span className="text-gray-300/80">IFSC Code:</span>
+                            <span className="text-muted">IFSC Code:</span>
                             <span className="text-md">
                               {value?.bankTransfer?.ifscCode}
                             </span>
@@ -508,7 +508,7 @@ export default function UserDeposit() {
                     href={paymentDetails}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full text-center bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-2 rounded-lg hover:scale-105 transition-all"
+                    className="w-full text-center text-text font-semibold py-2 rounded-field hover:scale-105 transition-all"
                   >
                     Pay Now
                   </a>
@@ -532,7 +532,7 @@ export default function UserDeposit() {
                 <motion.label
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer bg-secondary-500-70 hover:bg-secondary-500-50 transition-colors py-2 px-4 rounded-lg flex items-center"
+                  className="cursor-pointer bg-secondary-500-70 hover:bg-secondary-500-50 transition-colors py-2 px-4 rounded-field flex items-center"
                 >
                   <Upload className="mr-2" /> Choose file
                   <input
@@ -554,7 +554,7 @@ export default function UserDeposit() {
                       whileHover={{ scale: 1.2 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={handleRemoveFile}
-                      className="text-red-500 hover:text-red-600"
+                      className="text-danger hover:text-danger"
                     >
                       <X size={20} />
                     </motion.button>
@@ -563,7 +563,7 @@ export default function UserDeposit() {
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={togglePreview}
-                        className="text-blue-500 hover:text-blue-600"
+                        className="text-primary hover:text-primary"
                       >
                         <Eye size={20} />
                       </motion.button>
@@ -578,7 +578,7 @@ export default function UserDeposit() {
             <div className="flex flex-col gap-2 w-full">
               <label
                 htmlFor="transactionId"
-                className="text-sm font-medium text-gray-200"
+                className="text-sm font-medium text-muted"
               >
                 Transaction ID
               </label>
@@ -588,7 +588,7 @@ export default function UserDeposit() {
                 name="transactionId"
                 placeholder="Enter Transaction ID"
                 onChange={handleInputChange}
-                className="w-80 bg-gradient-to-br from-indigo-950 via-blue-950 to-indigo-950 px-4 py-2 border bg-secondary-800/20 border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
+                className="w-80 px-4 py-2 border bg-secondary-800/20 border-line rounded-field focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500"
               />
             </div>
           </motion.div>
@@ -612,7 +612,7 @@ export default function UserDeposit() {
               <a
                 href={siteConfig?.tNcLink}
                 target="_blank"
-                className="text-blue-400 mx-1 cursor-pointer"
+                className="text-primary mx-1 cursor-pointer"
               >
                 Terms & Conditions
               </a>
@@ -635,10 +635,10 @@ export default function UserDeposit() {
                 !selectedPayment ||
                 isSubmitting
               }
-              className={`flex mx-auto justify-center items-center py-3 px-12 hover:px-16 transition-all rounded-full text-white ${
+              className={`flex mx-auto justify-center items-center py-3 px-12 hover:px-16 transition-all rounded-full text-text ${
                 selectedPayment && agreeToTerms && !isSubmitting
-                  ? "bg-gradient-to-bl from-blue-950 via-violet-950 to-indigo-950 hover:bg-secondary-500-80"
-                  : "bg-gradient-to-b from-blue-950 via-violet-950 to-indigo-950 pointer-events-none"
+                  ? "hover:bg-secondary-500-80"
+                  : "pointer-events-none"
               }`}
             >
               Submit Request
@@ -656,13 +656,13 @@ export default function UserDeposit() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+              className="fixed inset-0 bg-surface bg-opacity-50 flex items-center justify-center z-50"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-secondary-900 p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto"
+                className="bg-secondary-900 p-4 rounded-field max-w-3xl max-h-[90vh] overflow-auto"
               >
                 <img
                   src={previewUrl}
@@ -673,7 +673,7 @@ export default function UserDeposit() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={togglePreview}
-                  className="mt-4 bg-red-500/80 text-white px-6 py-2 rounded-full hover:bg-red-600/70"
+                  className="mt-4 bg-danger-soft text-text px-6 py-2 rounded-full hover:bg-danger-soft"
                 >
                   Close
                 </motion.button>

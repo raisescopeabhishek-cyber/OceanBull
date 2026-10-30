@@ -26,47 +26,29 @@ import { fetchCurrentUser } from "@/redux/AsyncThunk/fetchCurrentUser";
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 const getTheme = (isDark) => ({
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/55" : "text-slate-500",
-  softText: isDark ? "text-white/70" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  card: isDark
-    ? "border-white/10 bg-white/[0.035]"
-    : "border-orange-100 bg-white/70",
+  card:"border-line bg-surface-2",
 
-  input: isDark
-    ? "border-white/10 bg-white/[0.055] text-white placeholder:text-white/35 focus:border-blue-400/50 focus:ring-blue-400/20"
-    : "border-orange-300 bg-orange-50/80 text-slate-900 placeholder:text-orange-400 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] focus:border-orange-500 focus:bg-white focus:ring-orange-300/70",
+  input:"border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-primary",
 
-  option: isDark ? "bg-slate-900 text-white" : "bg-orange-50 text-slate-900",
+  option:"bg-surface text-text",
 
-  icon: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200 bg-orange-50 text-orange-600",
+  icon:"border-line bg-primary-soft text-primary",
 
-  uploadBox: isDark
-    ? "border-white/10 bg-white/[0.045] text-white/75 hover:bg-white/[0.07]"
-    : "border-orange-300 bg-orange-50/80 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.08)] hover:bg-white",
+  uploadBox:"border-line bg-surface-2 text-muted hover:bg-surface-2",
 
-  successBadge: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700",
+  successBadge:"border-success bg-success-soft text-success",
 
-  warningBadge: isDark
-    ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
-    : "border-amber-200 bg-amber-50 text-amber-700",
+  warningBadge:"border-line bg-primary-soft text-primary",
 
-  dangerBadge: isDark
-    ? "border-red-400/20 bg-red-500/10 text-red-300"
-    : "border-red-200 bg-red-50 text-red-700",
+  dangerBadge:"border-danger bg-danger-soft text-danger",
 
-  button: isDark
-    ? "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-400/30"
-    : "bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300",
+  button:"bg-primary text-text hover:bg-primary focus:ring-primary",
 
-  buttonDisabled: isDark
-    ? "bg-slate-600 text-white/60"
-    : "bg-slate-300 text-slate-600",
+  buttonDisabled:"bg-surface-3 text-subtle",
 });
 
 const DropdownField = ({ theme, label, options, value, onChange }) => (
@@ -83,7 +65,7 @@ const DropdownField = ({ theme, label, options, value, onChange }) => (
     <div className="relative">
       <select
         className={cx(
-          "w-full appearance-none rounded-2xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-200 focus:ring-4",
+          "w-full appearance-none rounded-card border px-4 py-3 pr-10 text-sm outline-none transition-all duration-200 focus:ring-4",
           theme.input
         )}
         value={value}
@@ -100,7 +82,7 @@ const DropdownField = ({ theme, label, options, value, onChange }) => (
         ))}
       </select>
 
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
     </div>
   </div>
 );
@@ -162,7 +144,7 @@ const ImageUploadField = ({ theme, label, onFileChange }) => {
         <label
           htmlFor={`file-${label}`}
           className={cx(
-            "flex w-full cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200",
+            "flex w-full cursor-pointer items-center justify-center rounded-card border px-4 py-3 text-sm font-semibold transition-all duration-200",
             theme.uploadBox
           )}
         >
@@ -173,7 +155,7 @@ const ImageUploadField = ({ theme, label, onFileChange }) => {
         <label
           htmlFor={`camera-${label}`}
           className={cx(
-            "flex w-full cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 md:hidden",
+            "flex w-full cursor-pointer items-center justify-center rounded-card border px-4 py-3 text-sm font-semibold transition-all duration-200 md:hidden",
             theme.uploadBox
           )}
         >
@@ -193,12 +175,12 @@ const ImagePreview = ({ theme, label, preview, onRemove, onFullScreen }) => {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -14 }}
-      className={cx("rounded-2xl border p-3", theme.card)}
+      className={cx("rounded-card border p-3", theme.card)}
     >
-      <div className="relative overflow-hidden rounded-xl">
+      <div className="relative overflow-hidden rounded-card">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
 
@@ -213,10 +195,10 @@ const ImagePreview = ({ theme, label, preview, onRemove, onFullScreen }) => {
           onError={() => setIsLoading(false)}
         />
 
-        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/45 opacity-0 transition-opacity duration-300 hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity duration-300 hover:opacity-100">
           <button
             onClick={onFullScreen}
-            className="rounded-full bg-white p-2 text-slate-800 hover:bg-slate-100"
+            className="rounded-full bg-surface p-2 text-text hover:bg-surface-3"
             type="button"
           >
             <Maximize size={18} />
@@ -224,7 +206,7 @@ const ImagePreview = ({ theme, label, preview, onRemove, onFullScreen }) => {
 
           <button
             onClick={onRemove}
-            className="rounded-full bg-red-500 p-2 text-white hover:bg-red-600"
+            className="rounded-full bg-danger p-2 text-text hover:bg-danger"
             type="button"
           >
             <X size={18} />
@@ -244,7 +226,7 @@ const FullScreenModal = ({ image, onClose }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
   >
     <div className="relative flex h-full w-full items-center justify-center">
       <img
@@ -255,7 +237,7 @@ const FullScreenModal = ({ image, onClose }) => (
 
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 rounded-full bg-white p-2 text-slate-800 hover:bg-slate-100"
+        className="absolute right-4 top-4 rounded-full bg-surface p-2 text-text hover:bg-surface-3"
         type="button"
       >
         <Minimize size={24} />
@@ -434,10 +416,10 @@ const UserKycDetails = () => {
   </head>
   <body>
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background:#f97316;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
+      <div style="background:#2a56dc;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center;">
         <h2 style="margin:0;">KYC Submitted</h2>
       </div>
-      <div style="padding:20px;border:1px solid #fed7aa;">
+      <div style="padding:20px;border:1px solid #eaf0ff;">
         <p>Dear ${loggedUser?.firstName || ""} ${loggedUser?.lastName || ""},</p>
         <p>Your KYC has been successfully submitted. We will notify you when it gets verified.</p>
         <p><strong>Username:</strong> ${loggedUser?.email || ""}</p>
@@ -512,13 +494,13 @@ const UserKycDetails = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className={cx("rounded-[22px] border p-4 sm:p-5", theme.card)}
+      className={cx("rounded-card border p-4 sm:p-5", theme.card)}
     >
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
           <div
             className={cx(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
               theme.icon
             )}
           >
@@ -540,7 +522,7 @@ const UserKycDetails = () => {
 
       <div
         className={cx(
-          "mb-5 rounded-2xl border px-4 py-3",
+          "mb-5 rounded-card border px-4 py-3",
           theme.successBadge
         )}
       >
@@ -588,7 +570,7 @@ const UserKycDetails = () => {
 
       <div className="mt-6">
         <div className="mb-4 flex items-center gap-2">
-          <FileCheck2 className="h-4 w-4 text-orange-500" />
+          <FileCheck2 className="h-4 w-4 text-primary" />
           <p
             className={cx(
               "text-xs font-semibold uppercase tracking-[0.14em]",
@@ -635,7 +617,7 @@ const UserKycDetails = () => {
           whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
           disabled={isSubmitting}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
+            "inline-flex items-center justify-center gap-2 rounded-card px-7 py-3 text-sm font-bold outline-none transition focus:ring-4 disabled:cursor-not-allowed",
             isSubmitting ? theme.buttonDisabled : theme.button
           )}
         >

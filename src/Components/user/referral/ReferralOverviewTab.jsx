@@ -127,10 +127,7 @@ const ReferralOverviewTab = () => {
             <div>
               <div
                 className={cx(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                  isDark
-                    ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
-                    : "border-cyan-200 bg-cyan-50 text-cyan-700"
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
                 )}
               >
                 <Sparkles size={13} />
@@ -164,10 +161,7 @@ const ReferralOverviewTab = () => {
             <div className="flex flex-col gap-3 xl:flex-row">
               <div
                 className={cx(
-                  "flex min-h-[54px] flex-1 items-center rounded-2xl border px-4 text-sm",
-                  isDark
-                    ? "border-white/10 bg-white/[0.05] text-white/85"
-                    : "border-sky-100 bg-white text-slate-700"
+                  "flex min-h-[54px] flex-1 items-center rounded-card border px-4 text-sm","border-line bg-surface-2 text-muted"
                 )}
               >
                 <Link2 size={16} className="mr-2 shrink-0 opacity-60" />
@@ -201,10 +195,7 @@ const ReferralOverviewTab = () => {
               <div key={step.title} className={softCard(isDark, "p-4")}>
                 <div
                   className={cx(
-                    "flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold",
-                    isDark
-                      ? "bg-cyan-500/10 text-cyan-200"
-                      : "bg-sky-100 text-sky-700"
+                    "flex h-10 w-10 items-center justify-center rounded-card text-sm font-bold","bg-primary-soft text-primary"
                   )}
                 >
                   0{index + 1}
@@ -236,10 +227,7 @@ const ReferralOverviewTab = () => {
                 type="button"
                 onClick={item.onClick}
                 className={cx(
-                  "flex items-center justify-between rounded-2xl border px-4 py-4 text-left transition-all",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
-                    : "border-sky-100 bg-sky-50/50 hover:bg-sky-50"
+                  "flex items-center justify-between rounded-card border px-4 py-4 text-left transition-all","border-line bg-surface-2 hover:bg-surface-2"
                 )}
               >
                 <div>
@@ -253,7 +241,7 @@ const ReferralOverviewTab = () => {
 
                 <Share2
                   size={18}
-                  className={isDark ? "text-white/40" : "text-slate-500"}
+                  className={"text-subtle"}
                 />
               </button>
             ))}
@@ -261,7 +249,7 @@ const ReferralOverviewTab = () => {
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className={softCard(isDark, "p-4")}>
-              <Users size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+              <Users size={18} className={"text-primary"} />
               <p className={cx("mt-3 text-xs uppercase tracking-[0.18em]", muted(isDark))}>
                 Direct Referrals
               </p>
@@ -271,7 +259,7 @@ const ReferralOverviewTab = () => {
             </div>
 
             <div className={softCard(isDark, "p-4")}>
-              <TrendingUp size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+              <TrendingUp size={18} className={"text-primary"} />
               <p className={cx("mt-3 text-xs uppercase tracking-[0.18em]", muted(isDark))}>
                 Active IB Users
               </p>
@@ -281,7 +269,7 @@ const ReferralOverviewTab = () => {
             </div>
 
             <div className={softCard(isDark, "p-4")}>
-              <BadgeDollarSign size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+              <BadgeDollarSign size={18} className={"text-primary"} />
               <p className={cx("mt-3 text-xs uppercase tracking-[0.18em]", muted(isDark))}>
                 Commission Rate
               </p>

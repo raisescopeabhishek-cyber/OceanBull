@@ -162,17 +162,14 @@ const ReferralDashboard = () => {
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_.9fr]">
         <section className={panelCard(isDark, "p-6 relative overflow-hidden")}>
-          <div className="pointer-events-none absolute -top-10 right-0 h-40 w-40 rounded-full bg-cyan-500/15 blur-3xl" />
+          <div className="pointer-events-none absolute -top-10 right-0 h-40 w-40 rounded-full bg-primary-soft blur-3xl" />
 
           <div className="relative">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div
                   className={cx(
-                    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
-                      : "border-cyan-200 bg-cyan-50 text-cyan-700"
+                    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
                   )}
                 >
                   <Sparkles size={13} />
@@ -212,10 +209,7 @@ const ReferralDashboard = () => {
               <div className="flex flex-col gap-3 xl:flex-row">
                 <div
                   className={cx(
-                    "flex min-h-[54px] flex-1 items-center rounded-2xl border px-4 text-sm",
-                    isDark
-                      ? "border-white/10 bg-white/[0.05] text-white/85"
-                      : "border-sky-100 bg-white text-slate-700"
+                    "flex min-h-[54px] flex-1 items-center rounded-card border px-4 text-sm","border-line bg-surface-2 text-muted"
                   )}
                 >
                   <Link2 size={16} className="mr-2 shrink-0 opacity-60" />
@@ -246,7 +240,7 @@ const ReferralDashboard = () => {
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <div className={softCard(isDark, "p-4")}>
-                <Shield size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+                <Shield size={18} className={"text-primary"} />
                 <h4 className={cx("mt-3 font-semibold", titleText(isDark))}>
                   Unique Identity
                 </h4>
@@ -259,7 +253,7 @@ const ReferralDashboard = () => {
               </div>
 
               <div className={softCard(isDark, "p-4")}>
-                <Users size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+                <Users size={18} className={"text-primary"} />
                 <h4 className={cx("mt-3 font-semibold", titleText(isDark))}>
                   Direct Growth
                 </h4>
@@ -272,7 +266,7 @@ const ReferralDashboard = () => {
               </div>
 
               <div className={softCard(isDark, "p-4")}>
-                <TrendingUp size={18} className={isDark ? "text-cyan-200" : "text-sky-700"} />
+                <TrendingUp size={18} className={"text-primary"} />
                 <h4 className={cx("mt-3 font-semibold", titleText(isDark))}>
                   Trading Activity
                 </h4>
@@ -303,10 +297,7 @@ const ReferralDashboard = () => {
                 type="button"
                 onClick={() => navigate(item.path)}
                 className={cx(
-                  "flex w-full items-center justify-between rounded-2xl border p-4 text-left transition-all",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
-                    : "border-sky-100 bg-sky-50/50 hover:bg-sky-50"
+                  "flex w-full items-center justify-between rounded-card border p-4 text-left transition-all","border-line bg-surface-2 hover:bg-surface-2"
                 )}
               >
                 <div>
@@ -318,7 +309,7 @@ const ReferralDashboard = () => {
 
                 <ArrowRight
                   size={18}
-                  className={isDark ? "text-white/45" : "text-slate-500"}
+                  className={"text-subtle"}
                 />
               </button>
             ))}

@@ -80,38 +80,38 @@ export const UserDropdown = ({ isOpen, onClose }) => {
             className="absolute z-50 right-0 top-12 w-64"
           >
             {/* Glass card with neon rim */}
-            <div className="relative rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-slate-950/90 via-slate-900/40 to-slate-950/90 backdrop-blur-xl shadow-[0_0_60px_rgba(16,185,129,0.12)] overflow-hidden">
+            <div className="relative rounded-card border border-success backdrop-blur-xl overflow-hidden">
               {/* Neon sweep */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    "radial-gradient(120% 60% at 10% 0%, rgba(16,185,129,0.18), transparent 40%)"
+                    "radial-gradient(120% 60% at 10% 0%, rgba(15, 159, 110,0.18), transparent 40%)"
                 }}
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
               {/* Header */}
-              <div className="relative px-4 py-4 border-b border-white/10 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent">
+              <div className="relative px-4 py-4 border-b border-line">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/70 to-cyan-500/70 grid place-items-center text-black font-bold">
+                    <div className="w-10 h-10 rounded-card grid place-items-center text-text font-bold">
                       {initials}
                     </div>
                     <motion.span
-                      className="absolute -inset-0.5 rounded-xl ring-2 ring-emerald-400/20"
+                      className="absolute -inset-0.5 rounded-card ring-2 ring-success"
                       animate={{ opacity: [0.4, 0.8, 0.4] }}
                       transition={{ duration: 2.2, repeat: Infinity }}
                     />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1 text-xs text-emerald-300/90 uppercase tracking-widest">
+                    <div className="flex items-center gap-1 text-xs text-success uppercase tracking-widest">
                       <Sparkles size={14} />
                       <span>account</span>
                     </div>
-                    <p className="text-white font-semibold truncate">{displayName}</p>
+                    <p className="text-text font-semibold truncate">{displayName}</p>
                     {loggedUser?.email && (
-                      <p className="text-[11px] text-white/60 truncate">{loggedUser.email}</p>
+                      <p className="text-[11px] text-subtle truncate">{loggedUser.email}</p>
                     )}
                   </div>
                 </div>
@@ -129,24 +129,24 @@ export const UserDropdown = ({ isOpen, onClose }) => {
                   >
                     <Link
                       to={item.to}
-                      className="group flex items-center gap-3 px-4 py-2.5 text-sm text-white/90 hover:text-white transition-all"
+                      className="group flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:text-text transition-all"
                     >
-                      <span className="text-emerald-300/90">{item.icon}</span>
+                      <span className="text-success">{item.icon}</span>
                       <span className="truncate">{item.label}</span>
-                      <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-emerald-300/70">
+                      <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-success">
                         →
                       </span>
                     </Link>
                   </motion.div>
                 ))}
 
-                <div className="mx-4 my-2 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                <div className="mx-4 my-2 h-px" />
 
                 <motion.button
                   whileHover={{ x: 2, scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={logoutHandler}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-300 hover:text-rose-200"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-danger hover:text-danger"
                 >
                   <LogOut className="w-4 h-4" />
                   Logout

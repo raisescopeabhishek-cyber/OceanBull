@@ -1,54 +1,63 @@
 import { useState } from "react";
-import { Edit, Power, RotateCcwSquareIcon, SwitchCamera } from "lucide-react";
-import { Switch } from "../ui/Switch";
-import AddNew from "../../Admin/setup-challenges/AddNew";
-// import AddNew from "@/components/admin/setup-challenges/AddNew";
 
+import AddNew from "../../Admin/setup-challenges/AddNew";
+import { Badge, BlotterPage, Button, Card, EmptyState } from "@/Components/ui";
+
+/**
+ * Challenge plan setup.
+ *
+ * NOTE: this screen is not wired to the API. `plans` below is seeded in
+ * component state, so toggling default or status changes nothing on the
+ * server and is lost on reload. The banner says so, rather than letting the
+ * page look authoritative. The layout is the real blotter, so connecting it
+ * is a matter of replacing this state with a fetch.
+ */
+
+const SEED_PLANS = [
+  {
+    id: 1,
+    name: "TWO STEP EVALUATION (phase 2)",
+    phase: 2,
+    treeCommission: 5.0,
+    isDefault: true,
+    status: "Enabled",
+  },
+  {
+    id: 2,
+    name: "Funded Live (one Step)",
+    phase: 1,
+    treeCommission: 0.0,
+    isDefault: false,
+    status: "Disabled",
+  },
+  {
+    id: 3,
+    name: "ONE STEP EVALUATION",
+    phase: 1,
+    treeCommission: 12.0,
+    isDefault: false,
+    status: "Disabled",
+  },
+  {
+    id: 4,
+    name: "TWO STEP EVALUATION (phase 1)",
+    phase: 2,
+    treeCommission: 8.0,
+    isDefault: false,
+    status: "Enabled",
+  },
+  {
+    id: 5,
+    name: "FUNDED (Live)",
+    phase: 1,
+    treeCommission: 0.0,
+    isDefault: true,
+    status: "Enabled",
+  },
+];
 
 const SetupChallenges = () => {
-  const [plans, setPlans] = useState([
-    {
-      id: 1,
-      name: "TWO STEP EVALUATION (phase 2)",
-      phase: 2,
-      treeCommission: 5.0,
-      isDefault: true,
-      status: "Enabled",
-    },
-    {
-      id: 2,
-      name: "Funded Live (one Step)",
-      phase: 1,
-      treeCommission: 0.0,
-      isDefault: false,
-      status: "Disabled",
-    },
-    {
-      id: 3,
-      name: "ONE STEP EVALUATION",
-      phase: 1,
-      treeCommission: 12.0,
-      isDefault: false,
-      status: "Disabled",
-    },
-    {
-      id: 4,
-      name: "TWO STEP EVALUATION (phase 1)",
-      phase: 2,
-      treeCommission: 8.0,
-      isDefault: false,
-      status: "Enabled",
-    },
-    {
-      id: 5,
-      name: "FUNDED (Live)",
-      phase: 1,
-      treeCommission: 0.0,
-      isDefault: true,
-      status: "Enabled",
-    },
-  ]);
-
+  const [plans, setPlans] = useState(SEED_PLANS);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleDefault = (id) => {
@@ -78,81 +87,141 @@ const SetupChallenges = () => {
     setPlans([...plans, { ...newPlan, id: plans.length + 1 }]);
   };
 
-  return (
-    <div className="container w-full p-10 mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-white">Plans Funded</h2>
-        <button
-          className="text-white hover:text-primary-100 font-medium"
-          onClick={() => setIsModalOpen(true)}
-        >
-          + Add New
-        </button>
-      </div>
+  const enabledCount = plans.filter((p) => p.status === "Enabled").length;
+  const defaultCount = plans.filter((p) => p.isDefault).length;
 
-      <div className="bg-primary-700 text-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-primary-500 text-white">
-              <th className="px-6 py-3 text-left">Plan Name</th>
-              <th className="px-6 py-3 text-left">Phase</th>
-              <th className="px-6 py-3 text-left">Tree Commission</th>
-              <th className="px-6 py-3 text-center">Is Default</th>
-              <th className="px-6 py-3 text-left">Status</th>
-              <th className="px-6 py-3 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plans.map((plan) => (
-              <tr key={plan.id} className="border-b">
-                <td className="px-6 py-4">{plan.name}</td>
-                <td className="px-6 py-4">{plan.phase}</td>
-                <td className="px-6 py-4">
-                  {plan.treeCommission.toFixed(2)} USD
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center">
-                    <RotateCcwSquareIcon></RotateCcwSquareIcon>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      plan.status === "Enabled"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-orange-100 text-orange-800"
-                    }`}
-                  >
-                    {plan.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-white hover:text-primary-100 mr-3">
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    className={`${
-                      plan.status === "Enabled"
-                        ? "text-red-600 hover:text-red-900"
-                        : "text-green-600 hover:text-green-900"
-                    }`}
-                    onClick={() => toggleStatus(plan.id)}
-                  >
-                    <Power size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const columns = [
+    {
+      key: "name",
+      header: "Plan",
+      primary: true,
+      cell: (plan) => (
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-text">{plan.name}</div>
+          {plan.isDefault ? (
+            <div className="mt-0.5">
+              <Badge tone="primary" dot={false}>
+                Default
+              </Badge>
+            </div>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      key: "phase",
+      header: "Phases",
+      secondary: true,
+      numeric: true,
+      cell: (plan) => `${plan.phase} step`,
+    },
+    {
+      key: "treeCommission",
+      header: "Tree commission",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (plan) => (
+        <span className="font-semibold">
+          {Number(plan.treeCommission || 0).toFixed(2)}%
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (plan) => (
+        <Badge
+          tone={plan.status === "Enabled" ? "success" : "neutral"}
+          dot={false}
+        >
+          {plan.status}
+        </Badge>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      cardFull: true,
+      cell: (plan) => (
+        <div className="flex justify-end gap-1.5">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => toggleDefault(plan.id)}
+          >
+            {plan.isDefault ? "Unset default" : "Set default"}
+          </Button>
+          <Button
+            size="sm"
+            variant={plan.status === "Enabled" ? "danger-soft" : "success-soft"}
+            onClick={() => toggleStatus(plan.id)}
+          >
+            {plan.status === "Enabled" ? "Disable" : "Enable"}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <BlotterPage
+        keyField="id"
+        breadcrumb="Challenges / Plans"
+        title="Challenge plans"
+        description="Evaluation and funded plans, their phase count and tree commission."
+        actions={
+          <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+            Add plan
+          </Button>
+        }
+        readouts={[
+          {
+            key: "total",
+            label: "Plans",
+            value: plans.length,
+            tone: "brand",
+          },
+          {
+            key: "enabled",
+            label: "Enabled",
+            value: `${enabledCount} / ${plans.length}`,
+            tone: enabledCount ? "ok" : "warn",
+          },
+          {
+            key: "default",
+            label: "Marked default",
+            value: defaultCount,
+            helper: defaultCount > 1 ? "More than one default" : undefined,
+            tone: defaultCount > 1 ? "warn" : undefined,
+          },
+        ]}
+        columns={columns}
+        rows={plans}
+        rowEdge={(plan) => (plan.isDefault ? "primary" : null)}
+        empty={
+          <EmptyState
+            title="No plans"
+            description="Add a plan to get started."
+          />
+        }
+      >
+        <Card className="mb-2 border-warning/40 bg-warning-soft px-3 py-2">
+          <p className="text-xs font-medium text-warning">
+            Demo data — this screen is not connected to the API yet. Changes
+            here are not saved and are lost on reload.
+          </p>
+        </Card>
+      </BlotterPage>
 
       <AddNew
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={addPlan}
       />
-    </div>
+    </>
   );
 };
 

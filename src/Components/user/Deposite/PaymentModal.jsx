@@ -59,17 +59,17 @@ export const PaymentModal = ({ isOpen, onClose, payment }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-950 text-white rounded-2xl p-8 w-[90%] max-w-lg shadow-2xl relative"
+          className="text-text rounded-card p-8 w-[90%] max-w-lg relative"
         >
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-gray-300 hover:text-white"
+            className="absolute top-3 right-3 text-muted hover:text-text"
           >
             <X size={24} />
           </button>
@@ -94,7 +94,7 @@ export const PaymentModal = ({ isOpen, onClose, payment }) => {
             <div className="flex justify-between items-center">
               <span>Wallet Address:</span>
               <span
-                className="font-mono text-xs bg-black/30 px-2 py-1 rounded cursor-pointer hover:bg-black/50 transition"
+                className="font-mono text-xs bg-black/60 px-2 py-1 rounded cursor-pointer hover:bg-black/60 transition"
                 onClick={() => {
                   navigator.clipboard.writeText(payment.pay_address);
                   setMessage("Wallet address copied!");
@@ -131,7 +131,7 @@ export const PaymentModal = ({ isOpen, onClose, payment }) => {
               level={"H"}
               includeMargin={true}
             />
-            <p className="text-xs text-gray-400">Scan to Pay</p>
+            <p className="text-xs text-subtle">Scan to Pay</p>
           </div>
         </motion.div>
       </motion.div>

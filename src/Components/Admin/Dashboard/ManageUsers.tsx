@@ -78,23 +78,23 @@ const ManageUsers = () => {
       bg: t.bg ?? "0 0 0",
       fg: t.fg ?? "255 255 255",
       mutedFg: t.mutedFg ?? "203 213 225",
-      muted: t.muted ?? "148 163 184",
-      border: t.border ?? t.inputBorder ?? "100 116 139",
-      card: t.card ?? t.surface2 ?? "18 18 18",
+      muted: t.muted ?? "163 177 198",
+      border: t.border ?? t.inputBorder ?? "123 135 154",
+      card: t.card ?? t.surface2 ?? "15 24 41",
       surface1: t.surface1 ?? t.bg ?? "0 0 0",
-      surface2: t.surface2 ?? t.card ?? "18 18 18",
-      accent: t.accent ?? "59 130 246",
-      ring: t.ring ?? t.accent ?? "59 130 246",
-      glow: t.glow ?? t.accent ?? "59 130 246",
-      gradientFrom: t.gradientFrom ?? t.accent ?? "59 130 246",
-      gradientTo: t.gradientTo ?? "147 51 234",
-      headerRow: t.headerRow ?? "30 41 59",
-      rowHover: t.rowHover ?? "15 23 42",
-      input: t.input ?? t.surface2 ?? "18 18 18",
-      inputBorder: t.inputBorder ?? t.border ?? "100 116 139",
-      success: t.success ?? "34 197 94",
-      danger: t.danger ?? "244 63 94",
-      info: t.info ?? "56 189 248",
+      surface2: t.surface2 ?? t.card ?? "15 24 41",
+      accent: t.accent ?? "79 125 246",
+      ring: t.ring ?? t.accent ?? "79 125 246",
+      glow: t.glow ?? t.accent ?? "79 125 246",
+      gradientFrom: t.gradientFrom ?? t.accent ?? "79 125 246",
+      gradientTo: t.gradientTo ?? "23 157 166",
+      headerRow: t.headerRow ?? "19 32 52",
+      rowHover: t.rowHover ?? "15 24 41",
+      input: t.input ?? t.surface2 ?? "15 24 41",
+      inputBorder: t.inputBorder ?? t.border ?? "123 135 154",
+      success: t.success ?? "15 159 110",
+      danger: t.danger ?? "220 58 58",
+      info: t.info ?? "79 125 246",
       shadowColor: t.shadowColor ?? "0 0 0",
     };
   }, [theme]);
@@ -404,7 +404,7 @@ const userRedirectHandler = async (user: any) => {
         {/* Table Card */}
         <div className="mt-6 overflow-hidden" style={cardStyle}>
           <div className="overflow-x-auto relative max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <table className="w-full min-w-[960px] whitespace-nowrap">
+            <table className="table-stack w-full min-w-[960px] whitespace-nowrap">
               <thead className="sticky top-0 z-10">
                 <tr style={headerRowStyle}>
                   <th className="py-3 px-4 text-left font-medium" style={{ color: rgba(C.fg, 0.9) }}>
@@ -602,7 +602,7 @@ const ManageUserRow = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <td className="py-3 px-4">
+      <td data-label="User / Email" className="py-3 px-4">
         <div className="flex items-center gap-3">
           {subList === "all-users" && (
             <Button
@@ -628,7 +628,7 @@ const ManageUserRow = ({
         </div>
       </td>
 
-      <td className="py-3 px-4">
+      <td data-label="Country" className="py-3 px-4">
         <div className="text-center">
           {user?.country ? (
             <span className="inline-flex px-3 py-1 text-sm" style={pill("info")}>
@@ -640,7 +640,7 @@ const ManageUserRow = ({
         </div>
       </td>
 
-      <td className="py-3 px-4">
+      <td data-label="Email" className="py-3 px-4">
         <div className="text-center">
           {user?.emailVerified ? (
             <span className="inline-flex items-center gap-1 px-3 py-1 text-sm" style={pill("success")}>
@@ -656,7 +656,7 @@ const ManageUserRow = ({
         </div>
       </td>
 
-      <td className="py-3 px-4">
+      <td data-label="KYC" className="py-3 px-4">
         <div className="text-center">
           {user?.kycVerified ? (
             <span className="inline-flex items-center gap-1 px-3 py-1 text-sm" style={pill("success")}>
@@ -672,20 +672,20 @@ const ManageUserRow = ({
         </div>
       </td>
 
-      <td className="py-3 px-4 text-center">
+      <td data-label="Total AC" className="py-3 px-4 text-center">
         <span className="inline-flex px-3 py-1 text-sm" style={pill("accent")}>
           {user?.accounts?.length || 0}
         </span>
       </td>
 
-      <td className="py-3 px-4 whitespace-nowrap">
+      <td data-label="Joined At" className="py-3 px-4 whitespace-nowrap">
         <div style={{ color: rgba(C.fg, 0.9) }}>{CFformatDate(user?.createdAt)}</div>
         <div className="text-xs" style={{ color: rgba(C.mutedFg, 0.75) }}>
           {CFcalculateTimeSinceJoined(user?.createdAt)}
         </div>
       </td>
 
-      <td className="py-3 px-4">
+      <td data-label="Action" className="py-3 px-4">
         <Link
           to={`/admin/user-detail/${user?._id}`}
           className="inline-flex items-center gap-2 px-3 py-1.5 border transition-all"

@@ -47,66 +47,66 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
     {
       title: "Total Users",
       value: formatNumber(userReport?.totalUsers),
-      icon: <Users2 className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <Users2 className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "KYC Verified",
       value: formatNumber(userReport?.kycVerified),
-      icon: <UserCheck className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <UserCheck className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "KYC Unverified",
       value: formatNumber(userReport?.kycUnverified),
-      icon: <UserX className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <UserX className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Email Verified",
       value: formatNumber(userReport?.emailVerified),
-      icon: <MailCheck className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <MailCheck className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Email Unverified",
       value: formatNumber(userReport?.emailUnverified),
-      icon: <MailX className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <MailX className="text-text" size={26} />,
+      color: "",
     },
 
     {
       title: "Today Registered users",
       value: formatNumber(userReport?.emailUnverified),
-      icon: <MailX className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <MailX className="text-text" size={26} />,
+      color: "",
     },
 
     {
       title: "Last Week Users",
       value: formatNumber(userReport?.emailUnverified),
-      icon: <MailX className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <MailX className="text-text" size={26} />,
+      color: "",
     },
 
     {
       title: "Last Month Users",
       value: formatNumber(userReport?.emailUnverified),
-      icon: <MailX className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <MailX className="text-text" size={26} />,
+      color: "",
     },
 
     {
       title: "Total IB Users",
       value: formatNumber(userReport?.totalIbUsers),
-      icon: <Wallet className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <Wallet className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Total Referrals",
       value: formatNumber(userReport?.totalReferralUsers),
-      icon: <Banknote className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <Banknote className="text-text" size={26} />,
+      color: "",
     },
   ];
 
@@ -115,13 +115,13 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
       {statCards.map((card, idx) => (
         <div
           key={idx}
-          className={`rounded-2xl p-6 text-white flex flex-col items-center justify-center shadow-md transition hover:scale-[1.02] duration-300 ${card.color}`}
+          className={`rounded-2xl p-6 text-text flex flex-col items-center justify-center shadow-md transition hover:scale-[1.02] duration-300 ${card.color}`}
         >
           {/* 1st Row: Icon */}
           <div className="mb-3">{card.icon}</div>
 
           {/* 2nd Row: Title */}
-          <h4 className=" text-sm font-medium opacity-90 text-center">
+          <h4 className="text-sm font-medium opacity-90 text-center">
             {card.title}
           </h4>
 

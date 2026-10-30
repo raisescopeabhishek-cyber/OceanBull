@@ -107,29 +107,29 @@ const UserReferalWithdrwalHistory = () => {
   const statusClass = (status?: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30";
+        return "bg-warning-soft text-warning border border-warning";
       case "approved":
-        return "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+        return "bg-success-soft text-success border border-success";
       case "rejected":
-        return "bg-rose-500/15 text-rose-400 border border-rose-500/30";
+        return "bg-danger-soft text-danger border border-danger";
       default:
-        return "bg-slate-600/20 text-slate-300 border border-slate-600/40";
+        return "bg-surface-3 text-muted border border-line";
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="relative min-h-screen">
       <AnimatedGrid />
       <FloatingParticles />
 
       <div className="max-w-6xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         {/* Sticky top controls */}
-        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md bg-gradient-to-b from-gray-900/80 to-transparent">
+        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md to-transparent">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center gap-2 rounded-full px-4 py-2 border border-slate-600/50 text-slate-300 hover:bg-slate-800/50 transition-all"
+                className="flex items-center gap-2 rounded-full px-4 py-2 border border-line text-muted hover:bg-surface transition-all"
               >
                 <ArrowLeft size={18} />
                 Back
@@ -140,7 +140,7 @@ const UserReferalWithdrwalHistory = () => {
             <button
               onClick={fetchChallengesData}
               disabled={loader}
-              className="px-4 py-2.5 rounded-2xl border border-slate-600/50 text-slate-200 hover:bg-slate-800/50 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-card border border-line text-muted hover:bg-surface transition-all flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${loader ? "animate-spin" : ""}`} />
               {loader ? "Refreshing…" : "Refresh"}
@@ -150,56 +150,56 @@ const UserReferalWithdrwalHistory = () => {
 
         {/* Overview / Quick Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-4 mb-8">
-          <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 shadow-xl">
-            <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-blue-500 to-purple-600 blur-md" />
+          <div className="relative rounded-card p-4 bg-surface border border-line">
+            <div className="absolute -inset-px rounded-card opacity-20 blur-md" />
             <div className="relative flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-card flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-text" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Total Requests</p>
-                <p className="text-lg font-semibold text-slate-100">{stats.total}</p>
+                <p className="text-xs text-subtle">Total Requests</p>
+                <p className="text-lg font-semibold text-text">{stats.total}</p>
               </div>
             </div>
           </div>
 
-          <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 shadow-xl">
-            <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-yellow-500 to-amber-500 blur-md" />
+          <div className="relative rounded-card p-4 bg-surface border border-line">
+            <div className="absolute -inset-px rounded-card opacity-20 bg-warning-soft blur-md" />
             <div className="relative">
-              <p className="text-xs text-slate-400">Pending</p>
-              <p className="text-lg font-semibold text-slate-100">
-                {stats.pendingCount} <span className="text-xs text-slate-400">({stats.pendingAmount.toFixed(2)})</span>
+              <p className="text-xs text-subtle">Pending</p>
+              <p className="text-lg font-semibold text-text">
+                {stats.pendingCount} <span className="text-xs text-subtle">({stats.pendingAmount.toFixed(2)})</span>
               </p>
             </div>
           </div>
 
-          <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 shadow-xl">
-            <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-emerald-500 to-teal-500 blur-md" />
+          <div className="relative rounded-card p-4 bg-surface border border-line">
+            <div className="absolute -inset-px rounded-card opacity-20 blur-md" />
             <div className="relative">
-              <p className="text-xs text-slate-400">Approved</p>
-              <p className="text-lg font-semibold text-slate-100">
-                {stats.approvedCount} <span className="text-xs text-slate-400">({stats.approvedAmount.toFixed(2)})</span>
+              <p className="text-xs text-subtle">Approved</p>
+              <p className="text-lg font-semibold text-text">
+                {stats.approvedCount} <span className="text-xs text-subtle">({stats.approvedAmount.toFixed(2)})</span>
               </p>
             </div>
           </div>
 
-          <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 shadow-xl">
-            <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-rose-500 to-orange-500 blur-md" />
+          <div className="relative rounded-card p-4 bg-surface border border-line">
+            <div className="absolute -inset-px rounded-card opacity-20 blur-md" />
             <div className="relative">
-              <p className="text-xs text-slate-400">Rejected</p>
-              <p className="text-lg font-semibold text-slate-100">{stats.rejectedCount}</p>
+              <p className="text-xs text-subtle">Rejected</p>
+              <p className="text-lg font-semibold text-text">{stats.rejectedCount}</p>
             </div>
           </div>
 
-          <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 shadow-xl">
-            <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-cyan-500 to-sky-500 blur-md" />
+          <div className="relative rounded-card p-4 bg-surface border border-line">
+            <div className="absolute -inset-px rounded-card opacity-20 blur-md" />
             <div className="relative flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-cyan-300" />
+              <div className="w-10 h-10 rounded-card bg-primary-soft border border-line flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Last Updated</p>
-                <p className="text-sm font-medium text-slate-200">
+                <p className="text-xs text-subtle">Last Updated</p>
+                <p className="text-sm font-medium text-muted">
                   {stats.lastUpdated ? formatDate(stats.lastUpdated.toISOString()) : "--"}
                 </p>
               </div>
@@ -208,16 +208,16 @@ const UserReferalWithdrwalHistory = () => {
         </div>
 
         {/* Table Card */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="border border-line rounded-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] whitespace-nowrap">
-              <thead className="bg-slate-800/40 border-b border-slate-700/50">
+            <table className="w-full min-w-[760px] whitespace-nowrap table-stack">
+              <thead className="bg-surface border-b border-line">
                 <tr>
-                  <th className="p-3 text-left text-slate-300 font-medium">Total Amount</th>
-                  <th className="p-3 text-center text-slate-300 font-medium">Withdrawal Amount</th>
-                  <th className="p-3 text-center text-slate-300 font-medium">Method</th>
-                  <th className="p-3 text-center text-slate-300 font-medium">Updated At</th>
-                  <th className="p-3 text-center text-slate-300 font-medium">Status</th>
+                  <th className="p-3 text-left text-muted font-medium">Total Amount</th>
+                  <th className="p-3 text-center text-muted font-medium">Withdrawal Amount</th>
+                  <th className="p-3 text-center text-muted font-medium">Method</th>
+                  <th className="p-3 text-center text-muted font-medium">Updated At</th>
+                  <th className="p-3 text-center text-muted font-medium">Status</th>
                 </tr>
               </thead>
 
@@ -226,14 +226,14 @@ const UserReferalWithdrwalHistory = () => {
                   <tr>
                     <td colSpan={5} className="py-10">
                       <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-line" />
                       </div>
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center">
-                      <div className="inline-flex items-center gap-2 text-rose-400">
+                      <div className="inline-flex items-center gap-2 text-danger">
                         <Info className="w-5 h-5" />
                         {error}
                       </div>
@@ -242,8 +242,8 @@ const UserReferalWithdrwalHistory = () => {
                 ) : challengesData.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-10 text-center">
-                      <div className="flex gap-2 mx-auto justify-center items-center text-slate-300">
-                        <RiErrorWarningFill size={22} className="text-yellow-400" />
+                      <div className="flex gap-2 mx-auto justify-center items-center text-muted">
+                        <RiErrorWarningFill size={22} className="text-warning" />
                         <p>No withdrawal history available.</p>
                       </div>
                     </td>
@@ -252,16 +252,16 @@ const UserReferalWithdrwalHistory = () => {
                   challengesData.map((v, idx) => (
                     <tr
                       key={v._id || idx}
-                      className="border-b border-slate-700/50 bg-slate-900/20 hover:bg-slate-900/40 transition-colors"
+                      className="border-b border-line bg-surface hover:bg-surface transition-colors"
                     >
-                      <td className="p-3 pl-6 text-slate-200">${Number(v?.totalBalance || 0).toFixed(2)}</td>
-                      <td className="p-3 text-center text-slate-200">${Number(v?.amount || 0).toFixed(2)}</td>
-                      <td className="p-3 text-center text-slate-300">{v?.method || "--"}</td>
-                      <td className="p-3 text-center">
-                        <div className="text-slate-200">{formatDate(v?.updatedAt)}</div>
-                        <div className="text-xs text-slate-400">{calculateTimeSinceJoined(v?.updatedAt)}</div>
+                      <td data-label="Total Amount" className="p-3 pl-6 text-muted">${Number(v?.totalBalance || 0).toFixed(2)}</td>
+                      <td data-label="Withdrawal Amount" className="p-3 text-center text-muted">${Number(v?.amount || 0).toFixed(2)}</td>
+                      <td data-label="Method" className="p-3 text-center text-muted">{v?.method || "--"}</td>
+                      <td data-label="Updated At" className="p-3 text-center">
+                        <div className="text-muted">{formatDate(v?.updatedAt)}</div>
+                        <div className="text-xs text-subtle">{calculateTimeSinceJoined(v?.updatedAt)}</div>
                       </td>
-                      <td className="p-3 text-center">
+                      <td data-label="Status" className="p-3 text-center">
                         <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusClass(v?.status)}`}>
                           {String(v?.status || "--").toLowerCase()}
                         </span>
@@ -275,11 +275,11 @@ const UserReferalWithdrwalHistory = () => {
 
           {/* footer hint */}
           {challengesData.length > 0 && !loader && !error && (
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-slate-700/50 bg-slate-900/30">
-              <div className="text-xs sm:text-sm text-slate-400">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-line bg-surface">
+              <div className="text-xs sm:text-sm text-subtle">
                 Showing {challengesData.length} record{challengesData.length > 1 ? "s" : ""}
               </div>
-              <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
+              <div className="flex items-center gap-2 text-subtle text-xs sm:text-sm">
                 <Clock className="w-4 h-4" />
                 Data updates as requests are processed
               </div>

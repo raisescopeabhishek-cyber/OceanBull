@@ -47,7 +47,7 @@ const RejectedDeposit = () => {
   }, [page, search]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <XCircle size={18} /> Rejected Deposits
       </h2>
@@ -57,7 +57,7 @@ const RejectedDeposit = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -67,56 +67,56 @@ const RejectedDeposit = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-red-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-danger text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading deposits...</p>
+        <p className="text-muted">Loading deposits...</p>
       ) : deposits.length === 0 ? (
-        <p className="text-gray-300">No rejected deposits found.</p>
+        <p className="text-muted">No rejected deposits found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-gray-700">
+          <table className="min-w-full border-collapse border border-line table-stack">
             <thead>
-              <tr className="bg-gray-800/50">
-                <th className="p-3 text-left border border-gray-700">User</th>
-                <th className="p-3 text-left border border-gray-700">Email</th>
-                <th className="p-3 text-left border border-gray-700">MT5 AC</th>
-                <th className="p-3 text-left border border-gray-700">AC Type</th>
-                <th className="p-3 text-left border border-gray-700">Deposit</th>
-                <th className="p-3 text-left border border-gray-700">Updated At</th>
-                <th className="p-3 text-left border border-gray-700">Proof</th>
-                <th className="p-3 text-left border border-gray-700">Action</th>
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">User</th>
+                <th className="p-3 text-left border border-line">Email</th>
+                <th className="p-3 text-left border border-line">MT5 AC</th>
+                <th className="p-3 text-left border border-line">AC Type</th>
+                <th className="p-3 text-left border border-line">Deposit</th>
+                <th className="p-3 text-left border border-line">Updated At</th>
+                <th className="p-3 text-left border border-line">Proof</th>
+                <th className="p-3 text-left border border-line">Action</th>
               </tr>
             </thead>
             <tbody>
               {deposits.map((d) => (
                 <tr
                   key={d._id}
-                  className="hover:bg-gray-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="User" className="p-3 border border-line">
                     {d.userId?.firstName} {d.userId?.lastName}
                   </td>
-                  <td className="p-3 border border-gray-700 text-red-300">
+                  <td data-label="Email" className="p-3 border border-line text-danger">
                     {d.userId?.email}
                   </td>
-                  <td className="p-3 border border-gray-700">{d.mt5Account}</td>
-                  <td className="p-3 border border-gray-700">{d.accountType}</td>
-                  <td className="p-3 border border-gray-700">${d.deposit}</td>
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="MT5 AC" className="p-3 border border-line">{d.mt5Account}</td>
+                  <td data-label="AC Type" className="p-3 border border-line">{d.accountType}</td>
+                  <td data-label="Deposit" className="p-3 border border-line">${d.deposit}</td>
+                  <td data-label="Updated At" className="p-3 border border-line">
                     {new Date(d.updatedAt).toLocaleString()}
                   </td>
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="Proof" className="p-3 border border-line">
                     {d.depositSS ? (
                       <a
                         href={d.depositSS}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 underline"
+                        className="text-primary underline"
                       >
                         View
                       </a>
@@ -124,8 +124,8 @@ const RejectedDeposit = () => {
                       "No proof"
                     )}
                   </td>
-                  <td className="p-3 border border-gray-700">
-                    <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-sm">
+                  <td data-label="Action" className="p-3 border border-line">
+                    <button className="px-3 py-1 bg-danger hover:bg-danger rounded text-text text-sm">
                       View
                     </button>
                   </td>
@@ -141,17 +141,17 @@ const RejectedDeposit = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

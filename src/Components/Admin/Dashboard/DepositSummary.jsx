@@ -34,15 +34,15 @@ const DepositSummary = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+    <div className="bg-surface rounded-card p-6">
+      <h3 className="text-xl font-semibold text-text mb-4">
         📊 Withdrawal Summary
       </h3>
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-subtle text-sm">Loading...</p>
       ) : (
-        <ul className="space-y-2 text-sm text-gray-700">
+        <ul className="space-y-2 text-sm text-muted">
           <li>Total: {formatNumber(report?.total)}</li>
           <li>Approved: {formatNumber(report?.approved)}</li>
           <li>Pending: {formatNumber(report?.pending)}</li>

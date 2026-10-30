@@ -126,25 +126,25 @@ export default function ColorField({
 
   return (
     <div className="space-y-2">
-      <label className="text-xs text-white/70">{label}</label>
+      <label className="text-xs text-muted">{label}</label>
 
       <div className="flex items-center gap-2">
         <input
           value={value ?? ""}
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-white/10"
+          className="flex-1 rounded-card border border-line bg-black/60 px-3 py-2 text-sm text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-line"
         />
 
         <button
           type="button"
           ref={refs.setReference}
           {...getReferenceProps()}
-          className="h-10 w-12 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition relative"
+          className="h-10 w-12 rounded-card border border-line bg-surface-2 hover:bg-surface-2 transition relative"
           title="Hover / click to open picker"
         >
           <span
-            className="absolute inset-1 rounded-lg border border-white/10"
+            className="absolute inset-1 rounded-field border border-line"
             style={{ background: hex }}
           />
         </button>
@@ -157,26 +157,26 @@ export default function ColorField({
               ref={refs.setFloating}
               style={floatingStyles}
               {...getFloatingProps()}
-              className="z-[99999] w-[280px] rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl p-3"
+              className="z-[99999] w-[280px] rounded-card border border-line bg-black/60 backdrop-blur-xl p-3"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-xs text-white/70">Pick color</div>
+                <div className="text-xs text-muted">Pick color</div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="text-xs px-2 py-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition text-white/80"
+                  className="text-xs px-2 py-1 rounded-field border border-line bg-surface-2 hover:bg-surface-2 transition text-muted"
                 >
                   Close
                 </button>
               </div>
 
-              <div className="rounded-xl overflow-hidden border border-white/10">
+              <div className="rounded-card overflow-hidden border border-line">
                 <HexColorPicker color={hex} onChange={applyHex} />
               </div>
 
               <div className="mt-3 flex items-center gap-2">
                 <div
-                  className="h-9 w-10 rounded-xl border border-white/10"
+                  className="h-9 w-10 rounded-card border border-line"
                   style={{ background: hex }}
                   title={hex}
                 />
@@ -184,11 +184,11 @@ export default function ColorField({
                   color={hex}
                   onChange={applyHex}
                   prefixed
-                  className="h-9 flex-1 rounded-xl border border-white/10 bg-black/40 px-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-white/10"
+                  className="h-9 flex-1 rounded-card border border-line bg-black/60 px-3 text-sm text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-line"
                 />
               </div>
 
-              <div className="mt-2 text-[11px] text-white/45">
+              <div className="mt-2 text-[11px] text-subtle">
                 Smooth mode: updates are throttled, so picker drag won’t hang.
               </div>
             </div>

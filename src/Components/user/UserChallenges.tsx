@@ -26,6 +26,7 @@ import {
   CFformatDate,
 } from "../../utils/CustomFunctions";
 import { useGetInfoByAccounts } from "../../hooks/user/UseGetInfoByAccounts";
+import { PageHeader } from "@/Components/ui";
 import {
   ColumnDef,
   flexRender,
@@ -66,19 +67,19 @@ function SectionCard({
 }) {
   return (
     <div
-      className={["rounded-[24px] border transition-all duration-300", className].join(
+      className={["rounded-card border transition-all duration-300", className].join(
         " "
       )}
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(245,158,11,0.14)",
+          : "rgba(42, 86, 220,0.14)",
         background: isDark
           ? "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))"
           : "linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,251,235,0.82))",
         boxShadow: isDark
           ? "0 18px 50px rgba(0,0,0,0.28)"
-          : "0 14px 40px rgba(245,158,11,0.08)",
+          : "0 14px 40px rgba(42, 86, 220,0.08)",
         backdropFilter: "blur(10px)",
       }}
     >
@@ -119,35 +120,35 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.10)",
+          iconBg: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(15, 159, 110,0.10)",
           iconColor: isDark ? "rgba(52,211,153,0.95)" : "rgba(5,150,105,0.95)",
-          border: isDark ? "rgba(16,185,129,0.18)" : "rgba(16,185,129,0.16)",
+          border: isDark ? "rgba(15, 159, 110,0.18)" : "rgba(15, 159, 110,0.16)",
         }
       : tone === "danger"
       ? {
-          iconBg: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+          iconBg: isDark ? "rgba(220, 58, 58,0.12)" : "rgba(220, 58, 58,0.10)",
           iconColor: isDark ? "rgba(248,113,113,0.95)" : "rgba(220,38,38,0.95)",
-          border: isDark ? "rgba(239,68,68,0.18)" : "rgba(239,68,68,0.16)",
+          border: isDark ? "rgba(220, 58, 58,0.18)" : "rgba(220, 58, 58,0.16)",
         }
       : tone === "info"
       ? {
-          iconBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(245,158,11,0.08)",
-          iconColor: isDark ? "rgba(96,165,250,0.95)" : "rgba(245,158,11,0.95)",
-          border: isDark ? "rgba(59,130,246,0.18)" : "rgba(245,158,11,0.14)",
+          iconBg: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
+          iconColor: isDark ? "rgba(79, 125, 246,0.95)" : "rgba(42, 86, 220,0.95)",
+          border: isDark ? "rgba(79, 125, 246,0.18)" : "rgba(42, 86, 220,0.14)",
         }
       : {
           iconBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
           iconColor: isDark ? "rgba(255,255,255,0.88)" : "rgba(51,65,85,0.92)",
           border: isDark
             ? rgba(theme?.border || "255 255 255", 0.12)
-            : "rgba(245,158,11,0.14)",
+            : "rgba(42, 86, 220,0.14)",
         };
 
   return (
     <SectionCard theme={theme} isDark={isDark} className="p-4">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -163,7 +164,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.58)
-                : "rgba(100,116,139,0.96)",
+                : "rgba(123, 135, 154,0.96)",
             }}
           >
             {label}
@@ -173,7 +174,7 @@ function StatCard({
             style={{
               color: isDark
                 ? rgba(theme?.fg || "255 255 255", 0.94)
-                : "rgba(15,23,42,0.98)",
+                : "rgba(15, 24, 41,0.98)",
             }}
           >
             {prefix}
@@ -195,11 +196,11 @@ function DataRow({
 }: any) {
   return (
     <div
-      className="flex items-center justify-between rounded-2xl border px-4 py-3"
+      className="flex items-center justify-between rounded-card border px-4 py-3"
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.1)
-          : "rgba(245,158,11,0.14)",
+          : "rgba(42, 86, 220,0.14)",
         background: isDark ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.80)",
       }}
     >
@@ -208,7 +209,7 @@ function DataRow({
         style={{
           color: isDark
             ? rgba(theme?.fg || "255 255 255", 0.58)
-            : "rgba(100,116,139,0.96)",
+            : "rgba(123, 135, 154,0.96)",
         }}
       >
         {label}
@@ -220,7 +221,7 @@ function DataRow({
           valueStyle || {
             color: isDark
               ? rgba(theme?.fg || "255 255 255", 0.92)
-              : "rgba(30,41,59,0.96)",
+              : "rgba(19, 32, 52,0.96)",
           }
         }
       >
@@ -255,15 +256,15 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-10 items-center justify-center rounded-xl border px-3 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex h-10 items-center justify-center rounded-card border px-3 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
       style={{
         borderColor: isDark
           ? rgba(theme?.border || "255 255 255", 0.12)
-          : "rgba(245,158,11,0.14)",
+          : "rgba(42, 86, 220,0.14)",
         background: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.82)",
         color: isDark
           ? rgba(theme?.fg || "255 255 255", 0.92)
-          : "rgba(30,41,59,0.96)",
+          : "rgba(19, 32, 52,0.96)",
       }}
     >
       {children}
@@ -338,7 +339,7 @@ function AccountInfoPortalModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="account-info-title"
-            className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[28px] border"
+            className="relative z-10 w-full max-w-2xl overflow-hidden rounded-card border"
             onClick={(event) => event.stopPropagation()}
             initial={{ opacity: 0, y: 18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -347,13 +348,13 @@ function AccountInfoPortalModal({
             style={{
               borderColor: isDark
                 ? rgba(theme?.border || "255 255 255", 0.14)
-                : "rgba(245,158,11,0.16)",
+                : "rgba(42, 86, 220,0.16)",
               background: isDark
-                ? "linear-gradient(180deg, rgba(15,23,42,0.98), rgba(10,15,23,0.99))"
+                ? "linear-gradient(180deg, rgba(15, 24, 41,0.98), rgba(10,15,23,0.99))"
                 : "linear-gradient(180deg, rgba(255,255,255,0.99), rgba(255,251,235,0.98))",
               boxShadow: isDark
                 ? "0 30px 90px rgba(0,0,0,0.62)"
-                : "0 30px 90px rgba(245,158,11,0.16)",
+                : "0 30px 90px rgba(42, 86, 220,0.16)",
             }}
           >
             <div
@@ -364,12 +365,12 @@ function AccountInfoPortalModal({
                 <div className="min-w-0 flex-1">
                   <div className="mb-3 flex items-center gap-2">
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-2xl border"
+                      className="flex h-10 w-10 items-center justify-center rounded-card border"
                       style={{
                         borderColor: tableBorder,
                         background: isDark
-                          ? "rgba(59,130,246,0.12)"
-                          : "rgba(245,158,11,0.08)",
+                          ? "rgba(79, 125, 246,0.12)"
+                          : "rgba(42, 86, 220,0.08)",
                         color: accentColor,
                       }}
                     >
@@ -402,7 +403,7 @@ function AccountInfoPortalModal({
 
                 <div className="flex items-start gap-3">
                   <div
-                    className="hidden rounded-2xl border px-4 py-2 text-right sm:block"
+                    className="hidden rounded-card border px-4 py-2 text-right sm:block"
                     style={{
                       borderColor: tableBorder,
                       background: isDark
@@ -427,7 +428,7 @@ function AccountInfoPortalModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border transition hover:scale-105"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-card border transition hover:scale-105"
                     style={{
                       borderColor: tableBorder,
                       background: isDark
@@ -445,7 +446,7 @@ function AccountInfoPortalModal({
 
             <div className="max-h-[calc(92vh-96px)] overflow-y-auto px-5 py-5 sm:px-6">
               <div
-                className="mb-4 rounded-2xl border px-4 py-3 sm:hidden"
+                className="mb-4 rounded-card border px-4 py-3 sm:hidden"
                 style={{
                   borderColor: tableBorder,
                   background: isDark
@@ -487,7 +488,7 @@ function AccountInfoPortalModal({
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-2xl border p-4"
+                    className="rounded-card border p-4"
                     style={{
                       borderColor: tableBorder,
                       background: isDark
@@ -512,7 +513,7 @@ function AccountInfoPortalModal({
               </div>
 
               <div
-                className="mt-4 rounded-2xl border p-4"
+                className="mt-4 rounded-card border p-4"
                 style={{
                   borderColor: tableBorder,
                   background: isDark
@@ -529,11 +530,11 @@ function AccountInfoPortalModal({
 
                 <div className="space-y-3">
                   <div
-                    className="flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-card border p-3 sm:flex-row sm:items-center sm:justify-between"
                     style={{
                       borderColor: isDark
                         ? "rgba(255,255,255,0.08)"
-                        : "rgba(245,158,11,0.10)",
+                        : "rgba(42, 86, 220,0.10)",
                       background: isDark
                         ? "rgba(255,255,255,0.025)"
                         : "rgba(255,255,255,0.76)",
@@ -556,12 +557,12 @@ function AccountInfoPortalModal({
 
                     <Link
                       to="/user/master-password"
-                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border px-3 text-sm font-medium transition hover:opacity-90"
+                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-card border px-3 text-sm font-medium transition hover:opacity-90"
                       style={{
                         borderColor: tableBorder,
                         background: isDark
-                          ? "rgba(59,130,246,0.12)"
-                          : "rgba(245,158,11,0.08)",
+                          ? "rgba(79, 125, 246,0.12)"
+                          : "rgba(42, 86, 220,0.08)",
                         color: accentColor,
                       }}
                     >
@@ -570,11 +571,11 @@ function AccountInfoPortalModal({
                   </div>
 
                   <div
-                    className="flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-card border p-3 sm:flex-row sm:items-center sm:justify-between"
                     style={{
                       borderColor: isDark
                         ? "rgba(255,255,255,0.08)"
-                        : "rgba(245,158,11,0.10)",
+                        : "rgba(42, 86, 220,0.10)",
                       background: isDark
                         ? "rgba(255,255,255,0.025)"
                         : "rgba(255,255,255,0.76)",
@@ -597,12 +598,12 @@ function AccountInfoPortalModal({
 
                     <Link
                       to="/user/investor-password"
-                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border px-3 text-sm font-medium transition hover:opacity-90"
+                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-card border px-3 text-sm font-medium transition hover:opacity-90"
                       style={{
                         borderColor: tableBorder,
                         background: isDark
-                          ? "rgba(59,130,246,0.12)"
-                          : "rgba(245,158,11,0.08)",
+                          ? "rgba(79, 125, 246,0.12)"
+                          : "rgba(42, 86, 220,0.08)",
                         color: accentColor,
                       }}
                     >
@@ -613,7 +614,7 @@ function AccountInfoPortalModal({
               </div>
 
               <div
-                className="mt-4 rounded-2xl border p-4"
+                className="mt-4 rounded-card border p-4"
                 style={{
                   borderColor: tableBorder,
                   background: isDark
@@ -658,11 +659,11 @@ function AccountInfoPortalModal({
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-2xl border p-3"
+                      className="rounded-card border p-3"
                       style={{
                         borderColor: isDark
                           ? "rgba(255,255,255,0.08)"
-                          : "rgba(245,158,11,0.10)",
+                          : "rgba(42, 86, 220,0.10)",
                         background: isDark
                           ? "rgba(255,255,255,0.025)"
                           : "rgba(255,255,255,0.76)",
@@ -697,7 +698,7 @@ function AccountInfoPortalModal({
               </div>
 
               <div
-                className="mt-4 rounded-2xl border px-4 py-3 text-xs"
+                className="mt-4 rounded-card border px-4 py-3 text-xs"
                 style={{
                   borderColor: tableBorder,
                   background: isDark
@@ -717,14 +718,14 @@ function AccountInfoPortalModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="inline-flex h-10 items-center justify-center rounded-xl border px-5 text-sm font-medium transition hover:opacity-90"
+                  className="inline-flex h-10 items-center justify-center rounded-card border px-5 text-sm font-medium transition hover:opacity-90"
                   style={{
                     background: isDark
                       ? "rgba(255,255,255,0.04)"
                       : "rgba(255,255,255,0.90)",
                     borderColor: isDark
                       ? rgba(theme?.border || "255 255 255", 0.12)
-                      : "rgba(245,158,11,0.14)",
+                      : "rgba(42, 86, 220,0.14)",
                     color: titleColor,
                   }}
                 >
@@ -771,23 +772,23 @@ const UserChallenges = () => {
 
   const titleColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.96)
-    : "rgba(15,23,42,0.98)";
+    : "rgba(15, 24, 41,0.98)";
 
   const mutedTextColor = isDark
     ? rgba(theme?.fg || "255 255 255", 0.62)
-    : "rgba(100,116,139,0.96)";
+    : "rgba(123, 135, 154,0.96)";
 
   const accentColor = isDark
-    ? "rgba(96,165,250,0.95)"
-    : "rgba(245,158,11,0.95)";
+    ? "rgba(79, 125, 246,0.95)"
+    : "rgba(42, 86, 220,0.95)";
 
   const tableBorder = isDark
     ? rgba(theme?.border || "255 255 255", 0.1)
-    : "rgba(245,158,11,0.10)";
+    : "rgba(42, 86, 220,0.10)";
 
   const heroBg = isDark
-    ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-    : "linear-gradient(135deg, #fb923c, #f59e0b)";
+    ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+    : "linear-gradient(135deg, #4f7df6, #2a56dc)";
 
   const mergedAccounts = useMemo(() => {
     return (loggedUser?.accounts || [])
@@ -875,11 +876,11 @@ const UserChallenges = () => {
             className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
             style={{
               borderColor: isDark
-                ? "rgba(16,185,129,0.18)"
-                : "rgba(16,185,129,0.16)",
+                ? "rgba(15, 159, 110,0.18)"
+                : "rgba(15, 159, 110,0.16)",
               background: isDark
-                ? "rgba(16,185,129,0.10)"
-                : "rgba(16,185,129,0.08)",
+                ? "rgba(15, 159, 110,0.10)"
+                : "rgba(15, 159, 110,0.08)",
               color: isDark
                 ? "rgba(52,211,153,0.95)"
                 : "rgba(5,150,105,0.95)",
@@ -913,13 +914,13 @@ const UserChallenges = () => {
             className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
             style={{
               borderColor: isDark
-                ? "rgba(59,130,246,0.18)"
-                : "rgba(245,158,11,0.14)",
+                ? "rgba(79, 125, 246,0.18)"
+                : "rgba(42, 86, 220,0.14)",
               background: isDark
-                ? "rgba(59,130,246,0.10)"
+                ? "rgba(79, 125, 246,0.10)"
                 : "rgba(255,251,235,0.70)",
               color: isDark
-                ? "rgba(96,165,250,0.95)"
+                ? "rgba(79, 125, 246,0.95)"
                 : "rgba(180,83,9,0.95)",
             }}
           >
@@ -1030,11 +1031,11 @@ const UserChallenges = () => {
           <button
             type="button"
             onClick={() => handleMoreInfo(row.original)}
-            className="inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-all duration-300"
+            className="inline-flex h-10 items-center gap-2 rounded-card border px-3 text-sm font-medium transition-all duration-300"
             style={{
               borderColor: isDark
                 ? rgba(theme?.border || "255 255 255", 0.12)
-                : "rgba(245,158,11,0.12)",
+                : "rgba(42, 86, 220,0.12)",
               background: isDark
                 ? "rgba(255,255,255,0.03)"
                 : "rgba(255,255,255,0.82)",
@@ -1074,46 +1075,13 @@ const UserChallenges = () => {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="w-full"
     >
+      <PageHeader
+        breadcrumb="Accounts"
+        title="My accounts"
+        description="Live balance, equity and profit across your MT5 accounts."
+      />
+
       <SectionCard theme={theme} isDark={isDark} className="overflow-hidden">
-        <div
-          className="relative overflow-hidden px-5 py-6 sm:px-6"
-          style={{
-            background: heroBg,
-          }}
-        >
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -right-12 top-0 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
-            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-          </div>
-
-          <div className="relative z-10 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-white" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
-                  mt5 · accounts · live
-                </span>
-              </div>
-
-              <h1
-                className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
-                style={{ fontFamily: "'Poppins', sans-serif" }}
-              >
-                MT5 Accounts
-              </h1>
-
-              <p className="mt-2 max-w-2xl text-sm text-white/80 sm:text-[15px]">
-                Premium desktop overview with searchable tabular view, real-time
-                balances, equity, and profit tracking for all active trading accounts.
-              </p>
-            </div>
-
-            <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white backdrop-blur-sm">
-              <MonitorSmartphone className="h-4 w-4" />
-              Desktop Table + Mobile Cards
-            </div>
-          </div>
-        </div>
 
         <div className="p-4 sm:p-5 md:p-6">
           <SectionCard theme={theme} isDark={isDark} className="mb-6 overflow-hidden">
@@ -1129,7 +1097,7 @@ const UserChallenges = () => {
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                  className="flex h-11 w-11 items-center justify-center rounded-card border"
                   style={{
                     borderColor: tableBorder,
                     background: isDark
@@ -1157,7 +1125,7 @@ const UserChallenges = () => {
               </div>
 
               <div
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium"
+                className="inline-flex items-center gap-2 rounded-card border px-3 py-2 text-sm font-medium"
                 style={{
                   borderColor: tableBorder,
                   background: isDark
@@ -1268,7 +1236,7 @@ const UserChallenges = () => {
                       table.setPageIndex(0);
                     }}
                     placeholder="Search by account no, type, platform, leverage..."
-                    className="h-11 w-full rounded-2xl border pl-10 pr-4 text-sm outline-none transition-all"
+                    className="h-11 w-full rounded-card border pl-10 pr-4 text-sm outline-none transition-all"
                     style={{
                       borderColor: tableBorder,
                       background: isDark
@@ -1326,7 +1294,7 @@ const UserChallenges = () => {
                                 style={{
                                   borderColor: isDark
                                     ? "rgba(255,255,255,0.06)"
-                                    : "rgba(245,158,11,0.07)",
+                                    : "rgba(42, 86, 220,0.07)",
                                   color: titleColor,
                                   background: isDark
                                     ? "rgba(255,255,255,0.015)"
@@ -1448,11 +1416,11 @@ const UserChallenges = () => {
                             <button
                               type="button"
                               onClick={() => handleMoreInfo(value)}
-                              className="grid h-10 w-10 place-items-center rounded-xl border transition-all duration-300"
+                              className="grid h-10 w-10 place-items-center rounded-card border transition-all duration-300"
                               style={{
                                 borderColor: isDark
                                   ? rgba(theme?.border || "255 255 255", 0.12)
-                                  : "rgba(245,158,11,0.12)",
+                                  : "rgba(42, 86, 220,0.12)",
                                 background: isDark
                                   ? "rgba(255,255,255,0.03)"
                                   : "rgba(255,255,255,0.80)",
@@ -1469,11 +1437,11 @@ const UserChallenges = () => {
                               className="rounded-full border px-3 py-1 text-[11px] font-semibold"
                               style={{
                                 borderColor: isDark
-                                  ? "rgba(16,185,129,0.18)"
-                                  : "rgba(16,185,129,0.16)",
+                                  ? "rgba(15, 159, 110,0.18)"
+                                  : "rgba(15, 159, 110,0.16)",
                                 background: isDark
-                                  ? "rgba(16,185,129,0.10)"
-                                  : "rgba(16,185,129,0.08)",
+                                  ? "rgba(15, 159, 110,0.10)"
+                                  : "rgba(15, 159, 110,0.08)",
                                 color: isDark
                                   ? "rgba(52,211,153,0.95)"
                                   : "rgba(5,150,105,0.95)",
@@ -1486,13 +1454,13 @@ const UserChallenges = () => {
                               className="rounded-full border px-3 py-1 text-[11px] font-semibold"
                               style={{
                                 borderColor: isDark
-                                  ? "rgba(59,130,246,0.18)"
-                                  : "rgba(245,158,11,0.14)",
+                                  ? "rgba(79, 125, 246,0.18)"
+                                  : "rgba(42, 86, 220,0.14)",
                                 background: isDark
-                                  ? "rgba(59,130,246,0.10)"
+                                  ? "rgba(79, 125, 246,0.10)"
                                   : "rgba(255,251,235,0.70)",
                                 color: isDark
-                                  ? "rgba(96,165,250,0.95)"
+                                  ? "rgba(79, 125, 246,0.95)"
                                   : "rgba(180,83,9,0.95)",
                               }}
                             >
@@ -1505,7 +1473,7 @@ const UserChallenges = () => {
                                 style={{
                                   borderColor: isDark
                                     ? rgba(theme?.border || "255 255 255", 0.12)
-                                    : "rgba(245,158,11,0.12)",
+                                    : "rgba(42, 86, 220,0.12)",
                                   background: isDark
                                     ? "rgba(255,255,255,0.04)"
                                     : "rgba(255,255,255,0.80)",
@@ -1568,7 +1536,7 @@ const UserChallenges = () => {
                             style={{
                               borderColor: isDark
                                 ? rgba(theme?.border || "255 255 255", 0.08)
-                                : "rgba(245,158,11,0.07)",
+                                : "rgba(42, 86, 220,0.07)",
                               color: mutedTextColor,
                             }}
                           >

@@ -21,7 +21,7 @@ export default function DynamicLoder() {
     <div className="flex justify-center items-center w-full">
       <div
         className="animate-spin rounded-full h-8 w-8 border-b-2"
-        style={{ borderBottomColor: rgba(theme?.accent || "59 130 246", 0.95) }}
+        style={{ borderBottomColor: rgba(theme?.accent || "79 125 246", 0.95) }}
       />
     </div>
   );

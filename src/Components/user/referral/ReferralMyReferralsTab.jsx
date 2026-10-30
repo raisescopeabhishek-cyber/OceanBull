@@ -111,10 +111,7 @@ const ReferralMyReferralsTab = () => {
 
           <div
             className={cx(
-              "rounded-2xl border px-4 py-2 text-sm font-semibold",
-              isDark
-                ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
-                : "border-cyan-200 bg-cyan-50 text-cyan-700"
+              "rounded-card border px-4 py-2 text-sm font-semibold","border-line bg-primary-soft text-primary"
             )}
           >
             {referredUsers.length} users
@@ -134,10 +131,7 @@ const ReferralMyReferralsTab = () => {
                 <div className="flex items-start gap-3">
                   <div
                     className={cx(
-                      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-bold",
-                      isDark
-                        ? "bg-cyan-500/10 text-cyan-200"
-                        : "bg-sky-100 text-sky-700"
+                      "flex h-12 w-12 shrink-0 items-center justify-center rounded-card text-sm font-bold","bg-primary-soft text-primary"
                     )}
                   >
                     {initialsOf(user)}
@@ -154,10 +148,7 @@ const ReferralMyReferralsTab = () => {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span
                         className={cx(
-                          "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
-                          isDark
-                            ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]","border-success bg-success-soft text-success"
                         )}
                       >
                         Active
@@ -166,10 +157,7 @@ const ReferralMyReferralsTab = () => {
                       {user?.createdAt ? (
                         <span
                           className={cx(
-                            "inline-flex rounded-full border px-3 py-1 text-[11px]",
-                            isDark
-                              ? "border-white/10 bg-white/[0.04] text-white/60"
-                              : "border-sky-100 bg-white text-slate-500"
+                            "inline-flex rounded-full border px-3 py-1 text-[11px]","border-line bg-surface-2 text-subtle"
                           )}
                         >
                           {formatDateTime(user.createdAt)}

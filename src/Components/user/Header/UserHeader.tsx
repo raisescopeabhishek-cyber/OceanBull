@@ -30,7 +30,7 @@ import toast from "react-hot-toast";
 import { backendApi } from "../../../utils/apiClients";
 import { setNotification, setLoggedUser } from "../../../redux/user/userSlice";
 import { mt5AccountsStore } from "../../../services/mt5Accounts";
-import { toggleUserTheme } from "../../../redux/userThemeSlice";
+import { useTheme } from "@/theme/ThemeProvider";
 import { FloatingParticles } from "../../../utils/FloatingParticles";
 
 const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -80,7 +80,7 @@ const menuItemHoverStyle = (colors) => ({
 const DropdownIcon = ({ children, colors }) => {
   return (
     <span
-      className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border"
+      className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-card border"
       style={{
         borderColor: rgba(...colors.border.split(",").map(Number), 0.12),
         background: rgba(...colors.accent.split(",").map(Number), 0.08),
@@ -158,7 +158,7 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-2xl border backdrop-blur-xl"
+            className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-card border backdrop-blur-xl"
             style={{
               background: `linear-gradient(180deg, ${rgba(
                 ...colors.bg.split(",").map(Number),
@@ -358,7 +358,7 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-10 z-50 w-64 overflow-hidden rounded-2xl border backdrop-blur-xl"
+            className="absolute right-0 top-10 z-50 w-64 overflow-hidden rounded-card border backdrop-blur-xl"
             style={{
               background: `linear-gradient(180deg, ${rgba(
                 ...colors.bg.split(",").map(Number),
@@ -401,7 +401,7 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
                   }}
                   onMouseEnter={() => setHoveredItem(item.key)}
                   onMouseLeave={() => setHoveredItem(null)}
-                  className="flex w-full items-center rounded-xl px-2 py-2 text-sm font-semibold transition-all"
+                  className="flex w-full items-center rounded-card px-2 py-2 text-sm font-semibold transition-all"
                   style={{
                     ...menuItemStyle(colors),
                     ...(hoveredItem === item.key
@@ -425,7 +425,7 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
                 onClick={logoutHandler}
                 onMouseEnter={() => setHoveredItem("logout")}
                 onMouseLeave={() => setHoveredItem(null)}
-                className="flex w-full items-center rounded-xl px-2 py-2 text-sm font-semibold transition-all"
+                className="flex w-full items-center rounded-card px-2 py-2 text-sm font-semibold transition-all"
                 style={{
                   color: rgba(...colors.danger.split(",").map(Number), 1),
                   ...(hoveredItem === "logout"
@@ -439,7 +439,7 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
                 }}
               >
                 <span
-                  className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border"
+                  className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-card border"
                   style={{
                     borderColor: rgba(
                       ...colors.danger.split(",").map(Number),
@@ -471,6 +471,7 @@ const UserHeader = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
 
   const dispatch = useDispatch();
+  const { toggle: toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const isDark = mode === "dark";
@@ -479,7 +480,7 @@ const UserHeader = () => {
   const baseHeight = siteConfig?.logoSize || 4;
 
   const toggleThemeHandler = () => {
-    dispatch(toggleUserTheme());
+    toggleTheme();
   };
 
   useEffect(() => {

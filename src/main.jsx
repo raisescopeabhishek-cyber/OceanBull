@@ -9,6 +9,9 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import UserPanelConfig from "./utils/UserPanelConfig";
 import ThemePanel from "./utils/ThemePanel";
+import ThemeProvider from "./theme/ThemeProvider";
+import ThemeSync from "./theme/ThemeSync";
+import Interactions from "./theme/Interactions";
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -16,11 +19,15 @@ const root = createRoot(rootElement);
 root.render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+      <ThemeProvider>
+        <ThemeSync />
+        <Interactions />
+        <BrowserRouter future={{ v7_relativeSplatPath: true }}>
           <UserPanelConfig />
-      <ThemePanel />
+          <ThemePanel />
         <App />
-      </BrowserRouter>
+        </BrowserRouter>
+      </ThemeProvider>
     </PersistGate>
   </Provider>
 );

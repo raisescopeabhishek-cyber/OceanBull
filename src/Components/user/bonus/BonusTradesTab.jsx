@@ -108,93 +108,55 @@ const formatPrice = (value) => {
 };
 
 const getTheme = (isDark) => ({
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/45" : "text-slate-500",
-  softText: isDark ? "text-white/65" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  wrapper: isDark ? "bg-transparent" : "bg-orange-50/10",
+  wrapper:"bg-transparent",
 
-  filterCard: isDark
-    ? "border-white/15 bg-white/[0.03] shadow-[0_16px_42px_rgba(0,0,0,0.24)]"
-    : "border-orange-200/90 bg-white/85 shadow-[0_12px_30px_rgba(251,146,60,0.08)]",
+  filterCard:"border-line bg-surface-2",
 
-  filterHeader: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/80 bg-gradient-to-r from-orange-50/45 via-white/75 to-white/50",
+  filterHeader:"border-line bg-surface-2",
 
-  filterWrap: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/75 bg-orange-50/25",
+  filterWrap:"border-line bg-surface-2",
 
-  filterIcon: isDark
-    ? "border-blue-400/30 bg-blue-500/10 text-blue-300"
-    : "border-orange-300/80 bg-orange-50/70 text-orange-500 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  filterIcon:"border-line bg-primary-soft text-primary",
 
-  filterBadge: isDark
-    ? "border-white/15 bg-white/[0.04] text-white/65"
-    : "border-orange-200/85 bg-orange-50/60 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  filterBadge:"border-line bg-surface-2 text-muted",
 
-  tableWrap: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/80 bg-white/85 shadow-[0_10px_26px_rgba(251,146,60,0.08)]",
+  tableWrap:"border-line bg-surface-2",
 
-  tableHead: isDark
-    ? "border-white/15 bg-white/[0.035] text-white/45"
-    : "border-orange-200/80 bg-orange-50/55 text-slate-500",
+  tableHead:"border-line bg-surface-2 text-subtle",
 
-  tableRow: isDark
-    ? "border-white/12 hover:bg-white/[0.035]"
-    : "border-orange-200/65 hover:bg-orange-50/35",
+  tableRow:"border-line hover:bg-surface-2",
 
-  iconBox: isDark
-    ? "border-blue-400/30 bg-blue-500/10 text-blue-300"
-    : "border-orange-300/80 bg-orange-50/70 text-orange-500 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  iconBox:"border-line bg-primary-soft text-primary",
 
-  chip: isDark
-    ? "border-white/15 bg-white/[0.04] text-white/70"
-    : "border-orange-200/85 bg-orange-50/55 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  chip:"border-line bg-surface-2 text-muted",
 
-  accountChip: isDark
-    ? "border-blue-400/30 bg-blue-500/10 text-blue-300"
-    : "border-orange-300/85 bg-orange-50/70 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  accountChip:"border-line bg-primary-soft text-primary",
 
-  symbolChip: isDark
-    ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
-    : "border-orange-200/90 bg-orange-50/70 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  symbolChip:"border-line bg-primary-soft text-primary",
 
-  openPriceChip: isDark
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200"
-    : "border-sky-100 bg-sky-50/85 text-sky-700 shadow-[0_0_0_3px_rgba(14,165,233,0.04)]",
+  openPriceChip:"border-line bg-primary-soft text-primary",
 
-  closePriceChip: isDark
-    ? "border-orange-400/25 bg-orange-500/10 text-orange-200"
-    : "border-orange-200/90 bg-orange-50/75 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  closePriceChip:"border-line bg-primary-soft text-primary",
 
-  openTimeChip: isDark
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200"
-    : "border-sky-100 bg-sky-50/85 text-sky-700 shadow-[0_0_0_3px_rgba(14,165,233,0.04)]",
+  openTimeChip:"border-line bg-primary-soft text-primary",
 
-  closeTimeChip: isDark
-    ? "border-orange-400/25 bg-orange-500/10 text-orange-200"
-    : "border-orange-200/90 bg-orange-50/75 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  closeTimeChip:"border-line bg-primary-soft text-primary",
 
-  profitPositive: isDark
-    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200/90 bg-emerald-50/85 text-emerald-700",
+  profitPositive:"border-success bg-success-soft text-success",
 
-  profitNegative: isDark
-    ? "border-red-400/25 bg-red-500/10 text-red-300"
-    : "border-red-200/90 bg-red-50/85 text-red-700",
+  profitNegative:"border-danger bg-danger-soft text-danger",
 
-  statCard: isDark
-    ? "border-white/15 bg-white/[0.035]"
-    : "border-orange-200/75 bg-white/85 shadow-[0_10px_24px_rgba(251,146,60,0.07)]",
+  statCard:"border-line bg-surface-2",
 });
 
 const SoftIconBox = ({ theme, children }) => (
   <div
     className={cx(
-      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[1.5px]",
+      "flex h-10 w-10 shrink-0 items-center justify-center rounded-card border-[1.5px]",
       theme.iconBox
     )}
   >
@@ -203,7 +165,7 @@ const SoftIconBox = ({ theme, children }) => (
 );
 
 const SummaryCard = ({ theme, icon, label, value }) => (
-  <div className={cx("rounded-2xl border-[1.5px] px-4 py-3", theme.statCard)}>
+  <div className={cx("rounded-card border-[1.5px] px-4 py-3", theme.statCard)}>
     <div className="flex items-center gap-3">
       <SoftIconBox theme={theme}>{icon}</SoftIconBox>
 
@@ -265,14 +227,14 @@ const PriceCell = ({ theme, type, value }) => {
   return (
     <div
       className={cx(
-        "inline-flex min-w-[125px] items-center gap-2 rounded-2xl border-[1.5px] px-3 py-2",
+        "inline-flex min-w-[125px] items-center gap-2 rounded-card border-[1.5px] px-3 py-2",
         isOpen ? theme.openPriceChip : theme.closePriceChip
       )}
     >
       <div
         className={cx(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-white/30",
-          isOpen ? "text-sky-600" : "text-orange-600"
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-card border border-current/20 bg-surface-3",
+          isOpen ? "text-primary" : "text-primary"
         )}
       >
         {isOpen ? (
@@ -429,7 +391,7 @@ const BonusTradesTab = () => {
         {/* Collapsible Filter */}
         <div
           className={cx(
-            "overflow-hidden rounded-[22px] border-[1.5px]",
+            "overflow-hidden rounded-card border-[1.5px]",
             theme.filterCard
           )}
         >
@@ -445,7 +407,7 @@ const BonusTradesTab = () => {
             <div className="flex items-start gap-3">
               <div
                 className={cx(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-[1.5px]",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border-[1.5px]",
                   theme.filterIcon
                 )}
               >
@@ -476,7 +438,7 @@ const BonusTradesTab = () => {
 
               <span
                 className={cx(
-                  "inline-flex h-10 w-10 items-center justify-center rounded-xl border-[1.5px] transition-all duration-300",
+                  "inline-flex h-10 w-10 items-center justify-center rounded-card border-[1.5px] transition-all duration-300",
                   theme.filterBadge,
                   isFilterOpen && "rotate-180"
                 )}
@@ -498,7 +460,7 @@ const BonusTradesTab = () => {
               <div className="p-4">
                 <div
                   className={cx(
-                    "rounded-[22px] border-[1.5px] p-4",
+                    "rounded-card border-[1.5px] p-4",
                     theme.filterWrap
                   )}
                 >
@@ -526,12 +488,12 @@ const BonusTradesTab = () => {
         ) : (
           <div
             className={cx(
-              "overflow-hidden rounded-[22px] border-[1.5px]",
+              "overflow-hidden rounded-card border-[1.5px]",
               theme.tableWrap
             )}
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1650px] text-left text-sm">
+              <table className="w-full min-w-[1650px] text-left text-sm table-stack">
                 <thead>
                   <tr
                     className={cx(
@@ -575,7 +537,7 @@ const BonusTradesTab = () => {
                           theme.tableRow
                         )}
                       >
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Open Time" className="px-4 py-4 align-top">
                           <TimeCell
                             theme={theme}
                             date={openDate}
@@ -583,7 +545,7 @@ const BonusTradesTab = () => {
                           />
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Close Time" className="px-4 py-4 align-top">
                           <TimeCell
                             theme={theme}
                             date={closeDate}
@@ -591,7 +553,7 @@ const BonusTradesTab = () => {
                           />
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="MT5 Account" className="px-4 py-4 align-top">
                           <span
                             className={cx(
                               "inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -603,7 +565,7 @@ const BonusTradesTab = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Position ID" className="px-4 py-4 align-top">
                           <span
                             className={cx(
                               "inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -615,7 +577,7 @@ const BonusTradesTab = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Symbol" className="px-4 py-4 align-top">
                           <span
                             className={cx(
                               "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -626,7 +588,7 @@ const BonusTradesTab = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Lot" className="px-4 py-4 align-top">
                           <span
                             className={cx(
                               "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -637,7 +599,7 @@ const BonusTradesTab = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Open Price" className="px-4 py-4 align-top">
                           <PriceCell
                             theme={theme}
                             type="open"
@@ -645,7 +607,7 @@ const BonusTradesTab = () => {
                           />
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Close Price" className="px-4 py-4 align-top">
                           <PriceCell
                             theme={theme}
                             type="close"
@@ -653,7 +615,7 @@ const BonusTradesTab = () => {
                           />
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Profit" className="px-4 py-4 align-top">
                           <span
                             className={cx(
                               "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-bold",
@@ -666,14 +628,14 @@ const BonusTradesTab = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Eligible" className="px-4 py-4 align-top">
                           <BonusStatusBadge
                             isDark={isDark}
                             status={item.isBonusEligible ? "eligible" : "not eligible"}
                           />
                         </td>
 
-                        <td className="px-4 py-4 align-top">
+                        <td data-label="Processed" className="px-4 py-4 align-top">
                           <BonusStatusBadge
                             isDark={isDark}
                             status={item.bonusProcessed ? "processed" : "pending"}

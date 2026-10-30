@@ -162,10 +162,7 @@ const StatCard = ({ isDark, icon, label, value }) => {
   return (
     <div
       className={cx(
-        "rounded-2xl border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.025]"
-          : "border-emerald-100 bg-emerald-50/60"
+        "rounded-card border p-4","border-line bg-surface-2"
       )}
     >
       <div className="flex items-center gap-2 text-sm font-bold">
@@ -192,19 +189,13 @@ const CollapseHeader = ({
       type="button"
       onClick={onToggle}
       className={cx(
-        "flex w-full items-center justify-between gap-4 rounded-[22px] border p-4 text-left transition-all",
-        isDark
-          ? "border-white/10 bg-white/[0.035] text-white hover:bg-white/[0.06]"
-          : "border-emerald-100 bg-white text-slate-950 shadow-[0_10px_24px_rgba(16,185,129,0.06)] hover:bg-emerald-50/40"
+        "flex w-full items-center justify-between gap-4 rounded-card border p-4 text-left transition-all","border-line bg-surface-2 text-text hover:bg-surface-2"
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cx(
-            "flex h-11 w-11 items-center justify-center rounded-2xl border",
-            isDark
-              ? "border-white/10 bg-white/[0.04]"
-              : "border-emerald-100 bg-emerald-50 text-emerald-700"
+            "flex h-11 w-11 items-center justify-center rounded-card border","border-line bg-surface-2"
           )}
         >
           {icon}
@@ -215,8 +206,7 @@ const CollapseHeader = ({
           {subtitle ? (
             <p
               className={cx(
-                "mt-1 text-xs",
-                isDark ? "text-white/45" : "text-slate-500"
+                "mt-1 text-xs","text-subtle"
               )}
             >
               {subtitle}
@@ -237,20 +227,16 @@ const FilterInput = ({ isDark, value, onChange }) => {
   return (
     <div
       className={cx(
-        "flex items-center gap-2 rounded-2xl border px-4 py-3",
-        isDark
-          ? "border-white/10 bg-white/[0.04] text-white"
-          : "border-emerald-100 bg-white text-slate-900"
+        "flex items-center gap-2 rounded-card border px-4 py-3","border-line bg-surface-2 text-text"
       )}
     >
-      <Search className="h-4 w-4 text-emerald-600" />
+      <Search className="h-4 w-4 text-success" />
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search copier, master, or name..."
         className={cx(
-          "w-full bg-transparent text-sm font-semibold outline-none placeholder:text-slate-400",
-          isDark ? "text-white" : "text-slate-900"
+          "w-full bg-transparent text-sm font-semibold outline-none placeholder:text-subtle","text-text"
         )}
       />
     </div>
@@ -262,8 +248,7 @@ const FilterSelect = ({ isDark, label, value, onChange, children }) => {
     <label className="space-y-2">
       <span
         className={cx(
-          "text-xs font-black uppercase tracking-[0.14em]",
-          isDark ? "text-white/45" : "text-slate-500"
+          "text-xs font-black uppercase tracking-[0.14em]","text-subtle"
         )}
       >
         {label}
@@ -273,10 +258,7 @@ const FilterSelect = ({ isDark, label, value, onChange, children }) => {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cx(
-          "w-full rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
-          isDark
-            ? "border-white/10 bg-slate-950 text-white"
-            : "border-emerald-100 bg-white text-slate-900"
+          "w-full rounded-card border px-4 py-3 text-sm font-bold outline-none","border-line bg-surface text-text"
         )}
       >
         {children}
@@ -291,12 +273,10 @@ const TradeStatusButton = ({ isDark, active, children, onClick }) => {
       type="button"
       onClick={onClick}
       className={cx(
-        "rounded-xl border px-4 py-2 text-xs font-black capitalize transition-all",
+        "rounded-card border px-4 py-2 text-xs font-black capitalize transition-all",
         active
-          ? "border-emerald-400 bg-emerald-500 text-white shadow-[0_10px_22px_rgba(16,185,129,0.22)]"
-          : isDark
-          ? "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.08]"
-          : "border-emerald-100 bg-white text-slate-600 hover:bg-emerald-50"
+          ? "border-success bg-success text-text shadow-[0_10px_22px_rgba(16,185,129,0.22)]"
+          :"border-line bg-surface-2 text-muted hover:bg-surface-2"
       )}
     >
       {children}
@@ -308,16 +288,12 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
   return (
     <div
       className={cx(
-        "flex min-h-[520px] flex-col overflow-hidden rounded-[24px] border",
-        isDark
-          ? "border-white/10 bg-slate-950/50"
-          : "border-emerald-100 bg-white shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+        "flex min-h-[520px] flex-col overflow-hidden rounded-card border","border-line bg-surface"
       )}
     >
       <div
         className={cx(
-          "flex flex-wrap items-center justify-between gap-3 border-b p-4",
-          isDark ? "border-white/10" : "border-emerald-100"
+          "flex flex-wrap items-center justify-between gap-3 border-b p-4","border-line"
         )}
       >
         <div>
@@ -328,8 +304,7 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
 
           <p
             className={cx(
-              "mt-1 text-xs",
-              isDark ? "text-white/45" : "text-slate-500"
+              "mt-1 text-xs","text-subtle"
             )}
           >
             Account {account || "-"}
@@ -338,10 +313,7 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
 
         <div
           className={cx(
-            "rounded-xl border px-3 py-2 text-xs font-black",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white/70"
-              : "border-emerald-100 bg-emerald-50 text-emerald-700"
+            "rounded-card border px-3 py-2 text-xs font-black","border-line bg-surface-2 text-muted"
           )}
         >
           {rows.length} Trades
@@ -351,7 +323,7 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
       {loading ? (
         <div className="flex flex-1 items-center justify-center p-8">
           <div className="flex items-center gap-3 text-sm font-bold">
-            <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
+            <Loader2 className="h-5 w-5 animate-spin text-success" />
             Loading trades...
           </div>
         </div>
@@ -365,14 +337,11 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
         </div>
       ) : (
         <div className="max-h-[460px] overflow-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className={isDark ? "bg-slate-900" : "bg-emerald-50/80"}>
+          <table className="w-full min-w-[760px] text-left text-sm table-stack">
+            <thead className={"bg-surface"}>
               <tr
                 className={cx(
-                  "border-b text-xs uppercase tracking-[0.14em]",
-                  isDark
-                    ? "border-white/10 text-white/45"
-                    : "border-emerald-100 text-slate-500"
+                  "border-b text-xs uppercase tracking-[0.14em]","border-line text-subtle"
                 )}
               >
                 <th className="whitespace-nowrap px-4 py-3">Ticket</th>
@@ -394,50 +363,47 @@ const MiniTradeTable = ({ isDark, title, account, rows, loading, icon }) => {
                   <tr
                     key={`${getTradeTicket(row)}-${index}`}
                     className={cx(
-                      "border-b transition-colors",
-                      isDark
-                        ? "border-white/10 hover:bg-white/[0.035]"
-                        : "border-emerald-100 hover:bg-emerald-50/40"
+                      "border-b transition-colors","border-line hover:bg-surface-2"
                     )}
                   >
-                    <td className="whitespace-nowrap px-4 py-4 font-black">
+                    <td data-label="Ticket" className="whitespace-nowrap px-4 py-4 font-black">
                       {getTradeTicket(row)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Symbol" className="whitespace-nowrap px-4 py-4">
                       {getTradeSymbol(row)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Type" className="whitespace-nowrap px-4 py-4">
                       {getTradeType(row)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Volume" className="whitespace-nowrap px-4 py-4">
                       {getTradeVolume(row)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Open" className="whitespace-nowrap px-4 py-4">
                       {getTradeOpenPrice(row)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Close" className="whitespace-nowrap px-4 py-4">
                       {getTradeClosePrice(row)}
                     </td>
 
-                    <td
+                    <td data-label="Profit"
                       className={cx(
                         "whitespace-nowrap px-4 py-4 font-black",
                         profit > 0
-                          ? "text-emerald-600"
+                          ? "text-success"
                           : profit < 0
-                          ? "text-red-500"
+                          ? "text-danger"
                           : ""
                       )}
                     >
                       {formatMoney(profit)}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Time" className="whitespace-nowrap px-4 py-4">
                       {formatDateTime(getTradeTime(row))}
                     </td>
                   </tr>
@@ -552,22 +518,16 @@ const TradesPopup = ({
         aria-label="Trade comparison"
         onMouseDown={(event) => event.stopPropagation()}
         className={cx(
-          "max-h-[92vh] w-full max-w-[1500px] overflow-hidden rounded-[30px] border shadow-[0_30px_90px_rgba(0,0,0,0.35)]",
-          isDark
-            ? "border-white/10 bg-slate-950 text-white"
-            : "border-emerald-100 bg-white text-slate-950"
+          "max-h-[92vh] w-full max-w-[1500px] overflow-hidden rounded-[30px] border shadow-[0_30px_90px_rgba(0,0,0,0.35)]","border-line bg-surface text-text"
         )}
       >
         <div
           className={cx(
-            "flex flex-wrap items-start justify-between gap-4 border-b p-5",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-emerald-100 bg-emerald-50/60"
+            "flex flex-wrap items-start justify-between gap-4 border-b p-5","border-line bg-surface-2"
           )}
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-600">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-success">
               Trade Comparison
             </p>
 
@@ -577,8 +537,7 @@ const TradesPopup = ({
 
             <p
               className={cx(
-                "mt-2 text-sm",
-                isDark ? "text-white/55" : "text-slate-500"
+                "mt-2 text-sm","text-subtle"
               )}
             >
               Master: {getMasterValue(copier, "name", "-")} · Commission:{" "}
@@ -605,10 +564,7 @@ const TradesPopup = ({
               onClick={loadTrades}
               disabled={loading}
               className={cx(
-                "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-black disabled:opacity-60",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+                "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-black disabled:opacity-60","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               <RefreshCw
@@ -621,10 +577,7 @@ const TradesPopup = ({
               type="button"
               onClick={onClose}
               className={cx(
-                "inline-flex h-10 w-10 items-center justify-center rounded-xl border",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                  : "border-emerald-100 bg-white text-slate-700 hover:bg-emerald-50"
+                "inline-flex h-10 w-10 items-center justify-center rounded-card border","border-line bg-surface-2 text-text hover:bg-surface-2"
               )}
             >
               <X className="h-5 w-5" />
@@ -640,7 +593,7 @@ const TradesPopup = ({
               account={copierAccount}
               rows={copierTrades}
               loading={loading}
-              icon={<Link2 className="h-4 w-4 text-emerald-600" />}
+              icon={<Link2 className="h-4 w-4 text-success" />}
             />
 
             <MiniTradeTable
@@ -649,7 +602,7 @@ const TradesPopup = ({
               account={masterAccount}
               rows={masterTrades}
               loading={loading}
-              icon={<RadioTower className="h-4 w-4 text-emerald-600" />}
+              icon={<RadioTower className="h-4 w-4 text-success" />}
             />
           </div>
         </div>
@@ -873,8 +826,7 @@ const UserMyCopierAccounts = () => {
     return (
       <div
         className={cx(
-          "p-5 text-sm",
-          isDark ? "text-white/70" : "text-slate-600"
+          "p-5 text-sm","text-muted"
         )}
       >
         Loading your copier accounts...
@@ -897,10 +849,7 @@ const UserMyCopierAccounts = () => {
       <div className="space-y-5">
         <div
           className={cx(
-            "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-4",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+            "grid grid-cols-1 gap-3 rounded-card border p-4 md:grid-cols-4","border-line bg-surface-2"
           )}
         >
           <StatCard
@@ -935,8 +884,7 @@ const UserMyCopierAccounts = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p
             className={cx(
-              "text-sm",
-              isDark ? "text-white/55" : "text-slate-500"
+              "text-sm","text-subtle"
             )}
           >
             Checked CRM Accounts:{" "}
@@ -949,10 +897,7 @@ const UserMyCopierAccounts = () => {
             onClick={loadCopierAccounts}
             disabled={loading}
             className={cx(
-              "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                : "border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+              "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60","border-line bg-surface-2 text-text hover:bg-surface-2"
             )}
           >
             <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -970,7 +915,7 @@ const UserMyCopierAccounts = () => {
             onToggle={() => setFiltersOpen((prev) => !prev)}
             rightContent={
               activeFilterCount ? (
-                <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white">
+                <span className="rounded-full bg-success px-3 py-1 text-xs font-black text-text">
                   {activeFilterCount} Active
                 </span>
               ) : null
@@ -980,10 +925,7 @@ const UserMyCopierAccounts = () => {
           {filtersOpen && (
             <div
               className={cx(
-                "rounded-[24px] border p-4",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+                "rounded-card border p-4","border-line bg-surface-2"
               )}
             >
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.3fr_1fr_1fr_1fr_auto]">
@@ -1047,10 +989,7 @@ const UserMyCopierAccounts = () => {
                     type="button"
                     onClick={resetFilters}
                     className={cx(
-                      "inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                        : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+                      "inline-flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-black","border-line bg-surface-2 text-text hover:bg-surface-2"
                     )}
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -1073,10 +1012,7 @@ const UserMyCopierAccounts = () => {
             rightContent={
               <span
                 className={cx(
-                  "rounded-full px-3 py-1 text-xs font-black",
-                  isDark
-                    ? "bg-white/[0.06] text-white/70"
-                    : "bg-emerald-50 text-emerald-700"
+                  "rounded-full px-3 py-1 text-xs font-black","bg-surface-2 text-muted"
                 )}
               >
                 {filteredCopiers.length} Rows
@@ -1087,10 +1023,7 @@ const UserMyCopierAccounts = () => {
           {tableOpen && (
             <div
               className={cx(
-                "overflow-hidden rounded-[24px] border",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+                "overflow-hidden rounded-card border","border-line bg-surface-2"
               )}
             >
               {!filteredCopiers.length ? (
@@ -1101,14 +1034,11 @@ const UserMyCopierAccounts = () => {
                 />
               ) : (
                 <div className="max-w-full overflow-x-auto">
-                  <table className="w-full min-w-[1160px] text-left text-sm">
+                  <table className="w-full min-w-[1160px] text-left text-sm table-stack">
                     <thead>
                       <tr
                         className={cx(
-                          "border-b text-xs uppercase tracking-[0.16em]",
-                          isDark
-                            ? "border-white/10 bg-white/[0.035] text-white/45"
-                            : "border-emerald-100 bg-emerald-50/80 text-slate-500"
+                          "border-b text-xs uppercase tracking-[0.16em]","border-line bg-surface-2 text-subtle"
                         )}
                       >
                         <th className="whitespace-nowrap px-4 py-3">
@@ -1143,64 +1073,58 @@ const UserMyCopierAccounts = () => {
                           <tr
                             key={`${copierAccount}-${masterAccount}-${index}`}
                             className={cx(
-                              "border-t transition-colors",
-                              isDark
-                                ? "border-white/10 hover:bg-white/[0.035]"
-                                : "border-emerald-100 hover:bg-emerald-50/40"
+                              "border-t transition-colors","border-line hover:bg-surface-2"
                             )}
                           >
-                            <td className="whitespace-nowrap px-4 py-4 font-black">
+                            <td data-label="Copier Account" className="whitespace-nowrap px-4 py-4 font-black">
                               {copierAccount || "-"}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4 font-bold">
+                            <td data-label="Master Account" className="whitespace-nowrap px-4 py-4 font-bold">
                               {masterAccount || "-"}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Master Name" className="whitespace-nowrap px-4 py-4">
                               {getMasterValue(copier, "name", "-")}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Commission" className="whitespace-nowrap px-4 py-4">
                               {getMasterValue(copier, "commission", 0)}%
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4 font-bold">
+                            <td data-label="Balance" className="whitespace-nowrap px-4 py-4 font-bold">
                               {formatMoney(getCopierValue(copier, "balance", 0))}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4 font-bold">
+                            <td data-label="Equity" className="whitespace-nowrap px-4 py-4 font-bold">
                               {formatMoney(getCopierValue(copier, "equity", 0))}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Today P/L" className="whitespace-nowrap px-4 py-4">
                               {formatMoney(
                                 getCopierValue(copier, "todayProfit", 0)
                               )}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Weekly P/L" className="whitespace-nowrap px-4 py-4">
                               {formatMoney(
                                 getCopierValue(copier, "weeklyProfit", 0)
                               )}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Monthly P/L" className="whitespace-nowrap px-4 py-4">
                               {formatMoney(
                                 getCopierValue(copier, "monthlyProfit", 0)
                               )}
                             </td>
 
-                            <td className="whitespace-nowrap px-4 py-4">
+                            <td data-label="Trades" className="whitespace-nowrap px-4 py-4">
                               <button
                                 type="button"
                                 onClick={() => openTradePopup(copier)}
                                 disabled={!copierAccount || !masterAccount}
                                 className={cx(
-                                  "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-black transition-all disabled:cursor-not-allowed disabled:opacity-50",
-                                  isDark
-                                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15"
-                                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  "inline-flex items-center gap-2 rounded-card border px-4 py-2 text-xs font-black transition-all disabled:cursor-not-allowed disabled:opacity-50","border-success bg-success-soft text-success hover:bg-success-soft"
                                 )}
                               >
                                 <Eye className="h-4 w-4" />
@@ -1229,10 +1153,7 @@ const UserMyCopierAccounts = () => {
             rightContent={
               <span
                 className={cx(
-                  "rounded-full px-3 py-1 text-xs font-black",
-                  isDark
-                    ? "bg-white/[0.06] text-white/70"
-                    : "bg-emerald-50 text-emerald-700"
+                  "rounded-full px-3 py-1 text-xs font-black","bg-surface-2 text-muted"
                 )}
               >
                 {filteredCopiers.length} Cards
@@ -1243,8 +1164,7 @@ const UserMyCopierAccounts = () => {
           {cardsOpen && (
             <div
               className={cx(
-                "grid grid-cols-1 gap-4 md:grid-cols-2",
-                isDark ? "text-white" : "text-slate-900"
+                "grid grid-cols-1 gap-4 md:grid-cols-2","text-text"
               )}
             >
               {!filteredCopiers.length ? (
@@ -1264,15 +1184,12 @@ const UserMyCopierAccounts = () => {
                     <div
                       key={`card-${copierAccount}-${masterAccount}-${index}`}
                       className={cx(
-                        "rounded-[24px] border p-5",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+                        "rounded-card border p-5","border-line bg-surface-2"
                       )}
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">
+                          <p className="text-xs font-bold uppercase tracking-[0.16em] text-success">
                             Copier Account
                           </p>
 
@@ -1283,10 +1200,7 @@ const UserMyCopierAccounts = () => {
 
                         <div
                           className={cx(
-                            "rounded-xl border px-3 py-2 text-xs font-bold",
-                            isDark
-                              ? "border-white/10 bg-white/[0.04] text-white/70"
-                              : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                            "rounded-card border px-3 py-2 text-xs font-bold","border-line bg-surface-2 text-muted"
                           )}
                         >
                           Copying {masterAccount || "-"}
@@ -1296,8 +1210,7 @@ const UserMyCopierAccounts = () => {
                       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Master Name
@@ -1309,8 +1222,7 @@ const UserMyCopierAccounts = () => {
 
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Commission
@@ -1322,8 +1234,7 @@ const UserMyCopierAccounts = () => {
 
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Balance
@@ -1335,8 +1246,7 @@ const UserMyCopierAccounts = () => {
 
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Equity
@@ -1348,8 +1258,7 @@ const UserMyCopierAccounts = () => {
 
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Today P/L
@@ -1363,8 +1272,7 @@ const UserMyCopierAccounts = () => {
 
                         <div>
                           <p
-                            className={
-                              isDark ? "text-white/45" : "text-slate-500"
+                            className={"text-subtle"
                             }
                           >
                             Weekly P/L
@@ -1382,10 +1290,7 @@ const UserMyCopierAccounts = () => {
                         onClick={() => openTradePopup(copier)}
                         disabled={!copierAccount || !masterAccount}
                         className={cx(
-                          "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-50",
-                          isDark
-                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-50","border-success bg-success-soft text-success hover:bg-success-soft"
                         )}
                       >
                         <Eye className="h-4 w-4" />

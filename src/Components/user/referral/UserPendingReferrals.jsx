@@ -80,7 +80,7 @@ const UserPendingReferrals = () => {
   }, []);
 
   return (
-    <div className="mx-auto sm:p-6 bg-secondary-800/20 rounded-lg shadow-lg overflow-x-auto">
+    <div className="mx-auto sm:p-6 bg-secondary-800/20 rounded-field overflow-x-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 text-3xl font-bold">
           <ArrowUpDown />
@@ -89,7 +89,7 @@ const UserPendingReferrals = () => {
         {/* Refresh Button */}
         <button
           onClick={fetchUsers}
-          className="flex items-center gap-2 px-4 py-2 text-gray-200 rounded-lg hover:text-secondary-500/80 transition-all"
+          className="flex items-center gap-2 px-4 py-2 text-muted rounded-field hover:text-secondary-500/80 transition-all"
           disabled={isLoading} // Disable button while loading
         >
           <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
@@ -102,10 +102,10 @@ const UserPendingReferrals = () => {
           <DynamicLoder></DynamicLoder>
         </div>
       ) : (
-        <table className="w-full border-collapse min-w-[640px]">
-          <thead className="rounded-md overflow-hidden">
+        <table className="w-full border-collapse min-w-[640px] table-stack">
+          <thead className="rounded-field overflow-hidden">
             <tr className="bg-secondary-500-20">
-              <th className="p-3 sm:p-4 text-left text-sm sm:text-base rounded-tl-md ">
+              <th className="p-3 sm:p-4 text-left text-sm sm:text-base rounded-tl-md">
                 Name/Email
               </th>
               <th className="p-3 sm:p-4 whitespace-nowrap text-center text-sm sm:text-base">
@@ -114,7 +114,7 @@ const UserPendingReferrals = () => {
               <th className="p-3 whitespace-nowrap sm:p-4 text-center text-sm sm:text-base">
                 Country
               </th>
-              <th className="p-3 whitespace-nowrap  sm:p-4 text-center text-sm sm:text-base">
+              <th className="p-3 whitespace-nowrap sm:p-4 text-center text-sm sm:text-base">
                 Email Verified
               </th>
               <th className="p-3 whitespace-nowrap sm:p-4 text-center text-sm sm:text-base">
@@ -130,7 +130,7 @@ const UserPendingReferrals = () => {
           </thead>
           <tbody>
             {commissionsData.length === 0 && (
-              <tr className="text-red-500 border-b border-secondary-800 hover:bg-secondary-500-10">
+              <tr className="text-danger border-b border-secondary-800 hover:bg-secondary-500-10">
                 <td className="text-center align-middle py-6" colSpan="8">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
                     <Info />
@@ -142,46 +142,46 @@ const UserPendingReferrals = () => {
             {commissionsData?.map((value) => (
               <tr
                 key={value._id}
-                className="text-gray-200 border-b border-secondary-800 hover:bg-secondary-500-10"
+                className="text-muted border-b border-secondary-800 hover:bg-secondary-500-10"
               >
-                <td className="pl-6 py-3 text-sm sm:text-base">
+                <td data-label="Name/Email" className="pl-6 py-3 text-sm sm:text-base">
                   <div>
                     <p> {value?.firstName} </p>
-                    <p className="text-gray-400">{value?.email}</p>
+                    <p className="text-subtle">{value?.email}</p>
                   </div>
                 </td>
-                <td className="text-sm text-center sm:text-base">
+                <td data-label="Mobile NO" className="text-sm text-center sm:text-base">
                   {value?.phone}
                 </td>
-                <td className="text-center text-sm sm:text-base">
+                <td data-label="Country" className="text-center text-sm sm:text-base">
                   {value?.country || "null"}
                 </td>
-                <td
+                <td data-label="Email Verified"
                   className={`text-center text-sm sm:text-base ${
-                    value?.emailVerified ? "text-green-500" : " text-red-500"
+                    value?.emailVerified ? "text-success" : "text-danger"
                   } `}
                 >
                   {value?.emailVerified ? "Active" : "Inactive"}
                 </td>
-                <td
+                <td data-label="KYC Verified"
                   className={`text-center text-sm sm:text-base ${
-                    value?.kycVerified ? "text-green-500" : " text-red-500"
+                    value?.kycVerified ? "text-success" : "text-danger"
                   } `}
                 >
                   {" "}
                   {value?.kycVerified ? "Active" : "Inactive"}
                 </td>
 
-                <td className="py-3 text-center px-4">
+                <td data-label="Time Stamp" className="py-3 text-center px-4">
                   <div>{formatDate(value?.createdAt)}</div>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-subtle">
                     {calculateTimeSinceJoined(value?.createdAt)}
                   </div>
                 </td>
-                <td className="text-sm ml-10 sm:text-base">
+                <td data-label="Action" className="text-sm ml-10 sm:text-base">
                   <a
                     href={`tel:${value?.phone}`}
-                    className="flex justify-center text-green-600 hover:text-green-700 cursor-pointer hover:scale-110 transition-all"
+                    className="flex justify-center text-success hover:text-success cursor-pointer hover:scale-110 transition-all"
                   >
                     <PhoneCallIcon />
                   </a>

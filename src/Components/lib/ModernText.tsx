@@ -26,10 +26,10 @@ export default function ModernText({ text }: { text: string }) {
       className="font-bold text-lg sm:text-xl md:text-2xl text-transparent bg-clip-text"
       style={{
         backgroundImage: `linear-gradient(90deg,
-          ${rgb(theme?.gradientFrom || theme?.accent || "59 130 246")},
-          ${rgb(theme?.gradientTo || "147 51 234")}
+          ${rgb(theme?.gradientFrom || theme?.accent || "79 125 246")},
+          ${rgb(theme?.gradientTo || "23 157 166")}
         )`,
-        textShadow: `0 10px 40px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.15)}`,
+        textShadow: `0 10px 40px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.15)}`,
       }}
     >
       {text}

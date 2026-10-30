@@ -49,7 +49,7 @@ const CopyRequests = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <User size={18} /> Copy Trade Requests
       </h2>
@@ -59,7 +59,7 @@ const CopyRequests = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -69,66 +69,66 @@ const CopyRequests = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-indigo-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-primary text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : requests.length === 0 ? (
-        <p className="text-gray-300">No pending copy requests found.</p>
+        <p className="text-muted">No pending copy requests found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-indigo-800">
+          <table className="min-w-full border-collapse border border-line table-stack">
             <thead>
-              <tr className="bg-indigo-800/50">
-                <th className="p-3 text-left border border-indigo-800">User</th>
-                <th className="p-3 text-left border border-indigo-800">Email</th>
-                <th className="p-3 text-left border border-indigo-800">Accounts Requested</th>
-                <th className="p-3 text-left border border-indigo-800">Role</th>
-                <th className="p-3 text-left border border-indigo-800">Timestamp</th>
-                <th className="p-3 text-left border border-indigo-800">Action</th>
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">User</th>
+                <th className="p-3 text-left border border-line">Email</th>
+                <th className="p-3 text-left border border-line">Accounts Requested</th>
+                <th className="p-3 text-left border border-line">Role</th>
+                <th className="p-3 text-left border border-line">Timestamp</th>
+                <th className="p-3 text-left border border-line">Action</th>
               </tr>
             </thead>
             <tbody>
               {requests.map((req) => (
                 <tr
                   key={req._id}
-                  className="hover:bg-indigo-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="User" className="p-3 border border-line">
                     {req.user?.firstName} {req.user?.lastName}
                   </td>
-                  <td className="p-3 border border-indigo-800 text-blue-300">
+                  <td data-label="Email" className="p-3 border border-line text-primary">
                     {req.user?.email}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Accounts Requested" className="p-3 border border-line">
                     {req.accounts && req.accounts.length > 0
                       ? req.accounts.join(", ")
                       : "-"}
                   </td>
-                  <td className="p-3 border border-indigo-800 capitalize">
+                  <td data-label="Role" className="p-3 border border-line capitalize">
                     {req.role}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Timestamp" className="p-3 border border-line">
                     <div className="flex items-center gap-2">
                       <Clock size={14} />
                       {dayjs(req.createdAt).format("DD MMM YYYY, HH:mm")}
                     </div>
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Action" className="p-3 border border-line">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleAction(req._id, "approve")}
-                        className="px-2 py-1 bg-green-600 rounded text-xs"
+                        className="px-2 py-1 bg-success rounded text-xs"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleAction(req._id, "reject")}
-                        className="px-2 py-1 bg-red-600 rounded text-xs"
+                        className="px-2 py-1 bg-danger rounded text-xs"
                       >
                         Reject
                       </button>
@@ -146,17 +146,17 @@ const CopyRequests = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

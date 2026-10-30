@@ -103,10 +103,7 @@ const SadminAdminInfo = () => {
   }, []);
 
   const inputClass = [
-    "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-    isDark
-      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-      : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+    "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
   ].join(" ");
 
   return (
@@ -116,10 +113,7 @@ const SadminAdminInfo = () => {
       <div className="mb-6">
         <div
           className={[
-            "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-            isDark
-              ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-              : "border-orange-200 bg-orange-50 text-orange-700",
+            "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
           ].join(" ")}
         >
           <UserCog size={14} />
@@ -128,8 +122,7 @@ const SadminAdminInfo = () => {
 
         <h2
           className={[
-            "text-2xl sm:text-3xl font-bold tracking-tight",
-            isDark ? "text-white" : "text-slate-900",
+            "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
           ].join(" ")}
         >
           Admin Management
@@ -137,8 +130,7 @@ const SadminAdminInfo = () => {
 
         <p
           className={[
-            "mt-1 text-sm",
-            isDark ? "text-white/50" : "text-slate-600",
+            "mt-1 text-sm","text-subtle",
           ].join(" ")}
         >
           Create, update, review, and securely access admin credentials.
@@ -149,17 +141,13 @@ const SadminAdminInfo = () => {
         {/* Left Side - Admin Form */}
         <div
           className={[
-            "rounded-[24px] border p-5 sm:p-6 backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "rounded-card border p-5 sm:p-6 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           <div className="mb-5">
             <h3
               className={[
-                "text-xl sm:text-2xl font-semibold",
-                isDark ? "text-white" : "text-slate-900",
+                "text-xl sm:text-2xl font-semibold","text-text",
               ].join(" ")}
             >
               Update Admin Credentials
@@ -167,8 +155,7 @@ const SadminAdminInfo = () => {
 
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               Manage your admin credentials securely and keep them protected.
@@ -180,8 +167,7 @@ const SadminAdminInfo = () => {
               <label
                 htmlFor="email"
                 className={[
-                  "mb-2 flex items-center gap-2 text-sm font-medium",
-                  isDark ? "text-white/75" : "text-slate-700",
+                  "mb-2 flex items-center gap-2 text-sm font-medium","text-muted",
                 ].join(" ")}
               >
                 <Mail size={15} />
@@ -203,8 +189,7 @@ const SadminAdminInfo = () => {
               <label
                 htmlFor="password"
                 className={[
-                  "mb-2 flex items-center gap-2 text-sm font-medium",
-                  isDark ? "text-white/75" : "text-slate-700",
+                  "mb-2 flex items-center gap-2 text-sm font-medium","text-muted",
                 ].join(" ")}
               >
                 <KeyRound size={15} />
@@ -225,10 +210,7 @@ const SadminAdminInfo = () => {
             {error && (
               <div
                 className={[
-                  "rounded-xl border px-4 py-3 text-sm font-medium",
-                  isDark
-                    ? "border-red-500/20 bg-red-500/10 text-red-300"
-                    : "border-red-200 bg-red-50 text-red-600",
+                  "rounded-card border px-4 py-3 text-sm font-medium","border-danger bg-danger-soft text-danger",
                 ].join(" ")}
               >
                 {error}
@@ -239,10 +221,7 @@ const SadminAdminInfo = () => {
               type="submit"
               disabled={loading}
               className={[
-                "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                isDark
-                  ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+                "inline-flex w-full items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-primary-soft text-text hover:bg-primary",
               ].join(" ")}
             >
               {loading ? (
@@ -258,17 +237,13 @@ const SadminAdminInfo = () => {
         {/* Right Side - Credentials Display */}
         <div
           className={[
-            "rounded-[24px] border p-5 sm:p-6 backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "rounded-card border p-5 sm:p-6 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           <div className="mb-5">
             <h3
               className={[
-                "text-xl sm:text-2xl font-semibold",
-                isDark ? "text-white" : "text-slate-900",
+                "text-xl sm:text-2xl font-semibold","text-text",
               ].join(" ")}
             >
               Admin Credentials
@@ -276,8 +251,7 @@ const SadminAdminInfo = () => {
 
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               Review stored admin credentials and open admin access securely.
@@ -287,16 +261,12 @@ const SadminAdminInfo = () => {
           {loading && !admin ? (
             <div
               className={[
-                "flex items-center justify-center rounded-[18px] border py-10",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-slate-200 bg-slate-50",
+                "flex items-center justify-center rounded-card border py-10","border-line bg-surface-2",
               ].join(" ")}
             >
               <Loader2
                 className={[
-                  "h-8 w-8 animate-spin",
-                  isDark ? "text-blue-300" : "text-orange-500",
+                  "h-8 w-8 animate-spin","text-primary",
                 ].join(" ")}
               />
             </div>
@@ -305,10 +275,7 @@ const SadminAdminInfo = () => {
               <button
                 onClick={handleShowCredentials}
                 className={[
-                  "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-                  isDark
-                    ? "bg-white/[0.05] text-white hover:bg-white/[0.08] border border-white/10"
-                    : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200",
+                  "inline-flex w-full items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300","bg-surface-2 text-text hover:bg-surface-2 border border-line",
                 ].join(" ")}
               >
                 {showCredentials ? (
@@ -322,16 +289,12 @@ const SadminAdminInfo = () => {
               {showCredentials && (
                 <div
                   className={[
-                    "rounded-[20px] border p-5 transition-all duration-300",
-                    isDark
-                      ? "border-white/10 bg-black/20"
-                      : "border-slate-200 bg-slate-50/90",
+                    "rounded-card border p-5 transition-all duration-300","border-line bg-black/60",
                   ].join(" ")}
                 >
                   <h4
                     className={[
-                      "mb-4 flex items-center gap-2 text-lg font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
+                      "mb-4 flex items-center gap-2 text-lg font-semibold","text-text",
                     ].join(" ")}
                   >
                     <ShieldCheck className="h-5 w-5" />
@@ -342,16 +305,14 @@ const SadminAdminInfo = () => {
                     <div>
                       <p
                         className={[
-                          "text-xs uppercase tracking-[0.14em]",
-                          isDark ? "text-white/40" : "text-slate-500",
+                          "text-xs uppercase tracking-[0.14em]","text-subtle",
                         ].join(" ")}
                       >
                         Email
                       </p>
                       <p
                         className={[
-                          "mt-1 text-sm font-medium break-all",
-                          isDark ? "text-white/85" : "text-slate-800",
+                          "mt-1 text-sm font-medium break-all","text-muted",
                         ].join(" ")}
                       >
                         {admin.email}
@@ -361,16 +322,14 @@ const SadminAdminInfo = () => {
                     <div>
                       <p
                         className={[
-                          "text-xs uppercase tracking-[0.14em]",
-                          isDark ? "text-white/40" : "text-slate-500",
+                          "text-xs uppercase tracking-[0.14em]","text-subtle",
                         ].join(" ")}
                       >
                         Password
                       </p>
                       <p
                         className={[
-                          "mt-1 text-sm font-medium break-all",
-                          isDark ? "text-white/85" : "text-slate-800",
+                          "mt-1 text-sm font-medium break-all","text-muted",
                         ].join(" ")}
                       >
                         {admin.password}
@@ -379,8 +338,7 @@ const SadminAdminInfo = () => {
 
                     <p
                       className={[
-                        "pt-2 text-xs",
-                        isDark ? "text-white/40" : "text-slate-500",
+                        "pt-2 text-xs","text-subtle",
                       ].join(" ")}
                     >
                       Auto-hides in 30 seconds.
@@ -392,10 +350,7 @@ const SadminAdminInfo = () => {
               <button
                 onClick={adminLoginHandler}
                 className={[
-                  "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-                  isDark
-                    ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/15"
-                    : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100",
+                  "inline-flex w-full items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300","bg-success-soft text-success border border-success hover:bg-success-soft",
                 ].join(" ")}
               >
                 <RiUserSharedFill size={20} />
@@ -405,10 +360,7 @@ const SadminAdminInfo = () => {
           ) : (
             <div
               className={[
-                "rounded-[18px] border py-10 text-center text-sm",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/55"
-                  : "border-slate-200 bg-slate-50 text-slate-500",
+                "rounded-card border py-10 text-center text-sm","border-line bg-surface-2 text-subtle",
               ].join(" ")}
             >
               No credentials found.

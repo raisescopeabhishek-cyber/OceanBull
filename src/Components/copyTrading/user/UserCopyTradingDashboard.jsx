@@ -24,32 +24,25 @@ import CopyTradingEmptyState from "../shared/CopyTradingEmptyState";
 const StatCard = ({ isDark, icon, label, value }) => (
   <div
     className={cx(
-      "rounded-2xl border p-4",
-      isDark
-        ? "border-white/10 bg-white/[0.035]"
-        : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.07)]"
+      "rounded-card border p-4","border-line bg-surface-2"
     )}
   >
     <div className="flex items-center gap-3">
       <div
         className={cx(
-          "flex h-11 w-11 items-center justify-center rounded-2xl border",
-          isDark
-            ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-            : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          "flex h-11 w-11 items-center justify-center rounded-card border","border-success bg-success-soft text-success"
         )}
       >
         {icon}
       </div>
 
       <div>
-        <p className={cx("text-xs", isDark ? "text-white/50" : "text-slate-500")}>
+        <p className={cx("text-xs","text-subtle")}>
           {label}
         </p>
         <p
           className={cx(
-            "mt-1 text-lg font-bold",
-            isDark ? "text-white" : "text-slate-900"
+            "mt-1 text-lg font-bold","text-text"
           )}
         >
           {value}
@@ -156,30 +149,25 @@ const UserCopyTradingDashboard = () => {
       ) : (
         <div
           className={cx(
-            "rounded-[24px] border p-5",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-emerald-100 bg-white/90"
+            "rounded-card border p-5","border-line bg-surface-2"
           )}
         >
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700">
+            <div className="flex h-11 w-11 items-center justify-center rounded-card border border-success bg-success-soft text-success">
               <RadioTower className="h-5 w-5" />
             </div>
 
             <div>
               <h3
                 className={cx(
-                  "text-base font-bold",
-                  isDark ? "text-white" : "text-slate-900"
+                  "text-base font-bold","text-text"
                 )}
               >
                 Copy Trading Quick Start
               </h3>
               <p
                 className={cx(
-                  "mt-2 text-sm leading-6",
-                  isDark ? "text-white/55" : "text-slate-500"
+                  "mt-2 text-sm leading-6","text-subtle"
                 )}
               >
                 Go to Explore Masters, select your MT5 account, check minimum

@@ -41,10 +41,7 @@ const SadminBonusConfig = () => {
   const isDark = mode === "dark";
 
   const inputClass = [
-    "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-    isDark
-      ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-      : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+    "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
     "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
   ].join(" ");
 
@@ -392,10 +389,7 @@ const SadminBonusConfig = () => {
         <div>
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <ShieldCheck size={14} />
@@ -404,8 +398,7 @@ const SadminBonusConfig = () => {
 
           <h2
             className={[
-              "text-2xl sm:text-3xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
             ].join(" ")}
           >
             Deposit Bonus Config
@@ -413,8 +406,7 @@ const SadminBonusConfig = () => {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Manage deposit slabs, bonus percentages, and lot-based release rules.
@@ -424,10 +416,7 @@ const SadminBonusConfig = () => {
         <button
           onClick={handleCreate}
           className={[
-            "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300",
-            isDark
-              ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-              : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
+            "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300","bg-primary-soft text-text hover:bg-primary",
           ].join(" ")}
         >
           <Plus className="h-4 w-4" />
@@ -438,10 +427,7 @@ const SadminBonusConfig = () => {
       {saveSuccess && (
         <div
           className={[
-            "mb-6 flex items-center gap-2 rounded-[18px] border px-4 py-3 text-sm font-medium",
-            isDark
-              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700",
+            "mb-6 flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-medium","border-success bg-success-soft text-success",
           ].join(" ")}
         >
           <CheckCircle2 className="h-5 w-5" />
@@ -476,10 +462,7 @@ const SadminBonusConfig = () => {
           <button
             onClick={fetchConfigs}
             className={[
-              "rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-              isDark
-                ? "bg-white/[0.06] text-white border border-white/10 hover:bg-white/[0.09]"
-                : "bg-slate-900 text-white hover:bg-slate-800",
+              "rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300","bg-surface-2 text-text border border-line hover:bg-surface-2",
             ].join(" ")}
           >
             Apply Filters
@@ -495,16 +478,12 @@ const SadminBonusConfig = () => {
         {loading ? (
           <div
             className={[
-              "rounded-[20px] border p-6 flex items-center gap-3",
-              isDark
-                ? "border-white/10 bg-white/[0.03] text-white"
-                : "border-slate-200 bg-white text-slate-700",
+              "rounded-card border p-6 flex items-center gap-3","border-line bg-surface-2 text-text",
             ].join(" ")}
           >
             <Loader2
               className={[
-                "h-5 w-5 animate-spin",
-                isDark ? "text-blue-300" : "text-orange-500",
+                "h-5 w-5 animate-spin","text-primary",
               ].join(" ")}
             />
             <p>Loading bonus configs...</p>
@@ -512,10 +491,7 @@ const SadminBonusConfig = () => {
         ) : visibleConfigs.length === 0 ? (
           <div
             className={[
-              "rounded-[20px] border p-6 text-sm italic",
-              isDark
-                ? "border-white/10 bg-white/[0.03] text-white/50"
-                : "border-slate-200 bg-white text-slate-500",
+              "rounded-card border p-6 text-sm italic","border-line bg-surface-2 text-subtle",
             ].join(" ")}
           >
             No bonus configuration found.
@@ -529,10 +505,7 @@ const SadminBonusConfig = () => {
                 <div
                   key={config._id}
                   className={[
-                    "rounded-[20px] border p-4 sm:p-5 transition-all duration-300",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-slate-200 bg-white/70",
+                    "rounded-card border p-4 sm:p-5 transition-all duration-300","border-line bg-surface-2",
                   ].join(" ")}
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -540,8 +513,7 @@ const SadminBonusConfig = () => {
                       <div className="flex flex-wrap items-center gap-2">
                         <h3
                           className={[
-                            "text-lg font-semibold",
-                            isDark ? "text-white" : "text-slate-900",
+                            "text-lg font-semibold","text-text",
                           ].join(" ")}
                         >
                           {config.title}
@@ -551,12 +523,8 @@ const SadminBonusConfig = () => {
                           className={[
                             "px-3 py-1 rounded-full text-xs font-medium border",
                             config.isActive
-                              ? isDark
-                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : isDark
-                              ? "bg-red-500/20 text-red-300 border-red-500/40"
-                              : "bg-red-50 text-red-600 border-red-200",
+                              ?"bg-success-soft text-success border-success"
+                              :"bg-danger-soft text-danger border-danger",
                           ].join(" ")}
                         >
                           {config.isActive ? "Active" : "Inactive"}
@@ -565,8 +533,7 @@ const SadminBonusConfig = () => {
 
                       <p
                         className={[
-                          "text-sm",
-                          isDark ? "text-white/50" : "text-slate-500",
+                          "text-sm","text-subtle",
                         ].join(" ")}
                       >
                         Slabs: {config.slabs?.length || 0}
@@ -579,10 +546,7 @@ const SadminBonusConfig = () => {
                           setExpandedId(isExpanded ? "" : config._id)
                         }
                         className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300",
-                          isDark
-                            ? "bg-white/[0.06] text-white border border-white/10 hover:bg-white/[0.09]"
-                            : "bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200",
+                          "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300","bg-surface-2 text-text border border-line hover:bg-surface-2",
                         ].join(" ")}
                       >
                         {isExpanded ? (
@@ -596,10 +560,7 @@ const SadminBonusConfig = () => {
                       <button
                         onClick={() => handleEdit(config)}
                         className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300",
-                          isDark
-                            ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                            : "bg-orange-500 text-white hover:bg-orange-600",
+                          "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300","bg-primary-soft text-text hover:bg-primary",
                         ].join(" ")}
                       >
                         <Pencil className="h-4 w-4" />
@@ -610,10 +571,7 @@ const SadminBonusConfig = () => {
                         onClick={() => handleToggleStatus(config._id)}
                         disabled={togglingId === config._id}
                         className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-60",
-                          isDark
-                            ? "bg-emerald-500/90 text-white hover:bg-emerald-500"
-                            : "bg-emerald-500 text-white hover:bg-emerald-600",
+                          "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-60","bg-success-soft text-text hover:bg-success",
                         ].join(" ")}
                       >
                         {togglingId === config._id ? (
@@ -628,10 +586,7 @@ const SadminBonusConfig = () => {
                         onClick={() => handleDelete(config._id)}
                         disabled={deletingId === config._id}
                         className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-60",
-                          isDark
-                            ? "bg-red-500/90 text-white hover:bg-red-500"
-                            : "bg-red-500 text-white hover:bg-red-600",
+                          "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-60","bg-danger-soft text-text hover:bg-danger",
                         ].join(" ")}
                       >
                         {deletingId === config._id ? (
@@ -663,10 +618,7 @@ const SadminBonusConfig = () => {
                           <div
                             key={slabIndex}
                             className={[
-                              "rounded-[18px] border p-4",
-                              isDark
-                                ? "border-white/10 bg-white/[0.03]"
-                                : "border-slate-200 bg-slate-50",
+                              "rounded-card border p-4","border-line bg-surface-2",
                             ].join(" ")}
                           >
                             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -706,13 +658,10 @@ const SadminBonusConfig = () => {
                             </div>
 
                             <div className="overflow-x-auto">
-                              <table className="min-w-full text-sm">
+                              <table className="min-w-full text-sm table-stack">
                                 <thead>
                                   <tr
-                                    className={
-                                      isDark
-                                        ? "text-white/55"
-                                        : "text-slate-500"
+                                    className={"text-subtle"
                                     }
                                   >
                                     <th className="text-left py-2 pr-4">
@@ -731,19 +680,16 @@ const SadminBonusConfig = () => {
                                     (rule, ruleIndex) => (
                                       <tr
                                         key={ruleIndex}
-                                        className={
-                                          isDark
-                                            ? "border-t border-white/10"
-                                            : "border-t border-slate-200"
+                                        className={"border-t border-line"
                                         }
                                       >
-                                        <td className="py-2 pr-4">
+                                        <td data-label="From Lot" className="py-2 pr-4">
                                           {rule.fromLot}
                                         </td>
-                                        <td className="py-2 pr-4">
+                                        <td data-label="To Lot" className="py-2 pr-4">
                                           {rule.toLot}
                                         </td>
-                                        <td className="py-2 pr-4">
+                                        <td data-label="Release %" className="py-2 pr-4">
                                           {formatPercent(rule.releasePercent)}
                                         </td>
                                       </tr>
@@ -815,26 +761,21 @@ const BonusConfigModal = ({
         <div
           onMouseDown={(e) => e.stopPropagation()}
           className={[
-            "w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-[28px] border p-4 sm:p-6",
-            isDark
-              ? "border-white/10 bg-[#0B1220] shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
-              : "border-orange-100 bg-white shadow-[0_20px_60px_rgba(251,146,60,0.16)]",
+            "w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-card border p-4 sm:p-6","border-line bg-surface",
           ].join(" ")}
         >
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3
                 className={[
-                  "text-xl sm:text-2xl font-bold",
-                  isDark ? "text-white" : "text-slate-900",
+                  "text-xl sm:text-2xl font-bold","text-text",
                 ].join(" ")}
               >
                 {editingId ? "Edit Bonus Config" : "Create Bonus Config"}
               </h3>
               <p
                 className={[
-                  "mt-1 text-sm",
-                  isDark ? "text-white/50" : "text-slate-500",
+                  "mt-1 text-sm","text-subtle",
                 ].join(" ")}
               >
                 Configure deposit slabs and lot-based release rules.
@@ -846,10 +787,7 @@ const BonusConfigModal = ({
                 onClick={onSave}
                 disabled={saving}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                  isDark
-                    ? "bg-emerald-500/90 text-white hover:bg-emerald-500"
-                    : "bg-emerald-500 text-white hover:bg-emerald-600",
+                  "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-success-soft text-text hover:bg-success",
                 ].join(" ")}
               >
                 {saving ? (
@@ -864,10 +802,7 @@ const BonusConfigModal = ({
                 onClick={onClose}
                 disabled={saving}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                  isDark
-                    ? "bg-red-500/90 text-white hover:bg-red-500"
-                    : "bg-red-500 text-white hover:bg-red-600",
+                  "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50","bg-danger-soft text-text hover:bg-danger",
                 ].join(" ")}
               >
                 <X className="h-4 w-4" />
@@ -893,25 +828,20 @@ const BonusConfigModal = ({
               <div className="flex items-end">
                 <div
                   className={[
-                    "w-full rounded-[18px] border p-4 flex items-center justify-between",
-                    isDark
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-slate-200 bg-white/70",
+                    "w-full rounded-card border p-4 flex items-center justify-between","border-line bg-surface-2",
                   ].join(" ")}
                 >
                   <div>
                     <p
                       className={[
-                        "text-sm font-semibold",
-                        isDark ? "text-white" : "text-slate-900",
+                        "text-sm font-semibold","text-text",
                       ].join(" ")}
                     >
                       Config Active
                     </p>
                     <p
                       className={[
-                        "mt-1 text-xs",
-                        isDark ? "text-white/45" : "text-slate-500",
+                        "mt-1 text-xs","text-subtle",
                       ].join(" ")}
                     >
                       Enable or disable this bonus config
@@ -943,26 +873,21 @@ const BonusConfigModal = ({
                   <div
                     key={slabIndex}
                     className={[
-                      "rounded-[20px] border p-4 sm:p-5",
-                      isDark
-                        ? "border-white/10 bg-white/[0.03]"
-                        : "border-slate-200 bg-white/70",
+                      "rounded-card border p-4 sm:p-5","border-line bg-surface-2",
                     ].join(" ")}
                   >
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h4
                           className={[
-                            "text-base font-semibold",
-                            isDark ? "text-white" : "text-slate-900",
+                            "text-base font-semibold","text-text",
                           ].join(" ")}
                         >
                           Slab #{slabIndex + 1}
                         </h4>
                         <p
                           className={[
-                            "text-sm mt-1",
-                            isDark ? "text-white/45" : "text-slate-500",
+                            "text-sm mt-1","text-subtle",
                           ].join(" ")}
                         >
                           Define deposit amount, bonus percentage, and release
@@ -974,10 +899,7 @@ const BonusConfigModal = ({
                         onClick={() => removeSlab(slabIndex)}
                         disabled={form.slabs.length === 1}
                         className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-40",
-                          isDark
-                            ? "bg-red-500/90 text-white hover:bg-red-500"
-                            : "bg-red-500 text-white hover:bg-red-600",
+                          "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:opacity-40","bg-danger-soft text-text hover:bg-danger",
                         ].join(" ")}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1038,25 +960,20 @@ const BonusConfigModal = ({
 
                       <div
                         className={[
-                          "rounded-[18px] border p-4 flex items-center justify-between",
-                          isDark
-                            ? "border-white/10 bg-white/[0.03]"
-                            : "border-slate-200 bg-white/70",
+                          "rounded-card border p-4 flex items-center justify-between","border-line bg-surface-2",
                         ].join(" ")}
                       >
                         <div>
                           <p
                             className={[
-                              "text-sm font-semibold",
-                              isDark ? "text-white" : "text-slate-900",
+                              "text-sm font-semibold","text-text",
                             ].join(" ")}
                           >
                             Slab Active
                           </p>
                           <p
                             className={[
-                              "mt-1 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500",
+                              "mt-1 text-xs","text-subtle",
                             ].join(" ")}
                           >
                             Use this slab in live matching
@@ -1073,26 +990,21 @@ const BonusConfigModal = ({
 
                     <div
                       className={[
-                        "rounded-[18px] border p-4",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-slate-200 bg-slate-50",
+                        "rounded-card border p-4","border-line bg-surface-2",
                       ].join(" ")}
                     >
                       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <h5
                             className={[
-                              "text-sm font-semibold",
-                              isDark ? "text-white" : "text-slate-900",
+                              "text-sm font-semibold","text-text",
                             ].join(" ")}
                           >
                             Lot Release Rules
                           </h5>
                           <p
                             className={[
-                              "mt-1 text-xs",
-                              isDark ? "text-white/45" : "text-slate-500",
+                              "mt-1 text-xs","text-subtle",
                             ].join(" ")}
                           >
                             Example: 0-2 lot = 10% release from bonus amount
@@ -1107,10 +1019,7 @@ const BonusConfigModal = ({
                           <button
                             onClick={() => addLotRule(slabIndex)}
                             className={[
-                              "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300",
-                              isDark
-                                ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                                : "bg-orange-500 text-white hover:bg-orange-600",
+                              "inline-flex items-center gap-2 rounded-card px-3 py-2 text-sm font-semibold transition-all duration-300","bg-primary-soft text-text hover:bg-primary",
                             ].join(" ")}
                           >
                             <Plus className="h-4 w-4" />
@@ -1195,10 +1104,7 @@ const BonusConfigModal = ({
                                 }
                                 disabled={slab.lotReleaseRules.length === 1}
                                 className={[
-                                  "w-full inline-flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-40",
-                                  isDark
-                                    ? "bg-red-500/90 text-white hover:bg-red-500"
-                                    : "bg-red-500 text-white hover:bg-red-600",
+                                  "w-full inline-flex items-center justify-center gap-2 rounded-card px-3 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-40","bg-danger-soft text-text hover:bg-danger",
                                 ].join(" ")}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -1228,10 +1134,7 @@ const BonusConfigModal = ({
               <button
                 onClick={addSlab}
                 className={[
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300",
-                  isDark
-                    ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                    : "bg-orange-500 text-white hover:bg-orange-600",
+                  "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition-all duration-300","bg-primary-soft text-text hover:bg-primary",
                 ].join(" ")}
               >
                 <Plus className="h-4 w-4" />
@@ -1249,17 +1152,13 @@ const BonusConfigModal = ({
 const Section = ({ title, subtitle, children, isDark }) => (
   <div
     className={[
-      "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-      isDark
-        ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-        : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+      "mt-6 rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
     ].join(" ")}
   >
     <div className="mb-4">
       <h3
         className={[
-          "text-lg font-semibold",
-          isDark ? "text-white" : "text-slate-900",
+          "text-lg font-semibold","text-text",
         ].join(" ")}
       >
         {title}
@@ -1267,8 +1166,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
       {subtitle ? (
         <p
           className={[
-            "mt-1 text-sm",
-            isDark ? "text-white/45" : "text-slate-500",
+            "mt-1 text-sm","text-subtle",
           ].join(" ")}
         >
           {subtitle}
@@ -1278,10 +1176,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
 
     <div
       className={[
-        "rounded-[20px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-slate-200 bg-white/50",
+        "rounded-card border p-4","border-line bg-surface-2",
       ].join(" ")}
     >
       {children}
@@ -1292,8 +1187,7 @@ const Section = ({ title, subtitle, children, isDark }) => (
 const Label = ({ children, isDark }) => (
   <p
     className={[
-      "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
-      isDark ? "text-white/45" : "text-slate-500",
+      "mb-2 text-xs font-medium uppercase tracking-[0.12em]","text-subtle",
     ].join(" ")}
   >
     {children}
@@ -1301,30 +1195,25 @@ const Label = ({ children, isDark }) => (
 );
 
 const ErrorText = ({ message }) => (
-  <p className="mt-2 text-xs text-red-500">{message}</p>
+  <p className="mt-2 text-xs text-danger">{message}</p>
 );
 
 const ReadOnlyStat = ({ label, value, isDark }) => (
   <div
     className={[
-      "rounded-[18px] border p-4",
-      isDark
-        ? "border-white/10 bg-white/[0.03]"
-        : "border-slate-200 bg-white/70",
+      "rounded-card border p-4","border-line bg-surface-2",
     ].join(" ")}
   >
     <p
       className={[
-        "mb-2 text-xs font-medium uppercase tracking-[0.12em]",
-        isDark ? "text-white/45" : "text-slate-500",
+        "mb-2 text-xs font-medium uppercase tracking-[0.12em]","text-subtle",
       ].join(" ")}
     >
       {label}
     </p>
     <p
       className={[
-        "text-sm font-semibold",
-        isDark ? "text-white" : "text-slate-900",
+        "text-sm font-semibold","text-text",
       ].join(" ")}
     >
       {value}
@@ -1338,15 +1227,9 @@ const Badge = ({ label, isDark, active }) => (
       "px-3 py-1 rounded-full text-xs font-medium border",
       typeof active === "boolean"
         ? active
-          ? isDark
-            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-            : "bg-emerald-50 text-emerald-700 border-emerald-200"
-          : isDark
-          ? "bg-red-500/20 text-red-300 border-red-500/40"
-          : "bg-red-50 text-red-600 border-red-200"
-        : isDark
-        ? "border-blue-500/30 bg-blue-500/10 text-blue-300"
-        : "border-orange-200 bg-orange-50 text-orange-700",
+          ?"bg-success-soft text-success border-success"
+          :"bg-danger-soft text-danger border-danger"
+        :"border-line bg-primary-soft text-primary",
     ].join(" ")}
   >
     {label}

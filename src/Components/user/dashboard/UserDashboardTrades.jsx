@@ -75,14 +75,14 @@ export default function UserDashboardTrades() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-b from-indigo-900 to-indigo-950 mt-7 rounded-t-md  p-6  shadow-lg  text-white">
+    <div className="mt-7 rounded-t-md p-6 text-text">
       <div className="flex justify-between items-center mb-6">
         <div className="">
           <ModernText text={"Open Trades Summary"}></ModernText>
         </div>
         <button
           onClick={() => navigate("/user/trade-history")}
-          className="flex items-center text-blue-400 hover:text-blue-500 transition-colors"
+          className="flex items-center text-primary hover:text-primary transition-colors"
         >
           View History
           <ArrowRight className="ml-1" size={18} />
@@ -90,27 +90,27 @@ export default function UserDashboardTrades() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-secondary-700/30  p-4 rounded-lg">
-          <p className="text-gray-100 mb-1">Total Trades</p>
+        <div className="bg-secondary-700/30 p-4 rounded-field">
+          <p className="text-text mb-1">Total Trades</p>
           <p className="text-2xl font-bold">{tradesSummary.totalTrades}</p>
         </div>
-        <div className="bg-secondary-700/30 p-4 rounded-lg">
-          <p className="text-gray-100 whitespace-nowrap mb-1">Profit Trades</p>
-          <p className="text-2xl font-bold text-green-500">
+        <div className="bg-secondary-700/30 p-4 rounded-field">
+          <p className="text-text whitespace-nowrap mb-1">Profit Trades</p>
+          <p className="text-2xl font-bold text-success">
             {tradesSummary.profitableTrades}
           </p>
         </div>
-        <div className="bg-secondary-700/30 p-4 rounded-lg">
-          <p className="text-gray-100 mb-1">PnL floating</p>
-          <p className="text-2xl font-bold text-yellow-500">
+        <div className="bg-secondary-700/30 p-4 rounded-field">
+          <p className="text-text mb-1">PnL floating</p>
+          <p className="text-2xl font-bold text-warning">
             {tradesSummary.winRate.toFixed(2)}%
           </p>
         </div>
-        <div className="bg-secondary-700/30 p-4 rounded-lg">
-          <p className="text-gray-100 mb-1">Net Profit</p>
+        <div className="bg-secondary-700/30 p-4 rounded-field">
+          <p className="text-text mb-1">Net Profit</p>
           <p
             className={`text-2xl font-bold ${
-              tradesSummary.netProfit >= 0 ? "text-green-500" : "text-red-400"
+              tradesSummary.netProfit >= 0 ? "text-success" : "text-danger"
             }`}
           >
             {tradesSummary.netProfit.toFixed(2)}

@@ -79,18 +79,14 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
   return (
     <div
       className={cx(
-        "rounded-[24px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.035]"
-          : "border-emerald-100 bg-white shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+        "rounded-card border p-4","border-line bg-surface-2"
       )}
     >
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3
             className={cx(
-              "text-base font-bold",
-              isDark ? "text-white" : "text-slate-900"
+              "text-base font-bold","text-text"
             )}
           >
             {title}
@@ -98,8 +94,7 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
 
           <p
             className={cx(
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-500"
+              "mt-1 text-sm","text-subtle"
             )}
           >
             Account: <b>{account || "-"}</b>
@@ -108,10 +103,7 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
 
         <span
           className={cx(
-            "w-fit rounded-full px-3 py-1 text-xs font-bold",
-            isDark
-              ? "bg-white/[0.06] text-white/70"
-              : "bg-emerald-50 text-emerald-700"
+            "w-fit rounded-full px-3 py-1 text-xs font-bold","bg-surface-2 text-muted"
           )}
         >
           {rows.length} Trades
@@ -148,8 +140,7 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
               <tr
                 key={`${getTradeTicket(row)}-${getTradeAccount(row)}-${index}`}
                 className={cx(
-                  "border-t",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "border-t","border-line"
                 )}
               >
                 <td className="whitespace-nowrap px-4 py-4">
@@ -157,8 +148,8 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
                     className={cx(
                       "rounded-full px-2.5 py-1 text-xs font-bold capitalize",
                       row?._status === "open"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-success-soft text-success"
+                        : "bg-surface-3 text-muted"
                     )}
                   >
                     {row?._status || "-"}
@@ -197,12 +188,10 @@ const TradeTableSection = ({ isDark, title, account, rows }) => {
                   className={cx(
                     "whitespace-nowrap px-4 py-4 font-bold",
                     profit > 0
-                      ? "text-emerald-600"
+                      ? "text-success"
                       : profit < 0
-                      ? "text-red-500"
-                      : isDark
-                      ? "text-white"
-                      : "text-slate-900"
+                      ? "text-danger"
+                      :"text-text"
                   )}
                 >
                   {getTradeProfit(row)}
@@ -317,10 +306,7 @@ const UserCopierTradeComparison = () => {
     <div className="space-y-5 p-5 sm:p-6">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 lg:grid-cols-[1fr_140px]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 lg:grid-cols-[1fr_140px]","border-line bg-surface-2"
         )}
       >
         <input
@@ -333,10 +319,7 @@ const UserCopierTradeComparison = () => {
           }}
           placeholder="Enter copier account"
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm outline-none",
-            isDark
-              ? "border-white/10 bg-slate-950 text-white placeholder:text-white/40"
-              : "border-emerald-100 bg-white text-slate-900 placeholder:text-slate-400"
+            "rounded-card border px-4 py-3 text-sm outline-none","border-line bg-surface text-text placeholder:text-subtle"
           )}
         />
 
@@ -345,8 +328,8 @@ const UserCopierTradeComparison = () => {
           onClick={loadTrades}
           disabled={loading}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60",
-            loading ? "bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+            "inline-flex items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-bold text-text disabled:cursor-not-allowed disabled:opacity-60",
+            loading ? "bg-success" : "bg-success hover:bg-success"
           )}
         >
           <Search className="h-4 w-4" />
@@ -357,10 +340,7 @@ const UserCopierTradeComparison = () => {
       {loading ? (
         <div
           className={cx(
-            "rounded-[22px] border p-5 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.035] text-white/70"
-              : "border-emerald-100 bg-white text-slate-600"
+            "rounded-card border p-5 text-sm","border-line bg-surface-2 text-muted"
           )}
         >
           Loading copier and master trades...
@@ -375,10 +355,7 @@ const UserCopierTradeComparison = () => {
         <>
           <div
             className={cx(
-              "grid grid-cols-1 gap-3 rounded-[22px] border p-4 text-sm md:grid-cols-4",
-              isDark
-                ? "border-white/10 bg-white/[0.035] text-white"
-                : "border-emerald-100 bg-white text-slate-700"
+              "grid grid-cols-1 gap-3 rounded-card border p-4 text-sm md:grid-cols-4","border-line bg-surface-2 text-text"
             )}
           >
             <div>

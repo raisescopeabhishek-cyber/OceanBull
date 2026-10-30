@@ -173,17 +173,17 @@ const UserReferralsDetails = () => {
   );
 
   // ------- small UI pieces -------
-  const StatCard = ({ icon: Icon, title, value, subtitle, ring = "from-blue-500 to-purple-600" }) => (
-    <div className="relative rounded-2xl p-4 bg-slate-800/40 border border-slate-700/50 hover:border-slate-600/60 transition-all shadow-xl">
-      <div className="absolute -inset-px rounded-2xl opacity-20 bg-gradient-to-r from-blue-500 to-purple-600 blur-md" />
+  const StatCard = ({ icon: Icon, title, value, subtitle, ring = "" }) => (
+    <div className="relative rounded-card p-4 bg-surface border border-line hover:border-line transition-all">
+      <div className="absolute -inset-px rounded-card opacity-20 blur-md" />
       <div className="relative flex items-center gap-3">
         <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${ring} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5 text-text" />
         </div>
         <div className="flex-1">
-          <p className="text-xs text-slate-400">{title}</p>
-          <p className="text-lg font-semibold text-slate-100">{value}</p>
-          {subtitle && <p className="text-xs text-slate-400/80">{subtitle}</p>}
+          <p className="text-xs text-subtle">{title}</p>
+          <p className="text-lg font-semibold text-text">{value}</p>
+          {subtitle && <p className="text-xs text-subtle">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -192,14 +192,14 @@ const UserReferralsDetails = () => {
   const LevelBadge = ({ level, count, max }) => {
     const pct = Math.min(100, Math.round((count / (max || 1)) * 100));
     return (
-      <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-3 min-w-[120px]">
+      <div className="bg-surface border border-line rounded-card p-3 min-w-[120px]">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-slate-200 text-sm font-semibold">L{level}</span>
-          <span className="text-slate-400 text-xs">{count}</span>
+          <span className="text-muted text-sm font-semibold">L{level}</span>
+          <span className="text-subtle text-xs">{count}</span>
         </div>
-        <div className="h-1.5 rounded-full bg-slate-700/60 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-600"
+            className="h-full"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -208,18 +208,18 @@ const UserReferralsDetails = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="relative min-h-screen">
       <AnimatedGrid />
       <FloatingParticles />
 
       <div className="max-w-6xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         {/* Sticky Controls */}
-        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md bg-gradient-to-b from-gray-900/80 to-transparent">
+        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-4 pb-3 backdrop-blur-md to-transparent">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center gap-2 rounded-full px-4 py-2 border border-slate-600/50 text-slate-300 hover:bg-slate-800/50 transition-all"
+                className="flex items-center gap-2 rounded-full px-4 py-2 border border-line text-muted hover:bg-surface transition-all"
               >
                 <ArrowLeft size={18} />
                 Back
@@ -234,12 +234,12 @@ const UserReferralsDetails = () => {
                   placeholder="Search name, email, country or account…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-card bg-surface-3 backdrop-blur-sm border border-line text-muted placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm hover:text-slate-200"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle text-sm hover:text-muted"
                   >
                     ✕
                   </button>
@@ -248,7 +248,7 @@ const UserReferralsDetails = () => {
               <button
                 onClick={fetchCommissions}
                 disabled={isLoading}
-                className="px-4 py-2.5 rounded-2xl border border-slate-600/50 text-slate-200 hover:bg-slate-800/50 transition-all flex items-center gap-2"
+                className="px-4 py-2.5 rounded-card border border-line text-muted hover:bg-surface transition-all flex items-center gap-2"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 {isLoading ? "Refreshing…" : "Refresh"}
@@ -264,46 +264,46 @@ const UserReferralsDetails = () => {
             title="Total Users"
             value={stats.totalUsers || 0}
             subtitle={`${stats.uniqueEmails || 0} unique`}
-            ring="from-blue-500 to-purple-600"
+            ring=""
           />
           <StatCard
             icon={DollarSign}
             title="Total Commission"
             value={(stats.totalCommission || 0).toFixed(4)}
             subtitle={`${(stats.avgCommission || 0).toFixed(4)}/user`}
-            ring="from-emerald-500 to-teal-500"
+            ring=""
           />
           <StatCard
             icon={BarChart3}
             title="Total Volume"
             value={(stats.totalVolume || 0).toFixed(4)}
             subtitle={`${(stats.avgVolume || 0).toFixed(4)}/user`}
-            ring="from-violet-500 to-fuchsia-500"
+            ring="to-fuchsia-500"
           />
           <StatCard
             icon={Globe}
             title="Top Country"
             value={stats.topCountry?.[0] || "Unknown"}
             subtitle={`${stats.topCountry?.[1] || 0} users`}
-            ring="from-cyan-500 to-sky-500"
+            ring=""
           />
           <StatCard
             icon={TrendingUp}
             title="Users Equity"
             value={(stats.totalUserEquity || 0).toFixed(2)}
             subtitle="Live balance"
-            ring="from-rose-500 to-orange-500"
+            ring=""
           />
         </div>
 
         {/* Level Distribution */}
         {Object.keys(stats.levelDistribution || {}).length > 0 && (
-          <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 border border-slate-700/50 rounded-3xl p-4 sm:p-6 shadow-2xl mb-8">
+          <div className="border border-line rounded-card p-4 sm:p-6 mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-card bg-primary-soft flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-slate-200 font-semibold">Level Distribution</h3>
+              <h3 className="text-muted font-semibold">Level Distribution</h3>
             </div>
             <div className="flex flex-wrap gap-3">
               {(() => {
@@ -325,27 +325,27 @@ const UserReferralsDetails = () => {
             <DynamicLoder />
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="border border-line rounded-card overflow-hidden">
             {/* Table header */}
             <div className="overflow-x-auto">
-              <table className="w-full whitespace-nowrap">
-                <thead className="bg-slate-800/40 border-b border-slate-700/50 sticky top-[72px]">
+              <table className="w-full whitespace-nowrap table-stack">
+                <thead className="bg-surface border-b border-line sticky top-[72px]">
                   <tr>
-                    <th className="p-3 text-left text-slate-300 font-medium">Name / Email</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Country</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">AC No</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Live Equity</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Level</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Total Volume</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Total Earned</th>
-                    <th className="p-3 text-center text-slate-300 font-medium">Action</th>
+                    <th className="p-3 text-left text-muted font-medium">Name / Email</th>
+                    <th className="p-3 text-center text-muted font-medium">Country</th>
+                    <th className="p-3 text-center text-muted font-medium">AC No</th>
+                    <th className="p-3 text-center text-muted font-medium">Live Equity</th>
+                    <th className="p-3 text-center text-muted font-medium">Level</th>
+                    <th className="p-3 text-center text-muted font-medium">Total Volume</th>
+                    <th className="p-3 text-center text-muted font-medium">Total Earned</th>
+                    <th className="p-3 text-center text-muted font-medium">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedEmails.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-40">
-                        <div className="flex items-center justify-center gap-2 text-red-400">
+                        <div className="flex items-center justify-center gap-2 text-danger">
                           <Info className="w-5 h-5" />
                           No data found
                         </div>
@@ -362,28 +362,28 @@ const UserReferralsDetails = () => {
                       <>
                         <tr
                           key={email}
-                          className="border-b border-slate-700/50 bg-slate-900/20 hover:bg-slate-900/40 transition-colors"
+                          className="border-b border-line bg-surface hover:bg-surface transition-colors"
                         >
-                          <td
+                          <td data-label="Name / Email"
                             className="pl-6 pr-3 py-3 cursor-pointer"
                             onClick={() => toggleDropdown(email)}
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="truncate text-slate-200">{first?.name || "-"}</p>
-                                <p className="truncate text-slate-400 text-sm">{email}</p>
+                                <p className="truncate text-muted">{first?.name || "-"}</p>
+                                <p className="truncate text-subtle text-sm">{email}</p>
                               </div>
                               {users.length > 1 && (
-                                <span className="text-slate-400">
+                                <span className="text-subtle">
                                   {isExpanded ? <ChevronUp /> : <ChevronDown />}
                                 </span>
                               )}
                             </div>
                           </td>
 
-                          <td className="p-3 text-center text-slate-300">{first?.country || "-"}</td>
-                          <td className="p-3 text-center text-slate-300">{first?.accountNumber}</td>
-                          <td className="p-3 text-center text-emerald-400">
+                          <td data-label="Country" className="p-3 text-center text-muted">{first?.country || "-"}</td>
+                          <td data-label="AC No" className="p-3 text-center text-muted">{first?.accountNumber}</td>
+                          <td data-label="Live Equity" className="p-3 text-center text-success">
                             {ibAccountsData ? (
                               +first.accountNumber <= 0 ? (
                                 "--"
@@ -396,19 +396,19 @@ const UserReferralsDetails = () => {
                               <Loader2 className="animate-spin mx-auto" />
                             )}
                           </td>
-                          <td className="p-3 text-center text-slate-300">{first?.level}</td>
-                          <td className="p-3 text-center text-slate-300">
+                          <td data-label="Level" className="p-3 text-center text-muted">{first?.level}</td>
+                          <td data-label="Total Volume" className="p-3 text-center text-muted">
                             {first?.totalLot?.toFixed(4) || "0"}
                           </td>
-                          <td className="p-3 text-center text-slate-300">
+                          <td data-label="Total Earned" className="p-3 text-center text-muted">
                             {first?.totalCommission?.toFixed(4) || "0"}
                           </td>
-                          <td className="p-3 text-center">
+                          <td data-label="Action" className="p-3 text-center">
                             <Link
                               to={`/user/referral-close-trades/${first?.accountNumber}?level=${first?.level}`}
                               className="inline-flex"
                             >
-                              <ArrowRight className="text-blue-500 hover:text-blue-400 hover:scale-105 transition-transform" />
+                              <ArrowRight className="text-primary hover:text-primary hover:scale-105 transition-transform" />
                             </Link>
                           </td>
                         </tr>
@@ -417,34 +417,34 @@ const UserReferralsDetails = () => {
                           users.slice(1).map((u) => (
                             <tr
                               key={u._id}
-                              className="border-b border-slate-700/50 bg-slate-900/10 hover:bg-slate-900/30 transition-colors"
+                              className="border-b border-line bg-surface hover:bg-surface transition-colors"
                             >
-                              <td className="pl-12 pr-3 py-2">
-                                <p className="text-slate-200">{u.name}</p>
-                                <p className="text-slate-400 text-sm">{u.email}</p>
+                              <td data-label="Name / Email" className="pl-12 pr-3 py-2">
+                                <p className="text-muted">{u.name}</p>
+                                <p className="text-subtle text-sm">{u.email}</p>
                               </td>
-                              <td className="p-2 text-center text-slate-300">{u.country || "-"}</td>
-                              <td className="p-2 text-center text-slate-300">{u.accountNumber}</td>
-                              <td className="p-2 text-center text-emerald-400">
+                              <td data-label="Country" className="p-2 text-center text-muted">{u.country || "-"}</td>
+                              <td data-label="AC No" className="p-2 text-center text-muted">{u.accountNumber}</td>
+                              <td data-label="Live Equity" className="p-2 text-center text-success">
                                 {+u.accountNumber <= 0
                                   ? "--"
                                   : ibAccountsData?.find(
                                       (i) => String(i.Login) === String(u.accountNumber)
                                     )?.Equity ?? "--"}
                               </td>
-                              <td className="p-2 text-center text-slate-300">{u.level}</td>
-                              <td className="p-2 text-center text-slate-300">
+                              <td data-label="Level" className="p-2 text-center text-muted">{u.level}</td>
+                              <td data-label="Total Volume" className="p-2 text-center text-muted">
                                 {u.totalLot?.toFixed(4) || "0"}
                               </td>
-                              <td className="p-2 text-center text-slate-300">
+                              <td data-label="Total Earned" className="p-2 text-center text-muted">
                                 {u.totalCommission?.toFixed(4) || "0"}
                               </td>
-                              <td className="p-2 text-center">
+                              <td data-label="Action" className="p-2 text-center">
                                 <Link
                                   to={`/user/referral-close-trades/${u.accountNumber}?level=${u.level}`}
                                   className="inline-flex"
                                 >
-                                  <ArrowRight className="text-blue-500 hover:text-blue-400 hover:scale-105 transition-transform" />
+                                  <ArrowRight className="text-primary hover:text-primary hover:scale-105 transition-transform" />
                                 </Link>
                               </td>
                             </tr>
@@ -458,21 +458,21 @@ const UserReferralsDetails = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 py-4 border-t border-slate-700/50 bg-slate-900/30">
+              <div className="flex justify-center items-center gap-4 py-4 border-t border-line bg-surface">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-1.5 rounded-full border border-slate-600/50 text-slate-200 disabled:opacity-40 hover:bg-slate-800/50 transition"
+                  className="px-4 py-1.5 rounded-full border border-line text-muted disabled:opacity-40 hover:bg-surface transition"
                 >
                   Prev
                 </button>
-                <span className="text-slate-300">
+                <span className="text-muted">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-1.5 rounded-full border border-slate-600/50 text-slate-200 disabled:opacity-40 hover:bg-slate-800/50 transition"
+                  className="px-4 py-1.5 rounded-full border border-line text-muted disabled:opacity-40 hover:bg-surface transition"
                 >
                   Next
                 </button>

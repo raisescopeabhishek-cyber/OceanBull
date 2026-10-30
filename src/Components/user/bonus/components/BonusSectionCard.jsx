@@ -6,33 +6,27 @@ const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 const BonusSectionCard = ({ isDark, title, subtitle, rightSlot, children }) => {
   const theme = {
-    card: isDark
-  ? "border-white/15 bg-white/[0.035] shadow-[0_16px_42px_rgba(0,0,0,0.24)] ring-1 ring-white/[0.04]"
-  : "border-orange-200/70 bg-white/90 shadow-[0_12px_30px_rgba(251,146,60,0.07)] ring-1 ring-orange-100/60",
+    card:"border-line bg-surface-2 ring-1 ring-line",
 
-headerBorder: isDark ? "border-white/15" : "border-orange-200/65",
+headerBorder:"border-line",
 
-icon: isDark
-  ? "border-blue-400/25 bg-blue-500/10 text-blue-300"
-  : "border-orange-300/65 bg-orange-50/70 text-orange-500",
+icon:"border-line bg-primary-soft text-primary",
 
-    headerBg: isDark
-      ? "bg-white/[0.018]"
-      : "bg-gradient-to-r from-orange-50/35 via-white/60 to-white/30",
+    headerBg:"bg-surface-2",
 
-    title: isDark ? "text-white" : "text-slate-900",
+    title:"text-text",
 
-    subtitle: isDark ? "text-white/50" : "text-slate-500",
+    subtitle:"text-subtle",
 
     // icon: isDark
-    //   ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    //   : "border-orange-200/70 bg-orange-50/60 text-orange-500",
+    //   ? "border-line bg-primary-soft text-primary"
+    //   : "border-line bg-surface-2 text-primary",
   };
 
   return (
     <div
       className={cx(
-        "overflow-hidden rounded-[24px] border transition-all duration-300",
+        "overflow-hidden rounded-card border transition-all duration-300",
         theme.card
       )}
     >
@@ -46,7 +40,7 @@ icon: isDark
         <div className="flex items-start gap-3">
           <div
             className={cx(
-              "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border",
+              "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-card border",
               theme.icon
             )}
           >

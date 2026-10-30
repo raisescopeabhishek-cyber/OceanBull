@@ -21,7 +21,7 @@ const rgba = (v: any, a = 1) => {
 
 /* Lightweight loader (theme driven) */
 const Spinner = ({ theme }: { theme: any }) => {
-  const c = theme?.accent || "59 130 246";
+  const c = theme?.accent || "79 125 246";
   return (
     <div className="flex items-center justify-center py-6">
       <motion.div className="relative" animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
@@ -170,8 +170,8 @@ export default function UserDashboardTradeHistory({
 
   const getProfitColor = useCallback(
     (p: number) => {
-      const pos = theme?.success || theme?.primary || "34 197 94";
-      const neg = theme?.danger || "244 63 94";
+      const pos = theme?.success || theme?.primary || "15 159 110";
+      const neg = theme?.danger || "220 58 58";
       if (p > 0) return rgba(pos, 0.95);
       if (p < 0) return rgba(neg, 0.95);
       return rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.75);
@@ -181,8 +181,8 @@ export default function UserDashboardTradeHistory({
 
   const getTypePillStyle = useCallback(
     (t: any) => {
-      const buy = theme?.success || theme?.primary || "34 197 94";
-      const sell = theme?.danger || "244 63 94";
+      const buy = theme?.success || theme?.primary || "15 159 110";
+      const sell = theme?.danger || "220 58 58";
 
       const isBuy =
         activeTab === "closed" ? t?.OrderType === 1 : t?.BUY_SELL === 0;
@@ -219,9 +219,9 @@ export default function UserDashboardTradeHistory({
     borderRadius: "24px",
     border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
     background: `linear-gradient(135deg,
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)},
+      ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.72)},
       ${rgba(theme?.surface1 || theme?.bg || "0 0 0", 0.82)},
-      ${rgba(theme?.surface2 || theme?.card || "18 18 18", 0.72)}
+      ${rgba(theme?.surface2 || theme?.card || "15 24 41", 0.72)}
     )`,
     color: rgb(theme?.fg || "255 255 255"),
     boxShadow: `0 18px 70px ${rgba(theme?.shadowColor || "0 0 0", 0.55)}`,
@@ -236,10 +236,10 @@ export default function UserDashboardTradeHistory({
   } as React.CSSProperties;
 
   const tabActive = {
-    background: rgba(theme?.accent || "59 130 246", 0.14),
-    borderColor: rgba(theme?.ring || theme?.accent || "59 130 246", 0.35),
-    color: rgba(theme?.accent || "59 130 246", 0.92),
-    boxShadow: `0 0 22px ${rgba(theme?.glow || theme?.accent || "59 130 246", 0.16)}`,
+    background: rgba(theme?.accent || "79 125 246", 0.14),
+    borderColor: rgba(theme?.ring || theme?.accent || "79 125 246", 0.35),
+    color: rgba(theme?.accent || "79 125 246", 0.92),
+    boxShadow: `0 0 22px ${rgba(theme?.glow || theme?.accent || "79 125 246", 0.16)}`,
   } as React.CSSProperties;
 
   return (
@@ -287,7 +287,7 @@ export default function UserDashboardTradeHistory({
 
         <AnimatePresence>
           {!loading && error && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-6 text-sm" style={{ color: rgba(theme?.danger || "244 63 94", 0.92) }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-6 text-sm" style={{ color: rgba(theme?.danger || "220 58 58", 0.92) }}>
               {error}
             </motion.div>
           )}
@@ -295,7 +295,7 @@ export default function UserDashboardTradeHistory({
 
         {!loading && !error && lastTrades.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs md:text-sm">
+            <table className="table-stack w-full text-xs md:text-sm">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}` }}>
                   <th className="text-left py-2.5" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.72) }}>
@@ -336,11 +336,11 @@ export default function UserDashboardTradeHistory({
                         borderBottom: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.10)}`,
                       }}
                       onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface3 || "30 30 30", 0.22))
+                        ((e.currentTarget as HTMLTableRowElement).style.background = rgba(theme?.rowHover || theme?.surface3 || "19 32 52", 0.22))
                       }
                       onMouseLeave={(e) => ((e.currentTarget as HTMLTableRowElement).style.background = "transparent")}
                     >
-                      <td className="py-2.5 pr-2">
+                      <td data-label="Symbol" className="py-2.5 pr-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{getSymbolIcon(t.Symbol)}</span>
                           <div className="font-semibold" style={{ color: rgba(theme?.fg || "255 255 255", 0.9) }}>
@@ -352,28 +352,28 @@ export default function UserDashboardTradeHistory({
                         </div>
                       </td>
 
-                      <td className="py-2.5 pr-2" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.78) }}>
+                      <td data-label="Open" className="py-2.5 pr-2" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.78) }}>
                         {formatTime(t.Open_Time)}
                       </td>
 
                       {activeTab === "closed" && (
-                        <td className="py-2.5 pr-2" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.78) }}>
+                        <td data-label="Close" className="py-2.5 pr-2" style={{ color: rgba(theme?.mutedFg || theme?.fg, 0.78) }}>
                           {formatTime(t.Close_Time)}
                         </td>
                       )}
 
-                      <td className="py-2.5 text-center">
+                      <td data-label="Type" className="py-2.5 text-center">
                         <span className="inline-block px-2.5 py-1 text-[11px]" style={typePill.style}>
                           {typePill.label}
                         </span>
                       </td>
 
-                      <td className="py-2.5 text-center">
+                      <td data-label="Vol" className="py-2.5 text-center">
                         <span
                           className="inline-block px-2 py-0.5 font-semibold"
                           style={{
                             borderRadius: radius,
-                            background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
+                            background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22),
                             border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.12)}`,
                             color: rgba(theme?.fg || "255 255 255", 0.86),
                           }}
@@ -382,7 +382,7 @@ export default function UserDashboardTradeHistory({
                         </span>
                       </td>
 
-                      <td className="py-2.5 text-right font-bold" style={{ color: getProfitColor(Number(t.Profit || 0)) }}>
+                      <td data-label="P/L" className="py-2.5 text-right font-bold" style={{ color: getProfitColor(Number(t.Profit || 0)) }}>
                         ${Number(t.Profit || 0).toFixed(2)}
                       </td>
                     </motion.tr>

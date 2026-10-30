@@ -1,38 +1,35 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { adminApi } from "../../../../utils/apiClients";
-import { useSelector } from "react-redux";
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Eye,
-  Loader2,
-  RefreshCw,
-  RotateCcw,
-  Search,
-  Wallet,
-  BadgeDollarSign,
-  CircleDollarSign,
-  BarChart3,
-  X,
-  Users,
-} from "lucide-react";
 
-type ThemeStore = {
-  adminTheme?: {
-    mode?: "light" | "dark";
-  };
-};
+import { adminApi } from "../../../../utils/apiClients";
+import {
+  Badge,
+  BlotterPage,
+  Button,
+  DataTable,
+  EmptyState,
+  Field,
+  Input,
+  Modal,
+  Skeleton,
+  StatusBadge,
+  Tabs,
+  Well,
+} from "@/Components/ui";
+
+/**
+ * Bonus reports.
+ *
+ * Three views of the same data — payouts, the wallet ledger, and a per-user
+ * roll-up — so this is one blotter with a tab bar rather than three pages or
+ * three hand-built tables. Each tab supplies its own column set, rows and
+ * pagination; the shell, filters, readouts and footer are shared.
+ *
+ * The page previously carried eleven local components (`PayoutTable`,
+ * `LedgerTable`, `UsersTable`, `FilterInput`, `MiniStat`, `LoadingRow`,
+ * `EmptyRow`, `LoadingCard`, `EmptyCard`, a portal modal and more), each
+ * branching on `isDark`. All of that is the design system now.
+ */
 
 type SummaryResponse = {
   totalPayouts: number;
@@ -128,14 +125,53 @@ const defaultPagination: Pagination = {
   totalPages: 1,
 };
 
-const BonusReports = () => {
-  const mode = useSelector(
-    (store: ThemeStore) => store.adminTheme?.mode || "light"
-  );
-  const isDark = mode === "dark";
+const fullName = (user?: { firstName?: string; lastName?: string }) => {
+  const name = `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
+  return name || "--";
+};
 
+const currency = (value?: number) => {
+  const num = Number(value || 0);
+  return `$${num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const number = (value?: number) => Number(value || 0).toLocaleString("en-US");
+
+const formatDate = (date?: string) => {
+  if (!date) return "--";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "--";
+
+  const formattedDate = d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const formattedTime = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return `${formattedDate}, ${formattedTime}`;
+};
+
+/** A labelled value inside the detail modal. */
+const DetailRow = ({ label, value }: { label: string; value: any }) => (
+  <div className="flex items-baseline justify-between gap-3 border-b border-line py-1.5 last:border-b-0">
+    <span className="lbl shrink-0">{label}</span>
+    <span className="numeric min-w-0 truncate text-xs text-text">
+      {value ?? "--"}
+    </span>
+  </div>
+);
+
+const BonusReports = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("payouts");
-  const [filtersOpen, setFiltersOpen] = useState(true);
 
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -413,1811 +449,595 @@ const BonusReports = () => {
     else setUserPage(page);
   };
 
-  const summaryCards = [
+  /* ---- the three column sets ---------------------------------------- */
+
+  const userCell = (user?: UserLite) => (
+    <div className="min-w-0">
+      <div className="truncate font-semibold text-text">{fullName(user)}</div>
+      <div className="numeric mt-0.5 truncate text-xs text-subtle">
+        {user?.email || "--"}
+      </div>
+    </div>
+  );
+
+  const payoutColumns = [
     {
-      title: "Total Payouts",
-      value: summary.totalPayouts,
-      subtitle: `${summary.successCount} success / ${summary.failedCount} failed`,
-      icon: BadgeDollarSign,
-      accent: isDark
-        ? "text-blue-300 bg-blue-500/10"
-        : "text-blue-700 bg-blue-50",
+      key: "user",
+      header: "User",
+      primary: true,
+      cell: (row: PayoutRow) => userCell(row?.userId),
     },
     {
-      title: "Released Bonus",
-      value: currency(summary.totalSuccessBonusAmount),
-      subtitle: `Gross ${currency(summary.totalBonusAmount)}`,
-      icon: CircleDollarSign,
-      accent: isDark
-        ? "text-emerald-300 bg-emerald-500/10"
-        : "text-emerald-700 bg-emerald-50",
+      key: "account",
+      header: "Referral / MT5",
+      secondary: true,
+      numeric: true,
+      cell: (row: PayoutRow) =>
+        `${row?.userId?.referralAccount || "--"} · ${row?.mt5Account || "--"}`,
     },
     {
-      title: "Wallet Debited",
-      value: currency(summary.totalWalletDebit),
-      subtitle: `${summary.ledgerCount} debit entries`,
-      icon: Wallet,
-      accent: isDark
-        ? "text-violet-300 bg-violet-500/10"
-        : "text-violet-700 bg-violet-50",
+      key: "totalLot",
+      header: "Lot",
+      align: "right",
+      numeric: true,
+      cell: (row: PayoutRow) => number(row?.totalLot),
     },
     {
-      title: "Lot Processed",
-      value: number(summary.totalLotProcessed),
-      subtitle: `${summary.skippedCount} skipped payouts`,
-      icon: BarChart3,
-      accent: isDark
-        ? "text-amber-300 bg-amber-500/10"
-        : "text-amber-700 bg-amber-50",
+      key: "bonusAmount",
+      header: "Bonus",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (row: PayoutRow) => (
+        <span className="font-semibold">{currency(row?.bonusAmount)}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (row: PayoutRow) => <StatusBadge status={row?.status} />,
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      cell: (row: PayoutRow) => (
+        <span className="numeric text-xs text-subtle">
+          {formatDate(row?.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      align: "right",
+      cardFull: true,
+      cell: (row: PayoutRow) => (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={(e: any) => {
+              e.stopPropagation();
+              openPayoutDetail(row._id);
+            }}
+          >
+            View
+          </Button>
+        </div>
+      ),
     },
   ];
 
-  const tabs: { key: TabKey; label: string; count: number; icon: any }[] = [
+  const ledgerColumns = [
     {
-      key: "payouts",
-      label: "Payout Report",
-      count: payoutPagination.total,
-      icon: BadgeDollarSign,
+      key: "user",
+      header: "User",
+      primary: true,
+      cell: (row: LedgerRow) => userCell(row?.userId),
     },
     {
-      key: "ledger",
-      label: "Wallet Ledger",
-      count: ledgerPagination.total,
-      icon: Wallet,
+      key: "type",
+      header: "Type",
+      secondary: true,
+      cell: (row: LedgerRow) => (
+        <Badge tone="neutral" dot={false}>
+          {row?.type || "--"}
+        </Badge>
+      ),
     },
     {
-      key: "users",
-      label: "User Overview",
-      count: userPagination.total,
-      icon: Users,
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (row: LedgerRow) => (
+        <span
+          className={
+            Number(row?.amount || 0) < 0
+              ? "font-semibold text-loss"
+              : "font-semibold text-profit"
+          }
+        >
+          {currency(row?.amount)}
+        </span>
+      ),
+    },
+    {
+      key: "balanceBefore",
+      header: "Before",
+      align: "right",
+      numeric: true,
+      cell: (row: LedgerRow) => currency(row?.balanceBefore),
+    },
+    {
+      key: "balanceAfter",
+      header: "After",
+      align: "right",
+      numeric: true,
+      cell: (row: LedgerRow) => currency(row?.balanceAfter),
+    },
+    {
+      key: "reference",
+      header: "Reference",
+      cell: (row: LedgerRow) => (
+        <div className="min-w-0">
+          <div className="numeric truncate text-xs text-text">
+            {row?.referenceModel || "--"}
+          </div>
+          <div className="numeric truncate text-[11px] text-subtle">
+            {String(row?.referenceId || "--").slice(-10)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      cell: (row: LedgerRow) => (
+        <span className="numeric text-xs text-subtle">
+          {formatDate(row?.createdAt)}
+        </span>
+      ),
     },
   ];
 
-  return (
-    <div className="w-full">
-      <div className="space-y-4 lg:space-y-5">
-        <div
-          className={[
-            "rounded-[24px] border backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-              : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "border-b px-4 py-4 sm:px-5 sm:py-5",
-              isDark ? "border-white/10" : "border-orange-100/80",
-            ].join(" ")}
-          >
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex items-start gap-3">
-                <button
-                  onClick={() => window.history.back()}
-                  className={[
-                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-
-                <div>
-                  <h1
-                    className={[
-                      "text-xl font-bold sm:text-2xl",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    Bonus Reports
-                  </h1>
-                  <p
-                    className={[
-                      "mt-1 text-sm leading-6",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    Track payout history, wallet movement, and user-wise bonus
-                    overview.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
-                <div className="relative w-full sm:min-w-[280px]">
-                  <Search
-                    size={18}
-                    className={[
-                      "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
-                      isDark ? "text-white/35" : "text-slate-400",
-                    ].join(" ")}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search user overview"
-                    value={filters.search}
-                    onChange={(e) => updateFilter("search", e.target.value)}
-                    className={[
-                      "h-11 w-full rounded-xl border pl-10 pr-4 text-sm outline-none transition",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
-                        : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
-                    ].join(" ")}
-                  />
-                </div>
-
-                <button
-                  onClick={resetFilters}
-                  className={[
-                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  <RotateCcw size={16} />
-                  Reset
-                </button>
-
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className={[
-                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-                      : "border-orange-200 bg-orange-500 text-white hover:bg-orange-600",
-                  ].join(" ")}
-                >
-                  <RefreshCw
-                    size={16}
-                    className={refreshing ? "animate-spin" : ""}
-                  />
-                  {refreshing ? "Refreshing..." : "Refresh"}
-                </button>
-
-                <button
-                  onClick={() => setFiltersOpen((prev) => !prev)}
-                  className={[
-                    "inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-                      : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  {filtersOpen ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                  {filtersOpen ? "Collapse" : "Expand"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={[
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              filtersOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0",
-            ].join(" ")}
-          >
-            <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 sm:p-5">
-              <FilterInput
-                label="User ID"
-                value={filters.userId}
-                onChange={(value) => updateFilter("userId", value)}
-                placeholder="Enter user id"
-                isDark={isDark}
-              />
-
-              <FilterInput
-                label="MT5 Account"
-                value={filters.mt5Account}
-                onChange={(value) => updateFilter("mt5Account", value)}
-                placeholder="Enter MT5 account"
-                isDark={isDark}
-              />
-
-              <FilterSelect
-                label="Payout Status"
-                value={filters.status}
-                onChange={(value) => updateFilter("status", value)}
-                isDark={isDark}
-                options={[
-                  { label: "All Status", value: "" },
-                  { label: "Success", value: "success" },
-                  { label: "Failed", value: "failed" },
-                  { label: "Skipped", value: "skipped" },
-                ]}
-              />
-
-              <FilterSelect
-                label="Ledger Type"
-                value={filters.type}
-                onChange={(value) => updateFilter("type", value)}
-                isDark={isDark}
-                options={[
-                  { label: "All Types", value: "" },
-                  { label: "deposit_bonus", value: "deposit_bonus" },
-                  {
-                    label: "trade_bonus_credit",
-                    value: "trade_bonus_credit",
-                  },
-                  {
-                    label: "trade_bonus_debit",
-                    value: "trade_bonus_debit",
-                  },
-                  {
-                    label: "manual_adjustment",
-                    value: "manual_adjustment",
-                  },
-                ]}
-              />
-
-              <FilterInput
-                label="Min Lot"
-                value={filters.minLot}
-                onChange={(value) => updateFilter("minLot", value)}
-                placeholder="0"
-                type="number"
-                isDark={isDark}
-              />
-
-              <FilterInput
-                label="Max Lot"
-                value={filters.maxLot}
-                onChange={(value) => updateFilter("maxLot", value)}
-                placeholder="100"
-                type="number"
-                isDark={isDark}
-              />
-
-              <FilterInput
-                label="Reference Model"
-                value={filters.referenceModel}
-                onChange={(value) => updateFilter("referenceModel", value)}
-                placeholder="TradeBonusPayout"
-                isDark={isDark}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <FilterInput
-                  label="Start Date"
-                  value={filters.startDate}
-                  onChange={(value) => updateFilter("startDate", value)}
-                  type="date"
-                  isDark={isDark}
-                />
-                <FilterInput
-                  label="End Date"
-                  value={filters.endDate}
-                  onChange={(value) => updateFilter("endDate", value)}
-                  type="date"
-                  isDark={isDark}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {summaryCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <div
-                key={card.title}
-                className={[
-                  "rounded-[24px] border p-5 backdrop-blur-xl",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-                    : "border-orange-200 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-                ].join(" ")}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p
-                      className={[
-                        "text-sm font-medium",
-                        isDark ? "text-white/45" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      {card.title}
-                    </p>
-                    <h3
-                      className={[
-                        "mt-2 text-2xl font-bold",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {summaryLoading ? "--" : card.value}
-                    </h3>
-                    <p
-                      className={[
-                        "mt-1 text-sm",
-                        isDark ? "text-white/40" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      {summaryLoading ? "Loading..." : card.subtitle}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}
-                  >
-                    <Icon size={22} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={[
-                  "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition",
-                  active
-                    ? isDark
-                      ? "border-blue-400/25 bg-blue-500/10 text-blue-300"
-                      : "border-orange-200 bg-orange-500 text-white"
-                    : isDark
-                    ? "border-white/10 bg-white/[0.03] text-white/80 hover:bg-white/[0.05]"
-                    : "border-orange-200 bg-white/80 text-slate-700 hover:bg-orange-50",
-                ].join(" ")}
-              >
-                <Icon size={16} />
-                {tab.label}
-                <span
-                  className={[
-                    "rounded-full px-2 py-0.5 text-xs",
-                    active
-                      ? isDark
-                        ? "bg-blue-500/15 text-blue-200"
-                        : "bg-white/20 text-white"
-                      : isDark
-                      ? "bg-white/[0.06] text-white/60"
-                      : "bg-orange-50 text-slate-600",
-                  ].join(" ")}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab === "payouts" && (
-          <PayoutTable
-            rows={payoutRows}
-            loading={tableLoading}
-            isDark={isDark}
-            onView={openPayoutDetail}
-          />
-        )}
-
-        {activeTab === "ledger" && (
-          <LedgerTable rows={ledgerRows} loading={tableLoading} isDark={isDark} />
-        )}
-
-        {activeTab === "users" && (
-          <UsersTable rows={userRows} loading={tableLoading} isDark={isDark} />
-        )}
-
-        {!tableLoading && currentPagination.total > 0 && (
-          <div
-            className={[
-              "rounded-[24px] border p-4 backdrop-blur-xl",
-              isDark
-                ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-                : "border-orange-100/80 bg-white/65 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-            ].join(" ")}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p
-                className={[
-                  "text-sm",
-                  isDark ? "text-white/45" : "text-slate-500",
-                ].join(" ")}
-              >
-                Showing{" "}
-                <span
-                  className={[
-                    "font-semibold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {(currentPage - 1) * currentPagination.limit + 1}
-                </span>{" "}
-                to{" "}
-                <span
-                  className={[
-                    "font-semibold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {Math.min(
-                    currentPage * currentPagination.limit,
-                    currentPagination.total
-                  )}
-                </span>{" "}
-                of{" "}
-                <span
-                  className={[
-                    "font-semibold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {currentPagination.total}
-                </span>
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={buttonNavClass(isDark, currentPage === 1, false)}
-                >
-                  <ChevronLeft size={16} />
-                  Prev
-                </button>
-
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === currentPagination.totalPages}
-                  className={buttonNavClass(
-                    isDark,
-                    currentPage === currentPagination.totalPages,
-                    true
-                  )}
-                >
-                  Next
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {selectedPayoutId && (
-        <PayoutDetailModal
-          isDark={isDark}
-          loading={detailLoading}
-          detail={payoutDetail}
-          onClose={closeDetail}
-        />
-      )}
-    </div>
-  );
-};
-
-const PayoutTable = ({
-  rows,
-  loading,
-  isDark,
-  onView,
-}: {
-  rows: PayoutRow[];
-  loading: boolean;
-  isDark: boolean;
-  onView: (id: string) => void;
-}) => {
-  return (
-    <>
-      <div
-        className={[
-          "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
-          isDark
-            ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-            : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-        ].join(" ")}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
-            <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
-              <tr
-                className={[
-                  "border-b",
-                  isDark ? "border-white/10" : "border-orange-200",
-                ].join(" ")}
-              >
-                {[
-                  "User",
-                  "Referral / MT5",
-                  "Lot",
-                  "Bonus",
-                  "Status",
-                  "Created",
-                  "Action",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className={[
-                      "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
-                      heading !== "User" ? "text-center" : "",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <LoadingRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="Loading payout report..."
-                />
-              ) : rows?.length ? (
-                rows.map((row) => (
-                  <tr
-                    key={row._id}
-                    className={[
-                      "border-b transition",
-                      isDark
-                        ? "border-white/10 hover:bg-white/[0.03]"
-                        : "border-orange-200 hover:bg-orange-50/40",
-                    ].join(" ")}
-                  >
-                    <td className="px-5 py-4">
-                      <p
-                        className={[
-                          "font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {fullName(row.userId)}
-                      </p>
-                      <p
-                        className={[
-                          "text-sm",
-                          isDark ? "text-blue-300" : "text-primary-600",
-                        ].join(" ")}
-                      >
-                        {row.userId?.email || "--"}
-                      </p>
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white/80" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      <div className="space-y-1">
-                        <p>{row.userId?.referralAccount || "--"}</p>
-                        <p
-                          className={[
-                            "text-sm",
-                            isDark ? "text-white/40" : "text-slate-500",
-                          ].join(" ")}
-                        >
-                          {row.mt5Account || "--"}
-                        </p>
-                      </div>
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-medium",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {number(row.totalLot)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-semibold",
-                        isDark ? "text-emerald-300" : "text-emerald-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.bonusAmount)}
-                    </td>
-
-                    <td className="px-5 py-4 text-center">
-                      {statusBadge(row.status, isDark)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center text-sm",
-                        isDark ? "text-white/70" : "text-slate-600",
-                      ].join(" ")}
-                    >
-                      {formatDate(row.createdAt)}
-                    </td>
-
-                    <td className="px-5 py-4 text-center">
-                      <button
-                        onClick={() => onView(row._id)}
-                        className={[
-                          "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition",
-                          isDark
-                            ? "bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-                            : "bg-orange-500 text-white hover:bg-orange-600",
-                        ].join(" ")}
-                      >
-                        <Eye size={16} />
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <EmptyRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="No payout records found"
-                />
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:hidden">
-        {loading ? (
-          <LoadingCard isDark={isDark} text="Loading payout report..." />
-        ) : rows?.length ? (
-          rows.map((row) => (
-            <div
-              key={row._id}
-              className={[
-                "rounded-[24px] border p-4 backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-orange-100/80 bg-white/65",
-              ].join(" ")}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3
-                    className={[
-                      "text-base font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    {fullName(row.userId)}
-                  </h3>
-                  <p
-                    className={[
-                      "text-sm",
-                      isDark ? "text-blue-300" : "text-primary-600",
-                    ].join(" ")}
-                  >
-                    {row.userId?.email || "--"}
-                  </p>
-                </div>
-                {statusBadge(row.status, isDark)}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <MiniStat
-                  label="MT5"
-                  value={row.mt5Account || "--"}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Lot"
-                  value={number(row.totalLot)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Bonus"
-                  value={currency(row.bonusAmount)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Created"
-                  value={formatDate(row.createdAt)}
-                  isDark={isDark}
-                />
-              </div>
-
-              <button
-                onClick={() => onView(row._id)}
-                className={[
-                  "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition",
-                  isDark
-                    ? "bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-                    : "bg-orange-500 text-white hover:bg-orange-600",
-                ].join(" ")}
-              >
-                <Eye size={16} />
-                View Detail
-              </button>
-            </div>
-          ))
-        ) : (
-          <EmptyCard isDark={isDark} text="No payout records found" />
-        )}
-      </div>
-    </>
-  );
-};
-
-const LedgerTable = ({
-  rows,
-  loading,
-  isDark,
-}: {
-  rows: LedgerRow[];
-  loading: boolean;
-  isDark: boolean;
-}) => {
-  return (
-    <>
-      <div
-        className={[
-          "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
-          isDark
-            ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-            : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-        ].join(" ")}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
-            <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
-              <tr
-                className={[
-                  "border-b",
-                  isDark ? "border-white/10" : "border-orange-200",
-                ].join(" ")}
-              >
-                {[
-                  "User",
-                  "Type",
-                  "Amount",
-                  "Before",
-                  "After",
-                  "Reference",
-                  "Created",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className={[
-                      "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
-                      heading !== "User" ? "text-center" : "",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <LoadingRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="Loading wallet ledger..."
-                />
-              ) : rows?.length ? (
-                rows.map((row) => (
-                  <tr
-                    key={row._id}
-                    className={[
-                      "border-b transition",
-                      isDark
-                        ? "border-white/10 hover:bg-white/[0.03]"
-                        : "border-orange-200 hover:bg-orange-50/40",
-                    ].join(" ")}
-                  >
-                    <td className="px-5 py-4">
-                      <p
-                        className={[
-                          "font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {fullName(row.userId)}
-                      </p>
-                      <p
-                        className={[
-                          "text-sm",
-                          isDark ? "text-blue-300" : "text-primary-600",
-                        ].join(" ")}
-                      >
-                        {row.userId?.email || "--"}
-                      </p>
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white/75" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      {typeBadge(row.type, isDark)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-semibold",
-                        isDark ? "text-emerald-300" : "text-emerald-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.amount)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white/75" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.balanceBefore)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white/75" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.balanceAfter)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center text-sm",
-                        isDark ? "text-white/60" : "text-slate-500",
-                      ].join(" ")}
-                    >
-                      <div className="space-y-1">
-                        <p>{row.referenceModel || "--"}</p>
-                        <p>{row.note || "--"}</p>
-                      </div>
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center text-sm",
-                        isDark ? "text-white/70" : "text-slate-600",
-                      ].join(" ")}
-                    >
-                      {formatDate(row.createdAt)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <EmptyRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="No wallet ledger found"
-                />
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:hidden">
-        {loading ? (
-          <LoadingCard isDark={isDark} text="Loading wallet ledger..." />
-        ) : rows?.length ? (
-          rows.map((row) => (
-            <div
-              key={row._id}
-              className={[
-                "rounded-[24px] border p-4 backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-orange-100/80 bg-white/65",
-              ].join(" ")}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3
-                    className={[
-                      "text-base font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    {fullName(row.userId)}
-                  </h3>
-                  <p
-                    className={[
-                      "text-sm",
-                      isDark ? "text-blue-300" : "text-primary-600",
-                    ].join(" ")}
-                  >
-                    {row.userId?.email || "--"}
-                  </p>
-                </div>
-                {typeBadge(row.type, isDark)}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <MiniStat
-                  label="Amount"
-                  value={currency(row.amount)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Before"
-                  value={currency(row.balanceBefore)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="After"
-                  value={currency(row.balanceAfter)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Created"
-                  value={formatDate(row.createdAt)}
-                  isDark={isDark}
-                />
-              </div>
-
-              <div className="mt-3 rounded-xl border border-dashed border-white/10 p-3">
-                <p
-                  className={[
-                    "text-xs uppercase tracking-[0.14em]",
-                    isDark ? "text-white/40" : "text-slate-400",
-                  ].join(" ")}
-                >
-                  Reference
-                </p>
-                <p
-                  className={[
-                    "mt-1 text-sm",
-                    isDark ? "text-white/75" : "text-slate-700",
-                  ].join(" ")}
-                >
-                  {row.referenceModel || "--"}
-                </p>
-                <p
-                  className={[
-                    "mt-1 text-sm",
-                    isDark ? "text-white/50" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  {row.note || "--"}
-                </p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <EmptyCard isDark={isDark} text="No wallet ledger found" />
-        )}
-      </div>
-    </>
-  );
-};
-
-const UsersTable = ({
-  rows,
-  loading,
-  isDark,
-}: {
-  rows: UserOverviewRow[];
-  loading: boolean;
-  isDark: boolean;
-}) => {
-  return (
-    <>
-      <div
-        className={[
-          "hidden overflow-hidden rounded-[24px] border backdrop-blur-xl lg:block",
-          isDark
-            ? "border-white/10 bg-white/[0.03] shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
-            : "border-orange-200 bg-white/90 shadow-[0_16px_40px_rgba(251,146,60,0.10)]",
-        ].join(" ")}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
-            <thead className={isDark ? "bg-white/[0.03]" : "bg-white/40"}>
-              <tr
-                className={[
-                  "border-b",
-                  isDark ? "border-white/10" : "border-orange-200",
-                ].join(" ")}
-              >
-                {[
-                  "User",
-                  "Referral",
-                  "Bonus Wallet",
-                  "Total Payouts",
-                  "Successful",
-                  "Released Bonus",
-                  "Wallet Debited",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className={[
-                      "px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]",
-                      heading !== "User" ? "text-center" : "",
-                      isDark ? "text-white/45" : "text-slate-500",
-                    ].join(" ")}
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <LoadingRow
-                  colSpan={7}
-                  isDark={isDark}
-                  text="Loading user overview..."
-                />
-              ) : rows?.length ? (
-                rows.map((row) => (
-                  <tr
-                    key={row._id}
-                    className={[
-                      "border-b transition",
-                      isDark
-                        ? "border-white/10 hover:bg-white/[0.03]"
-                        : "border-orange-200 hover:bg-orange-50/40",
-                    ].join(" ")}
-                  >
-                    <td className="px-5 py-4">
-                      <p
-                        className={[
-                          "font-semibold",
-                          isDark ? "text-white" : "text-slate-900",
-                        ].join(" ")}
-                      >
-                        {fullName(row)}
-                      </p>
-                      <p
-                        className={[
-                          "text-sm",
-                          isDark ? "text-blue-300" : "text-primary-600",
-                        ].join(" ")}
-                      >
-                        {row.email || "--"}
-                      </p>
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white/75" : "text-slate-700",
-                      ].join(" ")}
-                    >
-                      {row.referralAccount || "--"}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-semibold",
-                        isDark ? "text-emerald-300" : "text-emerald-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.bonusWallet)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {number(row.totalPayouts)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center",
-                        isDark ? "text-white" : "text-slate-900",
-                      ].join(" ")}
-                    >
-                      {number(row.totalSuccessfulPayouts)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-semibold",
-                        isDark ? "text-emerald-300" : "text-emerald-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.totalBonusReleased)}
-                    </td>
-
-                    <td
-                      className={[
-                        "px-5 py-4 text-center font-semibold",
-                        isDark ? "text-violet-300" : "text-violet-700",
-                      ].join(" ")}
-                    >
-                      {currency(row.totalWalletDebited)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <EmptyRow colSpan={7} isDark={isDark} text="No users found" />
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:hidden">
-        {loading ? (
-          <LoadingCard isDark={isDark} text="Loading user overview..." />
-        ) : rows?.length ? (
-          rows.map((row) => (
-            <div
-              key={row._id}
-              className={[
-                "rounded-[24px] border p-4 backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.03]"
-                  : "border-orange-100/80 bg-white/65",
-              ].join(" ")}
-            >
-              <div>
-                <h3
-                  className={[
-                    "text-base font-semibold",
-                    isDark ? "text-white" : "text-slate-900",
-                  ].join(" ")}
-                >
-                  {fullName(row)}
-                </h3>
-                <p
-                  className={[
-                    "text-sm",
-                    isDark ? "text-blue-300" : "text-primary-600",
-                  ].join(" ")}
-                >
-                  {row.email || "--"}
-                </p>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <MiniStat
-                  label="Referral"
-                  value={row.referralAccount || "--"}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Bonus Wallet"
-                  value={currency(row.bonusWallet)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Payouts"
-                  value={number(row.totalPayouts)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Success"
-                  value={number(row.totalSuccessfulPayouts)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Released"
-                  value={currency(row.totalBonusReleased)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Debited"
-                  value={currency(row.totalWalletDebited)}
-                  isDark={isDark}
-                />
-              </div>
-            </div>
-          ))
-        ) : (
-          <EmptyCard isDark={isDark} text="No users found" />
-        )}
-      </div>
-    </>
-  );
-};
-
-const PayoutDetailModal = ({
-  isDark,
-  loading,
-  detail,
-  onClose,
-}: {
-  isDark: boolean;
-  loading: boolean;
-  detail: PayoutDetailResponse | null;
-  onClose: () => void;
-}) => {
-  const [mounted, setMounted] = useState(false);
-
-  const payout = detail?.payout;
-  const relatedLedger = detail?.relatedLedger || [];
-
-  useEffect(() => {
-    setMounted(true);
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
-  if (!mounted || typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div
-        className={[
-          "max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border",
-          isDark
-            ? "border-white/10 bg-[#0f172a]"
-            : "border-orange-200 bg-white",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            "flex items-center justify-between border-b px-5 py-4",
-            isDark ? "border-white/10" : "border-orange-100",
-          ].join(" ")}
-        >
-          <div>
-            <h3
-              className={[
-                "text-lg font-semibold",
-                isDark ? "text-white" : "text-slate-900",
-              ].join(" ")}
-            >
-              Payout Detail
-            </h3>
-            <p
-              className={[
-                "text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              View payout record with related ledger entries.
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className={[
-              "inline-flex h-10 w-10 items-center justify-center rounded-xl border transition",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.08]"
-                : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50",
-            ].join(" ")}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-5">
-          {loading ? (
-            <LoadingCard isDark={isDark} text="Loading payout detail..." />
-          ) : !payout ? (
-            <EmptyCard isDark={isDark} text="No payout detail found" />
-          ) : (
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <MiniStat
-                  label="User"
-                  value={fullName(payout.userId)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="MT5 Account"
-                  value={payout.mt5Account || "--"}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Lot"
-                  value={number(payout.totalLot)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Bonus"
-                  value={currency(payout.bonusAmount)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Status"
-                  value={String(payout.status || "--")}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Created"
-                  value={formatDate(payout.createdAt)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Updated"
-                  value={formatDate(payout.updatedAt)}
-                  isDark={isDark}
-                />
-                <MiniStat
-                  label="Email"
-                  value={payout.userId?.email || "--"}
-                  isDark={isDark}
-                />
-              </div>
-
-              <div
-                className={[
-                  "rounded-[24px] border p-4",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-orange-100/80 bg-orange-50/30",
-                ].join(" ")}
-              >
-                <p
-                  className={[
-                    "text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Note
-                </p>
-                <p
-                  className={[
-                    "mt-2 text-sm leading-6",
-                    isDark ? "text-white/80" : "text-slate-700",
-                  ].join(" ")}
-                >
-                  {payout.note || "--"}
-                </p>
-              </div>
-
-              <div
-                className={[
-                  "rounded-[24px] border p-4",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-orange-100/80 bg-white/70",
-                ].join(" ")}
-              >
-                <div className="mb-4">
-                  <h4
-                    className={[
-                      "text-base font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    Related Ledger
-                  </h4>
-                </div>
-
-                <div className="space-y-3">
-                  {relatedLedger.length ? (
-                    relatedLedger.map((item) => (
-                      <div
-                        key={item._id}
-                        className={[
-                          "rounded-2xl border p-4",
-                          isDark
-                            ? "border-white/10 bg-white/[0.02]"
-                            : "border-orange-100 bg-orange-50/40",
-                        ].join(" ")}
-                      >
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                          <MiniStat
-                            label="Type"
-                            value={item.type || "--"}
-                            isDark={isDark}
-                          />
-                          <MiniStat
-                            label="Amount"
-                            value={currency(item.amount)}
-                            isDark={isDark}
-                          />
-                          <MiniStat
-                            label="Before"
-                            value={currency(item.balanceBefore)}
-                            isDark={isDark}
-                          />
-                          <MiniStat
-                            label="After"
-                            value={currency(item.balanceAfter)}
-                            isDark={isDark}
-                          />
-                        </div>
-
-                        <div className="mt-3">
-                          <p
-                            className={[
-                              "text-xs uppercase tracking-[0.14em]",
-                              isDark ? "text-white/40" : "text-slate-400",
-                            ].join(" ")}
-                          >
-                            Note
-                          </p>
-                          <p
-                            className={[
-                              "mt-1 text-sm",
-                              isDark ? "text-white/70" : "text-slate-600",
-                            ].join(" ")}
-                          >
-                            {item.note || "--"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <EmptyCard isDark={isDark} text="No related ledger found" />
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-};
-
-const FilterInput = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  isDark,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  isDark: boolean;
-  type?: string;
-}) => {
-  return (
-    <div>
-      <label
-        className={[
-          "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
-          isDark ? "text-white/45" : "text-slate-500",
-        ].join(" ")}
-      >
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={[
-          "h-11 w-full rounded-xl border px-4 text-sm outline-none transition",
-          isDark
-            ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/30 focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
-            : "border-orange-200 bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
-        ].join(" ")}
-      />
-    </div>
-  );
-};
-
-const FilterSelect = ({
-  label,
-  value,
-  onChange,
-  isDark,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  isDark: boolean;
-  options: { label: string; value: string }[];
-}) => {
-  return (
-    <div>
-      <label
-        className={[
-          "mb-2 block text-xs font-semibold uppercase tracking-[0.14em]",
-          isDark ? "text-white/45" : "text-slate-500",
-        ].join(" ")}
-      >
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={[
-          "h-11 w-full rounded-xl border px-4 text-sm outline-none transition",
-          isDark
-            ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-400/15"
-            : "border-orange-200 bg-white/80 text-slate-900 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/60",
-        ].join(" ")}
-      >
-        {options.map((option) => (
-          <option
-            key={option.value}
-            value={option.value}
-            className={
-              isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"
-            }
-          >
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
-
-const MiniStat = ({
-  label,
-  value,
-  isDark,
-}: {
-  label: string;
-  value: ReactNode;
-  isDark: boolean;
-}) => {
-  return (
-    <div
-      className={[
-        "rounded-2xl border p-3",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-orange-100 bg-orange-50/40",
-      ].join(" ")}
-    >
-      <p
-        className={[
-          "text-xs uppercase tracking-[0.14em]",
-          isDark ? "text-white/40" : "text-slate-400",
-        ].join(" ")}
-      >
-        {label}
-      </p>
-      <p
-        className={[
-          "mt-2 text-sm font-semibold break-words",
-          isDark ? "text-white" : "text-slate-900",
-        ].join(" ")}
-      >
-        {value}
-      </p>
-    </div>
-  );
-};
-
-const LoadingRow = ({
-  colSpan,
-  isDark,
-  text,
-}: {
-  colSpan: number;
-  isDark: boolean;
-  text: string;
-}) => {
-  return (
-    <tr>
-      <td colSpan={colSpan} className="px-5 py-12">
-        <div
-          className={[
-            "flex items-center justify-center gap-3",
-            isDark ? "text-white/65" : "text-slate-600",
-          ].join(" ")}
-        >
-          <Loader2 className="animate-spin" size={18} />
-          <span>{text}</span>
-        </div>
-      </td>
-    </tr>
-  );
-};
-
-const EmptyRow = ({
-  colSpan,
-  isDark,
-  text,
-}: {
-  colSpan: number;
-  isDark: boolean;
-  text: string;
-}) => {
-  return (
-    <tr>
-      <td colSpan={colSpan} className="px-5 py-12">
-        <div className="text-center">
-          <p
-            className={[
-              "text-sm",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            {text}
-          </p>
-        </div>
-      </td>
-    </tr>
-  );
-};
-
-const LoadingCard = ({
-  isDark,
-  text,
-}: {
-  isDark: boolean;
-  text: string;
-}) => {
-  return (
-    <div
-      className={[
-        "rounded-[24px] border p-8 text-center backdrop-blur-xl",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-orange-100/80 bg-white/65",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "flex items-center justify-center gap-3",
-          isDark ? "text-white/65" : "text-slate-600",
-        ].join(" ")}
-      >
-        <Loader2 className="animate-spin" size={18} />
-        <span>{text}</span>
-      </div>
-    </div>
-  );
-};
-
-const EmptyCard = ({
-  isDark,
-  text,
-}: {
-  isDark: boolean;
-  text: string;
-}) => {
-  return (
-    <div
-      className={[
-        "rounded-[24px] border p-8 text-center backdrop-blur-xl",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-orange-100/80 bg-white/65",
-      ].join(" ")}
-    >
-      <p
-        className={[
-          "text-sm",
-          isDark ? "text-white/45" : "text-slate-500",
-        ].join(" ")}
-      >
-        {text}
-      </p>
-    </div>
-  );
-};
-
-function fullName(user?: { firstName?: string; lastName?: string }) {
-  const name = `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
-  return name || "--";
-}
-
-function currency(value?: number) {
-  const num = Number(value || 0);
-  return `$${num.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function number(value?: number) {
-  const num = Number(value || 0);
-  return num.toLocaleString("en-US");
-}
-
-function formatDate(date?: string) {
-  if (!date) return "--";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "--";
-
-  const formattedDate = d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-
-  const formattedTime = d.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  return `${formattedDate}, ${formattedTime}`;
-}
-
-function statusBadge(status?: string, isDark?: boolean) {
-  const normalized = (status || "").toLowerCase();
-
-  const map: Record<string, string> = {
-    success: isDark
-      ? "bg-emerald-500/10 text-emerald-300 border border-emerald-400/20"
-      : "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    failed: isDark
-      ? "bg-red-500/10 text-red-300 border border-red-400/20"
-      : "bg-red-50 text-red-700 border border-red-200",
-    skipped: isDark
-      ? "bg-amber-500/10 text-amber-300 border border-amber-400/20"
-      : "bg-amber-50 text-amber-700 border border-amber-200",
+  const userColumns = [
+    {
+      key: "user",
+      header: "User",
+      primary: true,
+      cell: (row: UserOverviewRow) => userCell(row),
+    },
+    {
+      key: "referralAccount",
+      header: "Referral",
+      secondary: true,
+      numeric: true,
+      cell: (row: UserOverviewRow) => row?.referralAccount || "--",
+    },
+    {
+      key: "bonusWallet",
+      header: "Bonus wallet",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (row: UserOverviewRow) => (
+        <span className="font-semibold">{currency(row?.bonusWallet)}</span>
+      ),
+    },
+    {
+      key: "totalPayouts",
+      header: "Total payouts",
+      align: "right",
+      numeric: true,
+      cell: (row: UserOverviewRow) => number(row?.totalPayouts),
+    },
+    {
+      key: "totalSuccessfulPayouts",
+      header: "Successful",
+      align: "right",
+      numeric: true,
+      cell: (row: UserOverviewRow) => (
+        <span className="text-profit">
+          {number(row?.totalSuccessfulPayouts)}
+        </span>
+      ),
+    },
+    {
+      key: "totalBonusReleased",
+      header: "Released bonus",
+      align: "right",
+      numeric: true,
+      cell: (row: UserOverviewRow) => currency(row?.totalBonusReleased),
+    },
+    {
+      key: "totalWalletDebited",
+      header: "Wallet debited",
+      align: "right",
+      numeric: true,
+      cell: (row: UserOverviewRow) => currency(row?.totalWalletDebited),
+    },
+  ];
+
+  const tabConfig: Record<
+    TabKey,
+    { columns: any[]; rows: any[]; onRowClick?: (row: any) => void }
+  > = {
+    payouts: {
+      columns: payoutColumns,
+      rows: payoutRows,
+      onRowClick: (row: PayoutRow) => openPayoutDetail(row._id),
+    },
+    ledger: { columns: ledgerColumns, rows: ledgerRows },
+    users: { columns: userColumns, rows: userRows },
   };
 
-  return (
-    <span
-      className={[
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize",
-        map[normalized] ||
-          (isDark
-            ? "border border-white/10 bg-white/[0.04] text-white/75"
-            : "border border-slate-200 bg-slate-50 text-slate-700"),
-      ].join(" ")}
-    >
-      {status || "--"}
-    </span>
+  const active = tabConfig[activeTab];
+
+  /* Each tab filters on different fields, so the extra controls change with
+     it rather than offering filters the endpoint will ignore. */
+  const extraControls =
+    activeTab === "payouts" ? (
+      <>
+        <Field label="MT5" className="w-[110px]">
+          <Input
+            value={filters.mt5Account}
+            onChange={(e: any) => updateFilter("mt5Account", e.target.value)}
+            placeholder="Account"
+            aria-label="MT5 account"
+            className="!min-h-8"
+          />
+        </Field>
+        <Field label="Min lot" className="w-[90px]">
+          <Input
+            value={filters.minLot}
+            onChange={(e: any) => updateFilter("minLot", e.target.value)}
+            placeholder="0"
+            aria-label="Minimum lot"
+            className="!min-h-8"
+          />
+        </Field>
+        <Field label="Max lot" className="w-[90px]">
+          <Input
+            value={filters.maxLot}
+            onChange={(e: any) => updateFilter("maxLot", e.target.value)}
+            placeholder="∞"
+            aria-label="Maximum lot"
+            className="!min-h-8"
+          />
+        </Field>
+      </>
+    ) : activeTab === "ledger" ? (
+      <>
+        <Field label="Type" className="w-[130px]">
+          <Input
+            value={filters.type}
+            onChange={(e: any) => updateFilter("type", e.target.value)}
+            placeholder="credit, debit"
+            aria-label="Ledger type"
+            className="!min-h-8"
+          />
+        </Field>
+        <Field label="Model" className="w-[130px]">
+          <Input
+            value={filters.referenceModel}
+            onChange={(e: any) =>
+              updateFilter("referenceModel", e.target.value)
+            }
+            placeholder="Reference model"
+            aria-label="Reference model"
+            className="!min-h-8"
+          />
+        </Field>
+      </>
+    ) : null;
+
+  const dateControls = (
+    <>
+      <Field label="From" className="w-[140px]">
+        <Input
+          type="date"
+          value={filters.startDate}
+          onChange={(e: any) => updateFilter("startDate", e.target.value)}
+          aria-label="Start date"
+          className="!min-h-8"
+        />
+      </Field>
+      <Field label="To" className="w-[140px]">
+        <Input
+          type="date"
+          value={filters.endDate}
+          onChange={(e: any) => updateFilter("endDate", e.target.value)}
+          aria-label="End date"
+          className="!min-h-8"
+        />
+      </Field>
+    </>
   );
-}
 
-function typeBadge(type?: string, isDark?: boolean) {
+  const detailPayout = payoutDetail?.payout;
+
   return (
-    <span
-      className={[
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        isDark
-          ? "border border-white/10 bg-white/[0.04] text-white/80"
-          : "border border-orange-200 bg-orange-50 text-slate-700",
-      ].join(" ")}
-    >
-      {type || "--"}
-    </span>
+    <>
+      <BlotterPage
+        breadcrumb="Reports / Bonus"
+        title="Bonus reports"
+        description="Lot-based bonus payouts, the wallet ledger behind them, and a per-user roll-up."
+        actions={
+          <Button
+            variant="secondary"
+            onClick={handleRefresh}
+            loading={refreshing || summaryLoading}
+          >
+            Refresh
+          </Button>
+        }
+        readouts={[
+          {
+            key: "payouts",
+            label: "Total payouts",
+            value: number(summary.totalPayouts),
+            helper: `${summary.successCount} ok · ${summary.failedCount} failed`,
+            tone: summary.failedCount ? "warn" : "brand",
+          },
+          {
+            key: "released",
+            label: "Released bonus",
+            value: currency(summary.totalSuccessBonusAmount),
+            helper: `Gross ${currency(summary.totalBonusAmount)}`,
+            tone: "ok",
+          },
+          {
+            key: "debited",
+            label: "Wallet debited",
+            value: currency(summary.totalWalletDebit),
+            helper: `${summary.ledgerCount} entries`,
+            tone: "bad",
+          },
+          {
+            key: "lots",
+            label: "Lot processed",
+            value: number(summary.totalLotProcessed),
+            helper: `${summary.skippedCount} skipped`,
+          },
+        ]}
+        filter={{
+          search: filters.search,
+          onSearchChange: (v: string) => updateFilter("search", v),
+          searchPlaceholder:
+            activeTab === "users" ? "name, email, referral" : "user id",
+          activeChip: activeTab === "payouts" ? filters.status : undefined,
+          onChipChange:
+            activeTab === "payouts"
+              ? (key: string) => updateFilter("status", key)
+              : undefined,
+          chips:
+            activeTab === "payouts"
+              ? [
+                  { key: "", label: "All", tone: "primary" },
+                  {
+                    key: "success",
+                    label: "Success",
+                    tone: "success",
+                    count: summary.successCount,
+                  },
+                  {
+                    key: "failed",
+                    label: "Failed",
+                    tone: "danger",
+                    count: summary.failedCount,
+                  },
+                  {
+                    key: "skipped",
+                    label: "Skipped",
+                    tone: "neutral",
+                    count: summary.skippedCount,
+                  },
+                ]
+              : [],
+          extra: (
+            <>
+              {extraControls}
+              {dateControls}
+            </>
+          ),
+          summary: `${number(currentPagination.total)} records`,
+        }}
+        filterPanel={
+          <div className="space-y-3">
+            {extraControls}
+            {dateControls}
+            <Field label="User id">
+              <Input
+                value={filters.userId}
+                onChange={(e: any) => updateFilter("userId", e.target.value)}
+                placeholder="Exact user id"
+              />
+            </Field>
+            <Button variant="soft" className="w-full" onClick={resetFilters}>
+              Reset filters
+            </Button>
+          </div>
+        }
+        columns={active.columns}
+        rows={active.rows}
+        loading={tableLoading}
+        onRowClick={active.onRowClick}
+        rowEdge={(row: any) =>
+          activeTab === "payouts" && row?.status === "failed" ? "danger" : null
+        }
+        empty={
+          <EmptyState
+            title="No records"
+            description="Nothing matches the current filters for this tab."
+            action={
+              <Button variant="soft" onClick={resetFilters}>
+                Reset filters
+              </Button>
+            }
+          />
+        }
+        footer={
+          <>
+            <span className="numeric text-xs text-subtle">
+              Page {currentPage} of {currentPagination.totalPages || 1}
+            </span>
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                disabled={currentPage <= 1 || tableLoading}
+              >
+                Prev
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() =>
+                  setCurrentPage(
+                    Math.min(
+                      currentPage + 1,
+                      currentPagination.totalPages || 1
+                    )
+                  )
+                }
+                disabled={
+                  currentPage >= (currentPagination.totalPages || 1) ||
+                  tableLoading
+                }
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        }
+      >
+        <Tabs
+          className="mb-2"
+          value={activeTab}
+          onChange={(key: string) => setActiveTab(key as TabKey)}
+          tabs={[
+            {
+              key: "payouts",
+              label: "Payout report",
+              count: payoutPagination.total,
+            },
+            {
+              key: "ledger",
+              label: "Wallet ledger",
+              count: ledgerPagination.total,
+            },
+            {
+              key: "users",
+              label: "User overview",
+              count: userPagination.total,
+            },
+          ]}
+        />
+      </BlotterPage>
+
+      <Modal
+        open={!!selectedPayoutId}
+        onClose={closeDetail}
+        title="Payout detail"
+        size="lg"
+      >
+        {detailLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-6" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-32" />
+          </div>
+        ) : detailPayout ? (
+          <div className="space-y-4">
+            <Well>
+              <DetailRow label="User" value={fullName(detailPayout.userId)} />
+              <DetailRow label="Email" value={detailPayout.userId?.email} />
+              <DetailRow
+                label="Referral"
+                value={detailPayout.userId?.referralAccount}
+              />
+              <DetailRow label="MT5 account" value={detailPayout.mt5Account} />
+              <DetailRow label="Lot" value={number(detailPayout.totalLot)} />
+              <DetailRow
+                label="Bonus"
+                value={currency(detailPayout.bonusAmount)}
+              />
+              <DetailRow
+                label="Status"
+                value={<StatusBadge status={detailPayout.status} />}
+              />
+              <DetailRow
+                label="Created"
+                value={formatDate(detailPayout.createdAt)}
+              />
+              <DetailRow
+                label="Updated"
+                value={formatDate(detailPayout.updatedAt)}
+              />
+            </Well>
+
+            {detailPayout.note ? (
+              <div>
+                <span className="lbl">Note</span>
+                <p className="mt-1 text-sm text-muted">{detailPayout.note}</p>
+              </div>
+            ) : null}
+
+            <div>
+              <span className="lbl">Related ledger entries</span>
+              <div className="mt-1.5">
+                <DataTable
+                  columns={[
+                    {
+                      key: "type",
+                      header: "Type",
+                      primary: true,
+                      cell: (row: LedgerRow) => row?.type || "--",
+                    },
+                    {
+                      key: "amount",
+                      header: "Amount",
+                      align: "right",
+                      numeric: true,
+                      trailing: true,
+                      cell: (row: LedgerRow) => currency(row?.amount),
+                    },
+                    {
+                      key: "balanceAfter",
+                      header: "After",
+                      align: "right",
+                      numeric: true,
+                      cell: (row: LedgerRow) => currency(row?.balanceAfter),
+                    },
+                    {
+                      key: "createdAt",
+                      header: "Created",
+                      cell: (row: LedgerRow) => formatDate(row?.createdAt),
+                    },
+                  ]}
+                  rows={payoutDetail?.relatedLedger || []}
+                  empty={
+                    <EmptyState
+                      title="No ledger entries"
+                      description="This payout did not move the bonus wallet."
+                    />
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <EmptyState
+            title="Nothing to show"
+            description="The payout detail could not be loaded."
+          />
+        )}
+      </Modal>
+    </>
   );
-}
-
-function buttonNavClass(isDark: boolean, disabled: boolean, primary?: boolean) {
-  if (disabled) {
-    return [
-      "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition cursor-not-allowed",
-      isDark
-        ? "border border-white/10 bg-white/[0.03] text-white/25"
-        : "border border-orange-100 bg-white/60 text-slate-300",
-    ].join(" ");
-  }
-
-  if (primary) {
-    return [
-      "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition",
-      isDark
-        ? "bg-blue-500/90 text-white hover:bg-blue-500"
-        : "bg-orange-500 text-white hover:bg-orange-600",
-    ].join(" ");
-  }
-
-  return [
-    "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition",
-    isDark
-      ? "border border-white/10 bg-white/[0.04] text-white/85 hover:bg-white/[0.07]"
-      : "border border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-  ].join(" ");
-}
+};
 
 export default BonusReports;

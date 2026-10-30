@@ -32,7 +32,7 @@ import { Card, CardContent } from "../../Admin/ui/card";
 
 
 const theme =
-  "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm";
+  "p-3 rounded-sm";
 // Sample data
 const lineData = [
   { name: "Jan", sales: 4000 },
@@ -66,7 +66,7 @@ const pieData = [
   { name: "Guest", value: 100 },
 ];
 
-const COLORS = ["#4f46e5", "#38bdf8", "#10b981"];
+const COLORS = ["#4f46e5", "#4f7df6", "#0f9f6e"];
 
 const DashboardBase = ({
   userReport,
@@ -75,9 +75,9 @@ const DashboardBase = ({
   ibWithdrawalReport,
 }) => {
   return (
-    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 bg-white">
+    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 bg-surface">
       {/* LEFT COLUMN */}
-      <div className="lg:col-span-1 space-y-6 shadow-2xl ">
+      <div className="lg:col-span-1 space-y-6">
         <div className={theme}>
           <h1 className="text-2xl mb-4">User Infomation</h1>
           {/* ✅ Replaced with StatCards */}
@@ -123,12 +123,12 @@ const DashboardBase = ({
       </div>
 
       {/* RIGHT COLUMN */}
-      <div className="lg:col-span-2 space-y-6 shadow-2xl">
+      <div className="lg:col-span-2 space-y-6">
         <div className={`grid grid-cols-1 md:grid-cols-2 gap-6`}>
-          <Card className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm text-white shadow-md">
+          <Card className="p-3 rounded-sm text-text">
             <CardContent className="p-0">
               <div className="p-4">
-                <h2 className="text-lg text-white font-semibold mb-4">
+                <h2 className="text-lg text-text font-semibold mb-4">
                   Orders by Category
                 </h2>
                 <ResponsiveContainer width="100%" height={250}>
@@ -142,16 +142,16 @@ const DashboardBase = ({
                         color: "#fff",
                       }}
                     />
-                    <Bar dataKey="orders" fill="#38bdf8" />
+                    <Bar dataKey="orders" fill="#4f7df6" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-3 rounded-sm text-white shadow-md">
+          <Card className="p-3 rounded-sm text-text">
             <CardContent className="p-4">
-              <h2 className="text-lg text-white font-semibold mb-4">
+              <h2 className="text-lg text-text font-semibold mb-4">
                 User Types
               </h2>
               <ResponsiveContainer width="100%" height={250}>
@@ -199,7 +199,7 @@ const DashboardBase = ({
                   <XAxis dataKey="category" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="orders" fill="#38bdf8" />
+                  <Bar dataKey="orders" fill="#4f7df6" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

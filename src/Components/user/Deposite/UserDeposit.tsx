@@ -33,6 +33,7 @@ import UserNewChallengeHook from "../../../hooks/user/UseNewChallengeHook";
 import { userApi } from "../../../utils/apiClients";
 import { useMt5Account } from "../../../hooks/useMt5Accounts";
 import SelectedPaymentMethod from "./SelectedPaymentMethod";
+import { Button, FormPage } from "@/Components/ui";
 
 /* -------------------- theme helpers -------------------- */
 const safeRgbParts = (v: any) => {
@@ -207,8 +208,8 @@ function TxnTime({
       <div
         className="inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold"
         style={{
-          borderColor: colors.isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.22)",
-          background: colors.isDark ? "rgba(255,255,255,0.04)" : "rgba(249,115,22,0.08)",
+          borderColor: colors.isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.22)",
+          background: colors.isDark ? "rgba(255,255,255,0.04)" : "rgba(42, 86, 220,0.08)",
           color: toneColor,
         }}
       >
@@ -234,24 +235,24 @@ function StatCard({
   const toneStyles =
     tone === "success"
       ? {
-          iconBg: colors.isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.1)",
+          iconBg: colors.isDark ? "rgba(15, 159, 110,0.14)" : "rgba(15, 159, 110,0.1)",
           iconColor: colors.success,
-          border: colors.isDark ? "rgba(16,185,129,0.22)" : "rgba(16,185,129,0.18)",
+          border: colors.isDark ? "rgba(15, 159, 110,0.22)" : "rgba(15, 159, 110,0.18)",
         }
       : tone === "info"
       ? {
-          iconBg: colors.isDark ? "rgba(59,130,246,0.14)" : "rgba(249,115,22,0.1)",
+          iconBg: colors.isDark ? "rgba(79, 125, 246,0.14)" : "rgba(42, 86, 220,0.1)",
           iconColor: colors.accent,
-          border: colors.isDark ? "rgba(59,130,246,0.22)" : "rgba(249,115,22,0.22)",
+          border: colors.isDark ? "rgba(79, 125, 246,0.22)" : "rgba(42, 86, 220,0.22)",
         }
       : tone === "warning"
       ? {
-          iconBg: colors.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.1)",
+          iconBg: colors.isDark ? "rgba(42, 86, 220,0.14)" : "rgba(42, 86, 220,0.1)",
           iconColor: colors.warning,
-          border: colors.isDark ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.16)",
+          border: colors.isDark ? "rgba(42, 86, 220,0.22)" : "rgba(42, 86, 220,0.16)",
         }
       : {
-          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(249,115,22,0.08)",
+          iconBg: colors.isDark ? "rgba(255,255,255,0.05)" : "rgba(42, 86, 220,0.08)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -267,7 +268,7 @@ function StatCard({
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -372,7 +373,7 @@ function SkeletonTable({
                     style={{
                       background: colors.isDark
                         ? "rgba(255,255,255,0.06)"
-                        : "rgba(249,115,22,0.10)",
+                        : "rgba(42, 86, 220,0.10)",
                     }}
                   />
                 </td>
@@ -423,7 +424,7 @@ function CheckoutStep({
       >
         <div className="flex min-w-0 items-start gap-3">
           <div
-            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold"
+            className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-card text-xs font-bold"
             style={{
               background: isOpen ? colors.accent : colors.surfaceSoft,
               color: isOpen ? "#ffffff" : colors.text,
@@ -507,70 +508,70 @@ export default function UserDeposit() {
 
 const colors = useMemo(() => {
   const accent = isDark
-    ? rgba(theme?.accent || "96 165 250", 0.95)
-    : "#f59e0b";
+    ? rgba(theme?.accent || "79 125 246", 0.95)
+    : "#2a56dc";
 
   return {
     isDark,
-    pageBg: isDark ? "#0b1120" : "#fffaf5",
+    pageBg: isDark ? "#0a111f" : "#f7f9fc",
 
     heroBg: isDark
-      ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-      : "linear-gradient(135deg, #fb923c, #f59e0b)",
+      ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+      : "linear-gradient(135deg, #4f7df6, #2a56dc)",
 
-    surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
+    surface: isDark ? "rgba(15, 24, 41,0.92)" : "rgba(255,255,255,0.94)",
     surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,251,235,0.75)",
     surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,250,245,0.95)",
 
-    text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-    muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
-    softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+    text: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+    muted: isDark ? "rgba(255,255,255,0.65)" : "#7b879a",
+    softText: isDark ? "rgba(255,255,255,0.78)" : "#4a5669",
 
     accent,
-    accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+    accentSoft: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
 
-    success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
-    warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
-    danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+    success: isDark ? "rgba(52,211,153,0.95)" : "#0f9f6e",
+    warning: isDark ? "rgba(224, 191, 108,0.95)" : "#2245b4",
+    danger: isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a",
 
-    link: isDark ? "rgba(147,197,253,1)" : "#d97706",
+    link: isDark ? "rgba(147,197,253,1)" : "#2245b4",
 
     border: isDark
       ? rgba(theme?.border || "255 255 255", 0.12)
-      : "rgba(245,158,11,0.16)",
+      : "rgba(42, 86, 220,0.16)",
 
     borderSoft: isDark
       ? rgba(theme?.border || "255 255 255", 0.08)
-      : "rgba(245,158,11,0.10)",
+      : "rgba(42, 86, 220,0.10)",
 
     inputBg: isDark
-      ? "rgba(15,23,42,0.92)"
+      ? "rgba(15, 24, 41,0.92)"
       : "linear-gradient(180deg, rgba(255,251,235,0.98), rgba(255,255,255,0.98))",
 
     inputBorder: isDark
       ? rgba(theme?.border || "255 255 255", 0.12)
-      : "rgba(245,158,11,0.30)",
+      : "rgba(42, 86, 220,0.30)",
 
-    inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-    inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#f59e0b",
+    inputText: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+    inputPlaceholder: isDark ? "rgba(255,255,255,0.35)" : "#2a56dc",
 
     inputShadow: isDark
       ? "0 0 0 1px rgba(255,255,255,0.03)"
-      : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+      : "0 0 0 4px rgba(42, 86, 220,0.05), 0 10px 22px rgba(42, 86, 220,0.07)",
 
     inputFocusShadow: isDark
-      ? "0 0 0 4px rgba(96,165,250,0.18)"
-      : "0 0 0 5px rgba(245,158,11,0.09), 0 12px 26px rgba(245,158,11,0.09)",
+      ? "0 0 0 4px rgba(79, 125, 246,0.18)"
+      : "0 0 0 5px rgba(42, 86, 220,0.09), 0 12px 26px rgba(42, 86, 220,0.09)",
 
     cardShadow: isDark
       ? "0 20px 45px rgba(0,0,0,0.28)"
-      : "0 14px 30px rgba(245,158,11,0.07)",
+      : "0 14px 30px rgba(42, 86, 220,0.07)",
 
-    primaryBtn: "#f59e0b",
-    primaryBtnHover: "#d97706",
+    primaryBtn: "#2a56dc",
+    primaryBtnHover: "#2245b4",
     primaryBtnText: "#ffffff",
 
-    stepActiveBg: isDark ? "rgba(59,130,246,0.08)" : "rgba(245,158,11,0.06)",
+    stepActiveBg: isDark ? "rgba(79, 125, 246,0.08)" : "rgba(42, 86, 220,0.06)",
     tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
 
     modalOverlay: "rgba(2,6,23,0.72)",
@@ -968,7 +969,7 @@ const colors = useMemo(() => {
             <button
               key={idx}
               onClick={() => window.open(part, "_blank", "noopener,noreferrer")}
-              className="mx-1 inline-flex rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+              className="mx-1 inline-flex rounded-card px-4 py-2 text-sm font-semibold transition-all"
               style={{
                 background: colors.primaryBtn,
                 color: "#fff",
@@ -1170,8 +1171,8 @@ const colors = useMemo(() => {
   };
 
   const optionStyle: React.CSSProperties = {
-    background: isDark ? "#111827" : "#fff7ed",
-    color: isDark ? "#ffffff" : "#0f172a",
+    background: isDark ? "#0f1829" : "#f3f5f9",
+    color: isDark ? "#ffffff" : "#0f1829",
   };
 
   const subtleCard = (): React.CSSProperties => ({
@@ -1192,7 +1193,7 @@ const colors = useMemo(() => {
     borderRadius: "14px",
     color: colors.primaryBtnText,
     background: colors.primaryBtn,
-    boxShadow: "0 12px 24px rgba(249,115,22,0.22)",
+    boxShadow: "0 12px 24px rgba(42, 86, 220,0.22)",
   };
 
   const claimFlowReady =
@@ -1247,19 +1248,19 @@ const colors = useMemo(() => {
     textSoft: colors.softText,
     badgeText: colors.accent,
     C: {
-      accent: theme?.accent || "249 115 22",
-      primary: theme?.primary || theme?.accent || "249 115 22",
+      accent: theme?.accent || "42 86 220",
+      primary: theme?.primary || theme?.accent || "42 86 220",
       fg: theme?.fg || "255 255 255",
       mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
-      border: theme?.border || theme?.inputBorder || "249 115 22",
+      border: theme?.border || theme?.inputBorder || "42 86 220",
       surface1: theme?.surface1 || theme?.bg || "255 255 255",
       surface2: theme?.surface2 || theme?.card || "255 237 213",
       primaryFg: theme?.primaryFg || "255 255 255",
-      success: theme?.success || "34 197 94",
-      warning: theme?.warning || "234 179 8",
-      danger: theme?.danger || "244 63 94",
-      ring: theme?.ring || theme?.accent || "249 115 22",
-      glow: theme?.accent || "249 115 22",
+      success: theme?.success || "15 159 110",
+      warning: theme?.warning || "163 113 37",
+      danger: theme?.danger || "220 58 58",
+      ring: theme?.ring || theme?.accent || "42 86 220",
+      glow: theme?.accent || "42 86 220",
       radius: theme?.radius || "16px",
       accentFg: theme?.accentFg || "255 255 255",
     },
@@ -1274,24 +1275,24 @@ const colors = useMemo(() => {
 
     if (tone === "approved") {
       return {
-        background: isDark ? "rgba(16,185,129,0.12)" : "rgba(22,163,74,0.09)",
-        border: isDark ? "1px solid rgba(16,185,129,0.22)" : "1px solid rgba(22,163,74,0.16)",
+        background: isDark ? "rgba(15, 159, 110,0.12)" : "rgba(22,163,74,0.09)",
+        border: isDark ? "1px solid rgba(15, 159, 110,0.22)" : "1px solid rgba(22,163,74,0.16)",
         color: colors.success,
       };
     }
 
     if (tone === "pending") {
       return {
-        background: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
-        border: isDark ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(245,158,11,0.16)",
+        background: isDark ? "rgba(42, 86, 220,0.12)" : "rgba(42, 86, 220,0.08)",
+        border: isDark ? "1px solid rgba(42, 86, 220,0.22)" : "1px solid rgba(42, 86, 220,0.16)",
         color: colors.warning,
       };
     }
 
     if (tone === "rejected") {
       return {
-        background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.08)",
-        border: isDark ? "1px solid rgba(239,68,68,0.22)" : "1px solid rgba(239,68,68,0.16)",
+        background: isDark ? "rgba(220, 58, 58,0.12)" : "rgba(220, 58, 58,0.08)",
+        border: isDark ? "1px solid rgba(220, 58, 58,0.22)" : "1px solid rgba(220, 58, 58,0.16)",
         color: colors.danger,
       };
     }
@@ -1447,7 +1448,7 @@ const colors = useMemo(() => {
                     background: colors.pageBg,
                     boxShadow: isDark
                       ? "0 30px 80px rgba(0,0,0,0.45)"
-                      : "0 30px 80px rgba(249,115,22,0.24)",
+                      : "0 30px 80px rgba(42, 86, 220,0.24)",
                     borderRadius: "24px",
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -1508,10 +1509,10 @@ const colors = useMemo(() => {
                           className="inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-all duration-300"
                           style={{
                             borderColor: isDark
-                              ? "rgba(239,68,68,0.24)"
-                              : "rgba(239,68,68,0.18)",
+                              ? "rgba(220, 58, 58,0.24)"
+                              : "rgba(220, 58, 58,0.18)",
                             background: isDark
-                              ? "rgba(239,68,68,0.08)"
+                              ? "rgba(220, 58, 58,0.08)"
                               : "rgba(254,242,242,0.92)",
                             color: colors.danger,
                             borderRadius: "14px",
@@ -1573,7 +1574,7 @@ const colors = useMemo(() => {
                           value={txnQ}
                           onChange={(e) => setTxnQ(e.target.value)}
                           placeholder="Search by account, method, txn id, status, just now..."
-                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-orange-400"
+                          className="w-full border py-2.5 pl-9 pr-3 outline-none transition-all duration-300 placeholder:text-primary"
                           style={{
                             borderColor: colors.inputBorder,
                             background: colors.inputBg,
@@ -1649,7 +1650,7 @@ const colors = useMemo(() => {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -12 }}
                             >
-                              <table className="w-full text-sm">
+                              <table className="w-full text-sm table-stack">
                                 <thead
                                   style={{
                                     background: colors.tableHead,
@@ -1688,14 +1689,14 @@ const colors = useMemo(() => {
                                         borderBottom: `1px solid ${colors.borderSoft}`,
                                       }}
                                     >
-                                      <td
+                                      <td data-label="Account"
                                         className="px-4 py-3 text-center font-mono text-sm"
                                         style={{ color: titleColor }}
                                       >
                                         #{item?.mt5Account || "N/A"}
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Type" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold"
                                           style={{
@@ -1708,14 +1709,14 @@ const colors = useMemo(() => {
                                         </span>
                                       </td>
 
-                                      <td
+                                      <td data-label="Deposit"
                                         className="px-4 py-3 text-center font-semibold"
                                         style={{ color: titleColor }}
                                       >
                                         ${money(item?.deposit)}
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Method" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                           style={{
@@ -1728,25 +1729,25 @@ const colors = useMemo(() => {
                                         </span>
                                       </td>
 
-                                      <td
+                                      <td data-label="Txn ID"
                                         className="px-4 py-3 text-center text-xs font-mono"
                                         style={{ color: mutedTextColor }}
                                       >
                                         {item?.transactionId || "—"}
                                       </td>
 
-                                      <td className="px-4 py-4 align-top">
+                                      <td data-label="Insurance / Bonus" className="px-4 py-4 align-top">
                                         <div className="space-y-2">
                                           <div
                                             className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                             style={{
                                               borderColor: item.insuranceDetails
-                                                ? "rgba(249,115,22,0.28)"
+                                                ? "rgba(42, 86, 220,0.28)"
                                                 : colors.border,
                                               background: item.insuranceDetails
                                                 ? isDark
-                                                  ? "rgba(59,130,246,0.12)"
-                                                  : "rgba(249,115,22,0.08)"
+                                                  ? "rgba(79, 125, 246,0.12)"
+                                                  : "rgba(42, 86, 220,0.08)"
                                                 : colors.surfaceSoft,
                                               color: item.insuranceDetails ? colors.accent : colors.softText,
                                             }}
@@ -1761,13 +1762,13 @@ const colors = useMemo(() => {
                                             style={{
                                               borderColor:
                                                 item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
-                                                  ? "rgba(16,185,129,0.25)"
+                                                  ? "rgba(15, 159, 110,0.25)"
                                                   : colors.border,
                                               background:
                                                 item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
                                                   ? isDark
-                                                    ? "rgba(16,185,129,0.12)"
-                                                    : "rgba(16,185,129,0.08)"
+                                                    ? "rgba(15, 159, 110,0.12)"
+                                                    : "rgba(15, 159, 110,0.08)"
                                                   : colors.surfaceSoft,
                                               color:
                                                 item.bonusDetails && Number(item.bonusDetails.bonusPercent) > 0
@@ -1784,11 +1785,11 @@ const colors = useMemo(() => {
                                         </div>
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Requested" className="px-4 py-3 text-center">
                                         <TxnTime date={item?.createdAt} colors={colors} />
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Proof" className="px-4 py-3 text-center">
                                         {item?.depositSS ? (
                                           <a
                                             target="_blank"
@@ -1814,7 +1815,7 @@ const colors = useMemo(() => {
                                         )}
                                       </td>
 
-                                      <td className="px-4 py-3 text-center">
+                                      <td data-label="Status" className="px-4 py-3 text-center">
                                         <span
                                           className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
                                           style={statusStyle(item?.status)}
@@ -1823,7 +1824,7 @@ const colors = useMemo(() => {
                                         </span>
                                       </td>
 
-                                      <td className="px-4 py-4 align-top">
+                                      <td data-label="Timeline" className="px-4 py-4 align-top">
                                         <div className="space-y-3">
                                           <TxnTime
                                             date={item.updatedAt}
@@ -1854,51 +1855,126 @@ const colors = useMemo(() => {
 
   return (
     <>
-      <div
-        className="min-h-screen w-full"
-        style={{
-          background: colors.pageBg,
+      <FormPage
+        wide
+        breadcrumb="Funds / Deposit"
+        title="Deposit funds"
+        description="Complete your deposit in three steps."
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() => setShowTxnModal(true)}
+            leftIcon={<History className="h-4 w-4" />}
+          >
+            Deposit transactions
+          </Button>
+        }
+        steps={[
+          {
+            key: "account",
+            label: "Account & amount",
+            state: step1Completed ? "done" : openStep === 1 ? "active" : "todo",
+          },
+          {
+            key: "extras",
+            label: "Bonus & insurance",
+            state: step2Completed ? "done" : openStep === 2 ? "active" : "todo",
+          },
+          {
+            key: "method",
+            label: "Payment method",
+            state: step3Completed ? "done" : openStep === 3 ? "active" : "todo",
+          },
+        ]}
+        summary={{
+          title: "Summary",
+          rows: [
+            { label: "Account", value: formData.accountNumber || "—" },
+            {
+              label: "Deposit amount",
+              value: baseAmount > 0 ? "$" + money(baseAmount) : "—",
+              weight: "bold",
+            },
+            { label: "Payment method", value: selectedPayment || "—" },
+            ...(bonusAmount > 0
+              ? [
+                  {
+                    label: "Bonus (" + bonusPercent + "%)",
+                    value: "+$" + money(bonusAmount),
+                    tone: "primary",
+                    weight: "bold",
+                  },
+                ]
+              : []),
+            ...(insuranceChargeAmount > 0
+              ? [
+                  {
+                    label: "Insurance charge",
+                    value: "$" + money(insuranceChargeAmount),
+                    tone: "muted",
+                  },
+                ]
+              : []),
+          ],
+          total: {
+            label: isInsuranceClaimDeposit ? "Payable now" : "You pay",
+            value: "$" + money(finalPayableAmount),
+            tone: "profit",
+          },
+          checks: [
+            {
+              ok: !!formData.accountNumber && !!formData.depositAmount,
+              text: "An account and amount are set.",
+            },
+            {
+              ok: !!selectedPayment,
+              text: selectedPayment
+                ? "Paying by " + selectedPayment + "."
+                : "Choose a payment method.",
+            },
+            {
+              ok: agreeToTerms,
+              text: agreeToTerms
+                ? "Terms accepted."
+                : "Accept the terms to continue.",
+            },
+            ...(bonusAmount > 0
+              ? [
+                  {
+                    ok: false,
+                    text:
+                      "Bonus of $" +
+                      money(bonusAmount) +
+                      " is credited after approval and carries trading conditions.",
+                  },
+                ]
+              : []),
+          ],
+        }}
+        submit={{
+          label:
+            selectedPayment?.toLowerCase() === "crypto"
+              ? "Process payment"
+              : "Submit request",
+          onClick: submitHandler,
+          disabled: !ctaEnabled,
+          loading: creatingLoading || isSubmitting,
+          reason:
+            !formData.accountNumber || !formData.depositAmount
+              ? "Select an account and enter an amount"
+              : !selectedPayment
+              ? "Choose a payment method"
+              : !agreeToTerms
+              ? "Accept the terms to continue"
+              : "Finish the steps above to continue",
         }}
       >
-        <div className="w-full" style={{ background: colors.heroBg }}>
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
-            <div className="leading-none">
-              <div className="text-[28px] font-bold text-white sm:text-[32px]">
-                Deposit Funds
-              </div>
-              <div className="mt-2 text-sm text-white/80">
-                Complete your deposit securely in 3 simple steps
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Secure Deposit
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowTxnModal(true)}
-                className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
-                style={{ borderRadius: "14px" }}
-              >
-                <History className="h-4 w-4" />
-                Deposit Transactions
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
           {isInsuranceClaimDeposit ? (
             <div
-              className="mb-5 rounded-[20px] border px-5 py-4"
+              className="mb-5 rounded-card border px-5 py-4"
               style={{
-                borderColor: isDark ? "rgba(16,185,129,0.24)" : "rgba(16,185,129,0.18)",
-                background: isDark ? "rgba(16,185,129,0.08)" : "rgba(16,185,129,0.06)",
+                borderColor: isDark ? "rgba(15, 159, 110,0.24)" : "rgba(15, 159, 110,0.18)",
+                background: isDark ? "rgba(15, 159, 110,0.08)" : "rgba(15, 159, 110,0.06)",
               }}
             >
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -2040,7 +2116,7 @@ const colors = useMemo(() => {
                           placeholder="Enter amount"
                           value={formData.depositAmount}
                           onChange={handleInputChange}
-                          className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold placeholder:text-orange-400"
+                          className="w-full py-[13px] pl-10 pr-4 text-sm font-semibold placeholder:text-primary"
                           style={{
                             ...inputStyle,
                             opacity: isInsuranceClaimDeposit ? 0.78 : 1,
@@ -2076,9 +2152,9 @@ const colors = useMemo(() => {
                                 color: isActive ? accentColor : titleColor,
                                 borderRadius: "16px",
                                 boxShadow: isActive
-                                  ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 24px rgba(249,115,22,0.14)"
+                                  ? "0 0 0 4px rgba(42, 86, 220,0.10), 0 12px 24px rgba(42, 86, 220,0.14)"
                                   : !isDark
-                                  ? "0 8px 18px rgba(249,115,22,0.06)"
+                                  ? "0 8px 18px rgba(42, 86, 220,0.06)"
                                   : "none",
                               }}
                             >
@@ -2140,7 +2216,7 @@ const colors = useMemo(() => {
               >
                 <div className="p-5">
                   <div
-                    className="mb-5 rounded-[18px] border px-4 py-3 text-sm"
+                    className="mb-5 rounded-card border px-4 py-3 text-sm"
                     style={{
                       borderColor: colors.border,
                       background: colors.surfaceSoft,
@@ -2156,21 +2232,21 @@ const colors = useMemo(() => {
                       className="p-4"
                       style={{
                         background: colors.surface,
-                        borderColor: bonusQuote?.eligible ? "rgba(16,185,129,0.25)" : colors.border,
+                        borderColor: bonusQuote?.eligible ? "rgba(15, 159, 110,0.25)" : colors.border,
                         boxShadow: colors.cardShadow,
                       }}
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border"
                           style={{
                             background: bonusQuote?.eligible
                               ? isDark
-                                ? "rgba(16,185,129,0.12)"
-                                : "rgba(16,185,129,0.08)"
+                                ? "rgba(15, 159, 110,0.12)"
+                                : "rgba(15, 159, 110,0.08)"
                               : colors.surfaceSoft,
                             borderColor: bonusQuote?.eligible
-                              ? "rgba(16,185,129,0.25)"
+                              ? "rgba(15, 159, 110,0.25)"
                               : colors.border,
                             color: bonusQuote?.eligible ? colors.success : colors.softText,
                           }}
@@ -2207,12 +2283,12 @@ const colors = useMemo(() => {
                             </div>
                           ) : bonusQuote?.eligible ? (
                             <div
-                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              className="mt-4 rounded-card border p-3 text-sm"
                               style={{
-                                borderColor: "rgba(16,185,129,0.22)",
+                                borderColor: "rgba(15, 159, 110,0.22)",
                                 background: isDark
-                                  ? "rgba(16,185,129,0.10)"
-                                  : "rgba(16,185,129,0.07)",
+                                  ? "rgba(15, 159, 110,0.10)"
+                                  : "rgba(15, 159, 110,0.07)",
                                 color: colors.success,
                               }}
                             >
@@ -2221,7 +2297,7 @@ const colors = useMemo(() => {
                             </div>
                           ) : (
                             <div
-                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              className="mt-4 rounded-card border p-3 text-sm"
                               style={{
                                 borderColor: colors.border,
                                 background: colors.surfaceSoft,
@@ -2239,21 +2315,21 @@ const colors = useMemo(() => {
                       className="p-4"
                       style={{
                         background: colors.surface,
-                        borderColor: insuranceQuote?.eligible ? "rgba(249,115,22,0.28)" : colors.border,
+                        borderColor: insuranceQuote?.eligible ? "rgba(42, 86, 220,0.28)" : colors.border,
                         boxShadow: colors.cardShadow,
                       }}
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border"
                           style={{
                             background: insuranceQuote?.eligible
                               ? isDark
-                                ? "rgba(59,130,246,0.12)"
-                                : "rgba(249,115,22,0.08)"
+                                ? "rgba(79, 125, 246,0.12)"
+                                : "rgba(42, 86, 220,0.08)"
                               : colors.surfaceSoft,
                             borderColor: insuranceQuote?.eligible
-                              ? "rgba(249,115,22,0.28)"
+                              ? "rgba(42, 86, 220,0.28)"
                               : colors.border,
                             color: insuranceQuote?.eligible ? colors.accent : colors.softText,
                           }}
@@ -2291,12 +2367,12 @@ const colors = useMemo(() => {
                             </div>
                           ) : insuranceQuote?.eligible ? (
                             <div
-                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              className="mt-4 rounded-card border p-3 text-sm"
                               style={{
-                                borderColor: "rgba(249,115,22,0.26)",
+                                borderColor: "rgba(42, 86, 220,0.26)",
                                 background: isDark
-                                  ? "rgba(59,130,246,0.10)"
-                                  : "rgba(249,115,22,0.08)",
+                                  ? "rgba(79, 125, 246,0.10)"
+                                  : "rgba(42, 86, 220,0.08)",
                                 color: colors.accent,
                               }}
                             >
@@ -2310,7 +2386,7 @@ const colors = useMemo(() => {
                             </div>
                           ) : (
                             <div
-                              className="mt-4 rounded-2xl border p-3 text-sm"
+                              className="mt-4 rounded-card border p-3 text-sm"
                               style={{
                                 borderColor: colors.border,
                                 background: colors.surfaceSoft,
@@ -2326,7 +2402,7 @@ const colors = useMemo(() => {
                   </div>
 
                   <div
-                    className="mt-5 rounded-[18px] border p-4"
+                    className="mt-5 rounded-card border p-4"
                     style={{
                       borderColor: colors.border,
                       background: colors.surfaceSoft,
@@ -2357,11 +2433,11 @@ const colors = useMemo(() => {
 
                     {bonusQuote?.eligible && wantBonus ? (
                       <div
-                        className="mt-3 rounded-xl px-3 py-2 text-xs"
+                        className="mt-3 rounded-card px-3 py-2 text-xs"
                         style={{
                           background: isDark
-                            ? "rgba(34,197,94,0.10)"
-                            : "rgba(34,197,94,0.08)",
+                            ? "rgba(15, 159, 110,0.10)"
+                            : "rgba(15, 159, 110,0.08)",
                           color: colors.success,
                         }}
                       >
@@ -2437,9 +2513,9 @@ const colors = useMemo(() => {
                               background: active ? colors.accentSoft : colors.surface,
                               borderRadius: "18px",
                               boxShadow: active
-                                ? "0 0 0 4px rgba(249,115,22,0.10), 0 12px 26px rgba(249,115,22,0.14)"
+                                ? "0 0 0 4px rgba(42, 86, 220,0.10), 0 12px 26px rgba(42, 86, 220,0.14)"
                                 : !isDark
-                                ? "0 8px 18px rgba(249,115,22,0.06)"
+                                ? "0 8px 18px rgba(42, 86, 220,0.06)"
                                 : "none",
                             }}
                           >
@@ -2690,11 +2766,11 @@ const colors = useMemo(() => {
 
                         {bonusQuote?.eligible && wantBonus ? (
                           <div
-                            className="rounded-xl px-3 py-2 text-xs"
+                            className="rounded-card px-3 py-2 text-xs"
                             style={{
                               background: isDark
-                                ? "rgba(34,197,94,0.10)"
-                                : "rgba(34,197,94,0.08)",
+                                ? "rgba(15, 159, 110,0.10)"
+                                : "rgba(15, 159, 110,0.08)",
                               color: colors.success,
                             }}
                           >
@@ -2705,11 +2781,11 @@ const colors = useMemo(() => {
 
                         {isInsuranceClaimDeposit ? (
                           <div
-                            className="rounded-xl px-3 py-2 text-xs"
+                            className="rounded-card px-3 py-2 text-xs"
                             style={{
                               background: isDark
-                                ? "rgba(59,130,246,0.10)"
-                                : "rgba(249,115,22,0.08)",
+                                ? "rgba(79, 125, 246,0.10)"
+                                : "rgba(42, 86, 220,0.08)",
                               color: colors.accent,
                             }}
                           >
@@ -2745,72 +2821,16 @@ const colors = useMemo(() => {
                       </label>
                     </div>
 
-                    <motion.div
-                      animate={
-                        highlightSubmit
-                          ? {
-                              scale: [1, 1.03, 1, 1.03, 1],
-                              opacity: [1, 0.7, 1, 0.7, 1],
-                            }
-                          : {
-                              scale: 1,
-                              opacity: 1,
-                            }
-                      }
-                      transition={{
-                        duration: highlightSubmit ? 2.2 : 0.2,
-                        repeat: highlightSubmit ? 1 : 0,
-                      }}
-                    >
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: ctaEnabled ? 1.01 : 1 }}
-                        whileTap={{ scale: ctaEnabled ? 0.99 : 1 }}
-                        onClick={submitHandler}
-                        disabled={!ctaEnabled}
-                        className="mt-5 inline-flex w-full items-center justify-center gap-2 px-7 py-3 text-sm font-bold"
-                        style={{
-                          ...primaryButtonStyle,
-                          opacity: ctaEnabled ? 1 : 0.65,
-                          cursor: ctaEnabled ? "pointer" : "not-allowed",
-                          boxShadow: highlightSubmit
-                            ? "0 0 0 4px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.28)"
-                            : primaryButtonStyle.boxShadow,
-                        }}
-                      >
-                        {creatingLoading || isSubmitting ? (
-                          <LoaderIcon color="#ffffff" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-
-                        <span>
-                          {selectedPayment?.toLowerCase() === "crypto"
-                            ? "PROCESS PAYMENT"
-                            : "SUBMIT REQUEST"}
-                        </span>
-                      </motion.button>
-                    </motion.div>
+                    {/* The submit lives in the FormPage summary rail, and
+                        as a sticky bar on phones, so it is never scrolled
+                        past above an open keyboard. */}
                   </div>
                 </SectionCard>
               </div>
             </div>
           </div>
 
-          <div
-            className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm"
-            style={{ color: colors.muted }}
-          >
-            <div className="flex flex-wrap items-center gap-4">
-              <span>Policies: Returns Policy</span>
-              <span>Terms of use</span>
-              <span>Security</span>
-              <span>Privacy</span>
-            </div>
-            <div>© 2007-2026 secure checkout</div>
-          </div>
-        </div>
-      </div>
+      </FormPage>
 
       {showPreview && previewUrl && (
         <div
@@ -2835,7 +2855,7 @@ const colors = useMemo(() => {
             <img
               src={previewUrl}
               alt="Preview"
-              className="h-auto max-w-full rounded-xl"
+              className="h-auto max-w-full rounded-card"
             />
 
             <button

@@ -3,80 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f5f9" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="stylesheet" href="/src/index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap"
+    />
 
     <title>Ocean Bull</title>
-    <style>
 
-
-/* Add this inside your <style> tag or global CSS */
-.PhoneInput {
-  width: 100%;
-  border-radius: 0.5rem; /* same as your other inputs */
-  background-color: rgba(30, 58, 138, 0.85); /* your form bg */
-  border: 1px solid #4b5563; /* border-secondary-600 */
-  color: #fff;
-  padding: 0.75rem 1rem 0.75rem 3rem; /* left padding for flag */
-  font-size: 1rem;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.PhoneInput:focus {
-  border-color: #3b82f6; /* Tailwind blue-500 focus ring */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-}
-
-.PhoneInputCountrySelect {
-  background-color: rgba(30, 58, 138, 0.85);
-  border: none;
-  border-radius: 0.5rem 0 0 0.5rem;
-}
-
-.PhoneInputCountryIcon {
-  vertical-align: middle;
-}
-
-.PhoneInputCountrySelectArrow {
-  color: #fff;
-}
-
-.PhoneInputInput::placeholder {
-  color: #9ca3af; /* placeholder-gray-400 */
-}
-
-
-      /* Smooth and animated scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #4f46e5, #312e81);
-  border-radius: 9999px;
-  transition: background 0.3s ease-in-out;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #6366f1, #4338ca);
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-    </style>
+    <!--
+      Paint the stored theme before first render, so the page never flashes
+      the wrong one. Light is the default; the attribute is only set when a
+      choice has been stored, which lets the OS preference apply otherwise.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("ob_theme_mode");
+          if (stored === "light" || stored === "dark") {
+            document.documentElement.setAttribute("data-theme", stored);
+            document.documentElement.style.colorScheme = stored;
+          }
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0a111f" : "#f3f5f9");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-
-
   </body>
 </html>

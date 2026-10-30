@@ -2,9 +2,9 @@ import React from 'react';
 
 const LoadingModal = () => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface bg-opacity-30 backdrop-blur-sm">
       <svg
-        className="w-12 h-12 text-blue-600 animate-spin"
+        className="w-12 h-12 text-primary animate-spin"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

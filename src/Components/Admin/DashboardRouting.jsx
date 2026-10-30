@@ -26,7 +26,7 @@ const DashboardRouting = () => {
   const SiteConfiguration = () => <div>Site Configuration Page</div>;
 
   return (
-    <div className="flex bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 min-h-screen">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
 
       {/* Main Content Area */}
@@ -35,7 +35,7 @@ const DashboardRouting = () => {
         <Header />
 
         {/* Content Routes */}
-        <main className="flex-1 overflow-y-auto text-white">
+        <main className="flex-1 overflow-y-auto text-text">
           <Routes>
             <Route path="/" element={<DashboardBase />} />
             <Route path="/dashboard" element={<DashboardBase />} />

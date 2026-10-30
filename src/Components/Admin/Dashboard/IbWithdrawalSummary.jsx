@@ -4,9 +4,9 @@ const IbWithdrawalSummary = ({ report }) => {
   const formatNumber = (num) => (num || num === 0 ? num.toLocaleString() : "-");
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 mb-10">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">📥 IB Withdrawal Summary</h3>
-      <ul className="space-y-2 text-sm text-gray-700">
+    <div className="bg-surface rounded-card p-6 mb-10">
+      <h3 className="text-xl font-semibold text-text mb-4">📥 IB Withdrawal Summary</h3>
+      <ul className="space-y-2 text-sm text-muted">
         <li>Total: {formatNumber(report?.total)}</li>
         <li>Approved: {formatNumber(report?.approved)}</li>
         <li>Pending: {formatNumber(report?.pending)}</li>

@@ -46,7 +46,7 @@ const ApprovedWithdrawals = () => {
   }, [page, search]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <CheckCircle size={18} /> Approved Withdrawals
       </h2>
@@ -56,7 +56,7 @@ const ApprovedWithdrawals = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -66,49 +66,49 @@ const ApprovedWithdrawals = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-green-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-success text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : withdrawals.length === 0 ? (
-        <p className="text-gray-300">No approved withdrawals found.</p>
+        <p className="text-muted">No approved withdrawals found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-green-800">
+          <table className="min-w-full border-collapse border border-success table-stack">
             <thead>
-              <tr className="bg-green-800/50">
-                <th className="p-3 text-left border border-green-800">User</th>
-                <th className="p-3 text-left border border-green-800">Email</th>
-                <th className="p-3 text-left border border-green-800">MT5 Account</th>
-                <th className="p-3 text-left border border-green-800">Method</th>
-                <th className="p-3 text-left border border-green-800">Amount</th>
-                <th className="p-3 text-left border border-green-800">Status</th>
-                <th className="p-3 text-left border border-green-800">Date</th>
+              <tr className="bg-success-soft">
+                <th className="p-3 text-left border border-success">User</th>
+                <th className="p-3 text-left border border-success">Email</th>
+                <th className="p-3 text-left border border-success">MT5 Account</th>
+                <th className="p-3 text-left border border-success">Method</th>
+                <th className="p-3 text-left border border-success">Amount</th>
+                <th className="p-3 text-left border border-success">Status</th>
+                <th className="p-3 text-left border border-success">Date</th>
               </tr>
             </thead>
             <tbody>
               {withdrawals.map((w) => (
                 <tr
                   key={w._id}
-                  className="hover:bg-green-800/30 transition duration-200"
+                  className="hover:bg-success-soft transition duration-200"
                 >
-                  <td className="p-3 border border-green-800">
+                  <td data-label="User" className="p-3 border border-success">
                     {w.userData?.firstName} {w.userData?.lastName}
                   </td>
-                  <td className="p-3 border border-green-800 text-green-300">
+                  <td data-label="Email" className="p-3 border border-success text-success">
                     {w.userData?.email}
                   </td>
-                  <td className="p-3 border border-green-800">{w.mt5Account}</td>
-                  <td className="p-3 border border-green-800">{w.method}</td>
-                  <td className="p-3 border border-green-800">${w.amount}</td>
-                  <td className="p-3 border border-green-800 capitalize">
+                  <td data-label="MT5 Account" className="p-3 border border-success">{w.mt5Account}</td>
+                  <td data-label="Method" className="p-3 border border-success">{w.method}</td>
+                  <td data-label="Amount" className="p-3 border border-success">${w.amount}</td>
+                  <td data-label="Status" className="p-3 border border-success capitalize">
                     {w.status}
                   </td>
-                  <td className="p-3 border border-green-800">
+                  <td data-label="Date" className="p-3 border border-success">
                     {new Date(w.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -123,17 +123,17 @@ const ApprovedWithdrawals = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-green-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-success text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-green-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-success text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

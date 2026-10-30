@@ -155,8 +155,7 @@ const ReferralWithdrawTab = () => {
                 <BadgeDollarSign
                   size={18}
                   className={cx(
-                    "absolute left-4 top-1/2 -translate-y-1/2",
-                    isDark ? "text-white/45" : "text-slate-400"
+                    "absolute left-4 top-1/2 -translate-y-1/2","text-subtle"
                   )}
                 />
                 <input
@@ -184,8 +183,7 @@ const ReferralWithdrawTab = () => {
             <div className="flex items-center gap-3">
               <div
                 className={cx(
-                  "flex h-12 w-12 items-center justify-center rounded-2xl",
-                  isDark ? "bg-cyan-500/10 text-cyan-200" : "bg-sky-100 text-sky-700"
+                  "flex h-12 w-12 items-center justify-center rounded-card","bg-primary-soft text-primary"
                 )}
               >
                 {selectedGateway === "Bank Transfer" ? (
@@ -223,8 +221,7 @@ const ReferralWithdrawTab = () => {
             <div className="flex items-center gap-3">
               <div
                 className={cx(
-                  "flex h-12 w-12 items-center justify-center rounded-2xl",
-                  isDark ? "bg-violet-500/10 text-violet-200" : "bg-violet-100 text-violet-700"
+                  "flex h-12 w-12 items-center justify-center rounded-card","bg-primary-soft text-primary"
                 )}
               >
                 <Shield size={20} />
@@ -251,7 +248,7 @@ const ReferralWithdrawTab = () => {
                   <div className="flex items-start gap-3">
                     <Wallet
                       size={16}
-                      className={isDark ? "mt-1 text-cyan-200" : "mt-1 text-sky-700"}
+                      className={"mt-1 text-primary"}
                     />
                     <p className={cx("text-sm leading-6", muted(isDark))}>{text}</p>
                   </div>

@@ -46,52 +46,52 @@ const IBWithdrawlStatCards = () => {
     {
       title: "Approved",
       value: formatNumber(ibWithdrawalReport?.approved),
-      icon: <Users2 className="text-white" size={26} />,
+      icon: <Users2 className="text-text" size={26} />,
     },
     {
       title: "Last Month Approved",
       value: formatNumber(ibWithdrawalReport?.lastMonthApproved),
-      icon: <UserCheck className="text-white" size={26} />,
+      icon: <UserCheck className="text-text" size={26} />,
     },
     {
       title: "Last Week Approved",
       value: formatNumber(ibWithdrawalReport?.lastWeekApproved),
-      icon: <UserX className="text-white" size={26} />,
+      icon: <UserX className="text-text" size={26} />,
     },
     {
       title: "Pending",
       value: formatNumber(ibWithdrawalReport?.pending),
-      icon: <MailCheck className="text-white" size={26} />,
+      icon: <MailCheck className="text-text" size={26} />,
     },
     {
       title: "Rejected",
       value: formatNumber(ibWithdrawalReport?.rejected),
-      icon: <MailX className="text-white" size={26} />,
+      icon: <MailX className="text-text" size={26} />,
     },
     {
       title: "Today Approved",
       value: formatNumber(ibWithdrawalReport?.todayApproved),
-      icon: <Wallet className="text-white" size={26} />,
+      icon: <Wallet className="text-text" size={26} />,
     },
     {
       title: "Total",
       value: formatNumber(ibWithdrawalReport?.total),
-      icon: <Banknote className="text-white" size={26} />,
+      icon: <Banknote className="text-text" size={26} />,
     },
   ];
 
   return (
-    <div className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-950 p-4 rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold text-white mb-6">IB Withdrawal Report</h2>
+    <div className="p-4 rounded-field">
+      <h2 className="text-lg font-semibold text-text mb-6">IB Withdrawal Report</h2>
 
       {loading ? (
-        <p className="text-white text-center">Loading report...</p>
+        <p className="text-text text-center">Loading report...</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="rounded-2xl p-6 text-white flex flex-col items-center justify-center shadow-md transition hover:scale-[1.02] duration-300 bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900"
+              className="rounded-card p-6 text-text flex flex-col items-center justify-center transition hover:scale-[1.02] duration-300"
             >
               {/* Icon */}
               <div className="mb-3">{card.icon}</div>

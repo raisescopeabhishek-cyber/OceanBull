@@ -112,14 +112,14 @@ const UserMasterUserCT = () => {
   }, []);
 
   return (
-    <div className="w-full p-4 sm:p-6 bg-secondary-800/40 rounded-xl shadow-sm">
+    <div className="w-full p-4 sm:p-6 bg-secondary-800/40 rounded-card shadow-sm">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
         {/* Profile Section */}
         <div className="flex sm:flex-col items-center gap-2 sm:space-y-2">
           <div className="p-3 bg-secondary-500-10 rounded-full">
             <Banknote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary-500" />
           </div>
-          <div className="flex items-center gap-1 text-sm text-green-600">
+          <div className="flex items-center gap-1 text-sm text-success">
             <Award className="w-4 h-4" />
             <span>High achiever</span>
           </div>
@@ -131,11 +131,11 @@ const UserMasterUserCT = () => {
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 sm:justify-between">
             <div className="text-center sm:text-left">
               <h2 className="text-xl font-semibold">{masterUser?.name}</h2>
-              <p className="text-sm text-gray-300">Minimum investment $32</p>
+              <p className="text-sm text-muted">Minimum investment $32</p>
             </div>
             <button
               onClick={() => setIsDialogOpen(true)}
-              className="w-full sm:w-auto px-6 py-2 text-gray-100 font-semibold bg-secondary-500 rounded-lg hover:bg-secondary-500-80 transition-colors"
+              className="w-full sm:w-auto px-6 py-2 text-text font-semibold bg-secondary-500 rounded-field hover:bg-secondary-500-80 transition-colors"
             >
               SET UP COPYING
             </button>
@@ -144,33 +144,33 @@ const UserMasterUserCT = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-1 text-sm text-gray-200">
+              <div className="flex items-center gap-1 text-sm text-muted">
                 Risk score
               </div>
               <div className="flex items-center gap-1">
-                <div className="px-2 py-0.5 bg-green-500/10 text-green-600 rounded-full text-sm">
+                <div className="px-2 py-0.5 bg-success-soft text-success rounded-full text-sm">
                   1 Risk
                 </div>
               </div>
             </div>
             <div className="space-y-1">
-              <div className="text-sm text-gray-200">Equity</div>
+              <div className="text-sm text-muted">Equity</div>
               <div className="font-medium">${216.4}</div>
             </div>
             <div className="space-y-1">
-              <div className="text-sm text-gray-200">Commission</div>
+              <div className="text-sm text-muted">Commission</div>
               <div className="font-medium">38%</div>
             </div>
             <div className="space-y-1">
-              <div className="text-sm text-gray-200">With Us</div>
+              <div className="text-sm text-muted">With Us</div>
               <div className="font-medium">309d</div>
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-gray-200">Strategy Description</h3>
-            <p className="text-sm text-gray-300">
+            <h3 className="text-muted">Strategy Description</h3>
+            <p className="text-sm text-muted">
               With over 8 years of experience in forex trading our strategy
               focuses on achieving steady and realistic profits while minimizing
               risks.
@@ -183,7 +183,7 @@ const UserMasterUserCT = () => {
           <AlertDialogContent>
             {/* Dialog content remains the same */}
             <AlertDialogHeader>
-              <AlertDialogTitle className=" ">
+              <AlertDialogTitle className="">
                 {"Setup With Your Account"}
               </AlertDialogTitle>
               <AlertDialogDescription>
@@ -191,14 +191,14 @@ const UserMasterUserCT = () => {
                   {loggedUser?.accounts?.map((account) => (
                     <div
                       key={account?.accountNumber}
-                      className="flex items-center justify-between p-4 rounded-lg shadow-sm bg-secondary-800/40"
+                      className="flex items-center justify-between p-4 rounded-field shadow-sm bg-secondary-800/40"
                     >
                       {/* Account Information */}
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-100">
+                        <h2 className="text-lg font-semibold text-text">
                           Account #{account?.accountNumber}
                         </h2>
-                        <p className="text-sm text-gray-200">
+                        <p className="text-sm text-muted">
                           {account?.accountType || "Account Type Unavailable"}
                         </p>
                       </div>
@@ -216,7 +216,7 @@ const UserMasterUserCT = () => {
                             joinToMaster(account?.accountNumber);
                           }
                         }}
-                        className="bg-secondary-500 flex items-center gap-1 text-white px-5 py-2 rounded-full shadow-md hover:bg-secondary-500-80 focus:ring-2 focus:ring-secondary-300 transition"
+                        className="bg-secondary-500 flex items-center gap-1 text-text px-5 py-2 rounded-full hover:bg-secondary-500-80 focus:ring-2 focus:ring-secondary-300 transition"
                       >
                         {linkedAccounts?.includes(
                           Number(account?.accountNumber)

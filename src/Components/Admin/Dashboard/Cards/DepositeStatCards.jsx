@@ -50,81 +50,81 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
 
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
     {
       title: "Approved Deposits",
       value: formatNumber(depositReport?.approved),
-      icon: <CreditCard className="text-white" size={26} />,
-      color: "bg-gradient-to-br from-indigo-900 via-blue-950 to-indigo-900",
+      icon: <CreditCard className="text-text" size={26} />,
+      color: "",
     },
   ];
 
@@ -133,13 +133,13 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
       {statCards.map((card, idx) => (
         <div
           key={idx}
-          className={`rounded-2xl p-6 text-white flex flex-col items-center justify-center shadow-md transition hover:scale-[1.02] duration-300 ${card.color}`}
+          className={`rounded-2xl p-6 text-text flex flex-col items-center justify-center shadow-md transition hover:scale-[1.02] duration-300 ${card.color}`}
         >
           {/* 1st Row: Icon */}
           <div className="mb-3">{card.icon}</div>
 
           {/* 2nd Row: Title */}
-          <h4 className=" text-sm font-medium opacity-90 text-center">
+          <h4 className="text-sm font-medium opacity-90 text-center">
             {card.title}
           </h4>
 

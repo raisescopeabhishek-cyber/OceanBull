@@ -71,20 +71,14 @@ const ReferralWithdrawHistoryTab = () => {
     const value = String(status || "").toLowerCase();
 
     if (value === "approved") {
-      return isDark
-        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return "border-success bg-success-soft text-success";
     }
 
     if (value === "rejected") {
-      return isDark
-        ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-        : "border-rose-200 bg-rose-50 text-rose-700";
+      return "border-danger bg-danger-soft text-danger";
     }
 
-    return isDark
-      ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
-      : "border-amber-200 bg-amber-50 text-amber-700";
+    return "border-line bg-primary-soft text-primary";
   };
 
   return (
@@ -152,14 +146,11 @@ const ReferralWithdrawHistoryTab = () => {
 
       <section className={panelCard(isDark, "p-6")}>
         <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full">
+          <table className="min-w-[900px] w-full table-stack">
             <thead>
               <tr
                 className={cx(
-                  "border-b text-left text-xs uppercase tracking-[0.16em]",
-                  isDark
-                    ? "border-white/10 text-white/45"
-                    : "border-sky-100 text-slate-500"
+                  "border-b text-left text-xs uppercase tracking-[0.16em]","border-line text-subtle"
                 )}
               >
                 <th className="px-4 py-3">Total Balance</th>
@@ -194,23 +185,22 @@ const ReferralWithdrawHistoryTab = () => {
                   <tr
                     key={item?._id || index}
                     className={cx(
-                      "border-b",
-                      isDark ? "border-white/5" : "border-sky-100/80"
+                      "border-b","border-line"
                     )}
                   >
-                    <td className={cx("px-4 py-4 text-sm", titleText(isDark))}>
+                    <td data-label="Total Balance" className={cx("px-4 py-4 text-sm", titleText(isDark))}>
                       {formatMoney(item?.totalBalance || 0, 4)}
                     </td>
 
-                    <td className={cx("px-4 py-4 text-sm", titleText(isDark))}>
+                    <td data-label="Withdraw Amount" className={cx("px-4 py-4 text-sm", titleText(isDark))}>
                       {formatMoney(item?.amount || 0, 4)}
                     </td>
 
-                    <td className={cx("px-4 py-4 text-sm", muted(isDark))}>
+                    <td data-label="Method" className={cx("px-4 py-4 text-sm", muted(isDark))}>
                       {methodLabel(item?.method)}
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td data-label="Updated" className="px-4 py-4">
                       <p className={cx("text-sm", titleText(isDark))}>
                         {formatDateTime(item?.updatedAt)}
                       </p>
@@ -219,7 +209,7 @@ const ReferralWithdrawHistoryTab = () => {
                       </p>
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td data-label="Status" className="px-4 py-4">
                       <span
                         className={cx(
                           "inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize",

@@ -13,14 +13,14 @@ const AccountTypeForm = ({
   handleSubmit,
 }) => {
   return (
-    <div className="bg-primary-800 rounded-xl shadow-lg p-6 mb-8">
-      <h2 className="text-2xl font-semibold text-white mb-6">
+    <div className="bg-primary-800 rounded-card p-6 mb-8">
+      <h2 className="text-2xl font-semibold text-text mb-6">
         Add New Account Type
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Account Type Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-200 mb-2">
+          <label className="block text-sm font-medium text-muted mb-2">
             Account Type
           </label>
           <select
@@ -29,7 +29,7 @@ const AccountTypeForm = ({
             onChange={(e) => handleInputChange(e)}
             required
             disabled={isLoading || isFetching}
-            className="w-full p-3 bg-white text-gray-900 rounded-lg border border-gray-300"
+            className="w-full p-3 bg-surface text-text rounded-field border border-line"
           >
             <option value="" disabled>
               Select an account type
@@ -44,7 +44,7 @@ const AccountTypeForm = ({
 
         {/* Leverage Fields */}
         <div>
-          <label className="block text-sm font-medium text-gray-200 mb-2">
+          <label className="block text-sm font-medium text-muted mb-2">
             Leverage
           </label>
           {newAccountType.leverage.map((lev, index) => (
@@ -58,7 +58,7 @@ const AccountTypeForm = ({
                 }
                 required
                 disabled={isLoading}
-                className="flex-1 p-3 bg-white text-gray-900 rounded-lg border"
+                className="flex-1 p-3 bg-surface text-text rounded-field border"
               />
               <input
                 type="text"
@@ -69,13 +69,13 @@ const AccountTypeForm = ({
                 }
                 required
                 disabled={isLoading}
-                className="flex-1 p-3 bg-white text-gray-900 rounded-lg border"
+                className="flex-1 p-3 bg-surface text-text rounded-field border"
               />
               <button
                 type="button"
                 onClick={() => removeField("leverage", index)}
                 disabled={isLoading}
-                className="p-2 bg-red-600 text-white rounded-lg"
+                className="p-2 bg-danger text-text rounded-field"
               >
                 <Trash2 className="h-5 w-5" />
               </button>
@@ -85,7 +85,7 @@ const AccountTypeForm = ({
             type="button"
             onClick={() => addField("leverage")}
             disabled={isLoading}
-            className="mt-2 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
+            className="mt-2 flex items-center gap-2 px-4 py-2 bg-primary text-text rounded-field"
           >
             <PlusCircle className="h-5 w-5" />
             Add Leverage
@@ -96,7 +96,7 @@ const AccountTypeForm = ({
         <button
           type="submit"
           disabled={isLoading || isFetching}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-success text-text rounded-field"
         >
           <PlusCircle className="h-5 w-5" />
           Add Account Type

@@ -50,11 +50,11 @@ export default function CustomGroupList({ refresh, setRefresh }) {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-white">Existing Groups</h1>
+        <h1 className="text-2xl font-semibold text-text">Existing Groups</h1>
         <button
           onClick={handleRefresh}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-text rounded-field hover:bg-primary-soft focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 transition-all"
         >
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -68,7 +68,7 @@ export default function CustomGroupList({ refresh, setRefresh }) {
       {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
         </div>
       )}
 
@@ -79,32 +79,32 @@ export default function CustomGroupList({ refresh, setRefresh }) {
             {customGroups?.map((value, index) => (
               <div
                 key={index}
-                className="bg-primary-800 rounded-xl p-4 text-white border border-primary-700 shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-primary-800 rounded-card p-4 text-text border border-primary-700 transition-all duration-200"
               >
                 <div className="flex justify-between items-center mb-3">
-                  <span className="font-medium text-gray-200">
+                  <span className="font-medium text-muted">
                     #{index + 1}
                   </span>
                   <button
                     onClick={() => deleteHandler(value._id, value.customGroup)}
                     disabled={isLoading}
-                    className="p-1 text-red-500 hover:text-red-600 focus:outline-none disabled:opacity-50 transition-colors"
+                    className="p-1 text-danger hover:text-danger focus:outline-none disabled:opacity-50 transition-colors"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-gray-400 text-sm">API Group</label>
-                    <div className="font-medium text-gray-100">
+                    <label className="text-subtle text-sm">API Group</label>
+                    <div className="font-medium text-text">
                       {value?.apiGroup}
                     </div>
                   </div>
                   <div>
-                    <label className="text-gray-400 text-sm">
+                    <label className="text-subtle text-sm">
                       Custom Group
                     </label>
-                    <div className="font-medium text-gray-100">
+                    <div className="font-medium text-text">
                       {value?.customGroup}
                     </div>
                   </div>
@@ -114,20 +114,20 @@ export default function CustomGroupList({ refresh, setRefresh }) {
           </div>
 
           {/* Tablet/Desktop View - Table Layout */}
-          <div className="hidden sm:block overflow-x-auto bg-primary-800 rounded-xl shadow-lg">
-            <table className="min-w-full divide-y divide-primary-700">
+          <div className="hidden sm:block overflow-x-auto bg-primary-800 rounded-card">
+            <table className="min-w-full divide-y divide-primary-700 table-stack">
               <thead className="bg-primary-600">
                 <tr>
-                  <th className="py-3 px-6 text-center text-sm font-medium text-gray-100 uppercase tracking-wider">
+                  <th className="py-3 px-6 text-center text-sm font-medium text-text uppercase tracking-wider">
                     Sr. No.
                   </th>
-                  <th className="py-3 px-6 text-center text-sm font-medium text-gray-100 uppercase tracking-wider">
+                  <th className="py-3 px-6 text-center text-sm font-medium text-text uppercase tracking-wider">
                     API Group
                   </th>
-                  <th className="py-3 px-6 text-center text-sm font-medium text-gray-100 uppercase tracking-wider">
+                  <th className="py-3 px-6 text-center text-sm font-medium text-text uppercase tracking-wider">
                     Custom Group
                   </th>
-                  <th className="py-3 px-6 text-center text-sm font-medium text-gray-100 uppercase tracking-wider">
+                  <th className="py-3 px-6 text-center text-sm font-medium text-text uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -136,24 +136,24 @@ export default function CustomGroupList({ refresh, setRefresh }) {
                 {customGroups?.map((value, index) => (
                   <tr
                     key={index}
-                    className="text-white hover:bg-primary-700/50 transition-colors"
+                    className="text-text hover:bg-primary-700/50 transition-colors"
                   >
-                    <td className="py-4 px-6 text-sm text-center text-gray-200">
+                    <td data-label="Sr. No." className="py-4 px-6 text-sm text-center text-muted">
                       {index + 1}
                     </td>
-                    <td className="py-4 px-6 text-sm text-center text-gray-200">
+                    <td data-label="API Group" className="py-4 px-6 text-sm text-center text-muted">
                       {value?.apiGroup}
                     </td>
-                    <td className="py-4 px-6 text-sm text-center text-gray-200">
+                    <td data-label="Custom Group" className="py-4 px-6 text-sm text-center text-muted">
                       {value?.customGroup}
                     </td>
-                    <td className="py-4 px-6 text-sm text-center">
+                    <td data-label="Action" className="py-4 px-6 text-sm text-center">
                       <button
                         onClick={() =>
                           deleteHandler(value._id, value.customGroup)
                         }
                         disabled={isLoading}
-                        className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-primary-800 disabled:opacity-50 transition-all"
+                        className="p-2 bg-danger text-text rounded-field hover:bg-danger focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-primary-800 disabled:opacity-50 transition-all"
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
@@ -166,7 +166,7 @@ export default function CustomGroupList({ refresh, setRefresh }) {
 
           {/* Empty State */}
           {customGroups?.length === 0 && (
-            <div className="text-center py-8 text-gray-400 bg-primary-800 rounded-xl shadow-lg">
+            <div className="text-center py-8 text-subtle bg-primary-800 rounded-card">
               No custom groups found
             </div>
           )}

@@ -46,13 +46,13 @@ const AllWithdrawals = () => {
   }, [page, search]);
 
   const statusColors = {
-    approved: "text-green-400 bg-green-900/40",
-    rejected: "text-red-400 bg-red-900/40",
-    pending: "text-yellow-400 bg-yellow-900/40",
+    approved: "text-success bg-success-soft",
+    rejected: "text-danger bg-danger-soft",
+    pending: "text-warning bg-warning-soft",
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Wallet size={18} /> All Withdrawals
       </h2>
@@ -62,7 +62,7 @@ const AllWithdrawals = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -72,55 +72,55 @@ const AllWithdrawals = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-indigo-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-primary text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading withdrawals...</p>
+        <p className="text-muted">Loading withdrawals...</p>
       ) : withdrawals.length === 0 ? (
-        <p className="text-gray-300">No withdrawals found.</p>
+        <p className="text-muted">No withdrawals found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-gray-700">
+          <table className="min-w-full border-collapse border border-line table-stack">
             <thead>
-              <tr className="bg-gray-800/50">
-                <th className="p-3 text-left border border-gray-700">User</th>
-                <th className="p-3 text-left border border-gray-700">Email</th>
-                <th className="p-3 text-left border border-gray-700">MT5 Account</th>
-                <th className="p-3 text-left border border-gray-700">Method</th>
-                <th className="p-3 text-left border border-gray-700">Amount</th>
-                <th className="p-3 text-left border border-gray-700">Status</th>
-                <th className="p-3 text-left border border-gray-700">Date</th>
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">User</th>
+                <th className="p-3 text-left border border-line">Email</th>
+                <th className="p-3 text-left border border-line">MT5 Account</th>
+                <th className="p-3 text-left border border-line">Method</th>
+                <th className="p-3 text-left border border-line">Amount</th>
+                <th className="p-3 text-left border border-line">Status</th>
+                <th className="p-3 text-left border border-line">Date</th>
               </tr>
             </thead>
             <tbody>
               {withdrawals.map((w) => (
                 <tr
                   key={w._id}
-                  className="hover:bg-gray-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="User" className="p-3 border border-line">
                     {w.userData?.firstName} {w.userData?.lastName}
                   </td>
-                  <td className="p-3 border border-gray-700 text-indigo-300">
+                  <td data-label="Email" className="p-3 border border-line text-primary">
                     {w.userData?.email}
                   </td>
-                  <td className="p-3 border border-gray-700">{w.mt5Account}</td>
-                  <td className="p-3 border border-gray-700">{w.method}</td>
-                  <td className="p-3 border border-gray-700">${w.amount}</td>
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="MT5 Account" className="p-3 border border-line">{w.mt5Account}</td>
+                  <td data-label="Method" className="p-3 border border-line">{w.method}</td>
+                  <td data-label="Amount" className="p-3 border border-line">${w.amount}</td>
+                  <td data-label="Status" className="p-3 border border-line">
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${
-                        statusColors[w.status] || "bg-gray-700 text-gray-300"
+                        statusColors[w.status] || "bg-surface-3 text-muted"
                       }`}
                     >
                       {w.status}
                     </span>
                   </td>
-                  <td className="p-3 border border-gray-700">
+                  <td data-label="Date" className="p-3 border border-line">
                     {new Date(w.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -135,17 +135,17 @@ const AllWithdrawals = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

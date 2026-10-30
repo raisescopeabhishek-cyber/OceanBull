@@ -18,47 +18,37 @@ import BonusMiniSidebar from "./components/BonusMiniSidebar";
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 const getTheme = (isDark) => ({
-  pageBg: isDark ? "#0b1120" : "#fffaf5",
-  pageText: isDark ? "text-white" : "text-slate-900",
+  pageBg: isDark ? "#0a111f" : "#f7f9fc",
+  pageText:"text-text",
 
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/60" : "text-slate-500",
-  softText: isDark ? "text-white/75" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  shell: isDark
-    ? "border-white/10 bg-white/[0.035] shadow-[0_18px_55px_rgba(0,0,0,0.38)]"
-    : "border-orange-100/80 bg-white/85 shadow-[0_14px_34px_rgba(251,146,60,0.08)]",
+  shell:"border-line bg-surface-2",
 
-  header: isDark
-    ? "border-white/10 bg-[linear-gradient(135deg,rgba(30,41,59,1),rgba(15,23,42,1))]"
-    : "border-orange-200/60 bg-[linear-gradient(135deg,#fb923c,#f97316)]",
+  header:"border-line",
 
-  headerText: "text-white",
-  headerMuted: isDark ? "text-white/65" : "text-white/85",
-  headerBadge: "border-white/20 bg-white/10 text-white",
-  headerIcon: "border-white/20 bg-white/10 text-white",
-  headerStat: "border-white/18 bg-white/10 text-white backdrop-blur-xl",
-  headerStatMuted: "text-white/78",
+  headerText: "text-text",
+  headerMuted:"text-muted",
+  headerBadge: "border-line bg-surface-2 text-text",
+  headerIcon: "border-line bg-surface-2 text-text",
+  headerStat: "border-line bg-surface-2 text-text backdrop-blur-xl",
+  headerStatMuted: "text-muted",
 
-  card: isDark
-    ? "border-white/10 bg-white/[0.045]"
-    : "border-orange-100/70 bg-white/75",
+  card:"border-line bg-surface-2",
 
-  button: isDark
-    ? "border-white/10 bg-white/[0.05] text-white/80 hover:bg-white/[0.09]"
-    : "border-orange-200/80 bg-white/90 text-orange-600 hover:bg-orange-50/80",
+  button:"border-line bg-surface-2 text-muted hover:bg-surface-2",
 
-  orangeButton: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15"
-    : "border-orange-200 bg-orange-50/70 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.05)] hover:bg-orange-100/60",
+  orangeButton:"border-line bg-primary-soft text-primary hover:bg-primary-soft",
 
-  contentBg: isDark ? "bg-white/[0.015]" : "bg-orange-50/20",
+  contentBg:"bg-surface-2",
 });
 
 const HeaderIconBox = ({ children, theme }) => (
   <div
     className={cx(
-      "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border",
+      "flex h-12 w-12 shrink-0 items-center justify-center rounded-card border",
       theme.headerIcon
     )}
   >
@@ -67,15 +57,15 @@ const HeaderIconBox = ({ children, theme }) => (
 );
 
 const HeaderStatBox = ({ icon, label, value, theme }) => (
-  <div className={cx("rounded-2xl border px-4 py-3", theme.headerStat)}>
+  <div className={cx("rounded-card border px-4 py-3", theme.headerStat)}>
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
+      <div className="flex h-10 w-10 items-center justify-center rounded-card border border-line bg-surface-2">
         {icon}
       </div>
 
       <div className="min-w-0">
         <p className={cx("text-xs", theme.headerStatMuted)}>{label}</p>
-        <p className="mt-1 truncate text-base font-bold text-white">{value}</p>
+        <p className="mt-1 truncate text-base font-bold text-text">{value}</p>
       </div>
     </div>
   </div>
@@ -149,7 +139,7 @@ const BonusLayout = () => {
 
         <div
           className={cx(
-            "min-h-[720px] overflow-hidden rounded-[28px] border backdrop-blur-xl",
+            "min-h-[720px] overflow-hidden rounded-card border backdrop-blur-xl",
             theme.shell
           )}
         >
@@ -232,15 +222,14 @@ const BonusLayout = () => {
           {/* Utility Bar */}
           <div
             className={cx(
-              "flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6",
-              isDark ? "border-white/10" : "border-orange-100/80"
+              "flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6","border-line"
             )}
           >
             <button
               type="button"
               onClick={() => navigate("/user/dashboard")}
               className={cx(
-                "inline-flex w-fit items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all",
+                "inline-flex w-fit items-center gap-2 rounded-card border px-4 py-2.5 text-sm font-semibold transition-all",
                 theme.button
               )}
             >
@@ -250,7 +239,7 @@ const BonusLayout = () => {
 
             <div
               className={cx(
-                "inline-flex w-fit items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-semibold",
+                "inline-flex w-fit items-center gap-2 rounded-card border px-4 py-2.5 text-xs font-semibold",
                 theme.orangeButton
               )}
             >

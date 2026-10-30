@@ -39,11 +39,10 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <div
         className={cx(
-          "w-full max-w-2xl rounded-[28px] border p-5 shadow-2xl",
-          isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-950"
+          "w-full max-w-2xl rounded-card border p-5","border-line bg-surface text-text"
         )}
       >
         <div className="flex items-center justify-between gap-4">
@@ -56,8 +55,7 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
             onClick={onClose}
             disabled={loading}
             className={cx(
-              "rounded-xl border p-2",
-              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+              "rounded-card border p-2","border-line hover:bg-surface-2"
             )}
           >
             <X className="h-4 w-4" />
@@ -73,7 +71,7 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
             ["chat_link", "Chat Link"],
           ].map(([key, label]) => (
             <label key={key} className="space-y-2">
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-success">
                 {label}
               </span>
               <input
@@ -82,17 +80,14 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
                   setForm((prev) => ({ ...prev, [key]: event.target.value }))
                 }
                 className={cx(
-                  "w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-900 text-white"
-                    : "border-emerald-100 bg-white text-slate-900"
+                  "w-full rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
                 )}
               />
             </label>
           ))}
 
           <label className="space-y-2 md:col-span-2">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600">
+            <span className="text-xs font-black uppercase tracking-[0.14em] text-success">
               Description
             </span>
             <textarea
@@ -101,10 +96,7 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
                 setForm((prev) => ({ ...prev, description: event.target.value }))
               }
               className={cx(
-                "min-h-[110px] w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-emerald-100 bg-white text-slate-900"
+                "min-h-[110px] w-full rounded-card border px-4 py-3 text-sm font-semibold outline-none","border-line bg-surface text-text"
               )}
             />
           </label>
@@ -116,8 +108,7 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
             onClick={onClose}
             disabled={loading}
             className={cx(
-              "rounded-2xl border px-5 py-3 text-sm font-bold",
-              isDark ? "border-white/10 hover:bg-white/10" : "border-emerald-100 hover:bg-emerald-50"
+              "rounded-card border px-5 py-3 text-sm font-bold","border-line hover:bg-surface-2"
             )}
           >
             Cancel
@@ -127,7 +118,7 @@ const MasterModal = ({ isDark, open, mode, form, setForm, loading, onClose, onSu
             type="button"
             onClick={onSubmit}
             disabled={loading}
-            className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
+            className="rounded-card bg-success px-5 py-3 text-sm font-bold text-text hover:bg-success disabled:opacity-60"
           >
             {loading ? "Saving..." : mode === "edit" ? "Update Master" : "Create Master"}
           </button>
@@ -292,7 +283,7 @@ const AdminMasters = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Masters CRUD</h1>
-          <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+          <p className={cx("mt-1 text-sm","text-subtle")}>
             Manage copy-trading master accounts. Newest records show first.
           </p>
         </div>
@@ -300,7 +291,7 @@ const AdminMasters = () => {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700"
+          className="inline-flex items-center gap-2 rounded-card bg-success px-5 py-3 text-sm font-black text-text hover:bg-success"
         >
           <Plus className="h-4 w-4" />
           Add Master
@@ -309,12 +300,11 @@ const AdminMasters = () => {
 
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-[1fr_220px_auto]",
-          isDark ? "border-white/10 bg-white/[0.035]" : "border-emerald-100 bg-white/95"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 md:grid-cols-[1fr_220px_auto]","border-line bg-surface-2"
         )}
       >
-        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-slate-900">
-          <Search className="h-4 w-4 text-emerald-600" />
+        <div className="flex items-center gap-2 rounded-card border border-success bg-surface px-4 py-3 text-text">
+          <Search className="h-4 w-4 text-success" />
           <input
             value={search}
             onChange={(event) => {
@@ -330,8 +320,7 @@ const AdminMasters = () => {
           value={sortBy}
           onChange={(event) => setSortBy(event.target.value)}
           className={cx(
-            "rounded-2xl border px-4 py-3 text-sm font-bold outline-none",
-            isDark ? "border-white/10 bg-slate-950 text-white" : "border-emerald-100 bg-white text-slate-900"
+            "rounded-card border px-4 py-3 text-sm font-bold outline-none","border-line bg-surface text-text"
           )}
         >
           <option value="newest">Newest First</option>
@@ -347,8 +336,7 @@ const AdminMasters = () => {
           onClick={load}
           disabled={loading}
           className={cx(
-            "inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold",
-            isDark ? "border-white/10 bg-white/[0.04] text-white" : "border-emerald-100 bg-white text-emerald-700"
+            "inline-flex items-center justify-center gap-2 rounded-card border px-4 py-3 text-sm font-bold","border-line bg-surface-2 text-text"
           )}
         >
           <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -367,14 +355,13 @@ const AdminMasters = () => {
       ) : (
         <div
           className={cx(
-            "overflow-hidden rounded-[24px] border",
-            isDark ? "border-white/10 bg-white/[0.03]" : "border-emerald-100 bg-white/95"
+            "overflow-hidden rounded-card border","border-line bg-surface-2"
           )}
         >
           <div className="max-w-full overflow-x-auto">
-            <table className="w-full min-w-[1050px] text-left text-sm">
+            <table className="w-full min-w-[1050px] text-left text-sm table-stack">
               <thead>
-                <tr className={cx("border-b text-xs uppercase tracking-[0.16em]", isDark ? "border-white/10 bg-white/[0.035] text-white/45" : "border-emerald-100 bg-emerald-50/80 text-slate-500")}>
+                <tr className={cx("border-b text-xs uppercase tracking-[0.16em]","border-line bg-surface-2 text-subtle")}>
                   <th className="px-4 py-3">Login</th>
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Commission</th>
@@ -391,26 +378,26 @@ const AdminMasters = () => {
                   const login = pickLogin(row);
 
                   return (
-                    <tr key={`${login}-${index}`} className={cx("border-t", isDark ? "border-white/10" : "border-emerald-100")}>
-                      <td className="whitespace-nowrap px-4 py-4 font-black">#{login}</td>
-                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["name", "Name", "nickname"], "-")}</td>
-                      <td className="whitespace-nowrap px-4 py-4">{valueOf(row, ["commission", "Commission"], 0)}%</td>
-                      <td className="whitespace-nowrap px-4 py-4">${valueOf(row, ["min_invest", "minInvest", "minimumInvestment"], 0)}</td>
-                      <td className="whitespace-nowrap px-4 py-4">{createdTime ? new Date(createdTime).toLocaleString() : "-"}</td>
-                      <td className="whitespace-nowrap px-4 py-4 font-bold text-emerald-600">{formatAgo(createdTime)}</td>
-                      <td className="whitespace-nowrap px-4 py-4">
+                    <tr key={`${login}-${index}`} className={cx("border-t","border-line")}>
+                      <td data-label="Login" className="whitespace-nowrap px-4 py-4 font-black">#{login}</td>
+                      <td data-label="Name" className="whitespace-nowrap px-4 py-4">{valueOf(row, ["name", "Name", "nickname"], "-")}</td>
+                      <td data-label="Commission" className="whitespace-nowrap px-4 py-4">{valueOf(row, ["commission", "Commission"], 0)}%</td>
+                      <td data-label="Min Invest" className="whitespace-nowrap px-4 py-4">${valueOf(row, ["min_invest", "minInvest", "minimumInvestment"], 0)}</td>
+                      <td data-label="Created" className="whitespace-nowrap px-4 py-4">{createdTime ? new Date(createdTime).toLocaleString() : "-"}</td>
+                      <td data-label="Ago" className="whitespace-nowrap px-4 py-4 font-bold text-success">{formatAgo(createdTime)}</td>
+                      <td data-label="Actions" className="whitespace-nowrap px-4 py-4">
                         <div className="flex gap-2">
                           <button
                             type="button"
                             onClick={() => openEdit(row)}
-                            className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-700"
+                            className="rounded-card border border-success bg-success-soft px-3 py-2 text-success"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => deleteMaster(row)}
-                            className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-red-600"
+                            className="rounded-card border border-danger bg-danger-soft px-3 py-2 text-danger"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -426,7 +413,7 @@ const AdminMasters = () => {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className={cx("text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+        <p className={cx("text-sm","text-subtle")}>
           Page <b>{safePage}</b> / <b>{totalPages}</b> · Showing {paginatedRows.length} of {rows.length}
         </p>
 
@@ -434,7 +421,7 @@ const AdminMasters = () => {
           <button
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             disabled={safePage === 1}
-            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+            className="rounded-card border border-success px-4 py-2 disabled:opacity-40"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -442,7 +429,7 @@ const AdminMasters = () => {
           <button
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={safePage === totalPages}
-            className="rounded-xl border border-emerald-100 px-4 py-2 disabled:opacity-40"
+            className="rounded-card border border-success px-4 py-2 disabled:opacity-40"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

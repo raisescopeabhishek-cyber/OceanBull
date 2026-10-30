@@ -1,8 +1,107 @@
-/* Ensure you have these colors in tailwind.config.js or replace with default colors */
-.react-tel-input input {
-  @apply w-full pl-14 pr-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition;
+/* react-phone-input-2 / react-phone-number-input, themed via design tokens.
+   Previously hardcoded to a dark navy palette in index.html, which made the
+   control unreadable in the light theme. */
+
+.PhoneInput {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-field);
+  border: 1px solid rgb(var(--line));
+  background-color: rgb(var(--surface));
+  color: rgb(var(--text));
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.react-tel-input .PhoneInputCountry {
-  @apply absolute top-4 left-3 text-gray-300;
+@media (min-width: 640px) {
+  .PhoneInput {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+.PhoneInput:focus-within {
+  border-color: rgb(var(--primary));
+  box-shadow: 0 0 0 2px rgb(var(--primary) / 0.25);
+}
+
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.PhoneInputInput::placeholder {
+  color: rgb(var(--text-subtle));
+}
+
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.PhoneInputCountrySelect {
+  background-color: rgb(var(--surface));
+  color: rgb(var(--text));
+  border: none;
+  cursor: pointer;
+}
+
+.PhoneInputCountrySelectArrow {
+  color: rgb(var(--text-subtle));
+  opacity: 1;
+}
+
+.PhoneInputCountryIcon {
+  vertical-align: middle;
+}
+
+/* react-phone-input-2 markup */
+.react-tel-input .form-control {
+  width: 100% !important;
+  min-height: 2.75rem;
+  border-radius: var(--radius-field) !important;
+  border: 1px solid rgb(var(--line)) !important;
+  background-color: rgb(var(--surface)) !important;
+  color: rgb(var(--text)) !important;
+}
+
+.react-tel-input .form-control:focus {
+  border-color: rgb(var(--primary)) !important;
+  box-shadow: 0 0 0 2px rgb(var(--primary) / 0.25) !important;
+}
+
+.react-tel-input .flag-dropdown,
+.react-tel-input .selected-flag,
+.react-tel-input .flag-dropdown.open .selected-flag {
+  background-color: rgb(var(--surface-2)) !important;
+  border-color: rgb(var(--line)) !important;
+  border-radius: var(--radius-field) 0 0 var(--radius-field) !important;
+}
+
+.react-tel-input .country-list {
+  background-color: rgb(var(--surface)) !important;
+  color: rgb(var(--text)) !important;
+  border: 1px solid rgb(var(--line));
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.react-tel-input .country-list .country:hover,
+.react-tel-input .country-list .country.highlight {
+  background-color: rgb(var(--surface-3)) !important;
+}
+
+.react-tel-input .country-list .country .dial-code {
+  color: rgb(var(--text-subtle)) !important;
 }

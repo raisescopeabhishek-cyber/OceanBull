@@ -57,7 +57,7 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 p-4 rounded-sm shadow-md text-white">
+    <div className="p-4 rounded-sm text-text">
       <h2 className="text-lg font-semibold mb-4">User Report Overview</h2>
       {loading ? (
         <p className="text-center text-sm">Loading chart...</p>
@@ -73,7 +73,7 @@ const API_KEY =  import.meta.env.VITE_API_KEY;
                 color: "#fff",
               }}
             />
-            <Bar dataKey="value" fill="#38bdf8" />
+            <Bar dataKey="value" fill="#4f7df6" />
           </BarChart>
         </ResponsiveContainer>
       )}

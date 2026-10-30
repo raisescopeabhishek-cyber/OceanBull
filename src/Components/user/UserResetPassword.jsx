@@ -98,26 +98,26 @@ export default function UserResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 to-indigo-950 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
       <Toaster></Toaster>
-      <div className="w-full max-w-md bg-secondary-800 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-8">
+      <div className="w-full max-w-md bg-secondary-800 backdrop-blur-lg rounded-card border border-line p-8">
         <div className="text-center mb-8">
-          <div className=" mb-2">
+          <div className="mb-2">
             <ModernHeading text={"Reset Password"}></ModernHeading>{" "}
           </div>
-          <p className="text-gray-300">Enter your new password below</p>
+          <p className="text-muted">Enter your new password below</p>
         </div>
 
         <form onSubmit={handleResetPassword} className="space-y-6">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400" />
+              <Lock className="w-5 h-5 text-subtle" />
             </div>
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="New Password"
-              className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+              className="w-full pl-10 pr-12 py-3 bg-surface-2 border border-line rounded-field text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
             <button
               type="button"
@@ -127,29 +127,29 @@ export default function UserResetPassword() {
 
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400" />
+              <Lock className="w-5 h-5 text-subtle" />
             </div>
             <input
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm Password"
-              className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+              className="w-full pl-10 pr-12 py-3 bg-surface-2 border border-line rounded-field text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
           </div>
 
           {error && (
-            <div className="flex items-center text-red-400 bg-red-900/20 p-3 rounded-lg">
+            <div className="flex items-center text-danger bg-danger-soft p-3 rounded-field">
               <AlertTriangle className="w-6 h-6 mr-3" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center text-green-400 bg-green-900/20 p-3 rounded-lg">
+            <div className="flex items-center text-success bg-success-soft p-3 rounded-field">
               <CheckCircle className="w-6 h-6 mr-3" />
               <span>Password successfully reset</span>
               <Link to={"/user/login"}>
-                <span className=" mx-2 text-blue-500 underline hover:text-blue-600 transition-all font-semibold">
+                <span className="mx-2 text-primary underline hover:text-primary transition-all font-semibold">
                   Login
                 </span>
               </Link>
@@ -158,14 +158,14 @@ export default function UserResetPassword() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-secondary-500-90 hover:bg-secondary-500-80 text-white font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-white"
+            className="w-full py-3 bg-secondary-500-90 hover:bg-secondary-500-80 text-text font-semibold rounded-field transition-all focus:outline-none focus:ring-2 focus:ring-line"
           >
             Reset Password
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-gray-400 text-sm">
+          <p className="text-subtle text-sm">
             Password must contain:
             <ul className="list-disc list-inside mt-2 text-left">
               <li>At least 8 characters</li>

@@ -1,165 +1,38 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import {
-  Edit2,
-  Check,
-  X,
-  RefreshCw,
-  ShieldCheck,
-  Layers3,
-  BadgeDollarSign,
-  Settings2,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+
 import { adminApi } from "../../../utils/apiClients";
+import {
+  Badge,
+  BlotterPage,
+  Button,
+  EmptyState,
+  Input,
+  Select,
+} from "@/Components/ui";
 
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
+/**
+ * IB commission levels.
+ *
+ * Ten levels per account type, each a single number. The page is a blotter so
+ * the level, its commission and the edit control line up in one column set,
+ * and the account type is the filter bar's select — switching it reloads the
+ * ten rows rather than navigating anywhere.
+ *
+ * The animated grid, floating particles and framer-motion stagger that used
+ * to wrap this screen are gone: they moved the rows a reader is trying to
+ * compare against each other.
+ */
 
-const containerVariants = {
-  hidden: { opacity: 1 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
+const LEVEL_COUNT = 10;
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const EMPTY_LEVELS = Array.from({ length: 10 }, (_, i) => ({
+const EMPTY_LEVELS = Array.from({ length: LEVEL_COUNT }, (_, i) => ({
   level: i + 1,
   id: "",
   levelBonus: "",
 }));
 
-const StatCard = ({
-  icon,
-  amount,
-  label,
-  isDark,
-}: {
-  icon: React.ReactNode;
-  amount: string;
-  label: string;
-  isDark: boolean;
-}) => {
-  return (
-    <motion.div
-      variants={cardVariants}
-      className={[
-        "group relative overflow-hidden rounded-[24px] border p-4 sm:p-5 transition-all duration-300",
-        isDark
-          ? "border-white/10 bg-white/[0.04] shadow-[0_18px_60px_rgba(0,0,0,0.42)]"
-          : "border-orange-100/80 bg-white/75 shadow-[0_16px_40px_rgba(251,146,60,0.12)]",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "absolute inset-0 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100",
-          isDark ? "bg-blue-400/10" : "bg-orange-300/20",
-        ].join(" ")}
-      />
-      <div className="relative flex items-center gap-4">
-        <div
-          className={[
-            "grid h-12 w-12 place-items-center rounded-2xl border",
-            isDark
-              ? "border-blue-400/20 bg-blue-500/15 text-blue-200"
-              : "border-orange-200 bg-orange-50 text-orange-600",
-          ].join(" ")}
-        >
-          {icon}
-        </div>
-
-        <div>
-          <p
-            className={[
-              "text-xs uppercase tracking-[0.16em]",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            {label}
-          </p>
-          <p
-            className={[
-              "mt-1 text-xl font-semibold",
-              isDark ? "text-white/90" : "text-slate-900",
-            ].join(" ")}
-          >
-            {amount}
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-const Panel = ({
-  title,
-  subtitle,
-  right,
-  children,
-  isDark,
-  className = "",
-}: {
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-  isDark: boolean;
-  className?: string;
-}) => {
-  return (
-    <div
-      className={[
-        "overflow-hidden rounded-[24px] border backdrop-blur-xl transition-all duration-300",
-        isDark
-          ? "border-white/10 bg-white/[0.04] shadow-[0_18px_60px_rgba(0,0,0,0.42)]"
-          : "border-orange-100/80 bg-white/72 shadow-[0_16px_42px_rgba(251,146,60,0.10)]",
-        className,
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6",
-          isDark
-            ? "border-white/10 bg-white/[0.03]"
-            : "border-orange-100/80 bg-white/50",
-        ].join(" ")}
-      >
-        <div>
-          <h3
-            className={[
-              "text-base font-semibold",
-              isDark ? "text-white/90" : "text-slate-900",
-            ].join(" ")}
-          >
-            {title}
-          </h3>
-          {subtitle && (
-            <p
-              className={[
-                "mt-1 text-xs",
-                isDark ? "text-white/45" : "text-slate-500",
-              ].join(" ")}
-            >
-              {subtitle}
-            </p>
-          )}
-        </div>
-        {right && <div className="shrink-0">{right}</div>}
-      </div>
-
-      <div className="p-4 sm:p-5 md:p-6">{children}</div>
-    </div>
-  );
-};
-
 const AdminIbZone = () => {
-  const mode = useSelector((store: any) => store.adminTheme?.mode || "light");
-  const isDark = mode === "dark";
-
   const [formData, setFormData] = useState(EMPTY_LEVELS);
   const [editingIndex, setEditingIndex] = useState<number>(-1);
 
@@ -171,20 +44,19 @@ const AdminIbZone = () => {
 
   const configuredCount = useMemo(
     () =>
-      formData.filter(
-        (r) => r.levelBonus !== "" && Number(r.levelBonus) > 0
-      ).length,
+      formData.filter((r) => r.levelBonus !== "" && Number(r.levelBonus) > 0)
+        .length,
     [formData]
   );
 
-  const totalLevels = formData.length;
-
-  const totalConfiguredValue = useMemo(() => {
-    return formData.reduce((sum, row) => {
-      const value = Number(row.levelBonus || 0);
-      return sum + (Number.isFinite(value) ? value : 0);
-    }, 0);
-  }, [formData]);
+  const totalConfiguredValue = useMemo(
+    () =>
+      formData.reduce((sum, row) => {
+        const value = Number(row.levelBonus || 0);
+        return sum + (Number.isFinite(value) ? value : 0);
+      }, 0),
+    [formData]
+  );
 
   const resetFormData = () => setFormData(EMPTY_LEVELS);
 
@@ -223,7 +95,7 @@ const AdminIbZone = () => {
       );
 
       if (filtered.length) {
-        const updated = Array.from({ length: 10 }, (_, idx) => {
+        const updated = Array.from({ length: LEVEL_COUNT }, (_, idx) => {
           const level = idx + 1;
           const found = filtered.find(
             (ib: any) =>
@@ -315,410 +187,216 @@ const AdminIbZone = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAccount?._id]);
 
-  return (
-    <div className="relative min-h-screen">
-      <AnimatedGrid />
-      <FloatingParticles />
+  /* The row index is the level minus one, so a column cell can find its own
+     place in `formData` without the table knowing about the edit state. */
+  const columns = [
+    {
+      key: "level",
+      header: "Level",
+      primary: true,
+      cell: (row: any) => (
+        <span className="numeric font-semibold text-text">
+          Level {row.level}
+        </span>
+      ),
+    },
+    {
+      key: "state",
+      header: "State",
+      secondary: true,
+      cell: (row: any) =>
+        row.levelBonus !== "" && Number(row.levelBonus) > 0 ? (
+          <Badge tone="success" dot={false}>
+            Configured
+          </Badge>
+        ) : (
+          <Badge tone="neutral" dot={false}>
+            Not set
+          </Badge>
+        ),
+    },
+    {
+      key: "levelBonus",
+      header: "Commission per lot",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (row: any) => {
+        const index = row.level - 1;
 
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <div
-          className={[
-            "sticky top-0 z-20 -mx-4 mb-6 border-b px-4 pb-4 pt-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8",
-            isDark
-              ? "border-white/10 bg-[#05070b]/70"
-              : "border-orange-100/80 bg-white/70",
-          ].join(" ")}
-        >
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={[
-                    "grid h-14 w-14 place-items-center rounded-[20px] border text-lg font-semibold",
-                    isDark
-                      ? "border-white/10 bg-white/[0.05] text-white/90"
-                      : "border-orange-100 bg-white/80 text-slate-800",
-                  ].join(" ")}
-                >
-                  <Settings2 className="h-6 w-6" />
-                </div>
+        if (editingIndex !== index) {
+          return row.levelBonus === "" ? (
+            <span className="text-subtle">—</span>
+          ) : (
+            <span className="font-semibold">
+              {Number(row.levelBonus).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          );
+        }
 
-                <div>
-                  <h1
-                    className={[
-                      "text-2xl font-bold md:text-3xl",
-                      isDark ? "text-white" : "text-slate-900",
-                    ].join(" ")}
-                  >
-                    Admin IB Zone
-                  </h1>
-
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-                    <span
-                      className={[
-                        "inline-flex items-center gap-1 rounded-full border px-3 py-1",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04] text-white/70"
-                          : "border-orange-100 bg-white/80 text-slate-600",
-                      ].join(" ")}
-                    >
-                      <Layers3 className="h-4 w-4" />
-                      {currentAccount?.customGroup || "Select Account Type"}
-                    </span>
-
-                    <span
-                      className={[
-                        "inline-flex items-center gap-1 rounded-full border px-3 py-1",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04] text-white/70"
-                          : "border-orange-100 bg-white/80 text-slate-600",
-                      ].join(" ")}
-                    >
-                      <BadgeDollarSign className="h-4 w-4" />
-                      {configuredCount}/{totalLevels} Levels Configured
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <select
-                  value={currentAccount?._id || ""}
-                  onChange={(e) => {
-                    const selected =
-                      accountsTypes.find((v) => v?._id === e.target.value) ||
-                      null;
-                    setCurrentAccount(selected);
-                    setEditingIndex(-1);
-                  }}
-                  className={[
-                    "min-w-[220px] appearance-none rounded-full border px-4 py-2.5 pr-10 text-sm font-medium outline-none transition-all duration-300",
-                    isDark
-                      ? "border-white/10 bg-white/[0.05] text-white/85 hover:bg-white/[0.08]"
-                      : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-                  ].join(" ")}
-                >
-                  <option value="" disabled>
-                    {accountsTypes.length ? "Select Account" : "Loading..."}
-                  </option>
-                  {accountsTypes.map((v) => (
-                    <option key={v?._id} value={v?._id}>
-                      {v?.customGroup}
-                    </option>
-                  ))}
-                </select>
-
-                <div
-                  className={[
-                    "pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs",
-                    isDark ? "text-white/50" : "text-slate-400",
-                  ].join(" ")}
-                >
-                  ▾
-                </div>
-              </div>
-
-              <button
-                onClick={fetchIbs}
-                disabled={loading || !currentAccount?._id}
-                className={[
-                  "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300",
-                  loading || !currentAccount?._id
-                    ? isDark
-                      ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-white/40"
-                      : "cursor-not-allowed border-orange-100 bg-white/70 text-slate-400"
-                    : isDark
-                    ? "border-white/10 bg-white/[0.05] text-white/85 hover:bg-white/[0.08]"
-                    : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50",
-                ].join(" ")}
-              >
-                <RefreshCw
-                  className={["h-4 w-4", loading ? "animate-spin" : ""].join(
-                    " "
-                  )}
-                />
-                {loading ? "Refreshing..." : "Refresh"}
-              </button>
-            </div>
+        return (
+          <div className="flex justify-end">
+            <Input
+              autoFocus
+              type="number"
+              min="0"
+              step="0.01"
+              value={row.levelBonus}
+              onChange={(e: any) =>
+                handleInputChange(index, "levelBonus", e.target.value)
+              }
+              onKeyDown={(e: any) => {
+                if (e.key === "Enter") handleSave(index);
+                if (e.key === "Escape") handleCancel();
+              }}
+              aria-label={`Commission for level ${row.level}`}
+              className="numeric w-[130px] text-right"
+            />
           </div>
-        </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Action",
+      align: "right",
+      cardFull: true,
+      cell: (row: any) => {
+        const index = row.level - 1;
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
-        >
-          <StatCard
-            isDark={isDark}
-            icon={<Layers3 size={20} />}
-            amount={`${accountsTypes.length}`}
-            label="Account Types"
-          />
-          <StatCard
-            isDark={isDark}
-            icon={<ShieldCheck size={20} />}
-            amount={`${configuredCount}/${totalLevels}`}
-            label="Configured Levels"
-          />
-          <StatCard
-            isDark={isDark}
-            icon={<BadgeDollarSign size={20} />}
-            amount={`${totalConfiguredValue}`}
-            label="Total Bonus Sum"
-          />
-        </motion.div>
-
-        <div className="grid grid-cols-1 gap-6">
-          <Panel
-            isDark={isDark}
-            title="IB Configuration Table"
-            subtitle="Manage per-level bonus for the selected account type"
-            right={
-              <div
-                className={[
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em]",
-                  isDark
-                    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                    : "border-emerald-200 bg-emerald-50 text-emerald-700",
-                ].join(" ")}
+        if (editingIndex === index) {
+          return (
+            <div className="flex justify-end gap-1.5">
+              <Button
+                size="sm"
+                variant="success-soft"
+                onClick={() => handleSave(index)}
+                loading={savingIdx === index}
               >
-                <ShieldCheck className="h-4 w-4" />
-                {currentAccount?.customGroup || "No Account Selected"}
-              </div>
-            }
-          >
-            <div
-              className={[
-                "overflow-hidden rounded-[22px] border",
-                isDark
-                  ? "border-white/10 bg-white/[0.02]"
-                  : "border-orange-100/80 bg-white/70",
-              ].join(" ")}
-            >
-              <div className="overflow-x-auto">
-                <table className="min-w-full whitespace-nowrap">
-                  <thead>
-                    <tr
-                      className={
-                        isDark
-                          ? "border-b border-white/10 bg-white/[0.03]"
-                          : "border-b border-orange-100 bg-orange-50/70"
-                      }
-                    >
-                      <th
-                        className={[
-                          "px-4 py-4 text-left text-sm font-semibold",
-                          isDark ? "text-white/80" : "text-slate-700",
-                        ].join(" ")}
-                      >
-                        Level
-                      </th>
-                      <th
-                        className={[
-                          "px-4 py-4 text-left text-sm font-semibold",
-                          isDark ? "text-white/80" : "text-slate-700",
-                        ].join(" ")}
-                      >
-                        Level Bonus / Lot
-                      </th>
-                      <th
-                        className={[
-                          "px-4 py-4 text-left text-sm font-semibold",
-                          isDark ? "text-white/80" : "text-slate-700",
-                        ].join(" ")}
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {formData.map((row, index) => {
-                      const isEditing = editingIndex === index;
-                      const isSaving = savingIdx === index;
-
-                      return (
-                        <tr
-                          key={row.level}
-                          className={[
-                            "border-b transition-all duration-200",
-                            isDark
-                              ? "border-white/10 hover:bg-white/[0.03]"
-                              : "border-orange-100/70 hover:bg-orange-50/50",
-                          ].join(" ")}
-                        >
-                          <td className="px-4 py-4">
-                            <div className="inline-flex items-center gap-3">
-                              <span
-                                className={[
-                                  "inline-flex h-9 w-9 items-center justify-center rounded-2xl text-sm font-semibold",
-                                  isDark
-                                    ? "bg-blue-500/15 text-blue-200 ring-1 ring-blue-400/20"
-                                    : "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
-                                ].join(" ")}
-                              >
-                                {row.level}
-                              </span>
-                              <span
-                                className={
-                                  isDark ? "text-white/80" : "text-slate-700"
-                                }
-                              >
-                                Level {row.level}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-4">
-                            {isEditing ? (
-                              <input
-                                type="number"
-                                inputMode="decimal"
-                                step="0.01"
-                                min="0"
-                                value={row.levelBonus}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    index,
-                                    "levelBonus",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="e.g. 3.50"
-                                className={[
-                                  "w-[180px] rounded-2xl border px-4 py-2.5 text-sm outline-none transition-all",
-                                  isDark
-                                    ? "border-white/10 bg-white/[0.05] text-white placeholder:text-white/30 focus:border-blue-400/30 focus:bg-white/[0.07]"
-                                    : "border-orange-100 bg-white text-slate-700 placeholder:text-slate-400 focus:border-orange-300 focus:bg-orange-50/30",
-                                ].join(" ")}
-                              />
-                            ) : (
-                              <span
-                                className={[
-                                  "text-sm font-medium",
-                                  row.levelBonus !== ""
-                                    ? isDark
-                                      ? "text-white/90"
-                                      : "text-slate-900"
-                                    : isDark
-                                    ? "text-white/40"
-                                    : "text-slate-400",
-                                ].join(" ")}
-                              >
-                                {row.levelBonus !== "" ? row.levelBonus : "Not set"}
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="px-4 py-4">
-                            {isEditing ? (
-                              <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                  disabled={isSaving}
-                                  onClick={() => handleSave(index)}
-                                  className={[
-                                    "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300",
-                                    isDark
-                                      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15 disabled:opacity-50"
-                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50",
-                                  ].join(" ")}
-                                >
-                                  <Check className="h-4 w-4" />
-                                  {isSaving ? "Saving..." : "Save"}
-                                </button>
-
-                                <button
-                                  disabled={isSaving}
-                                  onClick={handleCancel}
-                                  className={[
-                                    "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300",
-                                    isDark
-                                      ? "border-white/10 bg-white/[0.05] text-white/80 hover:bg-white/[0.08] disabled:opacity-50"
-                                      : "border-orange-100 bg-white/80 text-slate-700 hover:bg-orange-50 disabled:opacity-50",
-                                  ].join(" ")}
-                                >
-                                  <X className="h-4 w-4" />
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handleEdit(index)}
-                                className={[
-                                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300",
-                                  isDark
-                                    ? "border-blue-400/20 bg-blue-500/10 text-blue-200 hover:bg-blue-500/15"
-                                    : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
-                                ].join(" ")}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                                Edit
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {loading && (
-                <div
-                  className={[
-                    "border-t px-4 py-6 text-center text-sm",
-                    isDark
-                      ? "border-white/10 text-white/50"
-                      : "border-orange-100 text-slate-500",
-                  ].join(" ")}
-                >
-                  Loading levels...
-                </div>
-              )}
-
-              {!loading && !currentAccount?._id && (
-                <div
-                  className={[
-                    "border-t px-4 py-6 text-center text-sm",
-                    isDark
-                      ? "border-white/10 text-white/50"
-                      : "border-orange-100 text-slate-500",
-                  ].join(" ")}
-                >
-                  Please select an account type to view IB configuration.
-                </div>
-              )}
-
-              <div
-                className={[
-                  "flex items-center justify-between border-t px-4 py-3 text-xs sm:text-sm",
-                  isDark
-                    ? "border-white/10 bg-white/[0.03] text-white/50"
-                    : "border-orange-100 bg-orange-50/40 text-slate-500",
-                ].join(" ")}
-              >
-                <div>
-                  Account:{" "}
-                  <span className={isDark ? "text-white/85" : "text-slate-800"}>
-                    {currentAccount?.customGroup || "—"}
-                  </span>
-                </div>
-                <div>
-                  Configured:{" "}
-                  <span className={isDark ? "text-white/85" : "text-slate-800"}>
-                    {configuredCount}
-                  </span>
-                  /10
-                </div>
-              </div>
+                Save
+              </Button>
+              <Button size="sm" variant="secondary" onClick={handleCancel}>
+                Cancel
+              </Button>
             </div>
-          </Panel>
-        </div>
-      </div>
-    </div>
+          );
+        }
+
+        return (
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => handleEdit(index)}
+              disabled={!currentAccount?._id || loading}
+            >
+              Edit
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
+  return (
+    <BlotterPage
+      keyField="level"
+      breadcrumb="Partners / IB zone"
+      title="IB commission levels"
+      description="Commission paid per lot at each referral level, per account type."
+      actions={
+        <>
+          {/* The account type is what the page is about, not a filter, so it
+              lives in the header where it is visible at every width —
+              FilterBar's selects are hidden below `lg`. */}
+          <div className="w-[190px]">
+            <Select
+              value={currentAccount?._id || ""}
+              onChange={(e: any) =>
+                setCurrentAccount(
+                  accountsTypes.find((t: any) => t._id === e.target.value) ||
+                    null
+                )
+              }
+              aria-label="Account type"
+            >
+              <option value="">Select account type</option>
+              {accountsTypes.map((t: any) => (
+                <option key={t._id} value={t._id}>
+                  {t.customGroup}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <Button
+            variant="secondary"
+            onClick={fetchIbs}
+            loading={loading}
+            disabled={!currentAccount?._id}
+          >
+            Reload
+          </Button>
+        </>
+      }
+      readouts={[
+        {
+          key: "account",
+          label: "Account type",
+          value: currentAccount?.customGroup || "None selected",
+          helper: `${accountsTypes.length} types available`,
+          tone: "brand",
+        },
+        {
+          key: "configured",
+          label: "Levels configured",
+          value: `${configuredCount} / ${LEVEL_COUNT}`,
+          tone: configuredCount === LEVEL_COUNT ? "ok" : "warn",
+        },
+        {
+          key: "total",
+          label: "Combined per lot",
+          value: totalConfiguredValue.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+          helper: "Sum across all ten levels",
+        },
+      ]}
+      columns={columns}
+      rows={currentAccount?._id ? formData : []}
+      loading={loading}
+      rowEdge={(row: any) =>
+        row.levelBonus === "" || Number(row.levelBonus) <= 0 ? "warning" : null
+      }
+      empty={
+        <EmptyState
+          title={
+            accountsTypes.length
+              ? "No account type selected"
+              : "No account types"
+          }
+          description={
+            accountsTypes.length
+              ? "Pick an account type to set its commission levels."
+              : "Create a custom group first, then set its IB levels here."
+          }
+          action={
+            accountsTypes.length ? (
+              <Button
+                variant="soft"
+                onClick={() => setCurrentAccount(accountsTypes[0])}
+              >
+                Use {accountsTypes[0]?.customGroup}
+              </Button>
+            ) : null
+          }
+        />
+      }
+    />
   );
 };
 

@@ -138,27 +138,27 @@ export default function TicketsBoard() {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      Low: "text-green-400",
-      Medium: "text-yellow-400",
-      High: "text-orange-400",
-      Critical: "text-red-400",
+      Low: "text-success",
+      Medium: "text-warning",
+      High: "text-primary",
+      Critical: "text-danger",
     };
-    return colors[priority] || "text-gray-400";
+    return colors[priority] || "text-subtle";
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      Open: "bg-blue-500",
-      "In Progress": "bg-yellow-500",
-      Resolved: "bg-green-500",
-      Closed: "bg-gray-500",
+      Open: "bg-primary",
+      "In Progress": "bg-warning",
+      Resolved: "bg-success",
+      Closed: "bg-surface-3",
     };
-    return colors[status] || "bg-blue-500";
+    return colors[status] || "bg-primary";
   };
 
   if (loading) {
     return (
-      <div className="p-6 text-white">
+      <div className="p-6 text-text">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading tickets...</div>
         </div>
@@ -167,12 +167,12 @@ export default function TicketsBoard() {
   }
 
   return (
-    <div className="p-6 text-white min-h-screen">
+    <div className="p-6 text-text min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Support Tickets</h1>
         <button
           onClick={() => setShowRaiseTicket(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-lg hover:scale-105 transition-transform font-semibold"
+          className="flex items-center gap-2 px-4 py-2 text-text rounded-field hover:scale-105 transition-transform font-semibold"
         >
           <Plus size={20} />
           Raise Ticket
@@ -180,7 +180,7 @@ export default function TicketsBoard() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-600/20 border border-red-500 text-red-200 rounded-lg">
+        <div className="mb-4 p-4 bg-danger-soft border border-danger text-danger rounded-field">
           {error}
           <button
             onClick={loadTickets}
@@ -194,10 +194,10 @@ export default function TicketsBoard() {
       <div className="space-y-4">
         {tickets.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">No tickets found</div>
+            <div className="text-subtle mb-4">No tickets found</div>
             <button
               onClick={() => setShowRaiseTicket(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-primary text-text rounded-field hover:bg-primary-soft transition-colors"
             >
               Create your first ticket
             </button>
@@ -206,16 +206,16 @@ export default function TicketsBoard() {
           tickets.map((ticket) => (
             <div
               key={ticket.id || ticket._id}
-              className="p-6 bg-white/5 backdrop-blur-sm rounded-lg cursor-pointer hover:bg-white/10 transition-all border border-white/10"
+              className="p-6 bg-surface-2 backdrop-blur-sm rounded-field cursor-pointer hover:bg-surface-2 transition-all border border-line"
               onClick={() => handleOpenTicket(ticket)}
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-text mb-2">
                     {ticket.subject}
                   </h3>
                   {ticket.description && (
-                    <p className="text-gray-300 text-sm mb-3 line-clamp-2">
+                    <p className="text-muted text-sm mb-3 line-clamp-2">
                       {ticket.description}
                     </p>
                   )}
@@ -230,12 +230,12 @@ export default function TicketsBoard() {
                         {ticket.priority}
                       </span>
                     )}
-                    <span className="flex items-center gap-1 text-gray-400">
+                    <span className="flex items-center gap-1 text-subtle">
                       <User size={16} />
                       {ticket.userName || "Customer"}
                     </span>
                     {ticket.createdAt && (
-                      <span className="flex items-center gap-1 text-gray-400">
+                      <span className="flex items-center gap-1 text-subtle">
                         <Clock size={16} />
                         {new Date(ticket.createdAt).toLocaleDateString()}
                       </span>
@@ -245,14 +245,14 @@ export default function TicketsBoard() {
                 <div className="flex flex-col items-end gap-2">
                   {ticket.status && (
                     <span
-                      className={`px-3 py-1 text-xs text-white rounded-full ${getStatusColor(
+                      className={`px-3 py-1 text-xs text-text rounded-full ${getStatusColor(
                         ticket.status
                       )}`}
                     >
                       {ticket.status}
                     </span>
                   )}
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-subtle">
                     {ticket.chatCount || ticket.chats?.length || 0} messages
                   </span>
                 </div>

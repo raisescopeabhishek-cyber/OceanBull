@@ -27,47 +27,33 @@ import BonusHero from "./components/BonusHero";
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 const getSoftTheme = (isDark) => ({
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/45" : "text-slate-500",
-  softText: isDark ? "text-white/65" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  pageSection: isDark ? "bg-transparent" : "bg-orange-50/10",
+  pageSection:"bg-transparent",
 
-  softPanel: isDark
-    ? "border-white/10 bg-white/[0.03]"
-    : "border-orange-100/70 bg-white/75 shadow-[0_10px_26px_rgba(251,146,60,0.06)]",
+  softPanel:"border-line bg-surface-2",
 
-  softPanelHover: isDark
-    ? "hover:bg-white/[0.045]"
-    : "hover:bg-orange-50/35 hover:border-orange-200/70",
+  softPanelHover:"hover:bg-surface-2",
 
-  iconBox: isDark
-    ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-    : "border-orange-200/80 bg-orange-50/70 text-orange-500",
+  iconBox:"border-line bg-primary-soft text-primary",
 
-  chip: isDark
-    ? "border-white/10 bg-white/[0.04] text-white/65"
-    : "border-orange-100/80 bg-orange-50/55 text-orange-600",
+  chip:"border-line bg-surface-2 text-muted",
 
-  amountChip: isDark
-    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-100 bg-emerald-50/80 text-emerald-700",
+  amountChip:"border-success bg-success-soft text-success",
 
-  tableHead: isDark
-    ? "border-white/10 bg-white/[0.025] text-white/45"
-    : "border-orange-100 bg-orange-50/35 text-slate-500",
+  tableHead:"border-line bg-surface-2 text-subtle",
 
-  tableRow: isDark
-    ? "border-white/10 hover:bg-white/[0.035]"
-    : "border-orange-100/70 hover:bg-orange-50/25",
+  tableRow:"border-line hover:bg-surface-2",
 
-  tableCellText: isDark ? "text-white/80" : "text-slate-700",
+  tableCellText:"text-muted",
 });
 
 const SoftIconBox = ({ children, theme }) => (
   <div
     className={cx(
-      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+      "flex h-10 w-10 shrink-0 items-center justify-center rounded-card border",
       theme.iconBox
     )}
   >
@@ -86,7 +72,7 @@ const SoftActivityRow = ({
 }) => (
   <div
     className={cx(
-      "flex flex-col gap-3 rounded-2xl border p-4 transition-all duration-200 md:flex-row md:items-center md:justify-between",
+      "flex flex-col gap-3 rounded-card border p-4 transition-all duration-200 md:flex-row md:items-center md:justify-between",
       theme.softPanel,
       theme.softPanelHover
     )}
@@ -106,7 +92,7 @@ const SoftActivityRow = ({
       {amount !== undefined ? (
         <div
           className={cx(
-            "rounded-2xl border px-3 py-2 text-right",
+            "rounded-card border px-3 py-2 text-right",
             theme.amountChip
           )}
         >
@@ -143,7 +129,7 @@ const BonusDashboard = () => {
     <div className={cx("min-h-full", theme.pageSection)}>
 
       <div className="space-y-5 p-5 sm:p-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <BonusStatCard
             isDark={isDark}
             icon={<Coins size={22} />}
@@ -278,12 +264,11 @@ const BonusDashboard = () => {
           ) : (
             <div
               className={cx(
-                "overflow-hidden rounded-2xl border",
-                isDark ? "border-white/10" : "border-orange-100/80"
+                "overflow-hidden rounded-card border","border-line"
               )}
             >
               <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+                <table className="min-w-full text-left text-sm table-stack">
                   <thead>
                     <tr
                       className={cx(
@@ -307,7 +292,7 @@ const BonusDashboard = () => {
                           theme.tableRow
                         )}
                       >
-                        <td
+                        <td data-label="MT5 Account"
                           className={cx(
                             "px-4 py-4 font-semibold",
                             theme.tableCellText
@@ -323,11 +308,11 @@ const BonusDashboard = () => {
                           </span>
                         </td>
 
-                        <td className={cx("px-4 py-4", theme.tableCellText)}>
+                        <td data-label="Deposit" className={cx("px-4 py-4", theme.tableCellText)}>
                           {formatCurrency(item.deposit)}
                         </td>
 
-                        <td className="px-4 py-4">
+                        <td data-label="Bonus" className="px-4 py-4">
                           <span
                             className={cx(
                               "inline-flex rounded-full border px-3 py-1 text-xs font-bold",
@@ -338,7 +323,7 @@ const BonusDashboard = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-4">
+                        <td data-label="Status" className="px-4 py-4">
                           <BonusStatusBadge isDark={isDark} status={item.status} />
                         </td>
                       </tr>

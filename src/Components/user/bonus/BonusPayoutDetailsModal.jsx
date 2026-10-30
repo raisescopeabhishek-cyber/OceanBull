@@ -103,101 +103,59 @@ const formatPrice = (value) => {
 };
 
 const getTheme = (isDark) => ({
-  overlay: isDark ? "bg-black/70" : "bg-slate-900/45",
+  overlay:"bg-black/60",
 
-  modal: isDark
-    ? "border-white/15 bg-[#0b1220] text-white shadow-[0_30px_80px_rgba(0,0,0,0.50)]"
-    : "border-orange-200/90 bg-white text-slate-900 shadow-[0_30px_80px_rgba(251,146,60,0.20)]",
+  modal:"border-line bg-surface text-text",
 
-  header: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/80 bg-gradient-to-r from-orange-50/45 via-white/75 to-white/50",
+  header:"border-line bg-surface-2",
 
-  card: isDark
-    ? "border-white/15 bg-white/[0.035]"
-    : "border-orange-200/75 bg-white/85 shadow-[0_10px_24px_rgba(251,146,60,0.07)]",
+  card:"border-line bg-surface-2",
 
-  cardSoft: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/75 bg-orange-50/25",
+  cardSoft:"border-line bg-surface-2",
 
-  tableWrap: isDark
-    ? "border-white/15 bg-white/[0.025]"
-    : "border-orange-200/80 bg-white/85 shadow-[0_10px_26px_rgba(251,146,60,0.08)]",
+  tableWrap:"border-line bg-surface-2",
 
-  tableHead: isDark
-    ? "border-white/15 bg-white/[0.035] text-white/45"
-    : "border-orange-200/80 bg-orange-50/55 text-slate-500",
+  tableHead:"border-line bg-surface-2 text-subtle",
 
-  tableRow: isDark
-    ? "border-white/12 hover:bg-white/[0.035]"
-    : "border-orange-200/65 hover:bg-orange-50/35",
+  tableRow:"border-line hover:bg-surface-2",
 
-  text: isDark ? "text-white" : "text-slate-900",
-  muted: isDark ? "text-white/45" : "text-slate-500",
-  softText: isDark ? "text-white/65" : "text-slate-600",
+  text:"text-text",
+  muted:"text-subtle",
+  softText:"text-muted",
 
-  iconBox: isDark
-    ? "border-blue-400/30 bg-blue-500/10 text-blue-300"
-    : "border-orange-300/80 bg-orange-50/70 text-orange-500 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  iconBox:"border-line bg-primary-soft text-primary",
 
-  chip: isDark
-    ? "border-white/15 bg-white/[0.04] text-white/70"
-    : "border-orange-200/85 bg-orange-50/55 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  chip:"border-line bg-surface-2 text-muted",
 
-  accountChip: isDark
-    ? "border-blue-400/30 bg-blue-500/10 text-blue-300"
-    : "border-orange-300/85 bg-orange-50/70 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  accountChip:"border-line bg-primary-soft text-primary",
 
-  amountChip: isDark
-    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200/90 bg-emerald-50/85 text-emerald-700 shadow-[0_0_0_3px_rgba(16,185,129,0.05)]",
+  amountChip:"border-success bg-success-soft text-success",
 
-  bonusChip: isDark
-    ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
-    : "border-orange-200/90 bg-orange-50/70 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  bonusChip:"border-line bg-primary-soft text-primary",
 
-  walletChip: isDark
-    ? "border-purple-400/25 bg-purple-500/10 text-purple-200"
-    : "border-purple-100 bg-purple-50/80 text-purple-700 shadow-[0_0_0_3px_rgba(168,85,247,0.04)]",
+  walletChip:"border-line bg-primary-soft text-primary",
 
-  openPriceChip: isDark
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200"
-    : "border-sky-100 bg-sky-50/85 text-sky-700 shadow-[0_0_0_3px_rgba(14,165,233,0.04)]",
+  openPriceChip:"border-line bg-primary-soft text-primary",
 
-  closePriceChip: isDark
-    ? "border-orange-400/25 bg-orange-500/10 text-orange-200"
-    : "border-orange-200/90 bg-orange-50/75 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  closePriceChip:"border-line bg-primary-soft text-primary",
 
-  openTimeChip: isDark
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200"
-    : "border-sky-100 bg-sky-50/85 text-sky-700 shadow-[0_0_0_3px_rgba(14,165,233,0.04)]",
+  openTimeChip:"border-line bg-primary-soft text-primary",
 
-  closeTimeChip: isDark
-    ? "border-orange-400/25 bg-orange-500/10 text-orange-200"
-    : "border-orange-200/90 bg-orange-50/75 text-orange-700 shadow-[0_0_0_3px_rgba(251,146,60,0.05)]",
+  closeTimeChip:"border-line bg-primary-soft text-primary",
 
-  profitPositive: isDark
-    ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-    : "border-emerald-200/90 bg-emerald-50/85 text-emerald-700",
+  profitPositive:"border-success bg-success-soft text-success",
 
-  profitNegative: isDark
-    ? "border-red-400/25 bg-red-500/10 text-red-300"
-    : "border-red-200/90 bg-red-50/85 text-red-700",
+  profitNegative:"border-danger bg-danger-soft text-danger",
 
-  dangerButton: isDark
-    ? "border-red-400/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"
-    : "border-red-200/80 bg-red-50/75 text-red-600 hover:bg-red-100/60",
+  dangerButton:"border-danger bg-danger-soft text-danger hover:bg-danger-soft",
 
-  timeChip: isDark
-    ? "border-white/15 bg-white/[0.04] text-blue-300"
-    : "border-orange-200/90 bg-orange-50/60 text-orange-600 shadow-[0_0_0_3px_rgba(251,146,60,0.04)]",
+  timeChip:"border-line bg-surface-2 text-primary",
 });
 
 const IconBox = ({ theme, children }) => (
   <div
     className={cx(
-      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-[1.5px]",
+      "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border-[1.5px]",
       theme.iconBox
     )}
   >
@@ -206,11 +164,11 @@ const IconBox = ({ theme, children }) => (
 );
 
 const InfoCard = ({ theme, icon, label, value, valueClassName = "" }) => (
-  <div className={cx("rounded-[20px] border-[1.5px] p-4", theme.card)}>
+  <div className={cx("rounded-card border-[1.5px] p-4", theme.card)}>
     <div className="flex items-start gap-3">
       <div
         className={cx(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[1.5px]",
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-card border-[1.5px]",
           theme.iconBox
         )}
       >
@@ -289,14 +247,14 @@ const PriceCell = ({ theme, type, value }) => {
   return (
     <div
       className={cx(
-        "inline-flex min-w-[125px] items-center gap-2 rounded-2xl border-[1.5px] px-3 py-2",
+        "inline-flex min-w-[125px] items-center gap-2 rounded-card border-[1.5px] px-3 py-2",
         isOpen ? theme.openPriceChip : theme.closePriceChip
       )}
     >
       <div
         className={cx(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-white/30",
-          isOpen ? "text-sky-600" : "text-orange-600"
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-card border border-current/20 bg-surface-3",
+          isOpen ? "text-primary" : "text-primary"
         )}
       >
         {isOpen ? (
@@ -354,7 +312,7 @@ const BonusPayoutDetailsModal = ({
     >
       <div
         className={cx(
-          "max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[28px] border-[1.5px]",
+          "max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-card border-[1.5px]",
           theme.modal
         )}
         onClick={(e) => e.stopPropagation()}
@@ -396,7 +354,7 @@ const BonusPayoutDetailsModal = ({
             type="button"
             onClick={onClose}
             className={cx(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[1.5px] transition",
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-card border-[1.5px] transition",
               theme.dangerButton
             )}
             aria-label="Close payout details modal"
@@ -412,10 +370,7 @@ const BonusPayoutDetailsModal = ({
                 <div
                   key={i}
                   className={cx(
-                    "h-14 animate-pulse rounded-2xl border-[1.5px]",
-                    isDark
-                      ? "border-white/10 bg-white/[0.055]"
-                      : "border-orange-100/70 bg-orange-50/45"
+                    "h-14 animate-pulse rounded-card border-[1.5px]","border-line bg-surface-2"
                   )}
                 />
               ))}
@@ -456,7 +411,7 @@ const BonusPayoutDetailsModal = ({
               {/* Main Details */}
               <div
                 className={cx(
-                  "rounded-[24px] border-[1.5px] p-4",
+                  "rounded-card border-[1.5px] p-4",
                   theme.cardSoft
                 )}
               >
@@ -500,12 +455,12 @@ const BonusPayoutDetailsModal = ({
                 {payout?.note ? (
                   <div
                     className={cx(
-                      "mt-4 rounded-2xl border-[1.5px] p-4",
+                      "mt-4 rounded-card border-[1.5px] p-4",
                       theme.card
                     )}
                   >
                     <div className="mb-2 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-orange-500" />
+                      <FileText className="h-4 w-4 text-primary" />
                       <p
                         className={cx(
                           "text-xs font-semibold uppercase tracking-[0.14em]",
@@ -526,7 +481,7 @@ const BonusPayoutDetailsModal = ({
               {/* Related Trades */}
               <div
                 className={cx(
-                  "rounded-[24px] border-[1.5px] p-4",
+                  "rounded-card border-[1.5px] p-4",
                   theme.cardSoft
                 )}
               >
@@ -559,7 +514,7 @@ const BonusPayoutDetailsModal = ({
                 {relatedTrades.length === 0 ? (
                   <div
                     className={cx(
-                      "rounded-2xl border-[1.5px] px-4 py-8 text-center text-sm",
+                      "rounded-card border-[1.5px] px-4 py-8 text-center text-sm",
                       theme.card
                     )}
                   >
@@ -568,12 +523,12 @@ const BonusPayoutDetailsModal = ({
                 ) : (
                   <div
                     className={cx(
-                      "overflow-hidden rounded-[22px] border-[1.5px]",
+                      "overflow-hidden rounded-card border-[1.5px]",
                       theme.tableWrap
                     )}
                   >
                     <div className="overflow-x-auto">
-                      <table className="w-full min-w-[1450px] text-left text-sm">
+                      <table className="w-full min-w-[1450px] text-left text-sm table-stack">
                         <thead>
                           <tr
                             className={cx(
@@ -615,7 +570,7 @@ const BonusPayoutDetailsModal = ({
                                   theme.tableRow
                                 )}
                               >
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Position ID" className="px-4 py-4 align-top">
                                   <span
                                     className={cx(
                                       "inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -627,7 +582,7 @@ const BonusPayoutDetailsModal = ({
                                   </span>
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="MT5 Account" className="px-4 py-4 align-top">
                                   <span
                                     className={cx(
                                       "inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -639,7 +594,7 @@ const BonusPayoutDetailsModal = ({
                                   </span>
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Lot" className="px-4 py-4 align-top">
                                   <span
                                     className={cx(
                                       "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -650,7 +605,7 @@ const BonusPayoutDetailsModal = ({
                                   </span>
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Symbol" className="px-4 py-4 align-top">
                                   <span
                                     className={cx(
                                       "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-semibold",
@@ -661,7 +616,7 @@ const BonusPayoutDetailsModal = ({
                                   </span>
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Open Price" className="px-4 py-4 align-top">
                                   <PriceCell
                                     theme={theme}
                                     type="open"
@@ -669,7 +624,7 @@ const BonusPayoutDetailsModal = ({
                                   />
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Close Price" className="px-4 py-4 align-top">
                                   <PriceCell
                                     theme={theme}
                                     type="close"
@@ -677,7 +632,7 @@ const BonusPayoutDetailsModal = ({
                                   />
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Profit" className="px-4 py-4 align-top">
                                   <span
                                     className={cx(
                                       "inline-flex rounded-full border-[1.5px] px-3 py-1 text-xs font-bold",
@@ -690,7 +645,7 @@ const BonusPayoutDetailsModal = ({
                                   </span>
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Open Time" className="px-4 py-4 align-top">
                                   <TimeCell
                                     theme={theme}
                                     date={openDate}
@@ -698,7 +653,7 @@ const BonusPayoutDetailsModal = ({
                                   />
                                 </td>
 
-                                <td className="px-4 py-4 align-top">
+                                <td data-label="Close Time" className="px-4 py-4 align-top">
                                   <TimeCell
                                     theme={theme}
                                     date={closeDate}

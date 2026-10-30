@@ -65,7 +65,7 @@ export const AlertDialogContent = ({
           "w-full overflow-hidden text-left align-middle shadow-xl transition-all",
           hasCustomClass
             ? className
-            : "max-w-md rounded-2xl bg-neutral-900/95 p-6 text-white"
+            : "max-w-md rounded-sheet border border-line bg-surface p-6 text-text"
         )}
       >
         {children}
@@ -147,7 +147,7 @@ export const AlertDialogCancel = ({
     type="button"
     disabled={disabled}
     className={cn(
-      "rounded-md bg-gray-200 px-4 py-2 text-black transition hover:bg-gray-300/80 disabled:cursor-not-allowed disabled:opacity-60",
+      "rounded-field border border-line-strong bg-transparent px-4 py-2 text-text transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     onClick={onClick}
@@ -171,7 +171,7 @@ export const AlertDialogAction = ({
     type="button"
     disabled={disabled}
     className={cn(
-      "rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-600/80 disabled:cursor-not-allowed disabled:opacity-60",
+      "rounded-field bg-primary px-4 py-2 text-primary-on transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     onClick={onClick}

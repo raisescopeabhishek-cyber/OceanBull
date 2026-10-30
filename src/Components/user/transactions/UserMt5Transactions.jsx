@@ -54,20 +54,20 @@ export default function UserMt5Transactions({
       <div className="flex flex-wrap gap-4 items-center text-sm">
         {/* Type Filter Dropdown */}
         <div>
-          <label className="block mb-1 text-gray-300">Transaction Type</label>
+          <label className="block mb-1 text-muted">Transaction Type</label>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-white focus:outline-none"
+            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-text focus:outline-none"
           >
-            <option className=" bg-secondary-900 border-none" value="all">
+            <option className="bg-secondary-900 border-none" value="all">
               All
             </option>
-            <option className=" bg-secondary-900 border-none" value="deposit">
+            <option className="bg-secondary-900 border-none" value="deposit">
               Deposit
             </option>
             <option
-              className=" bg-secondary-900 border-none"
+              className="bg-secondary-900 border-none"
               value="withdrawal"
             >
               Withdrawal
@@ -77,25 +77,25 @@ export default function UserMt5Transactions({
 
         {/* Date Filter Dropdown */}
         <div>
-          <label className="block mb-1 text-gray-300">Date Range</label>
+          <label className="block mb-1 text-muted">Date Range</label>
           <select
             value={filterDateRange}
             onChange={(e) => setFilterDateRange(e.target.value)}
-            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-white focus:outline-none"
+            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-text focus:outline-none"
           >
-            <option className=" bg-secondary-900 border-none" value="all">
+            <option className="bg-secondary-900 border-none" value="all">
               All Time
             </option>
-            <option className=" bg-secondary-900 border-none" value="today">
+            <option className="bg-secondary-900 border-none" value="today">
               Today
             </option>
-            <option className=" bg-secondary-900 border-none" value="last3">
+            <option className="bg-secondary-900 border-none" value="last3">
               Last 3 Days
             </option>
-            <option className=" bg-secondary-900 border-none" value="last7">
+            <option className="bg-secondary-900 border-none" value="last7">
               Last 7 Days
             </option>
-            <option className=" bg-secondary-900 border-none" value="last30">
+            <option className="bg-secondary-900 border-none" value="last30">
               Last 30 Days
             </option>
           </select>
@@ -103,21 +103,21 @@ export default function UserMt5Transactions({
 
         {/* Account No Input */}
         <div>
-          <label className="block mb-1 text-gray-300">Account No</label>
+          <label className="block mb-1 text-muted">Account No</label>
           <input
             type="text"
             placeholder="e.g. 123456"
             value={filterAccount}
             onChange={(e) => setFilterAccount(e.target.value)}
-            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-white focus:outline-none"
+            className="bg-secondary-800/60 text-sm px-3 py-1 rounded-full text-text focus:outline-none"
           />
         </div>
       </div>
 
       {/* Transaction Table */}
-      <table className="w-full whitespace-nowrap text-sm overflow-x-auto user-custom-scrollbar">
+      <table className="table-stack w-full whitespace-nowrap text-sm overflow-x-auto user-custom-scrollbar">
         <thead>
-          <tr className="text-gray-400 border-b border-gray-700">
+          <tr className="text-subtle border-b border-line">
             <th className="text-center py-3 px-4">Type</th>
             <th className="text-center py-3 px-4">AC No</th>
             <th className="text-center py-3 px-4">Amount</th>
@@ -131,21 +131,21 @@ export default function UserMt5Transactions({
               const isDeposit = item.Profit > 0;
               const typeLabel = isDeposit ? "Deposit" : "Withdrawal";
               const Icon = isDeposit ? ArrowUpCircle : ArrowDownCircle;
-              const typeColor = isDeposit ? "text-green-400" : "text-red-400";
-              const bgColor = isDeposit ? "bg-green-400/10" : "bg-red-400/10";
+              const typeColor = isDeposit ? "text-success" : "text-danger";
+              const bgColor = isDeposit ? "bg-success-soft" : "bg-danger-soft";
               const prefix = isDeposit ? "+" : "–";
 
               return (
                 <motion.tr
                   key={index}
                   variants={rowVariants}
-                  className="border-b border-gray-700/60 hover:bg-secondary-800 transition-all"
+                  className="border-b border-line hover:bg-secondary-800 transition-all"
                   whileHover={{
                     backgroundColor: "rgba(255,255,255,0.05)",
                     transition: { duration: 0.2 },
                   }}
                 >
-                  <td className="py-2 px-4 text-center">
+                  <td data-label="Type" className="py-2 px-4 text-center">
                     <div
                       className={`flex items-center justify-center gap-2 px-3 py-1 rounded-full font-medium ${bgColor} ${typeColor}`}
                     >
@@ -153,7 +153,7 @@ export default function UserMt5Transactions({
                       {typeLabel}
                     </div>
                   </td>
-                  <td className="py-2 px-4 text-center">
+                  <td data-label="AC No" className="py-2 px-4 text-center">
                     <motion.div
                       className="bg-secondary-500-10 whitespace-nowrap rounded-full px-3 py-1 inline-block"
                       whileHover={{ scale: 1.05 }}
@@ -161,13 +161,13 @@ export default function UserMt5Transactions({
                       {item?.Login}
                     </motion.div>
                   </td>
-                  <td className="py-2 px-4 text-center font-semibold">
+                  <td data-label="Amount" className="py-2 px-4 text-center font-semibold">
                     <span className={typeColor}>
                       {prefix} {Math.abs(item?.Profit).toFixed(2)}
                     </span>
                   </td>
-                  <td className="py-2 text-center">{item?.Comment}</td>
-                  <td className="py-2 px-4 text-center capitalize">
+                  <td data-label="Comment" className="py-2 text-center">{item?.Comment}</td>
+                  <td data-label="Timestamp" className="py-2 px-4 text-center capitalize">
                     {ConvertUnixTimestamp(item?.Time)}
                   </td>
                 </motion.tr>

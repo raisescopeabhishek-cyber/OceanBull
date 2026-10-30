@@ -1,58 +1,30 @@
-import {
-  Wallet,
-  CreditCard,
-  ArrowLeftRight,
-  Users,
-  BoxIcon,
-} from "lucide-react";
-import UserInfoForm from "@/components/admin/user-detail/UserForm";
-import { useParams } from "react-router-dom";
-import UserTradeAccounts from "@/components/admin/user-detail/UserTradeAccounts";
-import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import UserInfoForm from "@/Components/Admin/user-detail/UserForm";
+import UserTradeAccounts from "@/Components/Admin/user-detail/UserTradeAccounts";
 import { adminApi } from "@/utils/apiClients";
 import { useMt5Accounts } from "../../../hooks/useMt5Accounts";
+import { Card, PageHeader, Readout, ReadoutStrip } from "@/Components/ui";
 
-const containerVariants = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
+/**
+ * One client's record.
+ *
+ * The figures were six pill-shaped cards whose background was a stock texture
+ * fetched from an external image host on every render — a third-party request
+ * on an admin page showing a named client's data. They are now the design
+ * system's readout strip, which also keeps them aligned and legible on a
+ * phone.
+ */
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
+const money = (value) =>
+  "$" +
+  Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-const StatCard = ({ icon, amount, label, bgColor }) => (
-  <motion.div
-    variants={cardVariants}
-    className={`p-4 px-10  rounded-full shadow-lg transition-all duration-300 hover:bg-black/40 ${bgColor} text-white`}
-    style={{
-      backgroundImage:
-        "url('https://png.pngtree.com/background/20230109/original/pngtree-white-abstract-carbon-fiber-texture-background-picture-image_1996167.jpg')", // More visible pattern
-      overlay: "auto",
-      backgroundBlendMode: "overlay",
-      backgroundSize: "cover",
-    }}
-  >
-    <div className="flex justify-center items-center">
-      <div className="flex items-center">
-        {icon}
-        <div className="ml-3">
-          <p className="text-2xl font-bold">{amount}</p>
-          <p className="text-sm opacity-80">{label}</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const UserDetailDashboard = ({ username }) => {
+const UserDetailDashboard = () => {
   const { id } = useParams();
   const [userData, setUserData] = useState();
   const [totalDeposit, setTotalDeposit] = useState([]);
@@ -61,26 +33,35 @@ const UserDetailDashboard = ({ username }) => {
   const totalTransactionsLength = totalTransactions.length;
   const [loading, setLoading] = useState(true);
   const userRequestRef = useRef(0);
+
   const accountNumbers = useMemo(
-    () => String(userData?._id) === String(id)
-      ? (userData?.accounts || []).map((account) => account.accountNumber)
-      : [],
+    () =>
+      String(userData?._id) === String(id)
+        ? (userData?.accounts || []).map((account) => account.accountNumber)
+        : [],
     [userData, id]
   );
+
   const { byLogin, isReady } = useMt5Accounts(accountNumbers);
-  const equityLoading = loading || accountNumbers.some((account) => !isReady(account, ["Equity"]));
+
+  const equityLoading =
+    loading || accountNumbers.some((account) => !isReady(account, ["Equity"]));
+
   const totalBalance = accountNumbers.reduce(
     (total, account) => total + (byLogin[String(account)]?.Equity ?? 0),
     0
   );
+
   const totalInvestAmount = totalDeposit.reduce(
     (total, value) => total + (Number(value.deposit) || 0),
     0
   );
+
   const totalWithdrwalAmount = totalWithdrwal.reduce(
     (total, value) => total + (Number(value.amount) || 0),
     0
   );
+
   const fetchUserData = async () => {
     const request = ++userRequestRef.current;
     setLoading(true);
@@ -110,69 +91,76 @@ const UserDetailDashboard = ({ username }) => {
     }
   };
 
-  const stats = [
-    {
-      icon: <BoxIcon size={24} />,
-      amount: `${userData?.accounts?.length}`,
-      label: "Total MT5 ID",
-      bgColor: "bg-green-800",
-    },
-    {
-      icon: <CreditCard size={24} />,
-      amount: equityLoading ? "Updating..." : `$${totalBalance.toFixed(2)}`,
-      label: "Total Available Balance",
-      bgColor: "bg-indigo-800",
-    },
-    {
-      icon: <ArrowLeftRight size={24} />,
-      amount: `$${totalWithdrwalAmount}`,
-      label: "Withdrawals",
-      bgColor: "bg-teal-800",
-    },
-    {
-      icon: <ArrowLeftRight size={24} />,
-      amount: `${totalTransactionsLength}`,
-      label: "Transactions",
-      bgColor: "bg-purple-900",
-    },
-    {
-      icon: <Wallet size={24} />,
-      amount: `$${totalInvestAmount}`,
-      label: "Deposits",
-      bgColor: "bg-sky-900",
-    },
-    {
-      icon: <Users size={24} />,
-      amount: "$0",
-      label: "Total Referral Commission",
-      bgColor: "bg-yellow-900/80",
-    },
-  ];
-
-  // useEffect ----------------------
-
   useEffect(() => {
     if (id) fetchUserData();
-    return () => { userRequestRef.current += 1; };
+    return () => {
+      userRequestRef.current += 1;
+    };
   }, [id]);
 
+  const fullName =
+    [userData?.firstName, userData?.lastName].filter(Boolean).join(" ") ||
+    "Client";
+
+  const netFlow = totalInvestAmount - totalWithdrwalAmount;
+
   return (
-    <div className=" w-full mx-auto px-10 py-5 rounded-lg bg-primary-700 shadow-lg">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-      >
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
-      </motion.div>
-      <UserInfoForm userData={userData}></UserInfoForm>
-      <UserTradeAccounts
-        fetchUserData={fetchUserData}
-        userData={userData}
-      ></UserTradeAccounts>
+    <div className="flex min-w-0 flex-col gap-2">
+      <PageHeader
+        breadcrumb="Clients / Detail"
+        title={loading ? "Loading client…" : fullName}
+        description={userData?.email || "Account, balances and trading accounts."}
+      />
+
+      <ReadoutStrip>
+        <Readout
+          label="MT5 accounts"
+          value={userData?.accounts?.length ?? 0}
+          tone="brand"
+        />
+        <Readout
+          label="Total equity"
+          value={equityLoading ? "Updating…" : money(totalBalance)}
+          helper="Live from MT5"
+          tone="brand"
+        />
+        <Readout
+          label="Deposits"
+          value={money(totalInvestAmount)}
+          helper={`${totalDeposit.length} records`}
+          trend="up"
+          tone="ok"
+        />
+        <Readout
+          label="Withdrawals"
+          value={money(totalWithdrwalAmount)}
+          helper={`${totalWithdrwal.length} records`}
+          trend="down"
+          tone="bad"
+        />
+        <Readout
+          label="Net flow"
+          value={money(netFlow)}
+          trend={netFlow >= 0 ? "up" : "down"}
+          tone={netFlow >= 0 ? "ok" : "bad"}
+        />
+        <Readout
+          label="Transactions"
+          value={totalTransactionsLength}
+          helper="Deposits and withdrawals"
+        />
+      </ReadoutStrip>
+
+      <Card className="min-w-0 p-3.5">
+        <UserInfoForm userData={userData} />
+      </Card>
+
+      <Card className="min-w-0 p-3.5">
+        <UserTradeAccounts
+          fetchUserData={fetchUserData}
+          userData={userData}
+        />
+      </Card>
     </div>
   );
 };

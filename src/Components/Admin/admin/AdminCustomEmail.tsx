@@ -1,23 +1,29 @@
-// AdminCustomEmail.tsx
 import React, { useMemo, useState } from "react";
-import {
-  Mail,
-  Send,
-  User,
-  UsersRound,
-  AlertTriangle,
-  CheckCircle,
-  Hash,
-  AtSign,
-  Eye,
-  X,
-} from "lucide-react";
 import toast from "react-hot-toast";
-import { adminApi } from "../../../utils/apiClients";
 
-// ✨ ambient visuals (shared theme)
-import { FloatingParticles } from "../../../utils/FloatingParticles";
-import { AnimatedGrid } from "../../../utils/AnimatedGrid";
+import { adminApi } from "../../../utils/apiClients";
+import {
+  Badge,
+  Button,
+  Field,
+  FormPage,
+  Input,
+  Modal,
+  SectionStep,
+  Textarea,
+} from "@/Components/ui";
+
+/**
+ * Custom email.
+ *
+ * The entry archetype. Who it goes to is step one, because that choice
+ * changes what the rest of the form means — a single address sends the
+ * rendered HTML, "all users" sends plain text through the bulk endpoint, and
+ * the summary rail says which path a press of Send will take.
+ *
+ * The preview opens in a modal and renders the real HTML in an iframe, so
+ * what is shown is what the recipient gets rather than an approximation.
+ */
 
 export default function AdminCustomEmail() {
   const [recipient, setRecipient] = useState<"single" | "all">("single");
@@ -40,14 +46,14 @@ export default function AdminCustomEmail() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${subject || "Message"} - ${import.meta.env.VITE_WEBSITE_NAME || ""}</title>
 <style>
-  body, html { margin:0; padding:0; font-family: Arial, sans-serif; line-height:1.6; color:#333; background:#f4f4f4; }
+  body, html { margin:0; padding:0; font-family: Arial, sans-serif; line-height:1.6; color:#333; background:#f3f5f9; }
   .container { max-width:600px; margin:0 auto; padding:5px; background:#ffffff; }
   .header { background:#19422df2; color:#fff; padding:20px 15px; text-align:center; border-radius:10px 10px 0 0; }
   .header h1 { margin:0; font-size:22px; letter-spacing:0.5px; }
   .content { padding:12px 20px; }
   .footer { background:#19422df2; color:#fff; text-align:center; padding:10px; font-size:12px; border-radius:0 0 10px 10px; }
-  .footer a { color:#B6D0E2; text-decoration:none; }
-  .cta-button { display:inline-block; padding:12px 24px; background:#2d6a4f; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold; margin:12px 0; }
+  .footer a { color:#bed2ff; text-decoration:none; }
+  .cta-button { display:inline-block; padding:12px 24px; background:#0f9f6e; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold; margin:12px 0; }
   .risk-warning { color:#C70039; padding:6px 0; font-size:12px; line-height:1.45; }
   .hr { border:none; border-top:1px solid #eee; margin:14px 0; }
 </style>
@@ -134,163 +140,184 @@ export default function AdminCustomEmail() {
     !message.trim() ||
     (recipient === "single" && (!email.trim() || !isValidEmail(email)));
 
+  const recipientLabel =
+    recipient === "single" ? email.trim() || "No address yet" : "Every user";
+
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
-      <AnimatedGrid />
-      <FloatingParticles />
-
-      <div className="max-w-5xl mx-auto pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 border border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600">
-                <Mail className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
-                Custom Email
-              </h2>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowPreview(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-600/50 text-slate-200 hover:bg-slate-800/60 transition-all"
-              title="Preview email"
+    <>
+      <FormPage
+        breadcrumb="Communications / Email"
+        title="Custom email"
+        description="Send a one-off message to a single client or to every user."
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() => setShowPreview(true)}
+            disabled={!subject.trim() && !message.trim()}
+          >
+            Preview
+          </Button>
+        }
+        summary={{
+          title: "Will send",
+          rows: [
+            {
+              label: "To",
+              value: recipientLabel,
+              tone: recipient === "all" ? "loss" : "text",
+            },
+            { label: "Subject", value: subject.trim() || "—" },
+            {
+              label: "Body",
+              value: `${message.trim().length} chars`,
+            },
+            {
+              label: "Format",
+              value: recipient === "single" ? "Branded HTML" : "Plain text",
+              weight: "bold",
+            },
+          ],
+          checks:
+            recipient === "all"
+              ? [
+                  "Goes to every registered user — there is no undo.",
+                  "Bulk sends use plain text, not the HTML template.",
+                ]
+              : ["Sent as the branded HTML template with the risk warning."],
+        }}
+        submit={{
+          label: recipient === "all" ? "Send to all users" : "Send email",
+          onClick: () => handleSubmit(),
+          loading: isSending,
+          disabled: isDisabled,
+          tone: recipient === "all" ? "danger" : "primary",
+          reason: isDisabled
+            ? recipient === "single" && email.trim() && !isValidEmail(email)
+              ? "That email address is not valid"
+              : "Fill in the recipient, subject and message"
+            : undefined,
+        }}
+      >
+        <SectionStep
+          index={1}
+          title="Who receives it"
+          hint="This changes both the endpoint and the format."
+        >
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={recipient === "single" ? "primary" : "secondary"}
+              onClick={() => setRecipient("single")}
             >
-              <Eye className="w-4 h-4" />
-              Preview
-            </button>
+              One address
+            </Button>
+            <Button
+              variant={recipient === "all" ? "danger" : "secondary"}
+              onClick={() => setRecipient("all")}
+            >
+              All users
+            </Button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            {/* Recipient toggle */}
-            <div className="inline-flex bg-slate-900/40 border border-slate-700/60 rounded-full p-1">
-              <button
-                type="button"
-                onClick={() => setRecipient("single")}
-                className={`px-4 py-2 rounded-full flex items-center gap-2 text-sm transition-all ${
-                  recipient === "single"
-                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md"
-                    : "text-slate-300 hover:text-white"
-                }`}
-              >
-                <User className="w-4 h-4" /> Single User
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecipient("all")}
-                className={`px-4 py-2 rounded-full flex items-center gap-2 text-sm transition-all ${
-                  recipient === "all"
-                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md"
-                    : "text-slate-300 hover:text-white"
-                }`}
-              >
-                <UsersRound className="w-4 h-4" /> All Users
-              </button>
-            </div>
-
-            {/* Email (if single) */}
-            {recipient === "single" && (
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Recipient email"
-                  className="w-full bg-slate-900/50 border border-slate-700/60 rounded-2xl px-12 py-3 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
-                />
-                <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              </div>
-            )}
-
-            {/* Subject */}
-            <div className="relative">
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Email subject"
-                className="w-full bg-slate-900/50 border border-slate-700/60 rounded-2xl px-12 py-3 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
-              />
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            </div>
-
-            {/* Message */}
-            <div className="relative">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Compose your message…"
-                className="w-full h-52 bg-slate-900/50 border border-slate-700/60 rounded-2xl px-12 py-3 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 resize-none"
-              />
-              <Send className="absolute left-4 top-4 text-slate-400 w-5 h-5" />
-            </div>
-
-            {/* Status banners */}
-            {status === "error" && (
-              <div className="flex items-center gap-2 text-rose-400 bg-rose-500/10 border border-rose-500/30 px-3 py-2 rounded-xl">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Something went wrong. Check fields and try again.</span>
-              </div>
-            )}
-            {status === "success" && (
-              <div className="flex items-center gap-2 text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 rounded-xl">
-                <CheckCircle className="w-4 h-4" />
-                <span>Email sent successfully!</span>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <button
-                type="submit"
-                disabled={isDisabled}
-                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all ${
-                  isDisabled
-                    ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-500 shadow-lg shadow-cyan-600/10"
-                }`}
-              >
-                <Send className="w-5 h-5" />
-                {isSending ? "Sending…" : "Send Email"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowPreview(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-slate-600/50 text-slate-200 hover:bg-slate-800/60 transition-all"
-              >
-                <Eye className="w-5 h-5" />
-                Preview
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-3xl h-[80vh] bg-slate-900/90 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl">
-            <button
-              onClick={() => setShowPreview(false)}
-              className="absolute top-3 right-3 text-slate-300 hover:text-white z-10"
-              aria-label="Close"
+          {recipient === "single" ? (
+            <Field
+              label="Email address"
+              htmlFor="mail-to"
+              className="mt-3"
+              required
+              error={
+                email.trim() && !isValidEmail(email)
+                  ? "That does not look like an email address"
+                  : undefined
+              }
             >
-              <X className="w-6 h-6" />
-            </button>
-            <div className="h-full">
-              <iframe
-                title="Email Preview"
-                className="w-full h-full bg-white"
-                srcDoc={customContent}
+              <Input
+                id="mail-to"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="client@example.com"
+                className="numeric"
               />
+            </Field>
+          ) : (
+            <div className="mt-3 rounded-field border border-danger/40 bg-danger-soft px-3 py-2.5">
+              <Badge tone="danger" dot={false}>
+                Bulk send
+              </Badge>
+              <p className="mt-1.5 text-xs text-danger">
+                This reaches every registered user. Check the subject and body
+                in the preview before sending.
+              </p>
             </div>
+          )}
+        </SectionStep>
+
+        <SectionStep
+          index={2}
+          title="Subject"
+          hint="Also used as the heading inside the email."
+        >
+          <Field label="Subject line" htmlFor="mail-subject" required>
+            <Input
+              id="mail-subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Scheduled maintenance this weekend"
+            />
+          </Field>
+        </SectionStep>
+
+        <SectionStep
+          index={3}
+          title="Message"
+          hint="Line breaks are preserved. The risk warning is added for you."
+        >
+          <Field label="Body" htmlFor="mail-body" required>
+            <Textarea
+              id="mail-body"
+              rows={10}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Write the message as you want it read."
+            />
+          </Field>
+
+          {status === "success" ? (
+            <p className="mt-2 text-xs font-medium text-profit">
+              Sent. The form has been cleared.
+            </p>
+          ) : null}
+        </SectionStep>
+      </FormPage>
+
+      <Modal
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        title="Email preview"
+        size="lg"
+      >
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone={recipient === "all" ? "danger" : "primary"} dot={false}>
+              {recipient === "all" ? "All users" : recipientLabel}
+            </Badge>
+            <span className="text-xs text-subtle">
+              {recipient === "single"
+                ? "Rendered HTML, exactly as sent"
+                : "Bulk sends deliver the plain text below, not this layout"}
+            </span>
           </div>
+
+          {/* An iframe so the email's own CSS cannot leak into the admin UI,
+              and so what is shown is genuinely what is sent. */}
+          <iframe
+            title="Email preview"
+            srcDoc={customContent}
+            className="h-[60vh] w-full rounded-field border border-line bg-white"
+            sandbox=""
+          />
         </div>
-      )}
-    </div>
+      </Modal>
+    </>
   );
 }

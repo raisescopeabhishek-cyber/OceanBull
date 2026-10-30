@@ -5,62 +5,44 @@ export const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 export const panelCard = (isDark, extra = "") =>
   cx(
-    "rounded-[28px] border backdrop-blur-xl",
-    isDark
-      ? "border-white/10 bg-white/[0.035] shadow-[0_20px_70px_-30px_rgba(0,0,0,0.75)]"
-      : "border-sky-100/80 bg-white/80 shadow-[0_20px_70px_-30px_rgba(14,165,233,0.24)]",
+    "rounded-card border backdrop-blur-xl","border-line bg-surface-2",
     extra
   );
 
 export const softCard = (isDark, extra = "") =>
   cx(
-    "rounded-[24px] border",
-    isDark ? "border-white/10 bg-white/[0.04]" : "border-sky-100 bg-sky-50/60",
+    "rounded-card border","border-line bg-surface-2",
     extra
   );
 
 export const pill = (isDark, extra = "") =>
   cx(
-    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-    isDark
-      ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
-      : "border-cyan-200 bg-cyan-50 text-cyan-700",
+    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
     extra
   );
 
 export const inputBase = (isDark, extra = "") =>
   cx(
-    "w-full rounded-2xl border px-4 py-3 outline-none transition-all",
-    isDark
-      ? "border-white/10 bg-white/[0.05] text-white placeholder:text-white/35 focus:border-cyan-400/40 focus:bg-white/[0.07]"
-      : "border-sky-100 bg-white text-slate-900 placeholder:text-slate-400 focus:border-sky-300 focus:bg-sky-50/50",
+    "w-full rounded-card border px-4 py-3 outline-none transition-all","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:bg-surface-2",
     extra
   );
 
 export const buttonPrimary = (isDark, extra = "") =>
   cx(
-    "inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
-    isDark
-      ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 text-slate-950 hover:scale-[1.01]"
-      : "bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 text-white hover:scale-[1.01]",
+    "inline-flex items-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all","text-text hover:scale-[1.01]",
     extra
   );
 
 export const buttonSecondary = (isDark, extra = "") =>
   cx(
-    "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all",
-    isDark
-      ? "border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.09]"
-      : "border-sky-100 bg-white text-slate-700 hover:bg-sky-50",
+    "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold transition-all","border-line bg-surface-2 text-text hover:bg-surface-2",
     extra
   );
 
-export const muted = (isDark) => (isDark ? "text-white/60" : "text-slate-600");
-export const softMuted = (isDark) =>
-  isDark ? "text-white/40" : "text-slate-500";
+export const muted = (isDark) => ("text-subtle");
+export const softMuted = (isDark) =>"text-subtle";
 
-export const titleText = (isDark) =>
-  isDark ? "text-white" : "text-slate-900";
+export const titleText = (isDark) =>"text-text";
 
 export function StatCard({
   isDark,
@@ -72,36 +54,20 @@ export function StatCard({
 }) {
   const tones = {
     sky: {
-      wrap: isDark
-        ? "from-cyan-400/20 via-blue-500/10 to-transparent"
-        : "from-sky-100 via-cyan-50 to-transparent",
-      icon: isDark
-        ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-200"
-        : "border-sky-200 bg-sky-100 text-sky-700",
+      wrap:"to-transparent",
+      icon:"border-line bg-primary-soft text-primary",
     },
     violet: {
-      wrap: isDark
-        ? "from-violet-400/20 via-fuchsia-500/10 to-transparent"
-        : "from-violet-100 via-fuchsia-50 to-transparent",
-      icon: isDark
-        ? "border-violet-400/20 bg-violet-400/10 text-violet-200"
-        : "border-violet-200 bg-violet-100 text-violet-700",
+      wrap:"via-fuchsia-500/10 to-transparent",
+      icon:"border-line bg-primary-soft text-primary",
     },
     emerald: {
-      wrap: isDark
-        ? "from-emerald-400/20 via-teal-500/10 to-transparent"
-        : "from-emerald-100 via-teal-50 to-transparent",
-      icon: isDark
-        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-        : "border-emerald-200 bg-emerald-100 text-emerald-700",
+      wrap:"to-transparent",
+      icon:"border-success bg-success-soft text-success",
     },
     amber: {
-      wrap: isDark
-        ? "from-amber-400/20 via-orange-500/10 to-transparent"
-        : "from-amber-100 via-orange-50 to-transparent",
-      icon: isDark
-        ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
-        : "border-amber-200 bg-amber-100 text-amber-700",
+      wrap:"to-transparent",
+      icon:"border-line bg-primary-soft text-primary",
     },
   };
 
@@ -110,15 +76,14 @@ export function StatCard({
   return (
     <div
       className={cx(
-        "rounded-[24px] border bg-gradient-to-br p-5",
-        theme.wrap,
-        isDark ? "border-white/10" : "border-sky-100"
+        "rounded-card border p-5",
+        theme.wrap,"border-line"
       )}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div
           className={cx(
-            "flex h-12 w-12 items-center justify-center rounded-2xl border",
+            "flex h-12 w-12 items-center justify-center rounded-card border",
             theme.icon
           )}
         >
@@ -127,7 +92,7 @@ export function StatCard({
 
         <ArrowUpRight
           size={16}
-          className={isDark ? "text-white/35" : "text-slate-400"}
+          className={"text-subtle"}
         />
       </div>
 
@@ -152,8 +117,8 @@ export function EmptyState({
 }) {
   return (
     <div className={panelCard(isDark, "p-8 sm:p-10 text-center")}>
-      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
-        <Sparkles className={isDark ? "text-cyan-200" : "text-sky-700"} />
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-card">
+        <Sparkles className={"text-primary"} />
       </div>
 
       <h2 className={cx("text-2xl font-bold", titleText(isDark))}>{title}</h2>

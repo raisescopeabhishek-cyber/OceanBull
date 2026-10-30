@@ -46,7 +46,7 @@ const RejectedWithdrawals = () => {
   }, [page, search]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <XCircle size={18} /> Rejected Withdrawals
       </h2>
@@ -56,7 +56,7 @@ const RejectedWithdrawals = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -66,49 +66,49 @@ const RejectedWithdrawals = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-red-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-danger text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : withdrawals.length === 0 ? (
-        <p className="text-gray-300">No rejected withdrawals found.</p>
+        <p className="text-muted">No rejected withdrawals found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-red-800">
+          <table className="min-w-full border-collapse border border-danger table-stack">
             <thead>
-              <tr className="bg-red-800/50">
-                <th className="p-3 text-left border border-red-800">User</th>
-                <th className="p-3 text-left border border-red-800">Email</th>
-                <th className="p-3 text-left border border-red-800">MT5 Account</th>
-                <th className="p-3 text-left border border-red-800">Method</th>
-                <th className="p-3 text-left border border-red-800">Amount</th>
-                <th className="p-3 text-left border border-red-800">Status</th>
-                <th className="p-3 text-left border border-red-800">Date</th>
+              <tr className="bg-danger-soft">
+                <th className="p-3 text-left border border-danger">User</th>
+                <th className="p-3 text-left border border-danger">Email</th>
+                <th className="p-3 text-left border border-danger">MT5 Account</th>
+                <th className="p-3 text-left border border-danger">Method</th>
+                <th className="p-3 text-left border border-danger">Amount</th>
+                <th className="p-3 text-left border border-danger">Status</th>
+                <th className="p-3 text-left border border-danger">Date</th>
               </tr>
             </thead>
             <tbody>
               {withdrawals.map((w) => (
                 <tr
                   key={w._id}
-                  className="hover:bg-red-800/30 transition duration-200"
+                  className="hover:bg-danger-soft transition duration-200"
                 >
-                  <td className="p-3 border border-red-800">
+                  <td data-label="User" className="p-3 border border-danger">
                     {w.userData?.firstName} {w.userData?.lastName}
                   </td>
-                  <td className="p-3 border border-red-800 text-red-300">
+                  <td data-label="Email" className="p-3 border border-danger text-danger">
                     {w.userData?.email}
                   </td>
-                  <td className="p-3 border border-red-800">{w.mt5Account}</td>
-                  <td className="p-3 border border-red-800">{w.method}</td>
-                  <td className="p-3 border border-red-800">${w.amount}</td>
-                  <td className="p-3 border border-red-800 capitalize text-red-400 font-semibold">
+                  <td data-label="MT5 Account" className="p-3 border border-danger">{w.mt5Account}</td>
+                  <td data-label="Method" className="p-3 border border-danger">{w.method}</td>
+                  <td data-label="Amount" className="p-3 border border-danger">${w.amount}</td>
+                  <td data-label="Status" className="p-3 border border-danger capitalize text-danger font-semibold">
                     {w.status}
                   </td>
-                  <td className="p-3 border border-red-800">
+                  <td data-label="Date" className="p-3 border border-danger">
                     {new Date(w.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -123,17 +123,17 @@ const RejectedWithdrawals = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

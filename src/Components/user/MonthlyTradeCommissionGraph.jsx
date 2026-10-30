@@ -36,30 +36,21 @@ const yearOptions = Array.from({ length: 6 }).map((_, index) => {
 function StatCard({ icon, label, value, hint, isDark, tone = "default" }) {
   const toneClass =
     tone === "success"
-      ? isDark
-        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ?"border-success bg-success-soft text-success"
       : tone === "warning"
-      ? isDark
-        ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
-        : "border-amber-200 bg-amber-50 text-amber-700"
-      : isDark
-      ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-      : "border-orange-200 bg-orange-50 text-orange-700";
+      ?"border-line bg-primary-soft text-primary"
+      :"border-line bg-primary-soft text-primary";
 
   return (
     <div
       className={cx(
-        "rounded-[22px] border p-4 backdrop-blur-xl",
-        isDark
-          ? "border-white/10 bg-white/[0.04]"
-          : "border-orange-100 bg-white/80"
+        "rounded-card border p-4 backdrop-blur-xl","border-line bg-surface-2"
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cx(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
             toneClass
           )}
         >
@@ -69,8 +60,7 @@ function StatCard({ icon, label, value, hint, isDark, tone = "default" }) {
         <div className="min-w-0">
           <p
             className={cx(
-              "text-xs",
-              isDark ? "text-white/50" : "text-slate-500"
+              "text-xs","text-subtle"
             )}
           >
             {label}
@@ -78,8 +68,7 @@ function StatCard({ icon, label, value, hint, isDark, tone = "default" }) {
 
           <p
             className={cx(
-              "mt-1 truncate text-lg font-bold",
-              isDark ? "text-white" : "text-slate-900"
+              "mt-1 truncate text-lg font-bold","text-text"
             )}
           >
             {value}
@@ -88,8 +77,7 @@ function StatCard({ icon, label, value, hint, isDark, tone = "default" }) {
           {hint ? (
             <p
               className={cx(
-                "mt-1 truncate text-[11px]",
-                isDark ? "text-white/40" : "text-slate-500"
+                "mt-1 truncate text-[11px]","text-subtle"
               )}
             >
               {hint}
@@ -107,10 +95,7 @@ function EmptyChart({ isDark }) {
       <div>
         <div
           className={cx(
-            "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white/45"
-              : "border-orange-100 bg-orange-50 text-orange-500"
+            "mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border","border-line bg-surface-2 text-subtle"
           )}
         >
           <BarChart3 size={28} />
@@ -118,8 +103,7 @@ function EmptyChart({ isDark }) {
 
         <p
           className={cx(
-            "text-base font-bold",
-            isDark ? "text-white" : "text-slate-900"
+            "text-base font-bold","text-text"
           )}
         >
           No monthly graph data found
@@ -127,8 +111,7 @@ function EmptyChart({ isDark }) {
 
         <p
           className={cx(
-            "mt-2 text-sm",
-            isDark ? "text-white/50" : "text-slate-500"
+            "mt-2 text-sm","text-subtle"
           )}
         >
           Try another year or account.
@@ -197,17 +180,17 @@ function CombinedGraph({ chart, isDark }) {
       >
         <defs>
           <linearGradient id="commissionBarGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={isDark ? "#60a5fa" : "#f97316"} stopOpacity="0.95" />
-            <stop offset="100%" stopColor={isDark ? "#22d3ee" : "#fb923c"} stopOpacity="0.35" />
+            <stop offset="0%" stopColor={isDark ? "#4f7df6" : "#2a56dc"} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={isDark ? "#22d3ee" : "#4f7df6"} stopOpacity="0.35" />
           </linearGradient>
 
           <linearGradient id="tradeLineGradient" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="0%" stopColor="#0f9f6e" />
             <stop offset="100%" stopColor="#84cc16" />
           </linearGradient>
 
           <linearGradient id="profitLineGradient" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="0%" stopColor="#179da6" />
             <stop offset="100%" stopColor="#ec4899" />
           </linearGradient>
 
@@ -236,7 +219,7 @@ function CombinedGraph({ chart, isDark }) {
               x2={width - paddingRight}
               y1={y}
               y2={y}
-              stroke={isDark ? "rgba(255,255,255,0.08)" : "rgba(249,115,22,0.14)"}
+              stroke={isDark ? "rgba(255,255,255,0.08)" : "rgba(42, 86, 220,0.14)"}
               strokeDasharray="8 8"
             />
 
@@ -275,7 +258,7 @@ function CombinedGraph({ chart, isDark }) {
                 textAnchor="middle"
                 fontSize="13"
                 fontWeight="700"
-                fill={isDark ? "rgba(255,255,255,0.72)" : "rgba(15,23,42,0.75)"}
+                fill={isDark ? "rgba(255,255,255,0.72)" : "rgba(15, 24, 41,0.75)"}
               >
                 {item.monthName}
               </text>
@@ -286,7 +269,7 @@ function CombinedGraph({ chart, isDark }) {
                 textAnchor="middle"
                 fontSize="11"
                 fontWeight="700"
-                fill={isDark ? "rgba(147,197,253,0.95)" : "rgba(249,115,22,0.95)"}
+                fill={isDark ? "rgba(147,197,253,0.95)" : "rgba(42, 86, 220,0.95)"}
               >
                 {toNumber(item.totalCommission) > 0
                   ? `$${money(item.totalCommission)}`
@@ -315,8 +298,8 @@ function CombinedGraph({ chart, isDark }) {
                 cx={x}
                 cy={y}
                 r="6"
-                fill="#10b981"
-                stroke={isDark ? "#0f172a" : "#ffffff"}
+                fill="#0f9f6e"
+                stroke={isDark ? "#0f1829" : "#ffffff"}
                 strokeWidth="3"
               />
               <text
@@ -325,7 +308,7 @@ function CombinedGraph({ chart, isDark }) {
                 textAnchor="middle"
                 fontSize="11"
                 fontWeight="700"
-                fill="#10b981"
+                fill="#0f9f6e"
               >
                 {toNumber(item.tradeCount) > 0 ? item.tradeCount : ""}
               </text>
@@ -336,7 +319,7 @@ function CombinedGraph({ chart, isDark }) {
         <polyline
           points={commissionPoints.join(" ")}
           fill="none"
-          stroke={isDark ? "rgba(96,165,250,0.45)" : "rgba(249,115,22,0.35)"}
+          stroke={isDark ? "rgba(79, 125, 246,0.45)" : "rgba(42, 86, 220,0.35)"}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -356,7 +339,7 @@ function CombinedGraph({ chart, isDark }) {
           x={paddingLeft + 210}
           y={height - 8}
           fontSize="12"
-          fill="#10b981"
+          fill="#0f9f6e"
         >
           Line = Trade Count
         </text>
@@ -437,10 +420,7 @@ export default function MonthlyTradeCommissionGraph() {
   return (
     <motion.section
       className={cx(
-        "overflow-hidden rounded-[30px] border backdrop-blur-xl",
-        isDark
-          ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-          : "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+        "overflow-hidden rounded-card border backdrop-blur-xl","border-line bg-surface-2"
       )}
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
@@ -448,18 +428,14 @@ export default function MonthlyTradeCommissionGraph() {
     >
       <div
         className={cx(
-          "border-b px-5 py-5 sm:px-6",
-          isDark ? "border-white/10" : "border-orange-100"
+          "border-b px-5 py-5 sm:px-6","border-line"
         )}
       >
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div
               className={cx(
-                "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em]",
-                isDark
-                  ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                  : "border-orange-200 bg-orange-50 text-orange-700"
+                "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
               )}
             >
               <LineChart size={14} />
@@ -468,8 +444,7 @@ export default function MonthlyTradeCommissionGraph() {
 
             <h2
               className={cx(
-                "text-2xl font-bold",
-                isDark ? "text-white" : "text-slate-900"
+                "text-2xl font-bold","text-text"
               )}
             >
               Monthly Trades & Commission
@@ -477,8 +452,7 @@ export default function MonthlyTradeCommissionGraph() {
 
             <p
               className={cx(
-                "mt-2 max-w-2xl text-sm",
-                isDark ? "text-white/55" : "text-slate-500"
+                "mt-2 max-w-2xl text-sm","text-subtle"
               )}
             >
               Month-wise overview of your trade count, lot size, profit, and IB
@@ -490,8 +464,7 @@ export default function MonthlyTradeCommissionGraph() {
             <div>
               <label
                 className={cx(
-                  "mb-1 block text-xs font-semibold",
-                  isDark ? "text-white/50" : "text-slate-500"
+                  "mb-1 block text-xs font-semibold","text-subtle"
                 )}
               >
                 Year
@@ -501,10 +474,7 @@ export default function MonthlyTradeCommissionGraph() {
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
                 className={cx(
-                  "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-950/70 text-white"
-                    : "border-orange-200 bg-white text-slate-900"
+                  "w-full rounded-card border px-3 py-3 text-sm outline-none","border-line bg-surface text-text"
                 )}
               >
                 {yearOptions.map((item) => (
@@ -518,8 +488,7 @@ export default function MonthlyTradeCommissionGraph() {
             <div>
               <label
                 className={cx(
-                  "mb-1 block text-xs font-semibold",
-                  isDark ? "text-white/50" : "text-slate-500"
+                  "mb-1 block text-xs font-semibold","text-subtle"
                 )}
               >
                 MT5 Account
@@ -529,10 +498,7 @@ export default function MonthlyTradeCommissionGraph() {
                 value={mt5Account}
                 onChange={(e) => setMt5Account(e.target.value)}
                 className={cx(
-                  "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-950/70 text-white"
-                    : "border-orange-200 bg-white text-slate-900"
+                  "w-full rounded-card border px-3 py-3 text-sm outline-none","border-line bg-surface text-text"
                 )}
               >
                 <option value="">All Accounts</option>
@@ -549,7 +515,7 @@ export default function MonthlyTradeCommissionGraph() {
                 type="button"
                 onClick={fetchGraph}
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600 disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-card bg-primary px-4 py-3 text-sm font-bold text-text transition hover:bg-primary disabled:opacity-60"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 Refresh
@@ -605,20 +571,16 @@ export default function MonthlyTradeCommissionGraph() {
 
         <div
           className={cx(
-            "mt-5 overflow-hidden rounded-[26px] border",
-            isDark
-              ? "border-white/10 bg-white/[0.025]"
-              : "border-orange-100 bg-white/80"
+            "mt-5 overflow-hidden rounded-card border","border-line bg-surface-2"
           )}
         >
           {loading ? (
             <div className="flex min-h-[360px] items-center justify-center">
               <div className="text-center">
-                <RefreshCw className="mx-auto h-8 w-8 animate-spin text-orange-500" />
+                <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
                 <p
                   className={cx(
-                    "mt-3 text-sm font-semibold",
-                    isDark ? "text-white/55" : "text-slate-500"
+                    "mt-3 text-sm font-semibold","text-subtle"
                   )}
                 >
                   Loading monthly graph...
@@ -628,11 +590,11 @@ export default function MonthlyTradeCommissionGraph() {
           ) : errorText ? (
             <div className="flex min-h-[320px] items-center justify-center p-5 text-center">
               <div>
-                <p className="font-semibold text-rose-500">{errorText}</p>
+                <p className="font-semibold text-danger">{errorText}</p>
                 <button
                   type="button"
                   onClick={fetchGraph}
-                  className="mt-4 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-white"
+                  className="mt-4 rounded-card bg-primary px-5 py-3 text-sm font-bold text-text"
                 >
                   Retry
                 </button>

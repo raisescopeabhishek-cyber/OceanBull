@@ -24,20 +24,20 @@ const UserIBcards = ({ commissionsData }) => {
     <div className="p-6 w-full max-w-7xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         {/* Total Commission Card */}
-        <div className="bg-secondary-600/10  rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-200 p-6">
+        <div className="bg-secondary-600/10 rounded-card shadow-sm transition-shadow duration-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium text-gray-300">
+              <span className="text-sm font-medium text-muted">
                 Total Commission
               </span>
-              <span className="text-2xl font-bold text-gray-100">
+              <span className="text-2xl font-bold text-text">
                 ${Number(stats?.totalCommission || 0).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 bg-green-200 rounded-full">
+            <div className="p-3 bg-success-soft rounded-full">
               <svg
-                className="w-6 h-6 text-green-600"
+                className="w-6 h-6 text-success"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -52,33 +52,33 @@ const UserIBcards = ({ commissionsData }) => {
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-sm text-green-300/80 flex items-center">
+            <div className="text-sm text-success flex items-center">
               <span>Lifetime Commission Earnings</span>
             </div>
           </div>
         </div>
         {/* Withdrawal History Card */}
-        <div className="bg-secondary-600/10  rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-200 p-6">
+        <div className="bg-secondary-600/10 rounded-card shadow-sm transition-shadow duration-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium text-gray-300">
+              <span className="text-sm font-medium text-muted">
                 Withdrawals History
               </span>
-              <span className="text-2xl font-bold text-gray-100">
+              <span className="text-2xl font-bold text-text">
                 {stats.pendingWithdrawals}
               </span>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
+            <div className="p-3 bg-primary-soft rounded-full">
               <PiHandWithdrawBold
                 size={26}
                 wi
-                className=" text-blue-500"
+                className="text-primary"
               ></PiHandWithdrawBold>
             </div>
           </div>
           <div className="mt-4">
             <Link to={"/user/referrals/withdrawal-history"}>
-              <div className="text-sm text-blue-400 hover:text-blue-500 hover:pl-1  transition-all flex gap-1 items-center">
+              <div className="text-sm text-primary hover:text-primary hover:pl-1 transition-all flex gap-1 items-center">
                 <span>Withdrawal History </span>
                 <ArrowRight></ArrowRight>
               </div>
@@ -87,19 +87,19 @@ const UserIBcards = ({ commissionsData }) => {
         </div>
 
         {/* Available Commission Card */}
-        <div className="bg-secondary-600/10  rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-200 p-6">
+        <div className="bg-secondary-600/10 rounded-card shadow-sm transition-shadow duration-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium text-gray-300">
+              <span className="text-sm font-medium text-muted">
                 Withdrawable balance
               </span>
-              <span className="text-2xl font-bold text-green-500/70">
+              <span className="text-2xl font-bold text-success">
                 ${Number(loggedUser?.ibBalance || 0).toFixed(4)}
               </span>
             </div>
-            <div className="p-3 bg-purple-100 rounded-full">
+            <div className="p-3 bg-primary-soft rounded-full">
               <svg
-                className="w-6 h-6 text-purple-600"
+                className="w-6 h-6 text-primary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -115,7 +115,7 @@ const UserIBcards = ({ commissionsData }) => {
           </div>
           <div className="mt-4">
             <Link to={"/user/referrals/withdraw"}>
-              <button className="w-full bg-green-600/80 hover:bg-green-700 text-white py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center font-medium">
+              <button className="w-full bg-success-soft hover:bg-success text-text py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center font-medium">
                 Withdraw
               </button>
             </Link>
@@ -123,19 +123,19 @@ const UserIBcards = ({ commissionsData }) => {
         </div>
 
         {/*  IB Details Card */}
-        <div className="bg-secondary-600/10 rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-200 p-6">
+        <div className="bg-secondary-600/10 rounded-card shadow-sm transition-shadow duration-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium text-gray-300">
+              <span className="text-sm font-medium text-muted">
                 IB Details
               </span>
-              <span className=" text-gray-300/60 text-sm py-2">
+              <span className="text-muted text-sm py-2">
                 Users with IB's
               </span>
             </div>
-            <div className="p-3 bg-indigo-100 rounded-full">
+            <div className="p-3 bg-primary-soft rounded-full">
               <svg
-                className="w-6 h-6 text-indigo-600"
+                className="w-6 h-6 text-primary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -152,7 +152,7 @@ const UserIBcards = ({ commissionsData }) => {
           <div className="mt-4">
             <Link to={"/user/referrals/referrals-details"}>
               <button
-                className="w-full bg-indigo-600/80 hover:bg-indigo-700 text-white py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center font-medium"
+                className="w-full bg-primary-soft hover:bg-primary-soft text-text py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center font-medium"
                 onClick={() => console.log("View Clients clicked")}
               >
                 View Details

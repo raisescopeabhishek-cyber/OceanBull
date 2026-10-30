@@ -18,6 +18,12 @@ import {
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
+import {
+  Badge,
+  BlotterPage,
+  Button,
+  EmptyState as UiEmptyState,
+} from "@/Components/ui";
 
 const safeRgbParts = (v: any) => {
   const s = String(v ?? "0 0 0")
@@ -134,47 +140,47 @@ function StatCard({
     tone === "success"
       ? {
           iconBg: colors.isDark
-            ? "rgba(16,185,129,0.14)"
-            : "rgba(16,185,129,0.1)",
+            ? "rgba(15, 159, 110,0.14)"
+            : "rgba(15, 159, 110,0.1)",
           iconColor: colors.success,
           border: colors.isDark
-            ? "rgba(16,185,129,0.22)"
-            : "rgba(16,185,129,0.18)",
+            ? "rgba(15, 159, 110,0.22)"
+            : "rgba(15, 159, 110,0.18)",
         }
       : tone === "info"
       ? {
           iconBg: colors.isDark
-            ? "rgba(59,130,246,0.14)"
-            : "rgba(245,158,11,0.08)",
+            ? "rgba(79, 125, 246,0.14)"
+            : "rgba(42, 86, 220,0.08)",
           iconColor: colors.accent,
           border: colors.isDark
-            ? "rgba(59,130,246,0.22)"
-            : "rgba(245,158,11,0.14)",
+            ? "rgba(79, 125, 246,0.22)"
+            : "rgba(42, 86, 220,0.14)",
         }
       : tone === "warning"
       ? {
           iconBg: colors.isDark
-            ? "rgba(245,158,11,0.14)"
-            : "rgba(245,158,11,0.1)",
+            ? "rgba(42, 86, 220,0.14)"
+            : "rgba(42, 86, 220,0.1)",
           iconColor: colors.warning,
           border: colors.isDark
-            ? "rgba(245,158,11,0.22)"
-            : "rgba(245,158,11,0.16)",
+            ? "rgba(42, 86, 220,0.22)"
+            : "rgba(42, 86, 220,0.16)",
         }
       : tone === "danger"
       ? {
           iconBg: colors.isDark
-            ? "rgba(239,68,68,0.14)"
-            : "rgba(239,68,68,0.1)",
+            ? "rgba(220, 58, 58,0.14)"
+            : "rgba(220, 58, 58,0.1)",
           iconColor: colors.danger,
           border: colors.isDark
-            ? "rgba(239,68,68,0.22)"
-            : "rgba(239,68,68,0.16)",
+            ? "rgba(220, 58, 58,0.22)"
+            : "rgba(220, 58, 58,0.16)",
         }
       : {
           iconBg: colors.isDark
             ? "rgba(255,255,255,0.05)"
-            : "rgba(245,158,11,0.06)",
+            : "rgba(42, 86, 220,0.06)",
           iconColor: colors.text,
           border: colors.border,
         };
@@ -190,7 +196,7 @@ function StatCard({
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+          className="flex h-11 w-11 items-center justify-center rounded-card border"
           style={{
             background: toneStyles.iconBg,
             color: toneStyles.iconColor,
@@ -260,52 +266,52 @@ export default function UserTradeHistory() {
 
   const colors = useMemo(() => {
     const accent = isDark
-      ? rgba(theme?.accent || "96 165 250", 0.95)
-      : "#f59e0b";
+      ? rgba(theme?.accent || "79 125 246", 0.95)
+      : "#2a56dc";
 
     return {
       isDark,
 
-      pageBg: isDark ? "#0b1120" : "#fffaf5",
+      pageBg: isDark ? "#0a111f" : "#f7f9fc",
 
       heroBg: isDark
-        ? "linear-gradient(135deg, rgba(30,41,59,1), rgba(15,23,42,1))"
-        : "linear-gradient(135deg, #fb923c, #f59e0b)",
+        ? "linear-gradient(135deg, rgba(19, 32, 52,1), rgba(15, 24, 41,1))"
+        : "linear-gradient(135deg, #4f7df6, #2a56dc)",
 
-      surface: isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.94)",
+      surface: isDark ? "rgba(15, 24, 41,0.92)" : "rgba(255,255,255,0.94)",
       surfaceSoft: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,251,235,0.75)",
       surfaceMuted: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,250,245,0.95)",
 
-      text: isDark ? "rgba(255,255,255,0.95)" : "#0f172a",
-      muted: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
-      softText: isDark ? "rgba(255,255,255,0.78)" : "#475569",
+      text: isDark ? "rgba(255,255,255,0.95)" : "#0f1829",
+      muted: isDark ? "rgba(255,255,255,0.65)" : "#7b879a",
+      softText: isDark ? "rgba(255,255,255,0.78)" : "#4a5669",
 
       accent,
-      accentSoft: isDark ? "rgba(96,165,250,0.12)" : "rgba(245,158,11,0.08)",
+      accentSoft: isDark ? "rgba(79, 125, 246,0.12)" : "rgba(42, 86, 220,0.08)",
 
-      success: isDark ? "rgba(52,211,153,0.95)" : "#16a34a",
-      warning: isDark ? "rgba(251,191,36,0.95)" : "#d97706",
-      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc2626",
+      success: isDark ? "rgba(52,211,153,0.95)" : "#0f9f6e",
+      warning: isDark ? "rgba(224, 191, 108,0.95)" : "#2245b4",
+      danger: isDark ? "rgba(248,113,113,0.95)" : "#dc3a3a",
 
       border: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.16)",
+        : "rgba(42, 86, 220,0.16)",
 
       borderSoft: isDark
         ? rgba(theme?.border || "255 255 255", 0.08)
-        : "rgba(245,158,11,0.10)",
+        : "rgba(42, 86, 220,0.10)",
 
       inputBorder: isDark
         ? rgba(theme?.border || "255 255 255", 0.12)
-        : "rgba(245,158,11,0.30)",
+        : "rgba(42, 86, 220,0.30)",
 
       inputShadow: isDark
         ? "0 0 0 1px rgba(255,255,255,0.03)"
-        : "0 0 0 4px rgba(245,158,11,0.05), 0 10px 22px rgba(245,158,11,0.07)",
+        : "0 0 0 4px rgba(42, 86, 220,0.05), 0 10px 22px rgba(42, 86, 220,0.07)",
 
       cardShadow: isDark
         ? "0 20px 45px rgba(0,0,0,0.28)"
-        : "0 14px 30px rgba(245,158,11,0.07)",
+        : "0 14px 30px rgba(42, 86, 220,0.07)",
 
       tableHead: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,251,235,0.9)",
       rowHover: isDark ? "rgba(255,255,255,0.035)" : "rgba(255,251,235,0.55)",
@@ -439,18 +445,18 @@ export default function UserTradeHistory() {
         style={{
           borderColor: isBuy
             ? colors.isDark
-              ? "rgba(16,185,129,0.22)"
+              ? "rgba(15, 159, 110,0.22)"
               : "rgba(22,163,74,0.16)"
             : colors.isDark
-            ? "rgba(239,68,68,0.22)"
-            : "rgba(239,68,68,0.16)",
+            ? "rgba(220, 58, 58,0.22)"
+            : "rgba(220, 58, 58,0.16)",
           background: isBuy
             ? colors.isDark
-              ? "rgba(16,185,129,0.12)"
+              ? "rgba(15, 159, 110,0.12)"
               : "rgba(22,163,74,0.09)"
             : colors.isDark
-            ? "rgba(239,68,68,0.12)"
-            : "rgba(239,68,68,0.08)",
+            ? "rgba(220, 58, 58,0.12)"
+            : "rgba(220, 58, 58,0.08)",
           color: isBuy ? colors.success : colors.danger,
         }}
       >
@@ -464,22 +470,22 @@ export default function UserTradeHistory() {
 
     return (
       <span
-        className="inline-flex rounded-xl border px-3 py-2 text-sm font-bold"
+        className="inline-flex rounded-card border px-3 py-2 text-sm font-bold"
         style={{
           borderColor: positive
             ? colors.isDark
-              ? "rgba(16,185,129,0.22)"
+              ? "rgba(15, 159, 110,0.22)"
               : "rgba(22,163,74,0.16)"
             : colors.isDark
-            ? "rgba(239,68,68,0.22)"
-            : "rgba(239,68,68,0.16)",
+            ? "rgba(220, 58, 58,0.22)"
+            : "rgba(220, 58, 58,0.16)",
           background: positive
             ? colors.isDark
-              ? "rgba(16,185,129,0.12)"
+              ? "rgba(15, 159, 110,0.12)"
               : "rgba(22,163,74,0.09)"
             : colors.isDark
-            ? "rgba(239,68,68,0.12)"
-            : "rgba(239,68,68,0.08)",
+            ? "rgba(220, 58, 58,0.12)"
+            : "rgba(220, 58, 58,0.08)",
           color: positive ? colors.success : colors.danger,
         }}
       >
@@ -488,529 +494,208 @@ export default function UserTradeHistory() {
     );
   };
 
+  /* ---- columns -------------------------------------------------------
+     The closed tab adds close time and close price; everything else is
+     shared, so the column list is built once and extended.
+     ------------------------------------------------------------------ */
+  const usd = (v: any) =>
+    "$" +
+    Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const side = (trade: any) =>
+    (activeTab === "closed" ? trade?.OrderType === 1 : trade?.BUY_SELL === 0)
+      ? "BUY"
+      : "SELL";
+
+  const columns = [
+    {
+      key: "symbol",
+      header: "Symbol",
+      primary: true,
+      cell: (t: any) => (
+        <span className="font-semibold">{t?.Symbol || "—"}</span>
+      ),
+    },
+    {
+      key: "account",
+      header: "Account",
+      secondary: true,
+      numeric: true,
+      cell: (t: any) => `#${t?.MT5Account ?? t?.Login ?? "—"}`,
+    },
+    {
+      key: "side",
+      header: "Side",
+      cell: (t: any) => (
+        <Badge tone={side(t) === "BUY" ? "success" : "danger"} dot={false}>
+          {side(t)}
+        </Badge>
+      ),
+    },
+    {
+      key: "volume",
+      header: "Lots",
+      align: "right",
+      numeric: true,
+      cell: (t: any) => Number(t?.Lot ?? t?.Volume ?? 0).toFixed(2),
+    },
+    {
+      key: "openTime",
+      header: "Open time",
+      cell: (t: any) => (
+        <span className="text-subtle">
+          {formatTime(t?.Open_Time ?? t?.OpenTime)}
+        </span>
+      ),
+    },
+    {
+      key: "openPrice",
+      header: "Open price",
+      align: "right",
+      numeric: true,
+      cell: (t: any) => t?.Open_Price ?? t?.OpenPrice ?? "—",
+    },
+    ...(activeTab === "closed"
+      ? [
+          {
+            key: "closeTime",
+            header: "Close time",
+            cell: (t: any) => (
+              <span className="text-subtle">
+                {formatTime(t?.Close_Time ?? t?.CloseTime)}
+              </span>
+            ),
+          },
+          {
+            key: "closePrice",
+            header: "Close price",
+            align: "right",
+            numeric: true,
+            cell: (t: any) => t?.Close_Price ?? t?.ClosePrice ?? "—",
+          },
+        ]
+      : [
+          {
+            key: "currentPrice",
+            header: "Current",
+            align: "right",
+            numeric: true,
+            cell: (t: any) => t?.Current_Price ?? t?.CurrentPrice ?? "—",
+          },
+        ]),
+    {
+      key: "profit",
+      header: "P/L",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (t: any) => (
+        <span
+          className={`font-semibold ${
+            Number(t?.Profit || 0) >= 0 ? "text-profit" : "text-loss"
+          }`}
+        >
+          {Number(t?.Profit || 0) >= 0 ? "+" : "-"}
+          {usd(Math.abs(Number(t?.Profit || 0)))}
+        </span>
+      ),
+    },
+  ];
+
+  const winRate =
+    tradeStats.winningTrades + tradeStats.losingTrades > 0
+      ? (
+          (tradeStats.winningTrades /
+            (tradeStats.winningTrades + tradeStats.losingTrades)) *
+          100
+        ).toFixed(0) + "%"
+      : "—";
+
   return (
-    <div className="min-h-screen w-full" style={{ background: colors.pageBg }}>
-      <div className="w-full" style={{ background: colors.heroBg }}>
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-5 lg:px-6">
-          <div className="leading-none">
-            <div className="text-[28px] font-bold text-white sm:text-[32px]">
-              Trade History
-            </div>
-            <div className="mt-2 text-sm text-white/80">
-              Track open and closed trades across your linked MT5 accounts
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-6 text-sm text-white/90 md:flex">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                MT5 Activity
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => fetchTradeData(activeTab)}
-              disabled={loading}
-              className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
-              style={{ borderRadius: "14px" }}
-            >
-              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              Refresh Trades
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-[1400px] px-4 py-5 lg:px-6">
-        <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-4">
-          <StatCard
-            colors={colors}
-            icon={<TrendingUp className="h-5 w-5" />}
-            label="Total P/L"
-            value={`$${Number(tradeStats.totalProfit).toFixed(2)}`}
-            hint="Combined trade result"
-            tone={Number(tradeStats.totalProfit) >= 0 ? "success" : "danger"}
-          />
-
-          <StatCard
-            colors={colors}
-            icon={<Activity className="h-5 w-5" />}
-            label="Trades"
-            value={tradeData.length}
-            hint={activeTab === "open" ? "Live open trades" : "Closed trade records"}
-            tone="info"
-          />
-
-          <StatCard
-            colors={colors}
-            icon={<CircleDollarSign className="h-5 w-5" />}
-            label="Winning Trades"
-            value={tradeStats.winningTrades}
-            hint="Profitable positions"
-            tone="success"
-          />
-
-          <StatCard
-            colors={colors}
-            icon={<Gauge className="h-5 w-5" />}
-            label="Losing Trades"
-            value={tradeStats.losingTrades}
-            hint="Negative positions"
-            tone="warning"
-          />
-        </div>
-
-        <SectionCard
-          className="mb-5 p-4"
-          style={{
-            background: colors.surface,
-            borderColor: colors.border,
-            boxShadow: colors.cardShadow,
-          }}
+    <BlotterPage
+      title="Trades"
+      description="Open positions and closed trade history across your accounts."
+      actions={
+        <Button
+          variant="secondary"
+          onClick={() => fetchTradeData(activeTab)}
+          loading={loading || isPending}
+          leftIcon={<RefreshCcw className="h-4 w-4" />}
         >
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {[
-              { key: "open", label: "Open Trades" },
-              { key: "closed", label: "Closed Trades" },
-            ].map((tab) => {
-              const active = activeTab === tab.key;
-
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => handleTab(tab.key as "open" | "closed")}
-                  disabled={isPending}
-                  className="rounded-2xl border px-5 py-3 text-sm font-semibold transition-all"
-                  style={{
-                    borderColor: active ? colors.accent : colors.inputBorder,
-                    background: active ? colors.accentSoft : colors.surfaceSoft,
-                    color: active ? colors.accent : colors.text,
-                    boxShadow: active
-                      ? colors.inputShadow
-                      : !isDark
-                      ? "0 8px 18px rgba(245,158,11,0.05)"
-                      : "none",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </SectionCard>
-
-        <SectionCard
-          style={{
-            background: colors.surface,
-            borderColor: colors.border,
-            boxShadow: colors.cardShadow,
-          }}
-        >
-          <div
-            className="border-b px-5 py-4 sm:px-6"
-            style={{
-              borderColor: colors.border,
-              background: colors.isDark ? "transparent" : colors.surfaceMuted,
-            }}
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="mb-2 flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" style={{ color: colors.accent }} />
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                    style={{ color: colors.muted }}
-                  >
-                    trading · history · records
-                  </span>
-                </div>
-
-                <h2
-                  className="text-2xl font-bold"
-                  style={{
-                    color: colors.text,
-                    fontFamily: "'Poppins', sans-serif",
-                  }}
-                >
-                  {activeTab === "open" ? "Open Trades" : "Closed Trades"}
-                </h2>
-
-                <p className="mt-1 text-sm" style={{ color: colors.muted }}>
-                  Detailed trade activity across your linked MT5 accounts.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-6">
-            <AnimatePresence mode="wait">
-              {loading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex min-h-[300px] flex-col items-center justify-center"
-                >
-                  <div
-                    className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
-                    style={{
-                      background: colors.accentSoft,
-                      color: colors.accent,
-                      boxShadow: !isDark ? colors.inputShadow : "none",
-                    }}
-                  >
-                    <Loader2 size={30} className="animate-spin" />
-                  </div>
-                  <p style={{ color: colors.muted }}>Fetching trade data...</p>
-                </motion.div>
-              ) : error ? (
-                <motion.div
-                  key="error"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex min-h-[260px] items-center justify-center"
-                >
-                  <div
-                    className="max-w-md rounded-[24px] border p-6 text-center"
-                    style={{
-                      borderColor: colors.isDark
-                        ? "rgba(239,68,68,0.18)"
-                        : "rgba(239,68,68,0.16)",
-                      background: colors.isDark
-                        ? "rgba(239,68,68,0.08)"
-                        : "rgba(254,242,242,0.92)",
-                    }}
-                  >
-                    <div
-                      className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-                      style={{
-                        background: colors.isDark
-                          ? "rgba(239,68,68,0.12)"
-                          : "rgba(254,226,226,1)",
-                        color: colors.danger,
-                      }}
-                    >
-                      <AlertTriangle size={24} />
-                    </div>
-
-                    <h3 className="text-lg font-bold" style={{ color: colors.text }}>
-                      Unable to load trades
-                    </h3>
-
-                    <p className="mt-2 text-sm" style={{ color: colors.muted }}>
-                      {error}
-                    </p>
-                  </div>
-                </motion.div>
-              ) : tradeData.length === 0 ? (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex min-h-[260px] items-center justify-center"
-                >
-                  <EmptyState
-                    title="No trades found"
-                    subtitle="Start trading to see your history here."
-                    colors={colors}
-                  />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                >
-                  <div className="hidden overflow-x-auto xl:block">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr
-                          style={{
-                            background: colors.tableHead,
-                            borderBottom: `1px solid ${colors.border}`,
-                          }}
-                        >
-                          {[
-                            "Account",
-                            "Symbol",
-                            "Open Time",
-                            ...(activeTab === "closed" ? ["Close Time"] : []),
-                            "Open Price",
-                            ...(activeTab === "closed" ? ["Close Price"] : []),
-                            "Type",
-                            "Volume",
-                            "P/L",
-                          ].map((head) => (
-                            <th
-                              key={head}
-                              className="px-4 py-4 text-left font-semibold"
-                              style={{ color: colors.muted }}
-                            >
-                              {head}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {tradeData.map((trade, index) => (
-                          <tr
-                            key={`${trade?.MT5Account || "acc"}-${index}`}
-                            className="transition-all duration-200"
-                            style={{
-                              borderBottom: `1px solid ${colors.borderSoft}`,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = colors.rowHover;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            <td
-                              className="px-4 py-4 font-medium"
-                              style={{ color: colors.text }}
-                            >
-                              #{trade?.MT5Account}
-                            </td>
-
-                            <td
-                              className="px-4 py-4 font-medium"
-                              style={{ color: colors.text }}
-                            >
-                              <span className="mr-2">{getSymbolIcon(trade?.Symbol)}</span>
-                              {trade?.Symbol}
-                            </td>
-
-                            <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
-                              {formatTime(trade?.Open_Time)}
-                            </td>
-
-                            {activeTab === "closed" && (
-                              <td className="px-4 py-4 text-xs" style={{ color: colors.muted }}>
-                                {formatTime(trade?.Close_Time)}
-                              </td>
-                            )}
-
-                            <td className="px-4 py-4" style={{ color: colors.text }}>
-                              {trade?.Open_Price}
-                            </td>
-
-                            {activeTab === "closed" && (
-                              <td className="px-4 py-4" style={{ color: colors.text }}>
-                                {trade?.Close_Price}
-                              </td>
-                            )}
-
-                            <td className="px-4 py-4">{renderTradeType(trade)}</td>
-
-                            <td
-                              className="px-4 py-4 font-medium"
-                              style={{ color: colors.text }}
-                            >
-                              {activeTab === "open"
-                                ? (Number(trade?.Volume ?? 0) / 10000).toFixed(2)
-                                : Number(trade?.Lot ?? 0).toFixed(2)}
-                            </td>
-
-                            <td className="px-4 py-4">
-                              {renderProfit(Number(trade?.Profit))}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 xl:hidden">
-                    {tradeData.map((trade, index) => {
-                      const isBuy =
-                        activeTab === "closed"
-                          ? trade?.OrderType === 1
-                          : trade?.BUY_SELL === 0;
-
-                      return (
-                        <div
-                          key={`${trade?.MT5Account || "acc"}-${index}`}
-                          className="rounded-[24px] border p-4"
-                          style={{
-                            borderColor: colors.inputBorder,
-                            background: colors.surfaceSoft,
-                            boxShadow: !isDark ? colors.inputShadow : "none",
-                          }}
-                        >
-                          <div className="mb-4 flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                                #{trade?.MT5Account}
-                              </p>
-                              <p className="mt-1 text-xs" style={{ color: colors.muted }}>
-                                {getSymbolIcon(trade?.Symbol)} {trade?.Symbol}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="flex h-9 w-9 items-center justify-center rounded-xl"
-                                style={{
-                                  background: isBuy
-                                    ? colors.isDark
-                                      ? "rgba(16,185,129,0.12)"
-                                      : "rgba(22,163,74,0.09)"
-                                    : colors.isDark
-                                    ? "rgba(239,68,68,0.12)"
-                                    : "rgba(239,68,68,0.08)",
-                                  color: isBuy ? colors.success : colors.danger,
-                                }}
-                              >
-                                {isBuy ? (
-                                  <ArrowUpRight size={18} />
-                                ) : (
-                                  <ArrowDownLeft size={18} />
-                                )}
-                              </span>
-                              {renderTradeType(trade)}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div
-                              className="rounded-2xl border px-4 py-3"
-                              style={{
-                                borderColor: colors.border,
-                                background: colors.surface,
-                              }}
-                            >
-                              <p
-                                className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                style={{ color: colors.muted }}
-                              >
-                                Open Time
-                              </p>
-                              <p
-                                className="flex items-start gap-2 text-sm font-medium"
-                                style={{ color: colors.text }}
-                              >
-                                <Clock3 size={14} className="mt-0.5" />
-                                <span>{formatTime(trade?.Open_Time)}</span>
-                              </p>
-                            </div>
-
-                            {activeTab === "closed" && (
-                              <div
-                                className="rounded-2xl border px-4 py-3"
-                                style={{
-                                  borderColor: colors.border,
-                                  background: colors.surface,
-                                }}
-                              >
-                                <p
-                                  className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                  style={{ color: colors.muted }}
-                                >
-                                  Close Time
-                                </p>
-                                <p
-                                  className="flex items-start gap-2 text-sm font-medium"
-                                  style={{ color: colors.text }}
-                                >
-                                  <Clock3 size={14} className="mt-0.5" />
-                                  <span>{formatTime(trade?.Close_Time)}</span>
-                                </p>
-                              </div>
-                            )}
-
-                            <div
-                              className="rounded-2xl border px-4 py-3"
-                              style={{
-                                borderColor: colors.border,
-                                background: colors.surface,
-                              }}
-                            >
-                              <p
-                                className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                style={{ color: colors.muted }}
-                              >
-                                Open Price
-                              </p>
-                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                                ${money(trade?.Open_Price)}
-                              </p>
-                            </div>
-
-                            {activeTab === "closed" && (
-                              <div
-                                className="rounded-2xl border px-4 py-3"
-                                style={{
-                                  borderColor: colors.border,
-                                  background: colors.surface,
-                                }}
-                              >
-                                <p
-                                  className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                  style={{ color: colors.muted }}
-                                >
-                                  Close Price
-                                </p>
-                                <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                                  ${money(trade?.Close_Price)}
-                                </p>
-                              </div>
-                            )}
-
-                            <div
-                              className="rounded-2xl border px-4 py-3"
-                              style={{
-                                borderColor: colors.border,
-                                background: colors.surface,
-                              }}
-                            >
-                              <p
-                                className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                style={{ color: colors.muted }}
-                              >
-                                Volume
-                              </p>
-                              <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                                {activeTab === "open"
-                                  ? (Number(trade?.Volume ?? 0) / 10000).toFixed(2)
-                                  : Number(trade?.Lot ?? 0).toFixed(2)}
-                              </p>
-                            </div>
-
-                            <div
-                              className="rounded-2xl border px-4 py-3"
-                              style={{
-                                borderColor: colors.border,
-                                background: colors.surface,
-                              }}
-                            >
-                              <p
-                                className="mb-1 text-xs uppercase tracking-[0.12em]"
-                                style={{ color: colors.muted }}
-                              >
-                                Profit / Loss
-                              </p>
-                              <div>{renderProfit(Number(trade?.Profit))}</div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </SectionCard>
-      </div>
-    </div>
+          Refresh
+        </Button>
+      }
+      readouts={[
+        {
+          key: "pl",
+          label: activeTab === "open" ? "Floating P/L" : "Realised P/L",
+          value:
+            (tradeStats.totalProfit >= 0 ? "+" : "-") +
+            usd(Math.abs(tradeStats.totalProfit)),
+          tone: tradeStats.totalProfit >= 0 ? "ok" : "bad",
+        },
+        {
+          key: "win",
+          label: "Winning trades",
+          value: String(tradeStats.winningTrades),
+          tone: "ok",
+        },
+        {
+          key: "lose",
+          label: "Losing trades",
+          value: String(tradeStats.losingTrades),
+          tone: "bad",
+        },
+        {
+          key: "rate",
+          label: "Win rate",
+          value: winRate,
+          tone: "info",
+          helper: `${tradeData.length} trades`,
+        },
+      ]}
+      filter={{
+        activeChip: activeTab,
+        onChipChange: (key: any) => handleTab(key),
+        chips: [
+          { key: "open", label: "Open", tone: "primary" },
+          { key: "closed", label: "Closed", tone: "primary" },
+        ],
+        summary: `${tradeData.length} ${activeTab} trades`,
+      }}
+      columns={columns}
+      rows={tradeData}
+      keyField="Ticket"
+      getRowKey={(t: any, i: number) =>
+        t?.Ticket ?? t?.PositionID ?? t?.Order ?? i
+      }
+      loading={loading}
+      rowEdge={(t: any) =>
+        Number(t?.Profit || 0) > 0
+          ? "profit"
+          : Number(t?.Profit || 0) < 0
+          ? "loss"
+          : null
+      }
+      empty={
+        <UiEmptyState
+          title={error ? "Could not load trades" : `No ${activeTab} trades`}
+          description={
+            error ||
+            (activeTab === "open"
+              ? "Positions you open appear here while they run."
+              : "Closed trades appear here once positions are settled.")
+          }
+          action={
+            <Button variant="soft" onClick={() => fetchTradeData(activeTab)}>
+              Try again
+            </Button>
+          }
+        />
+      }
+    />
   );
 }

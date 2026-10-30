@@ -194,10 +194,7 @@ export default function DepositBonusConfig() {
         <div>
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <Gift size={14} />
@@ -206,8 +203,7 @@ export default function DepositBonusConfig() {
 
           <h2
             className={[
-              "text-2xl sm:text-3xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl sm:text-3xl font-bold tracking-tight","text-text",
             ].join(" ")}
           >
             Deposit Bonus Config
@@ -215,8 +211,7 @@ export default function DepositBonusConfig() {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/55" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Manage deposit amount wise bonus percentage settings.
@@ -226,17 +221,13 @@ export default function DepositBonusConfig() {
 
       <div
         className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
-            : "border-orange-100 bg-white/70 shadow-[0_10px_30px_rgba(251,146,60,0.10)]",
+          "rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="mb-4">
           <h3
             className={[
-              "text-lg font-semibold",
-              isDark ? "text-white" : "text-slate-900",
+              "text-lg font-semibold","text-text",
             ].join(" ")}
           >
             Add New Deposit Bonus
@@ -252,10 +243,7 @@ export default function DepositBonusConfig() {
               setForm((prev) => ({ ...prev, depositAmount: e.target.value }))
             }
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle",
             ].join(" ")}
           />
 
@@ -267,10 +255,7 @@ export default function DepositBonusConfig() {
               setForm((prev) => ({ ...prev, bonusPercent: e.target.value }))
             }
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle",
             ].join(" ")}
           />
 
@@ -278,14 +263,10 @@ export default function DepositBonusConfig() {
             onClick={addConfig}
             disabled={!form.depositAmount || !form.bonusPercent}
             className={[
-              "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+              "inline-flex items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300",
               !form.depositAmount || !form.bonusPercent
-                ? isDark
-                  ? "cursor-not-allowed bg-white/10 text-white/35"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
-                : isDark
-                ? "bg-blue-500/90 text-white hover:bg-blue-500"
-                : "bg-orange-500 text-white hover:bg-orange-600",
+                ?"cursor-not-allowed bg-surface-2 text-subtle"
+                :"bg-primary-soft text-text hover:bg-primary",
             ].join(" ")}
           >
             <Plus size={16} />
@@ -297,10 +278,7 @@ export default function DepositBonusConfig() {
       {loading && (
         <div
           className={[
-            "mt-6 rounded-[20px] border px-4 py-6 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.03] text-white/70"
-              : "border-slate-200 bg-white/70 text-slate-600",
+            "mt-6 rounded-card border px-4 py-6 text-sm","border-line bg-surface-2 text-muted",
           ].join(" ")}
         >
           Loading configs...
@@ -310,10 +288,7 @@ export default function DepositBonusConfig() {
       {error && (
         <div
           className={[
-            "mt-6 flex items-center gap-2 rounded-[20px] border px-4 py-4 text-sm font-medium",
-            isDark
-              ? "border-red-500/20 bg-red-500/10 text-red-300"
-              : "border-red-200 bg-red-50 text-red-600",
+            "mt-6 flex items-center gap-2 rounded-card border px-4 py-4 text-sm font-medium","border-danger bg-danger-soft text-danger",
           ].join(" ")}
         >
           <AlertCircle size={16} />
@@ -324,25 +299,18 @@ export default function DepositBonusConfig() {
       {!loading && !error && (
         <div
           className={[
-            "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "mt-6 rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           <div className="overflow-x-auto">
             <div
               className={[
-                "overflow-hidden rounded-[20px] border",
-                isDark ? "border-white/10" : "border-slate-200",
+                "overflow-hidden rounded-card border","border-line",
               ].join(" ")}
             >
-              <table className="min-w-full">
+              <table className="min-w-full table-stack">
                 <thead
-                  className={[
-                    isDark
-                      ? "bg-white/[0.06] text-white/80"
-                      : "bg-slate-100/80 text-slate-700",
+                  className={["bg-surface-2 text-muted",
                   ].join(" ")}
                 >
                   <tr>
@@ -364,14 +332,13 @@ export default function DepositBonusConfig() {
                   </tr>
                 </thead>
 
-                <tbody className={isDark ? "bg-transparent" : "bg-white/40"}>
+                <tbody className={"bg-transparent"}>
                   {rows.length === 0 ? (
                     <tr>
                       <td
                         colSpan="5"
                         className={[
-                          "px-4 py-8 text-center text-sm",
-                          isDark ? "text-white/55" : "text-slate-500",
+                          "px-4 py-8 text-center text-sm","text-subtle",
                         ].join(" ")}
                       >
                         No deposit bonus config found.
@@ -382,15 +349,12 @@ export default function DepositBonusConfig() {
                       <tr
                         key={row._id}
                         className={[
-                          "border-t transition-colors duration-200",
-                          isDark
-                            ? "border-white/10 hover:bg-white/[0.03]"
-                            : "border-slate-200 hover:bg-slate-50/80",
+                          "border-t transition-colors duration-200","border-line hover:bg-surface-2",
                         ].join(" ")}
                       >
-                        <td className="px-4 py-4 sm:px-6">{index + 1}</td>
+                        <td data-label="S.No." className="px-4 py-4 sm:px-6">{index + 1}</td>
 
-                        <td className="px-4 py-4 sm:px-6">
+                        <td data-label="Deposit Amount" className="px-4 py-4 sm:px-6">
                           {editingId === row._id ? (
                             <input
                               type="number"
@@ -401,14 +365,14 @@ export default function DepositBonusConfig() {
                                   depositAmount: e.target.value,
                                 }))
                               }
-                              className="w-full rounded-lg border px-3 py-2 text-sm text-black"
+                              className="w-full rounded-field border px-3 py-2 text-sm text-text"
                             />
                           ) : (
                             row.depositAmount
                           )}
                         </td>
 
-                        <td className="px-4 py-4 sm:px-6">
+                        <td data-label="Bonus %" className="px-4 py-4 sm:px-6">
                           {editingId === row._id ? (
                             <input
                               type="number"
@@ -419,14 +383,14 @@ export default function DepositBonusConfig() {
                                   bonusPercent: e.target.value,
                                 }))
                               }
-                              className="w-full rounded-lg border px-3 py-2 text-sm text-black"
+                              className="w-full rounded-field border px-3 py-2 text-sm text-text"
                             />
                           ) : (
                             `${row.bonusPercent}%`
                           )}
                         </td>
 
-                        <td className="px-4 py-4 sm:px-6">
+                        <td data-label="Active" className="px-4 py-4 sm:px-6">
                           {editingId === row._id ? (
                             <Switch
                               checked={editForm.isActive}
@@ -447,12 +411,8 @@ export default function DepositBonusConfig() {
                                 className={[
                                   "text-xs font-semibold uppercase",
                                   row.isActive
-                                    ? isDark
-                                      ? "text-emerald-300"
-                                      : "text-emerald-600"
-                                    : isDark
-                                    ? "text-rose-300"
-                                    : "text-rose-600",
+                                    ?"text-success"
+                                    :"text-danger",
                                 ].join(" ")}
                               >
                                 {row.isActive ? "active" : "inactive"}
@@ -461,19 +421,19 @@ export default function DepositBonusConfig() {
                           )}
                         </td>
 
-                        <td className="px-4 py-4 text-right sm:px-6">
+                        <td data-label="Actions" className="px-4 py-4 text-right sm:px-6">
                           <div className="inline-flex items-center gap-2">
                             {editingId === row._id ? (
                               <>
                                 <button
                                   onClick={updateConfig}
-                                  className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white"
+                                  className="rounded-field bg-success px-3 py-2 text-xs font-semibold text-text"
                                 >
                                   Save
                                 </button>
                                 <button
                                   onClick={cancelEdit}
-                                  className="rounded-lg bg-slate-500 px-3 py-2 text-xs font-semibold text-white"
+                                  className="rounded-field bg-surface-3 px-3 py-2 text-xs font-semibold text-text"
                                 >
                                   Cancel
                                 </button>
@@ -483,10 +443,7 @@ export default function DepositBonusConfig() {
                                 <button
                                   onClick={() => startEdit(row)}
                                   className={[
-                                    "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                                    isDark
-                                      ? "text-blue-300 hover:bg-blue-500/10"
-                                      : "text-blue-500 hover:bg-blue-50",
+                                    "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300","text-primary hover:bg-primary-soft",
                                   ].join(" ")}
                                 >
                                   <Pencil size={18} />
@@ -499,10 +456,7 @@ export default function DepositBonusConfig() {
                                     ) && deleteConfig(row._id)
                                   }
                                   className={[
-                                    "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                                    isDark
-                                      ? "text-red-300 hover:bg-red-500/10"
-                                      : "text-red-500 hover:bg-red-50",
+                                    "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300","text-danger hover:bg-danger-soft",
                                   ].join(" ")}
                                 >
                                   <Trash2 size={18} />

@@ -37,7 +37,7 @@ export default function TicketsDashboard() {
       : tickets.filter((t) => t.status === filterStatus);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-800 p-6 text-white">
+    <div className="min-h-screen p-6 text-text">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -50,7 +50,7 @@ export default function TicketsDashboard() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg"
+              className="bg-surface-2 border border-line text-text px-4 py-2 rounded-field"
             >
               <option value="All">All</option>
               <option value="Open">Open</option>
@@ -62,7 +62,7 @@ export default function TicketsDashboard() {
             {/* New Ticket Button */}
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-500 px-6 py-3 rounded-lg shadow-lg hover:scale-105 transition-transform font-medium"
+              className="flex items-center gap-2 px-6 py-3 rounded-field hover:scale-105 transition-transform font-medium"
             >
               <PlusCircle className="w-5 h-5" />
               New Ticket
@@ -71,10 +71,10 @@ export default function TicketsDashboard() {
         </div>
 
         {/* Tickets Table */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-surface-2 backdrop-blur-md border border-line rounded-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-white/10 text-gray-200">
+            <table className="w-full text-left text-sm table-stack">
+              <thead className="bg-surface-2 text-muted">
                 <tr>
                   <th className="p-4 font-semibold">ID</th>
                   <th className="p-4 font-semibold">Subject</th>
@@ -88,49 +88,49 @@ export default function TicketsDashboard() {
                 {filteredTickets.map((ticket) => (
                   <tr
                     key={ticket.id}
-                    className="border-t border-white/10 hover:bg-white/5 transition-colors"
+                    className="border-t border-line hover:bg-surface-2 transition-colors"
                   >
-                    <td className="p-4 font-mono text-gray-300">
+                    <td data-label="ID" className="p-4 font-mono text-muted">
                       #{ticket.id}
                     </td>
-                    <td className="p-4">
+                    <td data-label="Subject" className="p-4">
                       <div className="max-w-xs">
                         <p className="font-medium truncate">{ticket.subject}</p>
                         {ticket.description && (
-                          <p className="text-xs text-gray-400 truncate mt-1">
+                          <p className="text-xs text-subtle truncate mt-1">
                             {ticket.description.substring(0, 80)}...
                           </p>
                         )}
                       </div>
                     </td>
-                    <td className="p-4 text-gray-300">{ticket.userName}</td>
-                    <td className="p-4">
+                    <td data-label="Customer" className="p-4 text-muted">{ticket.userName}</td>
+                    <td data-label="Status" className="p-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           ticket.status === "Open"
-                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                            ? "bg-danger-soft text-danger border border-danger"
                             : ticket.status === "In Progress"
-                            ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            ? "bg-warning-soft text-warning border border-warning"
                             : ticket.status === "Resolved"
-                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                            : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
+                            ? "bg-success-soft text-success border border-success"
+                            : "bg-surface-3 text-subtle border border-line"
                         }`}
                       >
                         {ticket.status}
                       </span>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2 text-gray-300">
+                    <td data-label="Created" className="p-4">
+                      <div className="flex items-center gap-2 text-muted">
                         <Clock className="w-4 h-4" />
                         <span className="text-sm">
                           {formatDate(ticket.createdAt)}
                         </span>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td data-label="Actions" className="p-4">
                       <button
                         onClick={() => handleViewChat(ticket)}
-                        className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary-soft rounded-field text-xs font-medium transition-colors"
                       >
                         <MessageCircle className="w-4 h-4" />
                         View Chat
@@ -143,7 +143,7 @@ export default function TicketsDashboard() {
           </div>
 
           {filteredTickets.length === 0 && !loading && (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-subtle">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg">No tickets found</p>
               <p className="text-sm">

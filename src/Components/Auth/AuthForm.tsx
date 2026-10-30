@@ -97,19 +97,19 @@ const AuthForm: React.FC = () => {
   const pageBgStyle = {
     minHeight: "100vh",
     background: isDark
-      ? `linear-gradient(180deg, #0d1117 0%, #0b0f14 35%, #06080b 100%)`
-      : `linear-gradient(180deg, #fffaf7 0%, #fff7f2 45%, #fff1e8 100%)`,
-    color: isDark ? "rgb(255,255,255)" : "rgb(15,23,42)",
+      ? `linear-gradient(180deg, #0a111f 0%, #0b0f14 35%, #06080b 100%)`
+      : `linear-gradient(180deg, #f3f5f9 0%, #fff7f2 45%, #fff1e8 100%)`,
+    color: isDark ? "rgb(255,255,255)" : "rgb(15, 24, 41)",
   } as React.CSSProperties;
 
   const pageOverlayStyle = {
     background: isDark
       ? `radial-gradient(1200px 600px at 18% 0%, ${rgba(
-          theme?.glow || theme?.accent || "59 130 246",
+          theme?.glow || theme?.accent || "79 125 246",
           0.14
         )}, transparent 60%),
          radial-gradient(900px 480px at 82% 12%, ${rgba(
-           theme?.gradientTo || "147 51 234",
+           theme?.gradientTo || "23 157 166",
            0.12
          )}, transparent 55%),
          radial-gradient(700px 400px at 50% 100%, rgba(0,0,0,0.45), transparent 70%)`
@@ -119,16 +119,16 @@ const AuthForm: React.FC = () => {
   const spotlightStyle = {
     opacity: spotlight.visible ? 1 : 0,
     background: isDark
-      ? `radial-gradient(260px circle at ${spotlight.x}px ${spotlight.y}px, rgba(96,165,250,0.16), rgba(59,130,246,0.08) 34%, transparent 70%)`
-      : `radial-gradient(260px circle at ${spotlight.x}px ${spotlight.y}px, rgba(255,255,255,0.38), rgba(251,191,36,0.08) 38%, transparent 72%)`,
+      ? `radial-gradient(260px circle at ${spotlight.x}px ${spotlight.y}px, rgba(79, 125, 246,0.16), rgba(79, 125, 246,0.08) 34%, transparent 70%)`
+      : `radial-gradient(260px circle at ${spotlight.x}px ${spotlight.y}px, rgba(255,255,255,0.38), rgba(224, 191, 108,0.08) 38%, transparent 72%)`,
   } as React.CSSProperties;
 
   const brandTitleStyle = {
     backgroundImage: isDark
       ? `linear-gradient(90deg, ${rgb(
-          theme?.gradientFrom || theme?.accent || "96 165 250"
+          theme?.gradientFrom || theme?.accent || "79 125 246"
         )}, ${rgb(theme?.gradientTo || "192 132 252")})`
-      : `linear-gradient(90deg, rgb(249,115,22), rgb(251,146,60))`,
+      : `linear-gradient(90deg, rgb(42, 86, 220), rgb(79, 125, 246))`,
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
     color: "transparent",
@@ -136,9 +136,9 @@ const AuthForm: React.FC = () => {
 
   const badge = (kind: "success" | "warning" | "danger") => {
     const map: any = {
-      success: theme?.success || theme?.primary || "34 197 94",
-      warning: theme?.warning || "234 179 8",
-      danger: theme?.danger || "244 63 94",
+      success: theme?.success || theme?.primary || "15 159 110",
+      warning: theme?.warning || "163 113 37",
+      danger: theme?.danger || "220 58 58",
     };
     const c = map[kind];
 
@@ -157,21 +157,21 @@ const AuthForm: React.FC = () => {
   const fieldStyle = {
     borderRadius: radius,
     background: isDark
-      ? rgba(theme?.input || theme?.surface2 || "18 18 18", 0.30)
+      ? rgba(theme?.input || theme?.surface2 || "15 24 41", 0.30)
       : "rgba(255,255,255,0.72)",
     border: `1px solid ${
       isDark
         ? rgba(theme?.inputBorder || theme?.border || "255 255 255", 0.18)
-        : "rgba(251,146,60,0.14)"
+        : "rgba(79, 125, 246,0.14)"
     }`,
     color: isDark
       ? rgba(theme?.fg || "255 255 255", 0.92)
-      : "rgba(15,23,42,0.92)",
+      : "rgba(15, 24, 41,0.92)",
     outline: "none",
     backdropFilter: "blur(12px)",
     boxShadow: isDark
       ? "none"
-      : "0 12px 30px rgba(251,146,60,0.06)",
+      : "0 12px 30px rgba(79, 125, 246,0.06)",
   } as React.CSSProperties;
 
   const labelStyle = {
@@ -185,28 +185,28 @@ const AuthForm: React.FC = () => {
     borderRadius: radius,
     border: `1px solid ${
       isDark
-        ? rgba(theme?.ring || theme?.accent || "59 130 246", 0.28)
-        : "rgba(249,115,22,0.22)"
+        ? rgba(theme?.ring || theme?.accent || "79 125 246", 0.28)
+        : "rgba(42, 86, 220,0.22)"
     }`,
     background: isDark
       ? `linear-gradient(90deg, ${rgba(
-          theme?.gradientFrom || theme?.accent || "59 130 246",
+          theme?.gradientFrom || theme?.accent || "79 125 246",
           0.6
-        )}, ${rgba(theme?.gradientTo || "147 51 234", 0.55)})`
-      : "linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92))",
+        )}, ${rgba(theme?.gradientTo || "23 157 166", 0.55)})`
+      : "linear-gradient(90deg, rgba(42, 86, 220,0.96), rgba(79, 125, 246,0.92))",
     color: isDark ? rgba(theme?.accentFg || "255 255 255", 0.98) : "#fff",
     boxShadow: isDark
       ? `0 18px 60px ${rgba(
-          theme?.glow || theme?.accent || "59 130 246",
+          theme?.glow || theme?.accent || "79 125 246",
           0.22
         )}`
-      : "0 18px 50px rgba(249,115,22,0.22)",
+      : "0 18px 50px rgba(42, 86, 220,0.22)",
   } as React.CSSProperties;
 
   const helperTextStyle = {
     color: isDark
       ? rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.55)
-      : "rgba(100,116,139,0.88)",
+      : "rgba(123, 135, 154,0.88)",
   } as React.CSSProperties;
 
   return (
@@ -258,8 +258,8 @@ const AuthForm: React.FC = () => {
         className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full blur-3xl"
         style={{
           background: isDark
-            ? rgba(theme?.accent || "59 130 246", 0.12)
-            : "rgba(251,146,60,0.10)",
+            ? rgba(theme?.accent || "79 125 246", 0.12)
+            : "rgba(79, 125, 246,0.10)",
         }}
       />
       <div
@@ -267,8 +267,8 @@ const AuthForm: React.FC = () => {
         className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full blur-3xl"
         style={{
           background: isDark
-            ? rgba(theme?.gradientTo || "147 51 234", 0.12)
-            : "rgba(245,158,11,0.10)",
+            ? rgba(theme?.gradientTo || "23 157 166", 0.12)
+            : "rgba(42, 86, 220,0.10)",
         }}
       />
 
@@ -277,10 +277,7 @@ const AuthForm: React.FC = () => {
         <div className="flex flex-col items-center justify-center text-center md:items-start md:text-left">
           <div
             className={[
-              "mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.22em] uppercase backdrop-blur-md",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white/70"
-                : "border-orange-100 bg-white/70 text-slate-700 shadow-[0_12px_30px_rgba(251,146,60,0.08)]",
+              "mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.22em] uppercase backdrop-blur-md","border-line bg-surface-2 text-muted",
             ].join(" ")}
           >
             Admin Panel
@@ -330,23 +327,20 @@ const AuthForm: React.FC = () => {
           <div className="relative w-full max-w-md">
             <div
               aria-hidden
-              className="absolute -inset-6 rounded-[32px] blur-3xl"
+              className="absolute -inset-6 rounded-card blur-3xl"
               style={{
                 background: isDark
                   ? `radial-gradient(circle, ${rgba(
-                      theme?.glow || theme?.accent || "59 130 246",
+                      theme?.glow || theme?.accent || "79 125 246",
                       0.18
                     )} 0%, transparent 65%)`
-                  : "radial-gradient(circle, rgba(251,146,60,0.14) 0%, transparent 65%)",
+                  : "radial-gradient(circle, rgba(79, 125, 246,0.14) 0%, transparent 65%)",
               }}
             />
 
             <GlassCard
               className={[
-                "relative w-full overflow-hidden rounded-[28px] border p-6 md:p-8 backdrop-blur-xl",
-                isDark
-                  ? "border-white/10 bg-white/[0.04] shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
-                  : "border-orange-100/80 bg-white/60 shadow-[0_24px_70px_rgba(251,146,60,0.12)]",
+                "relative w-full overflow-hidden rounded-card border p-6 md:p-8 backdrop-blur-xl","border-line bg-surface-2",
               ].join(" ")}
             >
               <div
@@ -365,7 +359,7 @@ const AuthForm: React.FC = () => {
                   style={{
                     color: isDark
                       ? rgba(theme?.fg || "255 255 255", 0.92)
-                      : "rgb(15,23,42)",
+                      : "rgb(15, 24, 41)",
                   }}
                 >
                   Admin Login
@@ -397,13 +391,13 @@ const AuthForm: React.FC = () => {
                     onFocus={(e) => {
                       (e.currentTarget as HTMLInputElement).style.boxShadow = isDark
                         ? `0 0 0 3px ${rgba(
-                            theme?.ring || theme?.accent || "59 130 246",
+                            theme?.ring || theme?.accent || "79 125 246",
                             0.22
                           )}`
-                        : "0 0 0 3px rgba(249,115,22,0.14)";
+                        : "0 0 0 3px rgba(42, 86, 220,0.14)";
                       (e.currentTarget as HTMLInputElement).style.borderColor = isDark
-                        ? rgba(theme?.ring || theme?.accent || "59 130 246", 0.45)
-                        : "rgba(249,115,22,0.35)";
+                        ? rgba(theme?.ring || theme?.accent || "79 125 246", 0.45)
+                        : "rgba(42, 86, 220,0.35)";
                     }}
                     onBlur={(e) => {
                       (e.currentTarget as HTMLInputElement).style.boxShadow = "none";
@@ -412,7 +406,7 @@ const AuthForm: React.FC = () => {
                             theme?.inputBorder || theme?.border || "255 255 255",
                             0.18
                           )
-                        : "rgba(251,146,60,0.14)";
+                        : "rgba(79, 125, 246,0.14)";
                     }}
                   />
 
@@ -421,7 +415,7 @@ const AuthForm: React.FC = () => {
                       className="text-xs font-medium"
                       style={{
                         color: isDark
-                          ? rgba(theme?.danger || "244 63 94", 0.9)
+                          ? rgba(theme?.danger || "220 58 58", 0.9)
                           : "rgb(220,38,38)",
                       }}
                     >
@@ -450,13 +444,13 @@ const AuthForm: React.FC = () => {
                     onFocusStyle={{
                       boxShadow: isDark
                         ? `0 0 0 3px ${rgba(
-                            theme?.ring || theme?.accent || "59 130 246",
+                            theme?.ring || theme?.accent || "79 125 246",
                             0.22
                           )}`
-                        : "0 0 0 3px rgba(249,115,22,0.14)",
+                        : "0 0 0 3px rgba(42, 86, 220,0.14)",
                       borderColor: isDark
-                        ? rgba(theme?.ring || theme?.accent || "59 130 246", 0.45)
-                        : "rgba(249,115,22,0.35)",
+                        ? rgba(theme?.ring || theme?.accent || "79 125 246", 0.45)
+                        : "rgba(42, 86, 220,0.35)",
                     }}
                     onBlurStyle={{
                       boxShadow: "none",
@@ -465,7 +459,7 @@ const AuthForm: React.FC = () => {
                             theme?.inputBorder || theme?.border || "255 255 255",
                             0.18
                           )
-                        : "rgba(251,146,60,0.14)",
+                        : "rgba(79, 125, 246,0.14)",
                     }}
                   />
                 </div>
@@ -479,18 +473,18 @@ const AuthForm: React.FC = () => {
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.boxShadow = isDark
                       ? `0 0 26px ${rgba(
-                          theme?.glow || theme?.accent || "59 130 246",
+                          theme?.glow || theme?.accent || "79 125 246",
                           0.24
                         )}`
-                      : "0 0 26px rgba(249,115,22,0.22)";
+                      : "0 0 26px rgba(42, 86, 220,0.22)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.boxShadow = isDark
                       ? `0 18px 60px ${rgba(
-                          theme?.glow || theme?.accent || "59 130 246",
+                          theme?.glow || theme?.accent || "79 125 246",
                           0.22
                         )}`
-                      : "0 18px 50px rgba(249,115,22,0.22)";
+                      : "0 18px 50px rgba(42, 86, 220,0.22)";
                   }}
                 >
                   <span className="relative z-10">
@@ -516,13 +510,13 @@ const AuthForm: React.FC = () => {
                     style={{
                       background: isDark
                         ? `radial-gradient(40% 60% at 50% 50%, ${rgba(
-                            theme?.accent || "59 130 246",
+                            theme?.accent || "79 125 246",
                             0.35
                           )}, ${rgba(
-                            theme?.gradientTo || "147 51 234",
+                            theme?.gradientTo || "23 157 166",
                             0.15
                           )} 70%, transparent 80%)`
-                        : "radial-gradient(40% 60% at 50% 50%, rgba(251,146,60,0.30), rgba(249,115,22,0.16) 70%, transparent 80%)",
+                        : "radial-gradient(40% 60% at 50% 50%, rgba(79, 125, 246,0.30), rgba(42, 86, 220,0.16) 70%, transparent 80%)",
                     }}
                   />
                 </button>
@@ -533,7 +527,7 @@ const AuthForm: React.FC = () => {
                     className="text-center text-sm font-medium"
                     style={{
                       color: isDark
-                        ? rgba(theme?.danger || "244 63 94", 0.9)
+                        ? rgba(theme?.danger || "220 58 58", 0.9)
                         : "rgb(220,38,38)",
                     }}
                   >

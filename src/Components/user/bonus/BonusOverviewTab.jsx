@@ -34,7 +34,7 @@ const BonusOverviewTab = () => {
         subtitle="See your linked trading accounts, active wallet balance, and bonus configuration slabs currently active for the system."
         rightContent={
           <div>
-            <p className={isDark ? "text-white/45 text-xs" : "text-slate-500 text-xs"}>
+            <p className={"text-subtle text-xs"}>
               Linked Accounts
             </p>
             <h3 className="mt-1 text-2xl font-bold">
@@ -53,19 +53,19 @@ const BonusOverviewTab = () => {
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <p className={isDark ? "text-white/45 text-sm" : "text-slate-500 text-sm"}>
+                <p className={"text-subtle text-sm"}>
                   Name
                 </p>
                 <p className="mt-1 text-base font-semibold">{profile?.name || "-"}</p>
               </div>
               <div>
-                <p className={isDark ? "text-white/45 text-sm" : "text-slate-500 text-sm"}>
+                <p className={"text-subtle text-sm"}>
                   Email
                 </p>
                 <p className="mt-1 text-base font-semibold">{profile?.email || "-"}</p>
               </div>
               <div>
-                <p className={isDark ? "text-white/45 text-sm" : "text-slate-500 text-sm"}>
+                <p className={"text-subtle text-sm"}>
                   Bonus Wallet
                 </p>
                 <p className="mt-1 text-base font-semibold">
@@ -73,7 +73,7 @@ const BonusOverviewTab = () => {
                 </p>
               </div>
               <div>
-                <p className={isDark ? "text-white/45 text-sm" : "text-slate-500 text-sm"}>
+                <p className={"text-subtle text-sm"}>
                   Total Balance
                 </p>
                 <p className="mt-1 text-base font-semibold">
@@ -94,10 +94,7 @@ const BonusOverviewTab = () => {
                   <div
                     key={`${acc.accountNumber}-${idx}`}
                     className={[
-                      "rounded-2xl border p-4",
-                      isDark
-                        ? "border-white/10 bg-white/[0.03]"
-                        : "border-orange-100 bg-orange-50/40",
+                      "rounded-card border p-4","border-line bg-surface-2",
                     ].join(" ")}
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -105,8 +102,7 @@ const BonusOverviewTab = () => {
                         <p className="font-semibold">{acc.accountNumber}</p>
                         <p
                           className={[
-                            "text-sm",
-                            isDark ? "text-white/45" : "text-slate-500",
+                            "text-sm","text-subtle",
                           ].join(" ")}
                         >
                           {/* {acc.accountType} • {acc.platform || "MT5"} • {acc.groupName} */}
@@ -139,18 +135,14 @@ const BonusOverviewTab = () => {
                   <div
                     key={item._id}
                     className={[
-                      "flex items-center justify-between rounded-2xl border p-4",
-                      isDark
-                        ? "border-white/10 bg-white/[0.03]"
-                        : "border-orange-100 bg-orange-50/40",
+                      "flex items-center justify-between rounded-card border p-4","border-line bg-surface-2",
                     ].join(" ")}
                   >
                     <div>
                       <p className="font-semibold">{formatCurrency(item.depositAmount)}</p>
                       <p
                         className={[
-                          "text-sm",
-                          isDark ? "text-white/45" : "text-slate-500",
+                          "text-sm","text-subtle",
                         ].join(" ")}
                       >
                         Deposit threshold
@@ -176,10 +168,7 @@ const BonusOverviewTab = () => {
                   <div
                     key={item._id}
                     className={[
-                      "flex items-center justify-between rounded-2xl border p-4",
-                      isDark
-                        ? "border-white/10 bg-white/[0.03]"
-                        : "border-orange-100 bg-orange-50/40",
+                      "flex items-center justify-between rounded-card border p-4","border-line bg-surface-2",
                     ].join(" ")}
                   >
                     <div>
@@ -188,8 +177,7 @@ const BonusOverviewTab = () => {
                       </p>
                       <p
                         className={[
-                          "text-sm",
-                          isDark ? "text-white/45" : "text-slate-500",
+                          "text-sm","text-subtle",
                         ].join(" ")}
                       >
                         Active bonus range

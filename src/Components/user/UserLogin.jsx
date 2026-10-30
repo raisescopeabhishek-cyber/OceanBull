@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 import { backendApi } from "../../utils/apiClients";
-import { toggleUserTheme } from "../../redux/userThemeSlice";
+import { useTheme } from "@/theme/ThemeProvider";
 import UseUserHook from "@/hooks/user/UseUserHook";
 import { fetchCurrentUser } from "@/redux/AsyncThunk/fetchCurrentUser";
 
@@ -53,12 +53,12 @@ const rgba = (v, a = 1) => {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-const orange = "249 115 22";
-const deepOrange = "234 88 12";
-const amber = "251 146 60";
+const orange = "42 86 220";
+const deepOrange = "34 69 180";
+const amber = "79 125 246";
 
 const fontStack =
-  '"Inter", "Plus Jakarta Sans", "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  '"Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 /* -------------------- animation -------------------- */
 const pageVariants = {
@@ -160,16 +160,16 @@ const ForexBackground = ({ isDark }) => {
         style={{
           background: isDark
             ? `
-              radial-gradient(circle at 10% 5%, rgba(249,115,22,0.18), transparent 28%),
-              radial-gradient(circle at 95% 18%, rgba(251,146,60,0.12), transparent 25%),
-              radial-gradient(circle at 70% 96%, rgba(249,115,22,0.14), transparent 28%),
+              radial-gradient(circle at 10% 5%, rgba(42, 86, 220,0.18), transparent 28%),
+              radial-gradient(circle at 95% 18%, rgba(79, 125, 246,0.12), transparent 25%),
+              radial-gradient(circle at 70% 96%, rgba(42, 86, 220,0.14), transparent 28%),
               linear-gradient(135deg, #090604 0%, #120b07 48%, #070504 100%)
             `
             : `
-              radial-gradient(circle at 10% 5%, rgba(249,115,22,0.13), transparent 30%),
-              radial-gradient(circle at 92% 18%, rgba(251,146,60,0.12), transparent 24%),
-              radial-gradient(circle at 72% 96%, rgba(249,115,22,0.10), transparent 28%),
-              linear-gradient(135deg, #fffaf6 0%, #fffefd 45%, #fff7ed 100%)
+              radial-gradient(circle at 10% 5%, rgba(42, 86, 220,0.13), transparent 30%),
+              radial-gradient(circle at 92% 18%, rgba(79, 125, 246,0.12), transparent 24%),
+              radial-gradient(circle at 72% 96%, rgba(42, 86, 220,0.10), transparent 28%),
+              linear-gradient(135deg, #fffaf6 0%, #fffefd 45%, #f3f5f9 100%)
             `,
         }}
       />
@@ -177,14 +177,14 @@ const ForexBackground = ({ isDark }) => {
       <div
         className="absolute -left-20 -top-28 h-72 w-72 rounded-full border opacity-40"
         style={{
-          borderColor: isDark ? "rgba(251,146,60,0.14)" : "rgba(249,115,22,0.18)",
+          borderColor: isDark ? "rgba(79, 125, 246,0.14)" : "rgba(42, 86, 220,0.18)",
         }}
       />
 
       <div
         className="absolute -left-28 -top-36 h-96 w-96 rounded-full border opacity-35"
         style={{
-          borderColor: isDark ? "rgba(251,146,60,0.11)" : "rgba(249,115,22,0.14)",
+          borderColor: isDark ? "rgba(79, 125, 246,0.11)" : "rgba(42, 86, 220,0.14)",
         }}
       />
 
@@ -192,7 +192,7 @@ const ForexBackground = ({ isDark }) => {
         className="absolute right-10 top-8 h-36 w-36 opacity-45"
         style={{
           backgroundImage: `radial-gradient(${
-            isDark ? "rgba(251,146,60,0.24)" : "rgba(249,115,22,0.18)"
+            isDark ? "rgba(79, 125, 246,0.24)" : "rgba(42, 86, 220,0.18)"
           } 1px, transparent 1px)`,
           backgroundSize: "12px 12px",
         }}
@@ -200,12 +200,12 @@ const ForexBackground = ({ isDark }) => {
 
       <div
         className="absolute left-[52%] top-[7%] h-72 w-72 rounded-full blur-3xl"
-        style={{ background: "rgba(249,115,22,0.08)" }}
+        style={{ background: "rgba(42, 86, 220,0.08)" }}
       />
 
       <div
         className="absolute bottom-0 right-0 h-80 w-80 rounded-full blur-3xl"
-        style={{ background: "rgba(251,146,60,0.12)" }}
+        style={{ background: "rgba(79, 125, 246,0.12)" }}
       />
     </div>
   );
@@ -214,18 +214,19 @@ const ForexBackground = ({ isDark }) => {
 /* -------------------- theme toggle -------------------- */
 const ThemeToggle = ({ isDark }) => {
   const dispatch = useDispatch();
+  const { toggle: toggleTheme } = useTheme();
 
   return (
     <button
-      onClick={() => dispatch(toggleUserTheme())}
+      onClick={toggleTheme}
       className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-xl transition hover:-translate-y-0.5"
       style={{
-        borderColor: isDark ? "rgba(255,255,255,0.14)" : "rgba(249,115,22,0.18)",
+        borderColor: isDark ? "rgba(255,255,255,0.14)" : "rgba(42, 86, 220,0.18)",
         background: isDark ? "rgba(20,12,8,0.72)" : "rgba(255,255,255,0.82)",
-        color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15,23,42,0.88)",
+        color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15, 24, 41,0.88)",
         boxShadow: isDark
           ? "0 18px 45px rgba(0,0,0,0.45)"
-          : "0 18px 45px rgba(249,115,22,0.13)",
+          : "0 18px 45px rgba(42, 86, 220,0.13)",
       }}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
@@ -273,19 +274,19 @@ const BrandMark = ({ logo, baseHeight = 4, isDark, websiteName }) => {
       <div className="flex items-center gap-3">
         <div className="relative h-12 w-12">
           <div
-            className="absolute inset-1 rotate-[-8deg] rounded-[1.1rem]"
+            className="absolute inset-1 rotate-[-8deg] rounded-card"
             style={{
               background: `linear-gradient(135deg, ${rgb(amber)}, ${rgb(deepOrange)})`,
-              boxShadow: "0 16px 28px rgba(249,115,22,0.25)",
+              boxShadow: "0 16px 28px rgba(42, 86, 220,0.25)",
             }}
           />
-          <Rocket className="absolute left-3 top-3 text-white" size={24} />
+          <Rocket className="absolute left-3 top-3 text-text" size={24} />
         </div>
 
         <div>
           <p
             className="text-3xl font-black leading-none tracking-[-0.06em]"
-            style={{ color: isDark ? "#ffffff" : "#111827" }}
+            style={{ color: isDark ? "#ffffff" : "#0f1829" }}
           >
             {websiteName || "Forex"}
             <span style={{ color: rgb(orange) }}>CRM</span>
@@ -294,7 +295,7 @@ const BrandMark = ({ logo, baseHeight = 4, isDark, websiteName }) => {
           <p
             className="mt-1 text-sm font-medium tracking-[-0.02em]"
             style={{
-              color: isDark ? "rgba(255,255,255,0.64)" : "rgba(15,23,42,0.72)",
+              color: isDark ? "rgba(255,255,255,0.64)" : "rgba(15, 24, 41,0.72)",
             }}
           >
             Trade. Manage. Grow.
@@ -310,20 +311,20 @@ const FeatureCard = ({ icon: Icon, title, desc, isDark }) => {
   return (
     <motion.div
       variants={itemVariants}
-      className="group flex items-center gap-4 rounded-2xl border p-4 transition hover:-translate-y-1"
+      className="group flex items-center gap-4 rounded-card border p-4 transition hover:-translate-y-1"
       style={{
-        borderColor: isDark ? "rgba(255,255,255,0.11)" : "rgba(249,115,22,0.15)",
+        borderColor: isDark ? "rgba(255,255,255,0.11)" : "rgba(42, 86, 220,0.15)",
         background: isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.76)",
         boxShadow: isDark
           ? "0 18px 45px rgba(0,0,0,0.24)"
-          : "0 18px 40px rgba(249,115,22,0.08)",
+          : "0 18px 40px rgba(42, 86, 220,0.08)",
       }}
     >
       <span
-        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card text-text"
         style={{
           background: `linear-gradient(135deg, ${rgb(amber)}, ${rgb(deepOrange)})`,
-          boxShadow: "0 14px 30px rgba(249,115,22,0.28)",
+          boxShadow: "0 14px 30px rgba(42, 86, 220,0.28)",
         }}
       >
         <Icon size={25} />
@@ -342,7 +343,7 @@ const FeatureCard = ({ icon: Icon, title, desc, isDark }) => {
         <p
           className="mt-1 text-sm font-medium leading-5"
           style={{
-            color: isDark ? "rgba(255,255,255,0.58)" : "rgba(15,23,42,0.66)",
+            color: isDark ? "rgba(255,255,255,0.58)" : "rgba(15, 24, 41,0.66)",
           }}
         >
           {desc}
@@ -355,13 +356,13 @@ const FeatureCard = ({ icon: Icon, title, desc, isDark }) => {
 const QuoteBox = ({ isDark }) => (
   <motion.div
     variants={itemVariants}
-    className="relative mt-4 flex items-start gap-3 rounded-2xl border px-5 py-4"
+    className="relative mt-4 flex items-start gap-3 rounded-card border px-5 py-4"
     style={{
-      borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.15)",
+      borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.15)",
       background: isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.78)",
       boxShadow: isDark
         ? "0 18px 45px rgba(0,0,0,0.18)"
-        : "0 18px 40px rgba(249,115,22,0.08)",
+        : "0 18px 40px rgba(42, 86, 220,0.08)",
     }}
   >
     <Quote className="mt-1 shrink-0" size={22} style={{ color: rgb(orange) }} />
@@ -369,7 +370,7 @@ const QuoteBox = ({ isDark }) => (
     <p
       className="text-sm font-semibold leading-6"
       style={{
-        color: isDark ? "rgba(255,255,255,0.72)" : "rgba(15,23,42,0.75)",
+        color: isDark ? "rgba(255,255,255,0.72)" : "rgba(15, 24, 41,0.75)",
       }}
     >
       Securely access your Forex CRM workspace and manage your business without friction.
@@ -388,13 +389,13 @@ const StatStrip = ({ isDark }) => {
   return (
     <motion.div
       variants={itemVariants}
-      className="relative z-10 mx-auto mt-7 grid w-full max-w-6xl grid-cols-2 overflow-hidden rounded-3xl border backdrop-blur-xl sm:grid-cols-4"
+      className="relative z-10 mx-auto mt-7 grid w-full max-w-6xl grid-cols-2 overflow-hidden rounded-card border backdrop-blur-xl sm:grid-cols-4"
       style={{
-        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.14)",
+        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.14)",
         background: isDark ? "rgba(20,12,8,0.72)" : "rgba(255,255,255,0.82)",
         boxShadow: isDark
           ? "0 25px 70px rgba(0,0,0,0.38)"
-          : "0 25px 70px rgba(249,115,22,0.13)",
+          : "0 25px 70px rgba(42, 86, 220,0.13)",
       }}
     >
       {stats.map((stat, index) => (
@@ -406,15 +407,15 @@ const StatStrip = ({ isDark }) => {
               index !== stats.length - 1
                 ? isDark
                   ? "1px solid rgba(255,255,255,0.08)"
-                  : "1px solid rgba(249,115,22,0.12)"
+                  : "1px solid rgba(42, 86, 220,0.12)"
                 : undefined,
           }}
         >
           <span
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card border"
             style={{
-              borderColor: "rgba(249,115,22,0.20)",
-              background: "rgba(249,115,22,0.08)",
+              borderColor: "rgba(42, 86, 220,0.20)",
+              background: "rgba(42, 86, 220,0.08)",
               color: rgb(orange),
             }}
           >
@@ -428,7 +429,7 @@ const StatStrip = ({ isDark }) => {
             <p
               className="mt-1 text-xs font-semibold"
               style={{
-                color: isDark ? "rgba(255,255,255,0.58)" : "rgba(15,23,42,0.60)",
+                color: isDark ? "rgba(255,255,255,0.58)" : "rgba(15, 24, 41,0.60)",
               }}
             >
               {stat.label}
@@ -444,22 +445,22 @@ const StatStrip = ({ isDark }) => {
 const FieldBox = ({ children, active, isDark }) => {
   return (
     <div
-      className="relative rounded-2xl border transition-all duration-200"
+      className="relative rounded-card border transition-all duration-200"
       style={{
         borderWidth: "1.5px",
         borderColor: active
-          ? "rgba(249,115,22,0.92)"
+          ? "rgba(42, 86, 220,0.92)"
           : isDark
           ? "rgba(255,255,255,0.12)"
-          : "rgba(249,115,22,0.42)",
+          : "rgba(42, 86, 220,0.42)",
         background: isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.92)",
         boxShadow: active
           ? isDark
-            ? "0 0 0 4px rgba(249,115,22,0.16), 0 14px 32px rgba(0,0,0,0.16)"
-            : "0 0 0 4px rgba(249,115,22,0.18), 0 14px 34px rgba(249,115,22,0.16)"
+            ? "0 0 0 4px rgba(42, 86, 220,0.16), 0 14px 32px rgba(0,0,0,0.16)"
+            : "0 0 0 4px rgba(42, 86, 220,0.18), 0 14px 34px rgba(42, 86, 220,0.16)"
           : isDark
           ? "0 12px 28px rgba(0,0,0,0.14)"
-          : "0 10px 28px rgba(249,115,22,0.10)",
+          : "0 10px 28px rgba(42, 86, 220,0.10)",
       }}
     >
       {children}
@@ -491,7 +492,7 @@ const LoginField = ({
     ? rgb(orange)
     : isDark
     ? "rgba(255,255,255,0.46)"
-    : "rgba(249,115,22,0.72)",
+    : "rgba(42, 86, 220,0.72)",
 }}
           >
             <Icon size={19} strokeWidth={1.8} />
@@ -506,9 +507,9 @@ const LoginField = ({
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             autoComplete={autoComplete}
-            className="h-[58px] w-full rounded-2xl bg-transparent pl-12 pr-11 text-sm font-semibold outline-none placeholder:font-medium"
+            className="h-[58px] w-full rounded-card bg-transparent pl-12 pr-11 text-sm font-semibold outline-none placeholder:font-medium"
             style={{
-              color: isDark ? "rgba(255,255,255,0.92)" : "rgba(15,23,42,0.92)",
+              color: isDark ? "rgba(255,255,255,0.92)" : "rgba(15, 24, 41,0.92)",
             }}
             required
           />
@@ -652,7 +653,7 @@ const UserLogin = () => {
   };
 
   const customStyles = useMemo(() => {
-    const textColor = isDark ? "rgba(255,255,255,0.92)" : "rgba(15,23,42,0.92)";
+    const textColor = isDark ? "rgba(255,255,255,0.92)" : "rgba(15, 24, 41,0.92)";
     const bg = isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.82)";
 
     return `
@@ -676,7 +677,7 @@ const UserLogin = () => {
       animate="visible"
       className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8"
       style={{
-        color: isDark ? rgba(fg, 0.92) : "rgba(15,23,42,0.94)",
+        color: isDark ? rgba(fg, 0.92) : "rgba(15, 24, 41,0.94)",
         fontFamily: fontStack,
       }}
     >
@@ -685,30 +686,30 @@ const UserLogin = () => {
       <ForexBackground isDark={isDark} />
       <ThemeToggle isDark={isDark} />
 
-      <section className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col justify-center">
+      <section className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[1500px] flex-col justify-center">
         <div className="grid w-full items-stretch gap-6 lg:grid-cols-[0.92fr_1.08fr]">
           {/* Left Side */}
           <motion.aside
             variants={itemVariants}
-            className="relative hidden overflow-hidden rounded-[2rem] border p-8 lg:block"
+            className="relative hidden overflow-hidden rounded-card border p-8 lg:block"
             style={{
-              borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.13)",
+              borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.13)",
               background: isDark
                 ? "linear-gradient(145deg, rgba(22,14,9,0.70), rgba(10,7,5,0.78))"
                 : "linear-gradient(145deg, rgba(255,255,255,0.64), rgba(255,247,237,0.55))",
               boxShadow: isDark
                 ? "0 32px 90px rgba(0,0,0,0.42)"
-                : "0 32px 90px rgba(249,115,22,0.10)",
+                : "0 32px 90px rgba(42, 86, 220,0.10)",
             }}
           >
-            <div className="absolute -right-20 top-20 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-orange-400/10 blur-3xl" />
+            <div className="absolute -right-20 top-20 h-64 w-64 rounded-full bg-primary-soft blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-primary-soft blur-3xl" />
 
             <div className="relative">
               <div className="pt-10">
                 <motion.h1
                   variants={itemVariants}
-                  className="max-w-[470px] text-5xl font-black leading-[1.12] tracking-[-0.075em]"
+                  className="max-w-[560px] text-5xl font-black leading-[1.12] tracking-[-0.075em]"
                   style={{
                     color: isDark ? "rgba(255,255,255,0.94)" : "rgba(17,24,39,0.98)",
                   }}
@@ -720,9 +721,9 @@ const UserLogin = () => {
 
                 <motion.p
                   variants={itemVariants}
-                  className="mt-5 max-w-[430px] text-base font-medium leading-7"
+                  className="mt-5 max-w-[520px] text-base font-medium leading-7"
                   style={{
-                    color: isDark ? "rgba(255,255,255,0.62)" : "rgba(15,23,42,0.68)",
+                    color: isDark ? "rgba(255,255,255,0.62)" : "rgba(15, 24, 41,0.68)",
                   }}
                 >
                   Securely access your leads, clients, IBs, performance insights and broker
@@ -730,7 +731,7 @@ const UserLogin = () => {
                 </motion.p>
               </div>
 
-              <div className="mt-8 grid max-w-[430px] gap-4">
+              <div className="mt-8 grid max-w-[560px] gap-4">
                 <FeatureCard
                   icon={UsersRound}
                   title="Lead & Client Management"
@@ -764,20 +765,20 @@ const UserLogin = () => {
           {/* Right Side */}
           <motion.section
             variants={itemVariants}
-            className="relative overflow-hidden rounded-[2rem] border p-4 sm:p-6 lg:p-8"
+            className="relative overflow-hidden rounded-card border p-4 sm:p-6 lg:p-8"
             style={{
-              borderColor: isDark ? "rgba(255,255,255,0.11)" : "rgba(249,115,22,0.13)",
+              borderColor: isDark ? "rgba(255,255,255,0.11)" : "rgba(42, 86, 220,0.13)",
               background: isDark
                 ? "linear-gradient(145deg, rgba(22,14,9,0.82), rgba(10,7,5,0.86))"
                 : "linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,253,251,0.90))",
               boxShadow: isDark
                 ? "0 32px 90px rgba(0,0,0,0.46)"
-                : "0 32px 90px rgba(249,115,22,0.12)",
+                : "0 32px 90px rgba(42, 86, 220,0.12)",
             }}
           >
-            <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-orange-500/10 blur-3xl" />
+            <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-primary-soft blur-3xl" />
 
-            <div className="relative mx-auto flex min-h-[680px] w-full max-w-[520px] flex-col justify-center">
+            <div className="relative mx-auto flex min-h-[680px] w-full max-w-[620px] flex-col justify-center">
               <motion.div variants={itemVariants} className="mb-3">
                 <BrandMark
                   logo={siteConfig?.logo}
@@ -823,7 +824,7 @@ const UserLogin = () => {
                             onClick={() => setShowPass((s) => !s)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 transition hover:opacity-80"
                             style={{
-                              color: isDark ? "rgba(255,255,255,0.50)" : "rgba(15,23,42,0.50)",
+                              color: isDark ? "rgba(255,255,255,0.50)" : "rgba(15, 24, 41,0.50)",
                             }}
                             aria-label={showPass ? "Hide password" : "Show password"}
                           >
@@ -836,7 +837,7 @@ const UserLogin = () => {
                         <label
                           className="inline-flex cursor-pointer select-none items-center gap-2 font-semibold"
                           style={{
-                            color: isDark ? "rgba(255,255,255,0.62)" : "rgba(15,23,42,0.62)",
+                            color: isDark ? "rgba(255,255,255,0.62)" : "rgba(15, 24, 41,0.62)",
                           }}
                         >
                           <span className="relative flex h-5 w-5 items-center justify-center">
@@ -848,17 +849,17 @@ const UserLogin = () => {
                             />
 
                             <span
-                              className="flex h-5 w-5 items-center justify-center rounded-md border transition"
+                              className="flex h-5 w-5 items-center justify-center rounded-field border transition"
                               style={{
                                 borderColor: remember
-  ? "rgba(249,115,22,0.90)"
+  ? "rgba(42, 86, 220,0.90)"
   : isDark
   ? "rgba(255,255,255,0.30)"
-  : "rgba(249,115,22,0.55)",
+  : "rgba(42, 86, 220,0.55)",
                                 background: remember ? rgb(orange) : "transparent",
                               }}
                             >
-                              {remember && <Check size={14} className="text-white" />}
+                              {remember && <Check size={14} className="text-text" />}
                             </span>
                           </span>
                           Remember me
@@ -880,13 +881,13 @@ const UserLogin = () => {
                         whileTap={{ scale: 0.98 }}
                         type="submit"
                         disabled={isLoading}
-                        className="group relative mt-3 flex h-[64px] items-center justify-center gap-3 overflow-hidden rounded-2xl text-lg font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-65"
+                        className="group relative mt-3 flex h-[64px] items-center justify-center gap-3 overflow-hidden rounded-card text-lg font-extrabold text-text disabled:cursor-not-allowed disabled:opacity-65"
                         style={{
                           background: `linear-gradient(135deg, ${rgb(amber)}, ${rgb(deepOrange)})`,
-                          boxShadow: "0 18px 40px rgba(249,115,22,0.32)",
+                          boxShadow: "0 18px 40px rgba(42, 86, 220,0.32)",
                         }}
                       >
-                        <span className="absolute inset-0 -translate-x-full bg-white/20 transition duration-700 group-hover:translate-x-full" />
+                        <span className="absolute inset-0 -translate-x-full bg-surface-3 transition duration-700 group-hover:translate-x-full" />
 
                         {isLoading ? "Signing In..." : "Sign In"}
 
@@ -899,17 +900,17 @@ const UserLogin = () => {
                     </form>
 
                     <div
-                      className="mt-6 rounded-2xl border p-4"
+                      className="mt-6 rounded-card border p-4"
                       style={{
-                        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.14)",
+                        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.14)",
                         background: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,247,237,0.58)",
                       }}
                     >
                       <div className="flex items-start gap-3">
                         <span
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card"
                           style={{
-                            background: "rgba(249,115,22,0.10)",
+                            background: "rgba(42, 86, 220,0.10)",
                             color: rgb(orange),
                           }}
                         >
@@ -920,7 +921,7 @@ const UserLogin = () => {
                           <p
                             className="text-sm font-bold"
                             style={{
-                              color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15,23,42,0.9)",
+                              color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15, 24, 41,0.9)",
                             }}
                           >
                             Protected trading workspace
@@ -929,7 +930,7 @@ const UserLogin = () => {
                           <p
                             className="mt-1 text-xs font-medium leading-5"
                             style={{
-                              color: isDark ? "rgba(255,255,255,0.48)" : "rgba(15,23,42,0.56)",
+                              color: isDark ? "rgba(255,255,255,0.48)" : "rgba(15, 24, 41,0.56)",
                             }}
                           >
                             Access your CRM dashboard, client pipeline, IB network and financial
@@ -942,7 +943,7 @@ const UserLogin = () => {
                     <p
                       className="mt-6 text-center text-sm font-semibold"
                       style={{
-                        color: isDark ? "rgba(255,255,255,0.56)" : "rgba(15,23,42,0.58)",
+                        color: isDark ? "rgba(255,255,255,0.56)" : "rgba(15, 24, 41,0.58)",
                       }}
                     >
                       Don&apos;t have an account?{" "}
@@ -968,10 +969,10 @@ const UserLogin = () => {
                       onClick={() => setShowForgotPassword(false)}
                       className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition hover:opacity-85"
                       style={{
-                        background: isDark ? "rgba(255,255,255,0.05)" : "rgba(249,115,22,0.08)",
+                        background: isDark ? "rgba(255,255,255,0.05)" : "rgba(42, 86, 220,0.08)",
                         color: rgb(orange),
                         border: `1px solid ${
-                          isDark ? "rgba(255,255,255,0.1)" : "rgba(249,115,22,0.15)"
+                          isDark ? "rgba(255,255,255,0.1)" : "rgba(42, 86, 220,0.15)"
                         }`,
                       }}
                     >
@@ -997,13 +998,13 @@ const UserLogin = () => {
                         whileTap={{ scale: 0.98 }}
                         type="submit"
                         disabled={isResetLoading}
-                        className="group relative mt-3 flex h-[64px] items-center justify-center gap-3 overflow-hidden rounded-2xl text-lg font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-65"
+                        className="group relative mt-3 flex h-[64px] items-center justify-center gap-3 overflow-hidden rounded-card text-lg font-extrabold text-text disabled:cursor-not-allowed disabled:opacity-65"
                         style={{
                           background: `linear-gradient(135deg, ${rgb(amber)}, ${rgb(deepOrange)})`,
-                          boxShadow: "0 18px 40px rgba(249,115,22,0.32)",
+                          boxShadow: "0 18px 40px rgba(42, 86, 220,0.32)",
                         }}
                       >
-                        <span className="absolute inset-0 -translate-x-full bg-white/20 transition duration-700 group-hover:translate-x-full" />
+                        <span className="absolute inset-0 -translate-x-full bg-surface-3 transition duration-700 group-hover:translate-x-full" />
 
                         {isResetLoading ? "Sending..." : "Send Reset Link"}
 
@@ -1016,17 +1017,17 @@ const UserLogin = () => {
                     </form>
 
                     <div
-                      className="mt-6 rounded-2xl border p-4"
+                      className="mt-6 rounded-card border p-4"
                       style={{
-                        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(249,115,22,0.14)",
+                        borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(42, 86, 220,0.14)",
                         background: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,247,237,0.58)",
                       }}
                     >
                       <div className="flex items-start gap-3">
                         <span
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card"
                           style={{
-                            background: "rgba(249,115,22,0.10)",
+                            background: "rgba(42, 86, 220,0.10)",
                             color: rgb(orange),
                           }}
                         >
@@ -1037,7 +1038,7 @@ const UserLogin = () => {
                           <p
                             className="text-sm font-bold"
                             style={{
-                              color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15,23,42,0.9)",
+                              color: isDark ? "rgba(255,255,255,0.88)" : "rgba(15, 24, 41,0.9)",
                             }}
                           >
                             Quick account recovery
@@ -1046,7 +1047,7 @@ const UserLogin = () => {
                           <p
                             className="mt-1 text-xs font-medium leading-5"
                             style={{
-                              color: isDark ? "rgba(255,255,255,0.48)" : "rgba(15,23,42,0.56)",
+                              color: isDark ? "rgba(255,255,255,0.48)" : "rgba(15, 24, 41,0.56)",
                             }}
                           >
                             We&apos;ll send a secure reset link so you can return to your Forex CRM

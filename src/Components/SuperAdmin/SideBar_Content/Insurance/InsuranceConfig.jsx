@@ -279,10 +279,7 @@ export default function InsuranceConfig() {
         <div>
           <div
             className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
+              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             <ShieldCheck size={14} />
@@ -291,8 +288,7 @@ export default function InsuranceConfig() {
 
           <h2
             className={[
-              "text-2xl font-bold tracking-tight sm:text-3xl",
-              isDark ? "text-white" : "text-slate-900",
+              "text-2xl font-bold tracking-tight sm:text-3xl","text-text",
             ].join(" ")}
           >
             Insurance Configuration
@@ -300,8 +296,7 @@ export default function InsuranceConfig() {
 
           <p
             className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/55" : "text-slate-600",
+              "mt-1 text-sm","text-subtle",
             ].join(" ")}
           >
             Manage exact amount wise insurance charges, claim percentage, and
@@ -312,10 +307,7 @@ export default function InsuranceConfig() {
         <button
           onClick={getAllInsuranceConfigs}
           className={[
-            "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-            isDark
-              ? "border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.09]"
-              : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+            "inline-flex items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300","border border-line bg-surface-2 text-text hover:bg-surface-2",
           ].join(" ")}
         >
           <RefreshCcw size={16} />
@@ -349,26 +341,21 @@ export default function InsuranceConfig() {
           <div
             key={idx}
             className={[
-              "rounded-[24px] border p-4 backdrop-blur-xl transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
-                : "border-orange-100 bg-white/70 shadow-[0_10px_30px_rgba(251,146,60,0.10)]",
+              "rounded-card border p-4 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
             ].join(" ")}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p
                   className={[
-                    "text-xs font-semibold uppercase tracking-[0.14em]",
-                    isDark ? "text-white/45" : "text-slate-500",
+                    "text-xs font-semibold uppercase tracking-[0.14em]","text-subtle",
                   ].join(" ")}
                 >
                   {card.label}
                 </p>
                 <h3
                   className={[
-                    "mt-3 text-2xl font-bold",
-                    isDark ? "text-white" : "text-slate-900",
+                    "mt-3 text-2xl font-bold","text-text",
                   ].join(" ")}
                 >
                   {card.value}
@@ -377,10 +364,7 @@ export default function InsuranceConfig() {
 
               <div
                 className={[
-                  "flex h-11 w-11 items-center justify-center rounded-2xl",
-                  isDark
-                    ? "bg-cyan-500/10 text-cyan-300"
-                    : "bg-orange-50 text-orange-600",
+                  "flex h-11 w-11 items-center justify-center rounded-card","bg-primary-soft text-primary",
                 ].join(" ")}
               >
                 {card.icon}
@@ -392,26 +376,21 @@ export default function InsuranceConfig() {
 
       <div
         className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
-            : "border-orange-100 bg-white/70 shadow-[0_10px_30px_rgba(251,146,60,0.10)]",
+          "rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3
               className={[
-                "text-lg font-semibold",
-                isDark ? "text-white" : "text-slate-900",
+                "text-lg font-semibold","text-text",
               ].join(" ")}
             >
               {editingId ? "Update Insurance Configuration" : "Add Insurance Configuration"}
             </h3>
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/45" : "text-slate-500",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               Set exact amount, insurance charge %, claim %, and platform charge %.
@@ -422,10 +401,7 @@ export default function InsuranceConfig() {
             <button
               onClick={resetForm}
               className={[
-                "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-                isDark
-                  ? "bg-white/10 text-white hover:bg-white/15"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200",
+                "inline-flex items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300","bg-surface-2 text-text hover:bg-surface-2",
               ].join(" ")}
             >
               Cancel Edit
@@ -440,10 +416,7 @@ export default function InsuranceConfig() {
             value={form.exactAmount}
             onChange={(e) => handleChange("exactAmount", e.target.value)}
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-500/20"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
             ].join(" ")}
           />
 
@@ -455,10 +428,7 @@ export default function InsuranceConfig() {
               handleChange("insuranceChargesPercent", e.target.value)
             }
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-500/20"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
             ].join(" ")}
           />
 
@@ -468,10 +438,7 @@ export default function InsuranceConfig() {
             value={form.claimPercent}
             onChange={(e) => handleChange("claimPercent", e.target.value)}
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-500/20"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
             ].join(" ")}
           />
 
@@ -483,10 +450,7 @@ export default function InsuranceConfig() {
               handleChange("platformChargesPercent", e.target.value)
             }
             className={[
-              "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-              isDark
-                ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-500/20"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+              "w-full rounded-card border px-4 py-3 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
             ].join(" ")}
           />
         </div>
@@ -501,12 +465,8 @@ export default function InsuranceConfig() {
               className={[
                 "text-sm font-medium",
                 form.isActive
-                  ? isDark
-                    ? "text-emerald-300"
-                    : "text-emerald-600"
-                  : isDark
-                  ? "text-rose-300"
-                  : "text-rose-600",
+                  ?"text-success"
+                  :"text-danger",
               ].join(" ")}
             >
               {form.isActive ? "Active" : "Inactive"}
@@ -517,14 +477,10 @@ export default function InsuranceConfig() {
             onClick={handleSubmit}
             disabled={submitting}
             className={[
-              "inline-flex min-w-[180px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+              "inline-flex min-w-[180px] items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-semibold transition-all duration-300",
               submitting
-                ? isDark
-                  ? "cursor-not-allowed bg-white/10 text-white/35"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
-                : isDark
-                ? "bg-cyan-500/90 text-white hover:bg-cyan-500 shadow-[0_10px_25px_rgba(6,182,212,0.25)]"
-                : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.25)]",
+                ?"cursor-not-allowed bg-surface-2 text-subtle"
+                :"bg-primary-soft text-text hover:bg-primary",
             ].join(" ")}
           >
             {editingId ? <Pencil size={16} /> : <Plus size={16} />}
@@ -536,10 +492,7 @@ export default function InsuranceConfig() {
       {loading && (
         <div
           className={[
-            "mt-6 rounded-[20px] border px-4 py-6 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.03] text-white/70"
-              : "border-slate-200 bg-white/70 text-slate-600",
+            "mt-6 rounded-card border px-4 py-6 text-sm","border-line bg-surface-2 text-muted",
           ].join(" ")}
         >
           Loading insurance configurations...
@@ -549,10 +502,7 @@ export default function InsuranceConfig() {
       {error && (
         <div
           className={[
-            "mt-6 flex items-center gap-2 rounded-[20px] border px-4 py-4 text-sm font-medium",
-            isDark
-              ? "border-red-500/20 bg-red-500/10 text-red-300"
-              : "border-red-200 bg-red-50 text-red-600",
+            "mt-6 flex items-center gap-2 rounded-card border px-4 py-4 text-sm font-medium","border-danger bg-danger-soft text-danger",
           ].join(" ")}
         >
           <AlertCircle size={16} />
@@ -563,26 +513,21 @@ export default function InsuranceConfig() {
       {!loading && !error && (
         <div
           className={[
-            "mt-6 rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-            isDark
-              ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-              : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
+            "mt-6 rounded-card border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2",
           ].join(" ")}
         >
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3
                 className={[
-                  "text-lg font-semibold",
-                  isDark ? "text-white" : "text-slate-900",
+                  "text-lg font-semibold","text-text",
                 ].join(" ")}
               >
                 Insurance Records
               </h3>
               <p
                 className={[
-                  "mt-1 text-sm",
-                  isDark ? "text-white/45" : "text-slate-500",
+                  "mt-1 text-sm","text-subtle",
                 ].join(" ")}
               >
                 View and manage all configured insurance slabs.
@@ -593,8 +538,7 @@ export default function InsuranceConfig() {
               <Search
                 size={16}
                 className={[
-                  "absolute left-3 top-1/2 -translate-y-1/2",
-                  isDark ? "text-white/35" : "text-slate-400",
+                  "absolute left-3 top-1/2 -translate-y-1/2","text-subtle",
                 ].join(" ")}
               />
               <input
@@ -603,10 +547,7 @@ export default function InsuranceConfig() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className={[
-                  "w-full rounded-xl border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-300",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-cyan-400/30 focus:ring-2 focus:ring-cyan-500/20"
-                    : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
+                  "w-full rounded-card border py-3 pl-10 pr-4 text-sm outline-none transition-all duration-300","border-line bg-surface-2 text-text placeholder:text-subtle focus:border-line focus:ring-2 focus:ring-primary",
                 ].join(" ")}
               />
             </div>
@@ -615,10 +556,7 @@ export default function InsuranceConfig() {
           {filteredData.length === 0 ? (
             <div
               className={[
-                "rounded-[18px] border px-4 py-10 text-center text-sm",
-                isDark
-                  ? "border-white/10 bg-white/[0.03] text-white/55"
-                  : "border-slate-200 bg-slate-50 text-slate-500",
+                "rounded-card border px-4 py-10 text-center text-sm","border-line bg-surface-2 text-subtle",
               ].join(" ")}
             >
               No insurance configurations found.
@@ -627,16 +565,12 @@ export default function InsuranceConfig() {
             <div className="overflow-x-auto">
               <div
                 className={[
-                  "overflow-hidden rounded-[20px] border",
-                  isDark ? "border-white/10" : "border-slate-200",
+                  "overflow-hidden rounded-card border","border-line",
                 ].join(" ")}
               >
-                <table className="min-w-full">
+                <table className="min-w-full table-stack">
                   <thead
-                    className={[
-                      isDark
-                        ? "bg-white/[0.06] text-white/80"
-                        : "bg-slate-100/80 text-slate-700",
+                    className={["bg-surface-2 text-muted",
                     ].join(" ")}
                   >
                     <tr>
@@ -664,63 +598,55 @@ export default function InsuranceConfig() {
                     </tr>
                   </thead>
 
-                  <tbody className={[isDark ? "bg-transparent" : "bg-white/40"].join(" ")}>
+                  <tbody className={["bg-transparent"].join(" ")}>
                     {filteredData.map((item, index) => (
                       <tr
                         key={item._id || index}
                         className={[
-                          "border-t transition-colors duration-200",
-                          isDark
-                            ? "border-white/10 hover:bg-white/[0.03]"
-                            : "border-slate-200 hover:bg-slate-50/80",
+                          "border-t transition-colors duration-200","border-line hover:bg-surface-2",
                         ].join(" ")}
                       >
-                        <td
+                        <td data-label="S.No."
                           className={[
-                            "px-4 py-4 text-sm font-medium sm:px-6",
-                            isDark ? "text-white/85" : "text-slate-800",
+                            "px-4 py-4 text-sm font-medium sm:px-6","text-muted",
                           ].join(" ")}
                         >
                           {index + 1}
                         </td>
 
-                        <td
+                        <td data-label="Exact Amount"
                           className={[
-                            "px-4 py-4 text-sm font-semibold sm:px-6",
-                            isDark ? "text-white" : "text-slate-900",
+                            "px-4 py-4 text-sm font-semibold sm:px-6","text-text",
                           ].join(" ")}
                         >
                           ₹{Number(item?.exactAmount || 0).toFixed(2)}
                         </td>
 
-                        <td
+                        <td data-label="Insurance %"
                           className={[
-                            "px-4 py-4 text-sm sm:px-6",
-                            isDark ? "text-cyan-300" : "text-sky-700",
+                            "px-4 py-4 text-sm sm:px-6","text-primary",
                           ].join(" ")}
                         >
                           {Number(item?.insuranceChargesPercent || 0).toFixed(2)}%
                         </td>
 
-                        <td
+                        <td data-label="Claim %"
                           className={[
-                            "px-4 py-4 text-sm sm:px-6",
-                            isDark ? "text-emerald-300" : "text-emerald-700",
+                            "px-4 py-4 text-sm sm:px-6","text-success",
                           ].join(" ")}
                         >
                           {Number(item?.claimPercent || 0).toFixed(2)}%
                         </td>
 
-                        <td
+                        <td data-label="Platform %"
                           className={[
-                            "px-4 py-4 text-sm sm:px-6",
-                            isDark ? "text-violet-300" : "text-violet-700",
+                            "px-4 py-4 text-sm sm:px-6","text-primary",
                           ].join(" ")}
                         >
                           {Number(item?.platformChargesPercent || 0).toFixed(2)}%
                         </td>
 
-                        <td className="px-4 py-4 text-sm sm:px-6">
+                        <td data-label="Status" className="px-4 py-4 text-sm sm:px-6">
                           <div className="flex items-center gap-3">
                             <Switch
                               checked={!!item?.isActive}
@@ -730,12 +656,8 @@ export default function InsuranceConfig() {
                               className={[
                                 "text-xs font-semibold uppercase tracking-[0.12em]",
                                 item?.isActive
-                                  ? isDark
-                                    ? "text-emerald-300"
-                                    : "text-emerald-600"
-                                  : isDark
-                                  ? "text-rose-300"
-                                  : "text-rose-600",
+                                  ?"text-success"
+                                  :"text-danger",
                               ].join(" ")}
                             >
                               {item?.isActive ? "active" : "inactive"}
@@ -743,15 +665,12 @@ export default function InsuranceConfig() {
                           </div>
                         </td>
 
-                        <td className="px-4 py-4 text-right sm:px-6">
+                        <td data-label="Actions" className="px-4 py-4 text-right sm:px-6">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleEdit(item)}
                               className={[
-                                "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                                isDark
-                                  ? "text-blue-300 hover:bg-blue-500/10 hover:text-blue-200"
-                                  : "text-blue-500 hover:bg-blue-50 hover:text-blue-600",
+                                "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300","text-primary hover:bg-primary-soft hover:text-primary",
                               ].join(" ")}
                             >
                               <Pencil size={18} />
@@ -763,10 +682,7 @@ export default function InsuranceConfig() {
                                 handleDelete(item._id)
                               }
                               className={[
-                                "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                                isDark
-                                  ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                                  : "text-red-500 hover:bg-red-50 hover:text-red-600",
+                                "inline-flex h-10 w-10 items-center justify-center rounded-card transition-all duration-300","text-danger hover:bg-danger-soft hover:text-danger",
                               ].join(" ")}
                             >
                               <Trash2 size={18} />

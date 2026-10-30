@@ -4,9 +4,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  CircleDollarSign,
   Gift,
-  Landmark,
   RefreshCw,
   Server,
   ShieldCheck,
@@ -17,8 +15,18 @@ import {
 import { userApi } from "@/utils/apiClients";
 import { useMt5Accounts } from "@/hooks/useMt5Accounts";
 import MonthlyTradeCommissionGraph from "./MonthlyTradeCommissionGraph";
-import AccountOpenTradesMarketSection from "./AccountOpenTradesMarketSection";
 import UserBonusUsageGauge from "./UserBonusUsageGauge";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  PageHeader,
+  StatCard,
+  Well,
+} from "@/Components/ui";
+import { ArrowDownCircle, CircleFadingPlus, Network } from "lucide-react";
 
 const CARD_LINKS = [
   "/user/dashboard",
@@ -131,40 +139,7 @@ const formatCurrency = (value: number, currency = "USD") => {
   }
 };
 
-const buildLinePath = (points: SvgPoint[]) =>
-  points
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ");
 
-const buildAreaPath = (points: SvgPoint[], baseline: number) => {
-  if (!points.length) return "";
-  return `${buildLinePath(points)} L ${
-    points[points.length - 1].x
-  } ${baseline} L ${points[0].x} ${baseline} Z`;
-};
-
-const buildSparklinePoints = (
-  values: number[],
-  width: number,
-  height: number,
-  padding = 8
-): SvgPoint[] => {
-  if (!values.length) return [];
-
-  const maxValue = Math.max(...values);
-  const minValue = Math.min(...values);
-  const range = Math.max(maxValue - minValue, 1);
-
-  return values.map((value, index) => ({
-    x:
-      padding +
-      (index * (width - padding * 2)) / Math.max(values.length - 1, 1),
-    y:
-      height -
-      padding -
-      ((value - minValue) / range) * (height - padding * 2),
-  }));
-};
 
 const getEmptyDashboardSummary = (currency = "USD"): DashboardSummary => ({
   totalBalance: 0,
@@ -366,6 +341,11 @@ export default function UserDashboard() {
   const [greeting, setGreeting] = useState("Welcome back");
   const [refreshing, setRefreshing] = useState(false);
   const [errorText, setErrorText] = useState("");
+  const [recentDeposits, setRecentDeposits] = useState<any[]>([]);
+  const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
+  const [openTrades, setOpenTrades] = useState<any[]>([]);
+  const [openTradesLoading, setOpenTradesLoading] = useState(false);
+  const [openTradesError, setOpenTradesError] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
   const [financialSummary, setSummary] = useState<DashboardSummary>(
     getEmptyDashboardSummary("USD")
@@ -453,6 +433,10 @@ export default function UserDashboard() {
       const res = await userApi.get(`/deposit/${userId}`);
       const payload = Array.isArray(res?.data?.data) ? res.data.data : [];
 
+      // Keep the rows as well: the dashboard lists recent activity, and
+      // refetching the same endpoint for it would be wasteful.
+      setRecentDeposits(payload);
+
       return payload.reduce((sum: number, item: any) => {
         return (
           sum +
@@ -485,6 +469,8 @@ export default function UserDashboard() {
     try {
       const res = await userApi.get(`/withdrawals/${userId}`);
       const payload = Array.isArray(res?.data?.data) ? res.data.data : [];
+
+      setRecentWithdrawals(payload);
 
       return payload.reduce((sum: number, item: any) => {
         return (
@@ -924,83 +910,81 @@ export default function UserDashboard() {
     fetchInsuranceClaimDetails,
   ]);
 
-  const stats: StatItem[] = useMemo(
-    () => [
-      {
-        title: "Total Balance",
-        value: balancesLoaded ? formatCurrency(summary.totalBalance, summary.currency) : "--",
-        change: `Combined from ${summary.totalAccounts} account${
-          summary.totalAccounts === 1 ? "" : "s"
-        }`,
-        icon: <Wallet size={20} />,
-        positive: summary.totalBalance >= 0,
-        trend: [0, 1, 0, 0.5, 0, 2, 0.1, 0],
-        link: CARD_LINKS[0],
-      },
-      {
-        title: "Total Equity",
-        value: equitiesLoaded ? formatCurrency(summary.totalEquity, summary.currency) : "--",
-        change: "Live account equity",
-        icon: <TrendingUp size={20} />,
-        positive: summary.totalEquity >= summary.totalBalance,
-        trend: [0.2, 0, 0.6, 0.1, 0.5, 0, 0.4, 0.1],
-        link: CARD_LINKS[1],
-      },
-      {
-        title: "Total Deposit",
-        value: formatCurrency(summary.totalDeposit, summary.currency),
-        change:
-          summary.totalDeposit > 0 ? "Loaded from deposit API" : "No deposits yet",
-        icon: <Landmark size={20} />,
-        positive: summary.totalDeposit >= 0,
-        trend: [0, 0.3, 0.1, 0.6, 0, 0.4, 0.2, 0.7],
-        link: CARD_LINKS[2],
-      },
-      {
-        title: "Total Withdrawal",
-        value: formatCurrency(summary.totalWithdrawal, summary.currency),
-        change:
-          summary.totalWithdrawal > 0
-            ? "Loaded from withdrawal API"
-            : "No withdrawals yet",
-        icon: <CircleDollarSign size={20} />,
-        positive: summary.totalWithdrawal >= 0,
-        trend: [0.5, 0.1, 0.4, 0, 0.3, 0.1, 0.6, 0],
-        link: CARD_LINKS[3],
-      },
-      {
-        title: "Total Bonus",
-        value: formatCurrency(summary.totalBonus, summary.currency),
-        change: "Loaded from loggedUser bonusWallet",
-        icon: <Gift size={20} />,
-        positive: summary.totalBonus >= 0,
-        trend: [0, 0.4, 0.2, 0.5, 0.1, 0.3, 0, 0.6],
-        link: CARD_LINKS[4],
-      },
-      {
-        title: "Total IB Commission",
-        value: formatCurrency(summary.totalIbCommission, summary.currency),
-        change: "API placeholder ready",
-        icon: <Gift size={20} />,
-        positive: summary.totalIbCommission >= 0,
-        trend: [0.3, 0, 0.5, 0.2, 0.6, 0.1, 0.4, 0],
-        link: CARD_LINKS[5],
-      },
-    ],
-    [summary, balancesLoaded, equitiesLoaded]
-  );
 
-  const miniSummary: SummaryItem[] = [
-    {
-      title: "Server Name",
-      value:
-        allServerNames.length > 0
-          ? allServerNames.join(", ")
-          : userSiteconfig?.serverName || "Not Available",
-      icon: <Server size={18} />,
-      tone: "primary",
+  /* Poll the existing authenticated API; never present a failed request as flat. */
+  useEffect(() => {
+    setOpenTrades([]);
+    setOpenTradesError("");
+    if (!accountIds.length) {
+      setOpenTradesLoading(false);
+      return undefined;
     }
-  ];
+    const controller = new AbortController();
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    setOpenTradesLoading(true);
+
+    const refreshTrades = async () => {
+      try {
+        const results = await Promise.allSettled(
+          accountIds.map((id: any) =>
+            userApi.get("/server-fetch-open-trade", {
+              params: { MT5Accont: id },
+              signal: controller.signal,
+              timeout: 15000,
+            })
+          )
+        );
+        if (cancelled) return;
+        const rows: any[] = [];
+        let failures = 0;
+        results.forEach((res: any, i) => {
+          if (res.status !== "fulfilled" || res.value?.data?.success === false) {
+            failures += 1;
+            return;
+          }
+          const payload = res.value?.data;
+          const list = Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload) ? payload : null;
+          if (!list) { failures += 1; return; }
+          list.forEach((item: any, index: number) => {
+            const side = item?.BUY_SELL;
+            rows.push({
+              id: `${accountIds[i]}-${item?.Ticket ?? item?.ticket ?? index}`,
+              symbol: String(item?.Symbol ?? item?.symbol ?? "—"),
+              side: side === 0 || side === "0" ? "BUY" : side === 1 || side === "1" ? "SELL" : "—",
+              lots: item?.Lot != null && Number.isFinite(Number(item.Lot))
+                ? Number(item.Lot) : toNumber(item?.Volume, 0) / 10000,
+              openPrice: item?.Open_Price ?? item?.openPrice ?? "—",
+              currentPrice: item?.Current_Price ?? item?.currentPrice ?? null,
+              profit: toNumber(item?.Profit, 0),
+            });
+          });
+        });
+        setOpenTrades(rows);
+        setOpenTradesError(failures
+          ? failures === accountIds.length
+            ? "Unable to load open trades. Retrying automatically."
+            : "Some accounts could not be loaded. Showing available positions; retrying automatically."
+          : "");
+      } catch {
+        if (!cancelled) setOpenTradesError("Unable to refresh open trades. Retrying automatically.");
+      } finally {
+        if (!cancelled) {
+          setOpenTradesLoading(false);
+          timer = setTimeout(refreshTrades, 10000);
+        }
+      }
+    };
+    refreshTrades();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [accountIds]);
+
 
   const selectedAccountSummary = useMemo(() => {
     return insuranceEligibleAccounts.find(
@@ -1009,65 +993,47 @@ export default function UserDashboard() {
   }, [insuranceEligibleAccounts, selectedInsuranceAccount]);
 
   const sectionShell = cx(
-    "h-full rounded-[30px] border backdrop-blur-xl",
-    isDark
-      ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-      : "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+    "h-full rounded-card border backdrop-blur-xl","border-line bg-surface-2"
   );
 
   const metricShell = cx(
-    "relative min-h-[182px] h-full overflow-hidden rounded-[26px] border p-5 backdrop-blur-xl transition-all duration-300",
-    isDark
-      ? "border-white/10 bg-white/[0.045] hover:bg-white/[0.06]"
-      : "border-orange-100/80 bg-white/90 hover:bg-white"
+    "relative min-h-[182px] h-full overflow-hidden rounded-card border p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2 hover:bg-surface-2"
   );
 
-  const mutedText = isDark ? "text-white/55" : "text-slate-500";
-  const strongText = isDark ? "text-white" : "text-slate-900";
+  const mutedText ="text-subtle";
+  const strongText ="text-text";
   const statsGridClass = "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3";
 
   const getSummaryTone = (tone: SummaryItem["tone"]) => {
     if (tone === "primary") {
-      return isDark
-        ? "bg-blue-500/10 text-blue-300"
-        : "bg-orange-50 text-orange-700";
+      return "bg-primary-soft text-primary";
     }
 
     if (tone === "warning") {
-      return isDark
-        ? "bg-amber-500/10 text-amber-300"
-        : "bg-amber-50 text-amber-700";
+      return "bg-primary-soft text-primary";
     }
 
-    return isDark
-      ? "bg-emerald-500/10 text-emerald-300"
-      : "bg-emerald-50 text-emerald-700";
+    return "bg-success-soft text-success";
   };
 
   const insurancePopupModal =
     isClient && insurancePopupOpen
       ? createPortal(
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.25 }}
               className={cx(
-                "relative w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-orange-100 bg-white text-slate-900"
+                "relative w-full max-w-5xl overflow-hidden rounded-card border","border-line bg-surface text-text"
               )}
             >
               <button
                 type="button"
                 onClick={closeInsurancePopup}
                 className={cx(
-                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
-                  isDark
-                    ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
                 )}
               >
                 <X size={18} />
@@ -1075,19 +1041,13 @@ export default function UserDashboard() {
 
               <div
                 className={cx(
-                  "px-6 py-6 sm:px-7 sm:py-7",
-                  isDark
-                    ? "bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(59,130,246,0.10))]"
-                    : "bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(236,253,245,1))]"
+                  "px-6 py-6 sm:px-7 sm:py-7",""
                 )}
               >
                 <div className="flex items-start gap-4 pr-10">
                   <div
                     className={cx(
-                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl",
-                      isDark
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-emerald-50 text-emerald-700"
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-card","bg-success-soft text-success"
                     )}
                   >
                     <ShieldCheck size={28} />
@@ -1096,8 +1056,7 @@ export default function UserDashboard() {
                   <div>
                     <p
                       className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.18em]",
-                        isDark ? "text-emerald-300" : "text-emerald-700"
+                        "text-xs font-semibold uppercase tracking-[0.18em]","text-success"
                       )}
                     >
                       Insurance Eligible
@@ -1117,10 +1076,7 @@ export default function UserDashboard() {
               <div className="grid gap-0 lg:grid-cols-[340px_minmax(0,1fr)]">
                 <div
                   className={cx(
-                    "border-b px-6 py-5 lg:border-b-0 lg:border-r",
-                    isDark
-                      ? "border-white/10 bg-white/[0.02]"
-                      : "border-orange-100 bg-orange-50/30"
+                    "border-b px-6 py-5 lg:border-b-0 lg:border-r","border-line bg-surface-2"
                   )}
                 >
                   <div className="mb-4">
@@ -1147,14 +1103,10 @@ export default function UserDashboard() {
                             setInsuranceClaimSuccess("");
                           }}
                           className={cx(
-                            "w-full rounded-2xl border p-4 text-left transition",
+                            "w-full rounded-card border p-4 text-left transition",
                             isSelected
-                              ? isDark
-                                ? "border-emerald-400/40 bg-emerald-500/10"
-                                : "border-emerald-300 bg-emerald-50"
-                              : isDark
-                              ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
-                              : "border-orange-100 bg-white hover:bg-orange-50"
+                              ?"border-success bg-success-soft"
+                              :"border-line bg-surface-2 hover:bg-surface-2"
                           )}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -1169,10 +1121,7 @@ export default function UserDashboard() {
 
                             <div
                               className={cx(
-                                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                                isDark
-                                  ? "bg-white/8 text-white/80"
-                                  : "bg-white text-slate-700"
+                                "rounded-full px-2.5 py-1 text-[11px] font-semibold","bg-surface text-muted"
                               )}
                             >
                               {item.unclaimedCount} unclaimed
@@ -1250,14 +1199,12 @@ export default function UserDashboard() {
                               })
                             }
                             className={cx(
-                              "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+                              "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition",
                               insuranceDetailsLoading ||
                                 insuranceClaimLoading ||
                                 !insuranceClaimDetails?.coverages?.length
-                                ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                                : isDark
-                                ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                ? "cursor-not-allowed bg-surface-3 text-muted"
+                                :"bg-success text-text hover:bg-success"
                             )}
                           >
                             <ShieldCheck
@@ -1272,10 +1219,7 @@ export default function UserDashboard() {
                       {insuranceClaimError ? (
                         <div
                           className={cx(
-                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
-                            isDark
-                              ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
-                              : "border-rose-200 bg-rose-50 text-rose-700"
+                            "mb-4 rounded-card border px-4 py-3 text-sm","border-danger bg-danger-soft text-danger"
                           )}
                         >
                           {insuranceClaimError}
@@ -1285,10 +1229,7 @@ export default function UserDashboard() {
                       {insuranceClaimSuccess ? (
                         <div
                           className={cx(
-                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
-                            isDark
-                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            "mb-4 rounded-card border px-4 py-3 text-sm","border-success bg-success-soft text-success"
                           )}
                         >
                           {insuranceClaimSuccess}
@@ -1298,10 +1239,7 @@ export default function UserDashboard() {
                       {insuranceDetailsLoading ? (
                         <div
                           className={cx(
-                            "flex min-h-[240px] items-center justify-center rounded-2xl border",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03]"
-                              : "border-orange-100 bg-orange-50/30"
+                            "flex min-h-[240px] items-center justify-center rounded-card border","border-line bg-surface-2"
                           )}
                         >
                           <div className="inline-flex items-center gap-2 text-sm">
@@ -1315,10 +1253,7 @@ export default function UserDashboard() {
                             <div
                               key={`${coverage.coverageId}-${index}`}
                               className={cx(
-                                "rounded-2xl border p-4",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.04]"
-                                  : "border-orange-100 bg-orange-50/40"
+                                "rounded-card border p-4","border-line bg-surface-2"
                               )}
                             >
                               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1359,13 +1294,11 @@ export default function UserDashboard() {
                                     })
                                   }
                                   className={cx(
-                                    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:min-w-[130px]",
+                                    "inline-flex items-center justify-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition sm:min-w-[130px]",
                                     insuranceClaimLoading ||
                                       claimingCoverageId === coverage.coverageId
-                                      ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                                      : isDark
-                                      ? "bg-blue-500 text-white hover:bg-blue-400"
-                                      : "bg-blue-600 text-white hover:bg-blue-700"
+                                      ? "cursor-not-allowed bg-surface-3 text-muted"
+                                      :"bg-primary text-text hover:bg-primary"
                                   )}
                                 >
                                   <Gift
@@ -1386,10 +1319,7 @@ export default function UserDashboard() {
                       ) : (
                         <div
                           className={cx(
-                            "rounded-2xl border px-4 py-8 text-center",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03]"
-                              : "border-orange-100 bg-orange-50/30"
+                            "rounded-card border px-4 py-8 text-center","border-line bg-surface-2"
                           )}
                         >
                           <p className="text-base font-semibold">
@@ -1404,10 +1334,7 @@ export default function UserDashboard() {
                   ) : (
                     <div
                       className={cx(
-                        "flex min-h-[240px] items-center justify-center rounded-2xl border",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100 bg-orange-50/30"
+                        "flex min-h-[240px] items-center justify-center rounded-card border","border-line bg-surface-2"
                       )}
                     >
                       <p className={cx("text-sm", mutedText)}>
@@ -1433,24 +1360,19 @@ export default function UserDashboard() {
               exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.2 }}
               className={cx(
-                "w-full max-w-2xl rounded-[28px] border shadow-2xl",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-orange-100 bg-white text-slate-900"
+                "w-full max-w-2xl rounded-card border","border-line bg-surface text-text"
               )}
             >
               <div
                 className={cx(
-                  "border-b px-6 py-5",
-                  isDark ? "border-white/10" : "border-orange-100"
+                  "border-b px-6 py-5","border-line"
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p
                       className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.18em]",
-                        isDark ? "text-blue-300" : "text-blue-700"
+                        "text-xs font-semibold uppercase tracking-[0.18em]","text-primary"
                       )}
                     >
                       Claim Decision
@@ -1478,10 +1400,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={closeClaimDecision}
                     className={cx(
-                      "inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
-                      isDark
-                        ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                        : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full border transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
                     )}
                   >
                     <X size={18} />
@@ -1492,10 +1411,7 @@ export default function UserDashboard() {
               <div className="px-6 py-6">
                 <div
                   className={cx(
-                    "rounded-2xl border p-4",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-orange-50/40"
+                    "rounded-card border p-4","border-line bg-surface-2"
                   )}
                 >
                   <p className="text-sm leading-7">
@@ -1516,10 +1432,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={closeClaimDecision}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
-                      isDark
-                        ? "bg-white/5 text-white/80 hover:bg-white/10"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      "rounded-card px-4 py-3 text-sm font-semibold transition","bg-surface-2 text-muted hover:bg-surface-2"
                     )}
                   >
                     Cancel
@@ -1530,12 +1443,10 @@ export default function UserDashboard() {
                     onClick={handleClaimWithoutInsurance}
                     disabled={insuranceClaimLoading}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
+                      "rounded-card px-4 py-3 text-sm font-semibold transition",
                       insuranceClaimLoading
-                        ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                        : isDark
-                        ? "bg-blue-500 text-white hover:bg-blue-400"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "cursor-not-allowed bg-surface-3 text-muted"
+                        :"bg-primary text-text hover:bg-primary"
                     )}
                   >
                     {insuranceClaimLoading ? "Processing..." : "Claim Now"}
@@ -1545,10 +1456,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={handleClaimWithInsurance}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
-                      isDark
-                        ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                      "rounded-card px-4 py-3 text-sm font-semibold transition","bg-success text-text hover:bg-success"
                     )}
                   >
                     Claim With Insurance
@@ -1561,475 +1469,543 @@ export default function UserDashboard() {
         )
       : null;
 
+  /* The headline figure is equity, with balance and the funding totals
+     beside it. The old cards carried placeholder sparkline arrays and
+     developer notes ("Loaded from deposit API") as their captions; both are
+     gone, because a chart drawn from invented numbers and a caption written
+     for us are worse than none. */
+  const equityTrend =
+    summary.totalEquity > summary.totalBalance
+      ? "up"
+      : summary.totalEquity < summary.totalBalance
+      ? "down"
+      : "flat";
+
+  const floating = summary.totalEquity - summary.totalBalance;
+
+  /* ---------------------------------------------------------------- derived
+     Figures the prototype's dashboard shows. Live balance and equity come
+     from the MT5 socket, so each is reported as unavailable rather than as
+     zero when that feed has not answered for an account. */
+  const accountRows = useMemo(
+    () =>
+      (allAccounts || []).map((acct: any) => {
+        const login = String(
+          acct?.accountNumber ?? acct?.login ?? acct?.mt5Account ?? ""
+        );
+        const live = byLogin?.[login];
+        const balance = Number(live?.Balance);
+        const equity = Number(live?.Equity);
+        const floating =
+          Number.isFinite(balance) && Number.isFinite(equity)
+            ? equity - balance
+            : null;
+
+        return {
+          login,
+          type: acct?.accountType || acct?.groupName || "—",
+          leverage: acct?.leverage || "—",
+          balance: Number.isFinite(balance) ? balance : null,
+          equity: Number.isFinite(equity) ? equity : null,
+          floating,
+          status: String(acct?.groupName || "").toLowerCase().includes("demo")
+            ? "Demo"
+            : "Active",
+        };
+      }),
+    [allAccounts, byLogin]
+  );
+
+  const liveTotals = useMemo(() => {
+    let balance = 0;
+    let equity = 0;
+    let margin = 0;
+    let marginFree = 0;
+    let marginLevel: number | null = null;
+    let any = false;
+
+    accountIds.forEach((id: any) => {
+      const live = byLogin?.[String(id)];
+      if (!live) return;
+      any = true;
+      balance += Number(live.Balance) || 0;
+      equity += Number(live.Equity) || 0;
+      margin += Number(live.Margin) || 0;
+      marginFree += Number(live.MarginFree) || 0;
+      if (Number.isFinite(Number(live.MarginLevel))) {
+        marginLevel = Math.max(marginLevel ?? 0, Number(live.MarginLevel));
+      }
+    });
+
+    return { balance, equity, margin, marginFree, marginLevel, any };
+  }, [accountIds, byLogin]);
+
+  /* Recent activity: deposits and withdrawals merged, newest first. */
+  const activity = useMemo(() => {
+    const rows = [
+      ...(recentDeposits || []).map((d: any) => ({
+        kind: "Deposit",
+        detail: [d?.method, d?.mt5Account && `to #${d.mt5Account}`]
+          .filter(Boolean)
+          .join(" "),
+        amount: toNumber(d?.deposit ?? d?.amount, 0),
+        status: d?.status || "pending",
+        at: d?.createdAt || d?.updatedAt,
+      })),
+      ...(recentWithdrawals || []).map((w: any) => ({
+        kind: "Payout",
+        detail: [w?.method, w?.mt5Account && `from #${w.mt5Account}`]
+          .filter(Boolean)
+          .join(" "),
+        amount: -toNumber(w?.amount, 0),
+        status: w?.status || "pending",
+        at: w?.createdAt || w?.updatedAt,
+      })),
+    ];
+
+    return rows
+      .sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime())
+      .slice(0, 5);
+  }, [recentDeposits, recentWithdrawals]);
+
+  const money = (v: any) => formatCurrency(toNumber(v, 0), summary.currency);
+  const dash = "—";
+
+  const statusTone = (s: string) => {
+    const v = String(s).toLowerCase();
+    if (["approved", "completed", "active", "success"].includes(v)) return "success";
+    if (["rejected", "failed", "declined"].includes(v)) return "danger";
+    if (v === "demo") return "info";
+    return "warning";
+  };
+
   return (
-    <motion.div
-      className="relative overflow-hidden px-4 py-4 sm:px-5 sm:py-5 lg:px-4 lg:py-4"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 rounded-[32px]"
-        aria-hidden
-        style={{
-          background: isDark
-            ? `
-              radial-gradient(circle at 12% 18%, rgba(59,130,246,0.10), transparent 24%),
-              radial-gradient(circle at 88% 0%, rgba(34,211,238,0.08), transparent 22%),
-              radial-gradient(circle at 50% 100%, rgba(255,255,255,0.03), transparent 32%)
-            `
-            : `
-              radial-gradient(circle at 14% 20%, rgba(251,146,60,0.12), transparent 24%),
-              radial-gradient(circle at 86% 0%, rgba(255,255,255,0.78), transparent 30%),
-              linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08))
-            `,
-        }}
+    <>
+      <PageHeader
+        title={greeting + (loggedUser?.firstName ? `, ${loggedUser.firstName}` : "")}
+        description="Here is where your accounts stand today."
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => navigate("/user/transfer")}>
+              Transfer
+            </Button>
+            <Button variant="secondary" onClick={() => navigate("/user/withdraw")}>
+              Payout
+            </Button>
+            <Button onClick={() => navigate("/user/deposit")}>Fund account</Button>
+          </>
+        }
       />
 
-      <div className="relative z-[1] mx-auto flex max-w-7xl flex-col gap-5">
-        <section className={cx("overflow-hidden", sectionShell)}>
-          <div
-            className={cx(
-              "relative px-5 py-5 sm:px-4 sm:py-4 ",
-              isDark
-                ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
-                : "bg-[linear-gradient(135deg,rgba(255,255,255,0.90),rgba(255,247,240,0.82))]"
-            )}
-          >
-            <div
-              className={cx(
-                "pointer-events-none absolute inset-x-0 top-0 h-px",
-                isDark
-                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent"
-              )}
-            />
+      {errorText ? (
+        <Card className="border-warning/40 bg-warning-soft px-5 py-3.5">
+          <p className="text-[13px] text-warning">{errorText}</p>
+        </Card>
+      ) : null}
 
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0">
-                <div
-                  className={cx(
-                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                      : "border-orange-200 bg-orange-50 text-orange-700"
-                  )}
-                >
-                  <TrendingUp size={14} />
-                  MT5 Overall Summary Dashboard
-                </div>
-
-                <h1
-                  className={cx(
-                    "text-2xl font-bold tracking-tight sm:text-3xl",
-                    strongText
-                  )}
-                >
-                  {greeting}, {loggedUser?.username || loggedUser?.name || "Trader"} 
-                </h1>
-
-                <p className={cx(" mb-2 max-w-2xl text-sm sm:text-[15px]", mutedText)}>
-                  This dashboard gives you a complete overview of your trading
-                  accounts in one place.
-                </p>
-                
-
-
-                {summary.hasMixedCurrencies ? (
-                  <p className="mt-3 text-sm text-amber-500">
-                    Multiple account currencies detected ({summary.currencies.join(", ")}).
-                    Totals are combined directly, so backend normalization is recommended.
-                  </p>
-                ) : null}
-
-                {errorText ? (
-                  <p className="mt-3 text-sm text-rose-500">{errorText}</p>
-                ) : null}
-              </div>
-
-              <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[320px] lg:items-end">
-                <div className="flex w-full flex-col gap-3 sm:flex-row lg:justify-end">
-                  <button
-                    type="button"
-                    onClick={loadDashboardSummary}
-                    className={cx(
-                      "inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/[0.07]"
-                        : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
-                    )}
-                  >
-                    <RefreshCw
-                      size={16}
-                      className={cx(refreshing && "animate-spin")}
-                    />
-                           {miniSummary.map((item) => (
-                    <div
-                      key={item.title}
-                      className={cx(
-                        "",
-                        
-                      )}
+      {/* ---- hero + health ---- */}
+      <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
+        <Card className="ob-contour flex flex-col gap-5 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[12.5px] text-subtle">
+                Total balance across {accountRows.length}{" "}
+                {accountRows.length === 1 ? "account" : "accounts"}
+              </p>
+              <p className="numeric mt-1.5 text-[34px] font-semibold leading-[1.1] tracking-[-0.025em]">
+                {liveTotals.any ? money(liveTotals.balance) : dash}
+              </p>
+              <p className="mt-1.5 text-[13px] font-semibold">
+                {liveTotals.any ? (
+                  <>
+                    <span
+                      className={
+                        liveTotals.equity - liveTotals.balance >= 0
+                          ? "text-profit"
+                          : "text-loss"
+                      }
                     >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={cx(
-                            "flex h-8 w-8 items-center justify-center rounded-xl",
-                            getSummaryTone(item.tone)
-                          )}
-                        >
-                          {item.icon}
-                        </div>
-
-                        <div className="min-w-0">
-                          <p
-                            className={cx(
-                              "text-[11px] uppercase tracking-[0.16em]",
-                              mutedText
-                            )}
-                          >
-                            {item.title}
-                          </p>
-                          <p className={cx("truncate text-sm font-semibold", strongText)}>
-                            {item.value}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  </button>
-                </div>
-
-                {/* <div className="grid w-full gap-2 sm:grid-cols-3 lg:max-w-[640px]">
-                  {miniSummary.map((item) => (
-                    <div
-                      key={item.title}
-                      className={cx(
-                        "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-white/80"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={cx(
-                            "flex h-8 w-8 items-center justify-center rounded-xl",
-                            getSummaryTone(item.tone)
-                          )}
-                        >
-                          {item.icon}
-                        </div>
-
-                        <div className="min-w-0">
-                          <p
-                            className={cx(
-                              "text-[11px] uppercase tracking-[0.16em]",
-                              mutedText
-                            )}
-                          >
-                            {item.title}
-                          </p>
-                          <p className={cx("truncate text-sm font-semibold", strongText)}>
-                            {item.value}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div> */}
-              </div>
+                      {liveTotals.equity - liveTotals.balance >= 0 ? "+" : ""}
+                      {money(liveTotals.equity - liveTotals.balance)}
+                    </span>
+                    <span className="text-subtle">
+                      {" "}
+                      floating &middot; equity {money(liveTotals.equity)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-subtle">
+                    Waiting for live account data
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-        </section>
 
-        <section className={cx(sectionShell, "p-5 sm:p-0")}>
-          <div className={statsGridClass}>
-            {stats.map((item, index) => {
-              const sparklineWidth = 4000;
-              const sparklineHeight = 1000;
-
-              const sparklinePoints = buildSparklinePoints(
-                item.trend,
-                sparklineWidth,
-                sparklineHeight,
-                10
-              );
-
-              const sparklinePath = buildLinePath(sparklinePoints);
-              const sparklineAreaPath = buildAreaPath(
-                sparklinePoints,
-                sparklineHeight - 8
-              );
-
-              const areaId = `cardSparkArea-${index}`;
-              const lineId = `cardSparkLine-${index}`;
-              const glowId = `cardSparkGlow-${index}`;
-              const glowLineId = `cardSparkGlowLine-${index}`;
-
-              return (
-                <motion.article
-                  key={item.title}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: index * 0.05 }}
-                  onClick={() => navigateToLink(item.link)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      navigateToLink(item.link);
-                    }
-                  }}
-                  role={item.link ? "button" : undefined}
-                  tabIndex={item.link ? 0 : -1}
-                  className={cx(
-                    metricShell,
-                    item.link &&
-                      "cursor-pointer hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-orange-400/40"
-                  )}
-                >
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div
-                      className={cx(
-                        "absolute -right-6 top-4 h-24 w-24 rounded-full blur-3xl",
-                        item.positive
-                          ? isDark
-                            ? "bg-emerald-400/20"
-                            : "bg-orange-200/40"
-                          : isDark
-                          ? "bg-rose-400/15"
-                          : "bg-rose-200/35"
-                      )}
-                    />
-
-                    <div
-                      className={cx(
-                        "absolute right-5 top-5 h-px w-24",
-                        item.positive
-                          ? isDark
-                            ? "bg-gradient-to-l from-cyan-300/45 to-transparent"
-                            : "bg-gradient-to-l from-amber-400/45 to-transparent"
-                          : isDark
-                          ? "bg-gradient-to-l from-rose-300/40 to-transparent"
-                          : "bg-gradient-to-l from-rose-400/35 to-transparent"
-                      )}
-                    />
-
-                    <div
-                      className={cx(
-                        "absolute right-5 top-9 h-px w-16",
-                        item.positive
-                          ? isDark
-                            ? "bg-gradient-to-l from-emerald-300/35 to-transparent"
-                            : "bg-gradient-to-l from-orange-300/40 to-transparent"
-                          : isDark
-                          ? "bg-gradient-to-l from-rose-300/30 to-transparent"
-                          : "bg-gradient-to-l from-rose-300/30 to-transparent"
-                      )}
-                    />
-
-                    <div className="absolute right-[-50px] bottom-[-1px] h-[100px] w-[58%] opacity-95">
-                      <svg
-                        viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
-                        className="h-full w-full"
-                        preserveAspectRatio="xMidYMid meet"
-                      >
-                        <defs>
-                          <linearGradient id={areaId} x1="0" y1="0" x2="1" y2="1">
-                            <stop
-                              offset="0%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(34,211,238,0.10)"
-                                    : "rgba(245,158,11,0.10)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.10)"
-                                  : "rgba(244,63,94,0.08)"
-                              }
-                            />
-                            <stop
-                              offset="70%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(74,222,128,0.06)"
-                                    : "rgba(34,197,94,0.06)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.05)"
-                                  : "rgba(244,63,94,0.04)"
-                              }
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor="rgba(255,255,255,0)"
-                            />
-                          </linearGradient>
-
-                          <linearGradient id={lineId} x1="0" y1="0" x2="1" y2="0">
-                            <stop
-                              offset="0%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(74,222,128,0.55)"
-                                    : "rgba(34,197,94,0.55)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.55)"
-                                  : "rgba(239,68,68,0.50)"
-                              }
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(34,211,238,0.95)"
-                                    : "rgba(245,158,11,0.95)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.90)"
-                                  : "rgba(239,68,68,0.88)"
-                              }
-                            />
-                          </linearGradient>
-
-                          <linearGradient
-                            id={glowLineId}
-                            x1="0"
-                            y1="0"
-                            x2="1"
-                            y2="0"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(74,222,128,0.18)"
-                                    : "rgba(34,197,94,0.16)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.18)"
-                                  : "rgba(239,68,68,0.15)"
-                              }
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={
-                                item.positive
-                                  ? isDark
-                                    ? "rgba(34,211,238,0.42)"
-                                    : "rgba(245,158,11,0.35)"
-                                  : isDark
-                                  ? "rgba(251,113,133,0.36)"
-                                  : "rgba(239,68,68,0.30)"
-                              }
-                            />
-                          </linearGradient>
-
-                          <filter
-                            id={glowId}
-                            x="-50%"
-                            y="-50%"
-                            width="200%"
-                            height="200%"
-                          >
-                            <feGaussianBlur stdDeviation="7" result="blur" />
-                            <feMerge>
-                              <feMergeNode in="blur" />
-                              <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                          </filter>
-                        </defs>
-
-                        <path d={sparklineAreaPath} fill={`url(#${areaId})`} />
-
-                        <path
-                          d={sparklinePath}
-                          fill="none"
-                          stroke={`url(#${glowLineId})`}
-                          strokeWidth="10"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          opacity={0.9}
-                          filter={`url(#${glowId})`}
-                        />
-
-                        <path
-                          d={sparklinePath}
-                          fill="none"
-                          stroke={`url(#${lineId})`}
-                          strokeWidth="3.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-
-                    <div
-                      className={cx(
-                        "absolute inset-y-0 left-0 w-[58%]",
-                        isDark
-                          ? "bg-gradient-to-r from-[rgba(10,14,24,0.88)] via-[rgba(10,14,24,0.62)] to-transparent"
-                          : "bg-gradient-to-r from-[rgba(255,255,255,0.96)] via-[rgba(255,255,255,0.82)] to-transparent"
-                      )}
-                    />
-                  </div>
-
-                  <div className="relative z-10 flex h-full flex-col justify-between gap-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 max-w-[68%]">
-                        <p className={cx("text-sm", mutedText)}>{item.title}</p>
-                        <h3
-                          className={cx(
-                            "mt-2 text-3xl font-bold leading-none tracking-tight",
-                            strongText
-                          )}
-                        >
-                          {item.value}
-                        </h3>
-                      </div>
-
-                      <div
-                        className={cx(
-                          "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl backdrop-blur-md",
-                          isDark
-                            ? "bg-white/6 text-white/85"
-                            : "bg-white/90 text-orange-700 shadow-[0_10px_22px_rgba(251,146,60,0.12)]"
-                        )}
-                      >
-                        {item.icon}
-                      </div>
-                    </div>
-
-                    <div className="flex items-end justify-between gap-3">
-                      <span
-                        className={cx(
-                          "max-w-[72%] truncate rounded-full px-3 py-1 text-xs font-medium backdrop-blur-md",
-                          item.positive
-                            ? isDark
-                              ? "bg-emerald-500/10 text-emerald-300"
-                              : "bg-emerald-50/95 text-emerald-700"
-                            : isDark
-                            ? "bg-rose-500/10 text-rose-300"
-                            : "bg-rose-50/95 text-rose-700"
-                        )}
-                      >
-                        {item.change}
-                      </span>
-                    </div>
-                  </div>
-                </motion.article>
-              );
-            })}
+          {/* The equity trend needs a history feed; until one is wired this
+              states that plainly rather than drawing an invented line. */}
+          <div className="grid min-h-[140px] place-items-center rounded-xl border border-dashed border-line bg-surface-2/60 px-4 py-6 text-center">
+            <div>
+              <p className="text-[13px] font-medium text-text">
+                Equity history
+              </p>
+              <p className="mx-auto mt-1 max-w-[38ch] text-xs text-subtle">
+                A balance and equity curve appears here once the account
+                history feed is connected.
+              </p>
+            </div>
           </div>
-        </section>
-        <UserBonusUsageGauge />
-        <MonthlyTradeCommissionGraph />
 
-        {insurancePopupModal}
-        {claimDecisionModal}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Well>
+              <p className="text-[12.5px] text-subtle">Free margin</p>
+              <p className="numeric mt-0.5 text-base font-semibold">
+                {liveTotals.any ? money(liveTotals.marginFree) : dash}
+              </p>
+            </Well>
+            <Well>
+              <p className="text-[12.5px] text-subtle">Margin level</p>
+              <p className="numeric mt-0.5 text-base font-semibold">
+                {liveTotals.marginLevel != null
+                  ? `${liveTotals.marginLevel.toFixed(1)}%`
+                  : dash}
+              </p>
+            </Well>
+            <Well>
+              <p className="text-[12.5px] text-subtle">Open positions</p>
+              <p className="numeric mt-0.5 text-base font-semibold">
+                {openTradesLoading || openTradesError ? dash : openTrades.length}
+              </p>
+            </Well>
+          </div>
+        </Card>
 
+        <Card className="flex flex-col">
+          <CardHeader
+            title="Account health"
+            subtitle="Funding and verification status"
+            actions={
+              <Badge tone={loggedUser?.kycVerified ? "success" : "warning"}>
+                {loggedUser?.kycVerified ? "Verified" : "KYC pending"}
+              </Badge>
+            }
+          />
+          <CardBody className="flex-1 pt-2">
+            {!loggedUser?.kycVerified ? (
+              <div className="mb-4 rounded-xl border border-warning/40 bg-warning-soft p-3.5">
+                <p className="text-[13px] font-semibold text-warning">
+                  Finish verification to withdraw
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Payouts stay on hold until your documents are approved.
+                </p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="mt-2.5"
+                  onClick={() => navigate("/user/account-details")}
+                >
+                  Complete KYC
+                </Button>
+              </div>
+            ) : null}
+
+            <dl className="flex flex-col">
+              {[
+                { k: "Deposited", v: money(summary.totalDeposit) },
+                { k: "Withdrawn", v: money(summary.totalWithdrawal) },
+                { k: "Bonus wallet", v: money(summary.totalBonus) },
+                {
+                  k: "Margin used",
+                  v: liveTotals.any ? money(liveTotals.margin) : dash,
+                },
+                { k: "Accounts", v: String(accountRows.length) },
+              ].map((row) => (
+                <div
+                  key={row.k}
+                  className="flex items-center justify-between gap-3 border-b border-line py-2.5 last:border-b-0"
+                >
+                  <dt className="text-[13px] text-muted">{row.k}</dt>
+                  <dd className="numeric text-[13px] font-semibold">{row.v}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardBody>
+        </Card>
       </div>
-    </motion.div>
+
+      {/* ---- stat row ---- */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          label="Total deposits"
+          value={money(summary.totalDeposit)}
+          tone="ok"
+          icon={<CircleFadingPlus className="h-4 w-4" />}
+          helper={`${(recentDeposits || []).length} requests`}
+        />
+        <StatCard
+          label="Total payouts"
+          value={money(summary.totalWithdrawal)}
+          tone="warn"
+          icon={<ArrowDownCircle className="h-4 w-4" />}
+          helper={`${(recentWithdrawals || []).length} requests`}
+        />
+        <StatCard
+          label="IB commission"
+          value={money(summary.totalIbCommission)}
+          tone="info"
+          icon={<Network className="h-4 w-4" />}
+        />
+      </div>
+
+      {/* ---- accounts + activity ---- */}
+      <div className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="MT5 accounts"
+            subtitle="Balances update live from the trading server"
+            actions={
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => navigate("/user/challenges")}
+              >
+                Open account
+              </Button>
+            }
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr>
+                  {["Account", "Leverage", "Balance", "Equity", "Floating P/L", "Status"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        className={`whitespace-nowrap border-b border-line bg-surface-2 px-5 py-2.5 text-xs font-semibold text-subtle ${
+                          i >= 2 && i <= 4 ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {accountRows.length ? (
+                  accountRows.map((a) => (
+                    <tr
+                      key={a.login}
+                      className="transition-colors hover:bg-surface-3 [&:last-child>td]:border-b-0"
+                    >
+                      <td className="whitespace-nowrap border-b border-line px-5 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="grid h-[30px] w-[30px] place-items-center rounded-lg bg-surface-3 text-[11px] font-bold text-muted">
+                            MT5
+                          </span>
+                          <div>
+                            <b className="numeric">#{a.login}</b>
+                            <div className="text-xs text-subtle">{a.type}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap border-b border-line px-5 py-3">
+                        {a.leverage}
+                      </td>
+                      <td className="numeric whitespace-nowrap border-b border-line px-5 py-3 text-right">
+                        {a.balance != null ? money(a.balance) : dash}
+                      </td>
+                      <td className="numeric whitespace-nowrap border-b border-line px-5 py-3 text-right">
+                        {a.equity != null ? money(a.equity) : dash}
+                      </td>
+                      <td
+                        className={`numeric whitespace-nowrap border-b border-line px-5 py-3 text-right ${
+                          a.floating == null
+                            ? "text-subtle"
+                            : a.floating >= 0
+                            ? "text-profit"
+                            : "text-loss"
+                        }`}
+                      >
+                        {a.floating == null
+                          ? dash
+                          : `${a.floating >= 0 ? "+" : ""}${money(a.floating)}`}
+                      </td>
+                      <td className="whitespace-nowrap border-b border-line px-5 py-3">
+                        <Badge tone={statusTone(a.status)}>{a.status}</Badge>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center">
+                      <p className="font-medium">No trading accounts yet</p>
+                      <p className="mt-1 text-[12.5px] text-subtle">
+                        Open an account to start trading.
+                      </p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="Recent activity"
+            subtitle="Deposits and payouts"
+            actions={
+              <button
+                type="button"
+                onClick={() => navigate("/user/transaction")}
+                className="text-[13px] font-medium text-primary-text hover:underline"
+              >
+                View all
+              </button>
+            }
+          />
+          {activity.length ? (
+            <div className="flex flex-col">
+              {activity.map((row, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 border-b border-line px-5 py-3 last:border-b-0"
+                >
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-[9px] ${
+                      row.amount >= 0
+                        ? "bg-profit-soft text-profit"
+                        : "bg-warning-soft text-warning"
+                    }`}
+                  >
+                    {row.amount >= 0 ? (
+                      <CircleFadingPlus className="h-4 w-4" />
+                    ) : (
+                      <ArrowDownCircle className="h-4 w-4" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-semibold">{row.kind}</p>
+                    <p className="truncate text-xs text-subtle">
+                      {row.detail || dash}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p
+                      className={`numeric text-[13px] font-semibold ${
+                        String(row.status).toLowerCase() === "rejected"
+                          ? "text-subtle line-through"
+                          : ""
+                      }`}
+                    >
+                      {row.amount >= 0 ? "+" : ""}
+                      {money(Math.abs(row.amount))}
+                    </p>
+                    <Badge tone={statusTone(row.status)} className="mt-1">
+                      {row.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-5 py-10 text-center">
+              <p className="font-medium">No activity yet</p>
+              <p className="mt-1 text-[12.5px] text-subtle">
+                Deposits and payouts will appear here.
+              </p>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* ---- open trades ---- */}
+      <Card className="overflow-hidden">
+        <CardHeader
+          title="Open trades"
+          subtitle="Across all accounts"
+          actions={
+            <Badge tone={openTradesError ? "warning" : openTrades.length ? "success" : "neutral"}>
+              {openTradesLoading ? "Loading" : openTradesError ? "Unavailable" : openTrades.length ? "Auto-refresh" : "Flat"}
+            </Badge>
+          }
+        />
+        {openTradesError && <p role="alert" className="px-5 py-3 text-sm text-loss">{openTradesError}</p>}
+        {openTrades.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr>
+                  {["Symbol", "Side", "Lots", "Open price", "Current", "P/L"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        className={`whitespace-nowrap border-b border-line bg-surface-2 px-5 py-2.5 text-xs font-semibold text-subtle ${
+                          i >= 2 ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {openTrades.map((t: any) => (
+                  <tr
+                    key={t.id}
+                    className="transition-colors hover:bg-surface-3 [&:last-child>td]:border-b-0"
+                  >
+                    <td className="whitespace-nowrap border-b border-line px-5 py-3 font-semibold">
+                      {t.symbol}
+                    </td>
+                    <td className="whitespace-nowrap border-b border-line px-5 py-3">
+                      <Badge tone={t.side === "BUY" ? "success" : t.side === "SELL" ? "danger" : "neutral"} dot={false}>
+                        {t.side}
+                      </Badge>
+                    </td>
+                    <td className="numeric whitespace-nowrap border-b border-line px-5 py-3 text-right">
+                      {Number(t.lots).toFixed(2)}
+                    </td>
+                    <td className="numeric whitespace-nowrap border-b border-line px-5 py-3 text-right">
+                      {t.openPrice}
+                    </td>
+                    <td className="numeric whitespace-nowrap border-b border-line px-5 py-3 text-right">
+                      {t.currentPrice ?? dash}
+                    </td>
+                    <td
+                      className={`numeric whitespace-nowrap border-b border-line px-5 py-3 text-right font-semibold ${
+                        toNumber(t.profit, 0) >= 0 ? "text-profit" : "text-loss"
+                      }`}
+                    >
+                      {toNumber(t.profit, 0) >= 0 ? "+" : ""}
+                      {money(t.profit)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="px-5 py-10 text-center">
+            <p className="font-medium">
+              {openTradesLoading ? "Loading open trades" : openTradesError ? "Open trades unavailable" : "No open trades"}
+            </p>
+            <p className="mt-1 text-[12.5px] text-subtle">
+              Positions open on your MT5 accounts appear here.
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Existing features the prototype does not cover. They keep their
+          place below the sections it does specify. */}
+      <UserBonusUsageGauge />
+      <MonthlyTradeCommissionGraph />
+
+      {insurancePopupModal}
+    </>
   );
 }

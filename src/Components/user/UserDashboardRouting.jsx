@@ -55,11 +55,11 @@ const UserDashboardRouting = () => {
     fetchNotifications();
   }, [location, loggedUser?._id]);
   return (
-    <div className="text-white h-screen overflow-hidden">
+    <div className="text-text h-screen overflow-hidden">
       <UserHeader className="fixed top-0 w-full z-10" />
       <div className="flex h-full">
         <UserSidebar className="fixed left-0 z-10" />
-        <div className="w-full user-custom-scrollbar  overflow-y-auto  bg-white h-screen ">
+        <div className="w-full user-custom-scrollbar overflow-y-auto bg-surface h-screen">
           <Routes>
             <Route path="/" element={<UserDashboard />} />
             <Route path="/dashboard" element={<UserDashboard />} />

@@ -1,20 +1,34 @@
-import React, { useState, useEffect } from "react";
-import {
-  PlusCircle,
-  Trash2,
-  Loader2,
-  RefreshCw,
-  Layers3,
-  ChevronDown,
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+
 import { superAdminApi } from "../../../utils/apiClients";
+import {
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  DataTable,
+  EmptyState,
+  Field,
+  FormPage,
+  Input,
+  SectionStep,
+  Well,
+} from "@/Components/ui";
+
+/**
+ * Account types.
+ *
+ * The entry archetype: the type being defined is one column of grouped
+ * fields, the summary rail counts what it will contain, and the existing
+ * types are a table below.
+ *
+ * Leverage and account-size pairs are repeating rows. Each pair gets its own
+ * Add / Remove control rather than a fixed count, and the last row cannot be
+ * removed — a type with no leverage option is not a usable type.
+ */
 
 const AccountTypes = () => {
-  const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
-  const isDark = mode === "dark";
-
   const [accountTypes, setAccountTypes] = useState([]);
   const [existingData, setExistingData] = useState([]);
   const [newAccountType, setNewAccountType] = useState({
@@ -159,429 +173,249 @@ const AccountTypes = () => {
     fetchExistingData();
   }, []);
 
-  return (
-    <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div
-            className={[
-              "mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-              isDark
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                : "border-orange-200 bg-orange-50 text-orange-700",
-            ].join(" ")}
-          >
-            <Layers3 size={14} />
-            Account Configuration
+  const columns = [
+    {
+      key: "accountType",
+      header: "Account type",
+      primary: true,
+      cell: (type) => (
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-text">
+            {type.accountType}
           </div>
-
-          <h1
-            className={[
-              "text-2xl sm:text-3xl font-bold tracking-tight",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            Configure Account Types
-          </h1>
-
-          <p
-            className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-600",
-            ].join(" ")}
-          >
-            Create and manage account types with leverage and balance settings.
-          </p>
-        </div>
-
-        <button
-          onClick={handleRefresh}
-          disabled={isFetching}
-          className={[
-            "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-            isDark
-              ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-              : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
-          ].join(" ")}
-        >
-          {isFetching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          <span>Refresh</span>
-        </button>
-      </div>
-
-      {/* Add Form */}
-      <div
-        className={[
-          "rounded-[24px] border p-4 sm:p-5 mb-6 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
-        ].join(" ")}
-      >
-        <div className="mb-5">
-          <h2
-            className={[
-              "text-xl sm:text-2xl font-semibold",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            Add New Account Type
-          </h2>
-          <p
-            className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            Select a custom group and configure leverage options for the account
-            type.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Account Type Select */}
-          <div>
-            <label
-              className={[
-                "mb-2 block text-sm font-medium",
-                isDark ? "text-white/75" : "text-slate-700",
-              ].join(" ")}
-            >
-              Account Type
-            </label>
-
-            <div className="relative">
-              <select
-                name="accountType"
-                value={newAccountType.accountType}
-                onChange={(e) => handleInputChange(e)}
-                required
-                disabled={isLoading || isFetching}
-                className={[
-                  "w-full appearance-none rounded-xl border px-4 py-3 pr-10 text-sm outline-none transition-all duration-300",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                    : "border-slate-200 bg-white text-slate-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
-                ].join(" ")}
-              >
-                <option value="" disabled>
-                  Select an account type
-                </option>
-                {accountTypes?.map((type) => (
-                  <option key={type._id} value={type.customGroup}>
-                    {type.customGroup}
-                  </option>
-                ))}
-              </select>
-
-              <div
-                className={[
-                  "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3",
-                  isDark ? "text-white/40" : "text-slate-500",
-                ].join(" ")}
-              >
-                {isFetching ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <ChevronDown className="h-5 w-5" />
-                )}
-              </div>
+          {type.apiGroup ? (
+            <div className="numeric mt-0.5 truncate text-xs text-subtle">
+              {type.apiGroup}
             </div>
-          </div>
-
-          {/* Leverage Fields */}
-          <div>
-            <label
-              className={[
-                "mb-2 block text-sm font-medium",
-                isDark ? "text-white/75" : "text-slate-700",
-              ].join(" ")}
-            >
-              Leverage
-            </label>
-
-            <div className="space-y-3">
-              {newAccountType.leverage.map((lev, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col md:flex-row gap-3 items-center"
-                >
-                  <input
-                    type="text"
-                    placeholder="Label (e.g. 1:100)"
-                    value={lev.label}
-                    onChange={(e) =>
-                      handleInputChange(e, index, "leverage", "label")
-                    }
-                    required
-                    disabled={isLoading}
-                    className={[
-                      "w-full flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                        : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
-                    ].join(" ")}
-                  />
-
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    value={lev.value}
-                    onChange={(e) =>
-                      handleInputChange(e, index, "leverage", "value")
-                    }
-                    required
-                    disabled={isLoading}
-                    className={[
-                      "w-full flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-300",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-blue-400/30 focus:ring-2 focus:ring-blue-500/20"
-                        : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-200",
-                    ].join(" ")}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => removeField("leverage", index)}
-                    disabled={isLoading}
-                    className={[
-                      "inline-flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
-                      isDark
-                        ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                        : "text-red-500 hover:bg-red-50 hover:text-red-600",
-                    ].join(" ")}
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => addField("leverage")}
-              disabled={isLoading}
-              className={[
-                "mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-                isDark
-                  ? "bg-blue-500/90 text-white hover:bg-blue-500 shadow-[0_10px_25px_rgba(59,130,246,0.25)]"
-                  : "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_10px_25px_rgba(249,115,22,0.22)]",
-              ].join(" ")}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add Leverage
-            </button>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading || isFetching}
-            className={[
-              "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 disabled:opacity-50",
-              isDark
-                ? "bg-emerald-500/90 text-white hover:bg-emerald-500 shadow-[0_10px_25px_rgba(16,185,129,0.25)]"
-                : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_10px_25px_rgba(16,185,129,0.20)]",
-            ].join(" ")}
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <PlusCircle className="h-5 w-5" />
-            )}
-            Add Account Type
-          </button>
-        </form>
-      </div>
-
-      {/* Existing Table */}
-      <div
-        className={[
-          "rounded-[24px] border p-4 sm:p-5 backdrop-blur-xl transition-all duration-300",
-          isDark
-            ? "border-white/10 bg-white/[0.04] shadow-[0_12px_35px_rgba(0,0,0,0.28)]"
-            : "border-orange-100 bg-white/70 shadow-[0_12px_35px_rgba(251,146,60,0.10)]",
-        ].join(" ")}
-      >
-        <div className="mb-5">
-          <h2
-            className={[
-              "text-xl sm:text-2xl font-semibold",
-              isDark ? "text-white" : "text-slate-900",
-            ].join(" ")}
-          >
-            Existing Account Types
-          </h2>
-          <p
-            className={[
-              "mt-1 text-sm",
-              isDark ? "text-white/45" : "text-slate-500",
-            ].join(" ")}
-          >
-            Review existing account types and their leverage settings.
-          </p>
+          ) : null}
         </div>
-
-        {isFetching && existingData.length === 0 ? (
-          <div
-            className={[
-              "flex justify-center items-center rounded-[18px] border py-10",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-slate-200 bg-slate-50",
-            ].join(" ")}
-          >
-            <Loader2
-              className={[
-                "h-8 w-8 animate-spin",
-                isDark ? "text-blue-300" : "text-orange-500",
-              ].join(" ")}
-            />
-          </div>
-        ) : existingData?.length === 0 ? (
-          <div
-            className={[
-              "rounded-[18px] border py-10 text-center text-sm",
-              isDark
-                ? "border-white/10 bg-white/[0.03] text-white/55"
-                : "border-slate-200 bg-slate-50 text-slate-500",
-            ].join(" ")}
-          >
-            No account types found
+      ),
+    },
+    {
+      key: "leverage",
+      header: "Leverage",
+      secondary: true,
+      cardFull: true,
+      cell: (type) =>
+        type.leverage?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {type.leverage.map((lev, i) => (
+              <Badge key={`${lev.label}-${i}`} tone="neutral" dot={false}>
+                {lev.label || "—"}
+                {lev.value ? ` · ${lev.value}` : ""}
+              </Badge>
+            ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <div
-              className={[
-                "overflow-hidden rounded-[20px] border",
-                isDark ? "border-white/10" : "border-slate-200",
-              ].join(" ")}
+          <span className="text-subtle">None</span>
+        ),
+    },
+    {
+      key: "accountSize",
+      header: "Sizes",
+      align: "right",
+      numeric: true,
+      trailing: true,
+      cell: (type) => type.accountSize?.length ?? 0,
+    },
+    {
+      key: "actions",
+      header: "Action",
+      align: "right",
+      cardFull: true,
+      cell: (type) => (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="danger-soft"
+            onClick={() => deleteHandler(type._id, type.accountType)}
+            disabled={isLoading}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  /**
+   * A repeating pair of fields, with its own add / remove control.
+   * `pair` names the two subfields explicitly — deriving them from the
+   * labels or from key order would break the moment either changed.
+   */
+  const pairRows = (field, pair) => (
+    <div className="space-y-2">
+      {newAccountType[field].map((row, index) => (
+        <Well key={index} className="min-w-0">
+          <div className="grid gap-2.5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            {pair.map(({ key, label, placeholder }) => (
+              <Field
+                key={key}
+                label={label}
+                htmlFor={`${field}-${index}-${key}`}
+              >
+                <Input
+                  id={`${field}-${index}-${key}`}
+                  value={row[key] ?? ""}
+                  onChange={(e) => handleInputChange(e, index, field, key)}
+                  placeholder={placeholder}
+                  className="numeric"
+                />
+              </Field>
+            ))}
+
+            <Button
+              variant="danger-soft"
+              onClick={() => removeField(field, index)}
+              disabled={newAccountType[field].length <= 1}
             >
-              <table className="w-full border-collapse">
-                <thead
-                  className={[
-                    isDark
-                      ? "bg-white/[0.06] text-white/80"
-                      : "bg-slate-100/80 text-slate-700",
-                  ].join(" ")}
-                >
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]">
-                      Account Type
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em]">
-                      Leverage
-                    </th>
-                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em]">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody className={isDark ? "bg-transparent" : "bg-white/40"}>
-                  {existingData?.map((type) => (
-                    <tr
-                      key={type._id}
-                      className={[
-                        "border-t transition-colors duration-200",
-                        isDark
-                          ? "border-white/10 hover:bg-white/[0.03]"
-                          : "border-slate-200 hover:bg-slate-50/80",
-                      ].join(" ")}
-                    >
-                      <td
-                        className={[
-                          "px-6 py-4 text-sm font-medium",
-                          isDark ? "text-white/85" : "text-slate-800",
-                        ].join(" ")}
-                      >
-                        {type.accountType}
-                      </td>
-
-                      <td
-                        className={[
-                          "px-6 py-4 text-sm",
-                          isDark ? "text-white/75" : "text-slate-700",
-                        ].join(" ")}
-                      >
-                        <div className="space-y-2">
-                          {type.leverage?.map((lev, i) => (
-                            <div
-                              key={i}
-                              className={[
-                                "rounded-xl border px-3 py-2",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.03]"
-                                  : "border-slate-200 bg-slate-50/80",
-                              ].join(" ")}
-                            >
-                              <p>
-                                <span
-                                  className={
-                                    isDark ? "text-white/40" : "text-slate-500"
-                                  }
-                                >
-                                  Label:
-                                </span>{" "}
-                                <span
-                                  className={
-                                    isDark ? "text-white/85" : "text-slate-800"
-                                  }
-                                >
-                                  {lev.label}
-                                </span>
-                              </p>
-                              <p className="mt-1">
-                                <span
-                                  className={
-                                    isDark ? "text-white/40" : "text-slate-500"
-                                  }
-                                >
-                                  Value:
-                                </span>{" "}
-                                <span
-                                  className={
-                                    isDark ? "text-white/85" : "text-slate-800"
-                                  }
-                                >
-                                  {lev.value}
-                                </span>
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() =>
-                            deleteHandler(type._id, type.accountType)
-                          }
-                          disabled={isLoading}
-                          className={[
-                            "inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 disabled:opacity-50",
-                            isDark
-                              ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                              : "text-red-500 hover:bg-red-50 hover:text-red-600",
-                          ].join(" ")}
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              Remove
+            </Button>
           </div>
-        )}
-      </div>
+        </Well>
+      ))}
+
+      <Button variant="soft" onClick={() => addField(field)}>
+        Add another
+      </Button>
     </div>
+  );
+
+  const existingTable = (
+    <Card>
+      <CardHeader
+        title="Existing account types"
+        subtitle={`${existingData.length} defined.`}
+        actions={
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleRefresh}
+            loading={isFetching}
+          >
+            Refresh
+          </Button>
+        }
+      />
+
+      <DataTable
+        columns={columns}
+        rows={existingData}
+        loading={isFetching}
+        empty={
+          <EmptyState
+            title="No account types"
+            description="Define the first one using the form above."
+          />
+        }
+      />
+    </Card>
+  );
+
+  const missing = [];
+  if (!newAccountType.accountType) missing.push("account type");
+  if (!newAccountType.leverage.some((l) => l.label && l.value))
+    missing.push("at least one leverage pair");
+  if (!newAccountType.accountSize.some((s) => s.deposit && s.balance))
+    missing.push("at least one account size");
+
+  return (
+    <FormPage
+      breadcrumb="Configuration / Account types"
+      title="Account types"
+      description="The leverage options and deposit-to-balance sizes each type offers."
+      summary={{
+        title: "Will create",
+        rows: [
+          { label: "Account type", value: newAccountType.accountType || "—" },
+          { label: "API group", value: newAccountType.apiGroup || "—" },
+          {
+            label: "Leverage options",
+            value: newAccountType.leverage.filter((l) => l.label && l.value)
+              .length,
+          },
+          {
+            label: "Account sizes",
+            value: newAccountType.accountSize.filter(
+              (s) => s.deposit && s.balance
+            ).length,
+            weight: "bold",
+          },
+        ],
+      }}
+      submit={{
+        label: "Add account type",
+        onClick: () => handleSubmit({ preventDefault: () => {} }),
+        loading: isLoading,
+        disabled: missing.length > 0,
+        reason: missing.length ? `Still needed: ${missing.join(", ")}` : undefined,
+      }}
+      below={existingTable}
+      wide
+    >
+      <SectionStep
+        index={1}
+        title="Which group"
+        hint="Picking a custom group fills the API group for you."
+      >
+        <Field label="Account type" htmlFor="at-type" required>
+          <Input
+            id="at-type"
+            name="accountType"
+            list="at-group-options"
+            value={newAccountType.accountType}
+            onChange={(e) => handleInputChange(e)}
+            placeholder="Standard"
+          />
+        </Field>
+
+        {/* A datalist rather than a select: existing groups are suggested, but
+            a new name can still be typed, which the original allowed. */}
+        <datalist id="at-group-options">
+          {accountTypes.map((type) => (
+            <option key={type._id} value={type.customGroup} />
+          ))}
+        </datalist>
+
+        <Field
+          label="API group"
+          htmlFor="at-api"
+          className="mt-3"
+          hint="Filled automatically when the type matches a known custom group."
+        >
+          <Input
+            id="at-api"
+            name="apiGroup"
+            value={newAccountType.apiGroup}
+            onChange={(e) => handleInputChange(e)}
+            placeholder="real\\Standard"
+            className="numeric"
+          />
+        </Field>
+      </SectionStep>
+
+      <SectionStep
+        index={2}
+        title="Leverage options"
+        hint="What the client can choose from, e.g. 1:100."
+      >
+        {pairRows("leverage", [
+          { key: "label", label: "Label", placeholder: "1:100" },
+          { key: "value", label: "Value", placeholder: "100" },
+        ])}
+      </SectionStep>
+
+      <SectionStep
+        index={3}
+        title="Account sizes"
+        hint="What balance a given deposit opens the account with."
+      >
+        {pairRows("accountSize", [
+          { key: "deposit", label: "Deposit", placeholder: "100" },
+          { key: "balance", label: "Balance", placeholder: "10000" },
+        ])}
+      </SectionStep>
+    </FormPage>
   );
 };
 

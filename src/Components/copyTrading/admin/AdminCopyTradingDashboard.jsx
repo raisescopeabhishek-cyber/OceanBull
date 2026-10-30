@@ -27,10 +27,7 @@ const StatCard = ({ isDark, icon, label, value, subtitle }) => {
   return (
     <div
       className={cx(
-        "rounded-[24px] border p-5",
-        isDark
-          ? "border-white/10 bg-white/[0.035]"
-          : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+        "rounded-card border p-5","border-line bg-surface-2"
       )}
     >
       <div className="flex items-center gap-2 text-sm font-black">
@@ -40,7 +37,7 @@ const StatCard = ({ isDark, icon, label, value, subtitle }) => {
 
       <div className="mt-3 text-3xl font-black">{value}</div>
 
-      <p className={cx("mt-1 text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+      <p className={cx("mt-1 text-xs","text-subtle")}>
         {subtitle}
       </p>
     </div>
@@ -51,13 +48,10 @@ const RecentTable = ({ isDark, title, rows, type }) => {
   return (
     <div
       className={cx(
-        "overflow-hidden rounded-[24px] border",
-        isDark
-          ? "border-white/10 bg-white/[0.03]"
-          : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+        "overflow-hidden rounded-card border","border-line bg-surface-2"
       )}
     >
-      <div className={cx("border-b p-4", isDark ? "border-white/10" : "border-emerald-100")}>
+      <div className={cx("border-b p-4","border-line")}>
         <h3 className="text-sm font-black">{title}</h3>
       </div>
 
@@ -69,14 +63,11 @@ const RecentTable = ({ isDark, title, rows, type }) => {
         />
       ) : (
         <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[720px] text-left text-sm table-stack">
             <thead>
               <tr
                 className={cx(
-                  "border-b text-xs uppercase tracking-[0.16em]",
-                  isDark
-                    ? "border-white/10 bg-white/[0.035] text-white/45"
-                    : "border-emerald-100 bg-emerald-50/80 text-slate-500"
+                  "border-b text-xs uppercase tracking-[0.16em]","border-line bg-surface-2 text-subtle"
                 )}
               >
                 <th className="px-4 py-3">Account</th>
@@ -95,29 +86,28 @@ const RecentTable = ({ isDark, title, rows, type }) => {
                   <tr
                     key={`${pickLogin(row)}-${index}`}
                     className={cx(
-                      "border-t",
-                      isDark ? "border-white/10" : "border-emerald-100"
+                      "border-t","border-line"
                     )}
                   >
-                    <td className="whitespace-nowrap px-4 py-4 font-black">
+                    <td data-label="Account" className="whitespace-nowrap px-4 py-4 font-black">
                       #{type === "copier" ? pickCopierLogin(row) : pickLogin(row)}
                     </td>
 
                     {type === "copier" && (
-                      <td className="whitespace-nowrap px-4 py-4 font-bold">
+                      <td data-label="Master" className="whitespace-nowrap px-4 py-4 font-bold">
                         #{pickMasterLogin(row)}
                       </td>
                     )}
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Name" className="whitespace-nowrap px-4 py-4">
                       {valueOf(row, ["name", "Name", "nickname"], "-")}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4">
+                    <td data-label="Created" className="whitespace-nowrap px-4 py-4">
                       {createdTime ? new Date(createdTime).toLocaleString() : "-"}
                     </td>
 
-                    <td className="whitespace-nowrap px-4 py-4 text-emerald-600 font-bold">
+                    <td data-label="Ago" className="whitespace-nowrap px-4 py-4 text-success font-bold">
                       {formatAgo(createdTime)}
                     </td>
                   </tr>
@@ -178,7 +168,7 @@ const AdminCopyTradingDashboard = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Copy Trading Overview</h1>
-          <p className={cx("mt-1 text-sm", isDark ? "text-white/50" : "text-slate-500")}>
+          <p className={cx("mt-1 text-sm","text-subtle")}>
             Admin report for masters, copiers, and trading activity.
           </p>
         </div>
@@ -188,10 +178,7 @@ const AdminCopyTradingDashboard = () => {
           onClick={load}
           disabled={loading}
           className={cx(
-            "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black disabled:opacity-60",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white"
-              : "border-emerald-100 bg-white text-emerald-700"
+            "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-black disabled:opacity-60","border-line bg-surface-2 text-text"
           )}
         >
           <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -202,28 +189,28 @@ const AdminCopyTradingDashboard = () => {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard
           isDark={isDark}
-          icon={<RadioTower className="h-4 w-4 text-emerald-600" />}
+          icon={<RadioTower className="h-4 w-4 text-success" />}
           label="Masters"
           value={activeMasters}
           subtitle="Total master accounts"
         />
         <StatCard
           isDark={isDark}
-          icon={<Users className="h-4 w-4 text-emerald-600" />}
+          icon={<Users className="h-4 w-4 text-success" />}
           label="Copiers"
           value={activeCopiers}
           subtitle="Total copier accounts"
         />
         <StatCard
           isDark={isDark}
-          icon={<CopyCheck className="h-4 w-4 text-emerald-600" />}
+          icon={<CopyCheck className="h-4 w-4 text-success" />}
           label="Links"
           value={activeCopiers}
           subtitle="Active copier mappings"
         />
         <StatCard
           isDark={isDark}
-          icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
+          icon={<TrendingUp className="h-4 w-4 text-success" />}
           label="Status"
           value="Live"
           subtitle="Copy trading module"

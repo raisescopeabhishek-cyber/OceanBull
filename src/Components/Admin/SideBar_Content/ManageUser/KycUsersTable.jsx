@@ -50,11 +50,11 @@ const KycUsersTable = () => {
     const base =
       "px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1";
     return verified ? (
-      <span className={`${base} bg-green-900/30 text-green-300`}>
+      <span className={`${base} bg-success-soft text-success`}>
         <CheckCircle size={14} /> Yes
       </span>
     ) : (
-      <span className={`${base} bg-red-900/30 text-red-300`}>
+      <span className={`${base} bg-danger-soft text-danger`}>
         <XCircle size={14} /> No
       </span>
     );
@@ -132,7 +132,7 @@ const KycUsersTable = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4">📝 KYC Submitted Users</h2>
 
       {/* Search */}
@@ -140,7 +140,7 @@ const KycUsersTable = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -150,38 +150,38 @@ const KycUsersTable = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 rounded-lg w-full bg-indigo-800/20 text-white placeholder-gray-400 focus:outline-none focus:ring focus:ring-indigo-500"
+            className="pl-9 pr-4 py-2 rounded-field w-full bg-surface text-text placeholder:text-subtle focus:outline-none focus:ring focus:ring-primary"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-subtle text-sm">Loading...</p>
       ) : users.length === 0 ? (
-        <p className="text-gray-400 text-sm">No users found.</p>
+        <p className="text-subtle text-sm">No users found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-indigo-800">
+          <table className="min-w-full border-collapse border border-line table-stack">
             <thead>
-              <tr className="bg-indigo-800/50">
-                <th className="p-3 text-left border border-indigo-800">User</th>
-                <th className="p-3 text-left border border-indigo-800">
+              <tr className="bg-surface">
+                <th className="p-3 text-left border border-line">User</th>
+                <th className="p-3 text-left border border-line">
                   Email
                 </th>
-                <th className="p-3 text-left border border-indigo-800">
+                <th className="p-3 text-left border border-line">
                   Total AC
                 </th>
-                <th className="p-3 text-left border border-indigo-800">
+                <th className="p-3 text-left border border-line">
                   Email Verified
                 </th>
-                <th className="p-3 text-left border border-indigo-800">
+                <th className="p-3 text-left border border-line">
                   Country
                 </th>
-                <th className="p-3 text-left border border-indigo-800">
+                <th className="p-3 text-left border border-line">
                   Updated At
                 </th>
-                <th className="p-3 text-left border border-indigo-800">
+                <th className="p-3 text-left border border-line">
                   Action
                 </th>
               </tr>
@@ -190,30 +190,30 @@ const KycUsersTable = () => {
               {users.map((u) => (
                 <tr
                   key={u._id}
-                  className="hover:bg-indigo-800/30 transition duration-200"
+                  className="hover:bg-surface transition duration-200"
                 >
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="User" className="p-3 border border-line">
                     {u.firstName} {u.lastName}
                   </td>
-                  <td className="p-3 border border-indigo-800">{u.email}</td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Email" className="p-3 border border-line">{u.email}</td>
+                  <td data-label="Total AC" className="p-3 border border-line">
                     {u.accounts?.length || 0}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Email Verified" className="p-3 border border-line">
                     {emailVerifiedBadge(u.emailVerified)}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Country" className="p-3 border border-line">
                     {u.country || "N/A"}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Updated At" className="p-3 border border-line">
                     {u.updatedAt
                       ? new Date(u.updatedAt).toLocaleString()
                       : "N/A"}
                   </td>
-                  <td className="p-3 border border-indigo-800">
+                  <td data-label="Action" className="p-3 border border-line">
                     <button
                       onClick={() => handleViewClick(u)}
-                      className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-xs"
+                      className="bg-primary hover:bg-primary-soft px-3 py-1 rounded text-xs"
                     >
                       View
                     </button>
@@ -230,17 +230,17 @@ const KycUsersTable = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-500/50"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded disabled:bg-gray-500/50"
+          className="px-3 py-1 bg-primary text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>
@@ -248,10 +248,10 @@ const KycUsersTable = () => {
 
       {/* Modal with KYC Review Card */}
       {showModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-auto p-4">
-          <div className="bg-blue-950 rounded-lg max-w-3xl w-full relative shadow-lg p-6">
+        <div className="fixed inset-0 bg-surface bg-opacity-50 flex justify-center items-center z-50 overflow-auto p-4">
+          <div className="bg-surface rounded-field max-w-3xl w-full relative p-6">
             {/* Header */}
-            <h3 className="text-lg  font-bold mb-4">
+            <h3 className="text-lg font-bold mb-4">
               KYC Review - {selectedUser.firstName} {selectedUser.lastName}
             </h3>
 
@@ -290,12 +290,12 @@ const KycUsersTable = () => {
                       href={selectedUser.kycDetails.frontSideOfDocument}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
+                      className="text-primary hover:underline"
                     >
                       View Full Image
                     </a>
                   ) : (
-                    <p className="text-gray-500 text-sm">Not uploaded</p>
+                    <p className="text-subtle text-sm">Not uploaded</p>
                   )}
                 </div>
 
@@ -306,12 +306,12 @@ const KycUsersTable = () => {
                       href={selectedUser.kycDetails.backImage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
+                      className="text-primary hover:underline"
                     >
                       View Full Image
                     </a>
                   ) : (
-                    <p className="text-gray-500 text-sm">Not uploaded</p>
+                    <p className="text-subtle text-sm">Not uploaded</p>
                   )}
                 </div>
 
@@ -322,12 +322,12 @@ const KycUsersTable = () => {
                       href={selectedUser.kycDetails.selfieImage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
+                      className="text-primary hover:underline"
                     >
                       View Full Image
                     </a>
                   ) : (
-                    <p className="text-gray-500 text-sm">Not uploaded</p>
+                    <p className="text-subtle text-sm">Not uploaded</p>
                   )}
                 </div>
               </div>
@@ -337,24 +337,24 @@ const KycUsersTable = () => {
             <div className="flex gap-3 border-t pt-4">
               <textarea
                 placeholder="Add a comment..."
-                className="flex-1 border rounded-lg p-2 resize-none"
+                className="flex-1 border rounded-field p-2 resize-none"
                 rows={2}
               ></textarea>
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
+                className="px-4 py-2 bg-surface-3 hover:bg-surface-3 rounded-field"
               >
                 Close
               </button>
               <button
                 onClick={handleApprove}
-                className="px-4 py-2 bg-green-500 text-white hover:bg-green-600 rounded-lg"
+                className="px-4 py-2 bg-success text-text hover:bg-success rounded-field"
               >
                 Approve
               </button>
               <button
                 onClick={handleReject}
-                className="px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded-lg"
+                className="px-4 py-2 bg-danger text-text hover:bg-danger rounded-field"
               >
                 Reject
               </button>

@@ -144,8 +144,7 @@ const UserMyMasterAccounts = () => {
     return (
       <div
         className={cx(
-          "p-5 text-sm",
-          isDark ? "text-white/70" : "text-slate-600"
+          "p-5 text-sm","text-muted"
         )}
       >
         Loading your master accounts...
@@ -167,16 +166,12 @@ const UserMyMasterAccounts = () => {
     <div className="space-y-5">
       <div
         className={cx(
-          "grid grid-cols-1 gap-3 rounded-[22px] border p-4 md:grid-cols-2",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-100 bg-white/90 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+          "grid grid-cols-1 gap-3 rounded-card border p-4 md:grid-cols-2","border-line bg-surface-2"
         )}
       >
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10 bg-white/[0.025]" : "border-emerald-100 bg-emerald-50/60"
+            "rounded-card border p-4","border-line bg-surface-2"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -188,8 +183,7 @@ const UserMyMasterAccounts = () => {
 
         <div
           className={cx(
-            "rounded-2xl border p-4",
-            isDark ? "border-white/10 bg-white/[0.025]" : "border-emerald-100 bg-emerald-50/60"
+            "rounded-card border p-4","border-line bg-surface-2"
           )}
         >
           <div className="flex items-center gap-2 text-sm font-bold">
@@ -206,10 +200,7 @@ const UserMyMasterAccounts = () => {
           onClick={loadMasterAccounts}
           disabled={loading}
           className={cx(
-            "inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60",
-            isDark
-              ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-              : "border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+            "inline-flex items-center gap-2 rounded-card border px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60","border-line bg-surface-2 text-text hover:bg-surface-2"
           )}
         >
           <RefreshCw className={cx("h-4 w-4", loading && "animate-spin")} />
@@ -226,10 +217,7 @@ const UserMyMasterAccounts = () => {
           <div
             key={`${masterAccount}-${index}`}
             className={cx(
-              "overflow-hidden rounded-[24px] border",
-              isDark
-                ? "border-white/10 bg-white/[0.03]"
-                : "border-emerald-100 bg-white/95 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
+              "overflow-hidden rounded-card border","border-line bg-surface-2"
             )}
           >
             <button
@@ -243,7 +231,7 @@ const UserMyMasterAccounts = () => {
               className="flex w-full items-center justify-between gap-4 p-5 text-left"
             >
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-success">
                   Master Account
                 </p>
 
@@ -251,8 +239,7 @@ const UserMyMasterAccounts = () => {
 
                 <p
                   className={cx(
-                    "mt-2 text-sm",
-                    isDark ? "text-white/55" : "text-slate-500"
+                    "mt-2 text-sm","text-subtle"
                   )}
                 >
                   Commission: {getMasterField(master, "commission", 0)}% · Min
@@ -267,8 +254,7 @@ const UserMyMasterAccounts = () => {
             {isOpen && (
               <div
                 className={cx(
-                  "space-y-6 border-t p-5",
-                  isDark ? "border-white/10" : "border-emerald-100"
+                  "space-y-6 border-t p-5","border-line"
                 )}
               >
                 <div>
@@ -304,14 +290,11 @@ const UserMyMasterAccounts = () => {
                           <div
                             key={`${copierAccount}-${copierIndex}`}
                             className={cx(
-                              "rounded-[20px] border p-4",
-                              isDark
-                                ? "border-white/10 bg-slate-950/40"
-                                : "border-emerald-100 bg-emerald-50/40"
+                              "rounded-card border p-4","border-line bg-surface"
                             )}
                           >
                             <div className="mb-4">
-                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">
+                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-success">
                                 Copier Account
                               </p>
 

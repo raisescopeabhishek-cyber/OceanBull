@@ -35,27 +35,20 @@ const PAGE_SIZE_OPTIONS = [6, 10, 20, 50];
 
 const getInputClass = (isDark, extra = "") =>
   cx(
-    "w-full rounded-2xl border px-4 py-3 text-sm font-semibold outline-none transition-all duration-200",
-    "focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
-    isDark
-      ? "border-emerald-300/25 bg-emerald-400/[0.08] text-white placeholder:text-white/40 shadow-[0_0_0_1px_rgba(16,185,129,0.08)] focus:border-emerald-300 focus:bg-emerald-400/[0.12] focus:ring-emerald-400/15"
-      : "border-emerald-300/80 bg-emerald-50/80 text-slate-900 placeholder:text-slate-400 shadow-[0_0_0_4px_rgba(16,185,129,0.05),0_10px_22px_rgba(16,185,129,0.07)] focus:border-emerald-500 focus:bg-white focus:ring-emerald-200/70",
+    "w-full rounded-card border px-4 py-3 text-sm font-semibold outline-none transition-all duration-200",
+    "focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60","border-success bg-success-soft text-text placeholder:text-subtle focus:border-success focus:bg-success-soft focus:ring-success",
     extra
   );
 
 const getSectionClass = (isDark) =>
   cx(
-    "rounded-[24px] border p-5",
-    isDark
-      ? "border-white/10 bg-white/[0.035]"
-      : "border-emerald-200/70 bg-white/95 shadow-[0_14px_30px_rgba(16,185,129,0.08)]"
+    "rounded-card border p-5","border-line bg-surface-2"
   );
 
 const FieldLabel = ({ children, isDark }) => (
   <label
     className={cx(
-      "mb-1.5 block text-xs font-bold uppercase tracking-[0.14em]",
-      isDark ? "text-emerald-200/80" : "text-emerald-700"
+      "mb-1.5 block text-xs font-bold uppercase tracking-[0.14em]","text-success"
     )}
   >
     {children}
@@ -65,23 +58,20 @@ const FieldLabel = ({ children, isDark }) => (
 const InfoBox = ({ isDark, icon, label, value }) => (
   <div
     className={cx(
-      "rounded-2xl border p-3",
-      isDark
-        ? "border-white/10 bg-white/[0.025]"
-        : "border-emerald-100 bg-emerald-50/50"
+      "rounded-card border p-3","border-line bg-surface-2"
     )}
   >
     <div
-      className={cx("mb-2", isDark ? "text-emerald-300" : "text-emerald-600")}
+      className={cx("mb-2","text-success")}
     >
       {icon}
     </div>
 
-    <p className={cx("text-xs", isDark ? "text-white/45" : "text-slate-500")}>
+    <p className={cx("text-xs","text-subtle")}>
       {label}
     </p>
 
-    <p className={cx("font-bold", isDark ? "text-white" : "text-slate-900")}>
+    <p className={cx("font-bold","text-text")}>
       {value}
     </p>
   </div>
@@ -128,10 +118,7 @@ const PaginationButton = ({ isDark, disabled, onClick, children, label }) => {
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40",
-        isDark
-          ? "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-          : "border-emerald-100 bg-white text-emerald-700 hover:bg-emerald-50"
+        "inline-flex h-10 min-w-10 items-center justify-center rounded-card border px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-40","border-line bg-surface-2 text-text hover:bg-surface-2"
       )}
     >
       {children}
@@ -191,21 +178,18 @@ const ConfirmRoleChangeModal = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="copy-trading-conflict-title"
-      className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/55 p-4"
+      className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 p-4"
       onMouseDown={handleBackdropClick}
     >
       <div
         className={cx(
-          "max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-[28px] border p-5 shadow-2xl",
-          isDark
-            ? "border-white/10 bg-slate-950 text-white"
-            : "border-red-100 bg-white text-slate-900"
+          "max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-card border p-5","border-line bg-surface text-text"
         )}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-200 bg-red-50 text-red-600">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card border border-danger bg-danger-soft text-danger">
               <AlertTriangle className="h-6 w-6" />
             </div>
 
@@ -219,8 +203,7 @@ const ConfirmRoleChangeModal = ({
 
               <p
                 className={cx(
-                  "mt-1 text-sm leading-6",
-                  isDark ? "text-white/65" : "text-slate-600"
+                  "mt-1 text-sm leading-6","text-muted"
                 )}
               >
                 This MT5 account is already registered as{" "}
@@ -234,10 +217,7 @@ const ConfirmRoleChangeModal = ({
             onClick={onClose}
             disabled={loading}
             className={cx(
-              "rounded-xl border p-2 disabled:cursor-not-allowed disabled:opacity-60",
-              isDark
-                ? "border-white/10 hover:bg-white/10"
-                : "border-slate-200 hover:bg-slate-50"
+              "rounded-card border p-2 disabled:cursor-not-allowed disabled:opacity-60","border-line hover:bg-surface-2"
             )}
             aria-label="Close modal"
           >
@@ -247,10 +227,7 @@ const ConfirmRoleChangeModal = ({
 
         <div
           className={cx(
-            "mt-5 rounded-2xl border p-4 text-sm leading-6",
-            isDark
-              ? "border-red-400/20 bg-red-500/10 text-red-100"
-              : "border-red-100 bg-red-50 text-red-700"
+            "mt-5 rounded-card border p-4 text-sm leading-6","border-danger bg-danger-soft text-danger"
           )}
         >
           <p className="font-bold">Please confirm before continuing.</p>
@@ -274,10 +251,7 @@ const ConfirmRoleChangeModal = ({
 
         <div
           className={cx(
-            "mt-4 rounded-2xl border p-4 text-sm",
-            isDark
-              ? "border-white/10 bg-white/[0.035]"
-              : "border-slate-100 bg-slate-50"
+            "mt-4 rounded-card border p-4 text-sm","border-line bg-surface-2"
           )}
         >
           <p>
@@ -297,10 +271,7 @@ const ConfirmRoleChangeModal = ({
             onClick={onClose}
             disabled={loading}
             className={cx(
-              "rounded-2xl border px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60",
-              isDark
-                ? "border-white/10 hover:bg-white/10"
-                : "border-slate-200 hover:bg-slate-50"
+              "rounded-card border px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60","border-line hover:bg-surface-2"
             )}
           >
             Cancel
@@ -310,7 +281,7 @@ const ConfirmRoleChangeModal = ({
             type="button"
             onClick={onAgree}
             disabled={loading}
-            className="rounded-2xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-card bg-danger px-5 py-3 text-sm font-bold text-text hover:bg-danger disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "Processing..."
@@ -781,10 +752,7 @@ const UserExploreMasters = () => {
         <div className="mb-5 flex items-start gap-3">
           <div
             className={cx(
-              "flex h-11 w-11 items-center justify-center rounded-2xl border",
-              isDark
-                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              "flex h-11 w-11 items-center justify-center rounded-card border","border-success bg-success-soft text-success"
             )}
           >
             <Crown className="h-5 w-5" />
@@ -793,8 +761,7 @@ const UserExploreMasters = () => {
           <div>
             <h3
               className={cx(
-                "text-base font-bold",
-                isDark ? "text-white" : "text-slate-900"
+                "text-base font-bold","text-text"
               )}
             >
               Become a Master Trader
@@ -802,8 +769,7 @@ const UserExploreMasters = () => {
 
             <p
               className={cx(
-                "mt-1 text-sm",
-                isDark ? "text-white/55" : "text-slate-500"
+                "mt-1 text-sm","text-subtle"
               )}
             >
               Select your MT5 account and make it visible as a master account.
@@ -907,10 +873,7 @@ const UserExploreMasters = () => {
               onClick={() => handleMakeMaster(false)}
               disabled={actionLoading}
               className={cx(
-                "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
-                isDark
-                  ? "bg-emerald-500 hover:bg-emerald-400"
-                  : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:from-emerald-600 hover:to-green-700"
+                "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-card px-4 py-3 text-sm font-bold text-text transition-all disabled:cursor-not-allowed disabled:opacity-60","bg-success hover:bg-success"
               )}
             >
               <Crown className="h-4 w-4" />
@@ -937,10 +900,7 @@ const UserExploreMasters = () => {
 
       <div
         className={cx(
-          "grid grid-cols-1 gap-4 rounded-[22px] border p-4 md:grid-cols-[1fr_280px]",
-          isDark
-            ? "border-white/10 bg-white/[0.035]"
-            : "border-emerald-200/70 bg-white/95 shadow-[0_12px_24px_rgba(16,185,129,0.07)]"
+          "grid grid-cols-1 gap-4 rounded-card border p-4 md:grid-cols-[1fr_280px]","border-line bg-surface-2"
         )}
       >
         <div>
@@ -948,8 +908,7 @@ const UserExploreMasters = () => {
           <div className="relative">
             <Search
               className={cx(
-                "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2",
-                isDark ? "text-emerald-300" : "text-emerald-600"
+                "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2","text-success"
               )}
             />
             <input
@@ -971,7 +930,7 @@ const UserExploreMasters = () => {
               className={getInputClass(
                 isDark,
                 copyAccountNudge
-                  ? "animate-pulse border-red-400 ring-4 ring-red-400/30 shadow-[0_0_0_4px_rgba(239,68,68,0.18),0_0_26px_rgba(239,68,68,0.28)]"
+                  ? "animate-pulse border-danger ring-4 ring-danger shadow-[0_0_0_4px_rgba(239,68,68,0.18),0_0_26px_rgba(239,68,68,0.28)]"
                   : ""
               )}
             >
@@ -992,10 +951,7 @@ const UserExploreMasters = () => {
             {copyAccountNudge && (
               <div
                 className={cx(
-                  "absolute right-0 top-full z-20 mt-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-xl",
-                  isDark
-                    ? "border-red-400/30 bg-red-500 text-white"
-                    : "border-red-200 bg-red-50 text-red-700"
+                  "absolute right-0 top-full z-20 mt-2 rounded-card border px-3 py-2 text-xs font-bold","border-danger bg-danger text-text"
                 )}
               >
                 First choose your account.
@@ -1017,17 +973,13 @@ const UserExploreMasters = () => {
         <div className="space-y-4">
           <div
             className={cx(
-              "flex flex-col gap-3 rounded-[22px] border p-4 sm:flex-row sm:items-center sm:justify-between",
-              isDark
-                ? "border-white/10 bg-white/[0.035]"
-                : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+              "flex flex-col gap-3 rounded-card border p-4 sm:flex-row sm:items-center sm:justify-between","border-line bg-surface-2"
             )}
           >
             <div>
               <p
                 className={cx(
-                  "text-sm font-bold",
-                  isDark ? "text-white" : "text-slate-900"
+                  "text-sm font-bold","text-text"
                 )}
               >
                 Showing {startIndex + 1}-{endIndex} of {filteredMasters.length} masters
@@ -1035,8 +987,7 @@ const UserExploreMasters = () => {
 
               <p
                 className={cx(
-                  "mt-1 text-xs",
-                  isDark ? "text-white/45" : "text-slate-500"
+                  "mt-1 text-xs","text-subtle"
                 )}
               >
                 Newest master accounts are shown first.
@@ -1048,10 +999,7 @@ const UserExploreMasters = () => {
                 value={pageSize}
                 onChange={(event) => setPageSize(Number(event.target.value))}
                 className={cx(
-                  "rounded-xl border px-3 py-2 text-sm font-bold outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-950 text-white"
-                    : "border-emerald-100 bg-white text-emerald-700"
+                  "rounded-card border px-3 py-2 text-sm font-bold outline-none","border-line bg-surface text-text"
                 )}
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
@@ -1081,10 +1029,7 @@ const UserExploreMasters = () => {
 
               <div
                 className={cx(
-                  "rounded-xl border px-4 py-2 text-sm font-black",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white"
-                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  "rounded-card border px-4 py-2 text-sm font-black","border-line bg-surface-2 text-text"
                 )}
               >
                 Page {safePage} / {totalPages}
@@ -1127,18 +1072,14 @@ const UserExploreMasters = () => {
                 <div
                   key={`${masterAccount}-${startIndex + index}`}
                   className={cx(
-                    "rounded-[24px] border p-5",
-                    isDark
-                      ? "border-white/10 bg-white/[0.035]"
-                      : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.07)]"
+                    "rounded-card border p-5","border-line bg-surface-2"
                   )}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p
                         className={cx(
-                          "text-xs font-semibold uppercase tracking-[0.14em]",
-                          isDark ? "text-white/45" : "text-slate-500"
+                          "text-xs font-semibold uppercase tracking-[0.14em]","text-subtle"
                         )}
                       >
                         Master Account
@@ -1146,8 +1087,7 @@ const UserExploreMasters = () => {
 
                       <h3
                         className={cx(
-                          "mt-1 text-xl font-bold",
-                          isDark ? "text-white" : "text-slate-900"
+                          "mt-1 text-xl font-bold","text-text"
                         )}
                       >
                         {name === "-" ? `#${masterAccount}` : name}
@@ -1155,8 +1095,7 @@ const UserExploreMasters = () => {
 
                       <p
                         className={cx(
-                          "mt-1 text-sm",
-                          isDark ? "text-white/55" : "text-slate-500"
+                          "mt-1 text-sm","text-subtle"
                         )}
                       >
                         #{masterAccount}
@@ -1164,8 +1103,7 @@ const UserExploreMasters = () => {
 
                       <p
                         className={cx(
-                          "mt-1 text-xs",
-                          isDark ? "text-emerald-200/70" : "text-emerald-700"
+                          "mt-1 text-xs","text-success"
                         )}
                       >
                         Created: {formatMasterCreatedDate(master)}
@@ -1177,10 +1115,7 @@ const UserExploreMasters = () => {
                       onClick={() => handleCopy(master)}
                       disabled={actionLoading}
                       className={cx(
-                        "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
-                        isDark
-                          ? "bg-emerald-500 hover:bg-emerald-400"
-                          : "bg-gradient-to-r from-emerald-500 to-green-600 shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:from-emerald-600 hover:to-green-700"
+                        "inline-flex items-center justify-center gap-2 rounded-card px-4 py-2.5 text-sm font-bold text-text transition-all disabled:cursor-not-allowed disabled:opacity-60","bg-success hover:bg-success"
                       )}
                     >
                       <Copy className="h-4 w-4" />
@@ -1190,8 +1125,7 @@ const UserExploreMasters = () => {
 
                   <p
                     className={cx(
-                      "mt-4 text-sm leading-6",
-                      isDark ? "text-white/60" : "text-slate-600"
+                      "mt-4 text-sm leading-6","text-subtle"
                     )}
                   >
                     {master?.description ||
@@ -1236,10 +1170,7 @@ const UserExploreMasters = () => {
           {totalPages > 1 && (
             <div
               className={cx(
-                "flex flex-wrap items-center justify-center gap-2 rounded-[22px] border p-4",
-                isDark
-                  ? "border-white/10 bg-white/[0.035]"
-                  : "border-emerald-100 bg-white/95 shadow-[0_10px_24px_rgba(16,185,129,0.06)]"
+                "flex flex-wrap items-center justify-center gap-2 rounded-card border p-4","border-line bg-surface-2"
               )}
             >
               <PaginationButton
@@ -1262,10 +1193,7 @@ const UserExploreMasters = () => {
 
               <div
                 className={cx(
-                  "rounded-xl border px-4 py-2 text-sm font-black",
-                  isDark
-                    ? "border-white/10 bg-white/[0.04] text-white"
-                    : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  "rounded-card border px-4 py-2 text-sm font-black","border-line bg-surface-2 text-text"
                 )}
               >
                 Page {safePage} / {totalPages}

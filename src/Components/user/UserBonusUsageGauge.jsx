@@ -36,34 +36,23 @@ const yearOptions = Array.from({ length: 6 }).map((_, index) => {
 function MiniStat({ icon, label, value, hint, isDark, tone = "default" }) {
   const toneClass =
     tone === "success"
-      ? isDark
-        ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ?"border-success bg-success-soft text-success"
       : tone === "warning"
-      ? isDark
-        ? "border-amber-400/20 bg-amber-500/10 text-amber-300"
-        : "border-amber-200 bg-amber-50 text-amber-700"
+      ?"border-line bg-primary-soft text-primary"
       : tone === "danger"
-      ? isDark
-        ? "border-rose-400/20 bg-rose-500/10 text-rose-300"
-        : "border-rose-200 bg-rose-50 text-rose-700"
-      : isDark
-      ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-      : "border-orange-200 bg-orange-50 text-orange-700";
+      ?"border-danger bg-danger-soft text-danger"
+      :"border-line bg-primary-soft text-primary";
 
   return (
     <div
       className={cx(
-        "rounded-[22px] border p-4",
-        isDark
-          ? "border-white/10 bg-white/[0.04]"
-          : "border-orange-100 bg-white/80"
+        "rounded-card border p-4","border-line bg-surface-2"
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cx(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-card border",
             toneClass
           )}
         >
@@ -73,8 +62,7 @@ function MiniStat({ icon, label, value, hint, isDark, tone = "default" }) {
         <div className="min-w-0">
           <p
             className={cx(
-              "text-xs",
-              isDark ? "text-white/50" : "text-slate-500"
+              "text-xs","text-subtle"
             )}
           >
             {label}
@@ -82,8 +70,7 @@ function MiniStat({ icon, label, value, hint, isDark, tone = "default" }) {
 
           <p
             className={cx(
-              "mt-1 truncate text-lg font-bold",
-              isDark ? "text-white" : "text-slate-900"
+              "mt-1 truncate text-lg font-bold","text-text"
             )}
           >
             {value}
@@ -92,8 +79,7 @@ function MiniStat({ icon, label, value, hint, isDark, tone = "default" }) {
           {hint ? (
             <p
               className={cx(
-                "mt-1 truncate text-[11px]",
-                isDark ? "text-white/40" : "text-slate-500"
+                "mt-1 truncate text-[11px]","text-subtle"
               )}
             >
               {hint}
@@ -121,10 +107,7 @@ function BonusGauge({ gauge, isDark }) {
   return (
     <div
       className={cx(
-        "relative rounded-[28px] border p-5",
-        isDark
-          ? "border-white/10 bg-white/[0.035]"
-          : "border-orange-100 bg-white/85"
+        "relative rounded-card border p-5","border-line bg-surface-2"
       )}
     >
       <div className="flex flex-col items-center">
@@ -132,9 +115,9 @@ function BonusGauge({ gauge, isDark }) {
           <svg viewBox="0 0 260 175" className="h-full w-full">
             <defs>
               <linearGradient id="bonusGaugeGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#22c55e" />
-                <stop offset="52%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#ef4444" />
+                <stop offset="0%" stopColor="#0f9f6e" />
+                <stop offset="52%" stopColor="#2a56dc" />
+                <stop offset="100%" stopColor="#dc3a3a" />
               </linearGradient>
 
               <filter id="bonusGaugeGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -149,7 +132,7 @@ function BonusGauge({ gauge, isDark }) {
             <path
               d="M 35 135 A 95 95 0 0 1 225 135"
               fill="none"
-              stroke={isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,42,0.08)"}
+              stroke={isDark ? "rgba(255,255,255,0.10)" : "rgba(15, 24, 41,0.08)"}
               strokeWidth="18"
               strokeLinecap="round"
               pathLength="100"
@@ -191,7 +174,7 @@ function BonusGauge({ gauge, isDark }) {
               y1="135"
               x2="130"
               y2="58"
-              stroke={isDark ? "#f8fafc" : "#0f172a"}
+              stroke={isDark ? "#f3f5f9" : "#0f1829"}
               strokeWidth="4"
               strokeLinecap="round"
               transform={`rotate(${pointerAngle} 130 135)`}
@@ -201,7 +184,7 @@ function BonusGauge({ gauge, isDark }) {
               cx="130"
               cy="135"
               r="10"
-              fill={isDark ? "#f8fafc" : "#0f172a"}
+              fill={isDark ? "#f3f5f9" : "#0f1829"}
             />
 
             <text
@@ -210,7 +193,7 @@ function BonusGauge({ gauge, isDark }) {
               textAnchor="middle"
               fontSize="30"
               fontWeight="800"
-              fill={isDark ? "#ffffff" : "#0f172a"}
+              fill={isDark ? "#ffffff" : "#0f1829"}
             >
               {usagePercent.toFixed(1)}%
             </text>
@@ -231,24 +214,19 @@ function BonusGauge({ gauge, isDark }) {
         <div className="grid w-full grid-cols-2 gap-3">
           <div
             className={cx(
-              "rounded-2xl border px-4 py-3 text-center",
-              isDark
-                ? "border-emerald-400/20 bg-emerald-500/10"
-                : "border-emerald-200 bg-emerald-50"
+              "rounded-card border px-4 py-3 text-center","border-success bg-success-soft"
             )}
           >
             <p
               className={cx(
-                "text-[11px] font-bold uppercase tracking-[0.14em]",
-                isDark ? "text-emerald-300" : "text-emerald-700"
+                "text-[11px] font-bold uppercase tracking-[0.14em]","text-success"
               )}
             >
               Available
             </p>
             <p
               className={cx(
-                "mt-1 text-lg font-bold",
-                isDark ? "text-white" : "text-slate-900"
+                "mt-1 text-lg font-bold","text-text"
               )}
             >
               {availablePercent.toFixed(1)}%
@@ -257,24 +235,19 @@ function BonusGauge({ gauge, isDark }) {
 
           <div
             className={cx(
-              "rounded-2xl border px-4 py-3 text-center",
-              isDark
-                ? "border-rose-400/20 bg-rose-500/10"
-                : "border-rose-200 bg-rose-50"
+              "rounded-card border px-4 py-3 text-center","border-danger bg-danger-soft"
             )}
           >
             <p
               className={cx(
-                "text-[11px] font-bold uppercase tracking-[0.14em]",
-                isDark ? "text-rose-300" : "text-rose-700"
+                "text-[11px] font-bold uppercase tracking-[0.14em]","text-danger"
               )}
             >
               Used
             </p>
             <p
               className={cx(
-                "mt-1 text-lg font-bold",
-                isDark ? "text-white" : "text-slate-900"
+                "mt-1 text-lg font-bold","text-text"
               )}
             >
               {usagePercent.toFixed(1)}%
@@ -295,26 +268,21 @@ function MonthlyBonusBars({ chart, isDark }) {
   return (
     <div
       className={cx(
-        "rounded-[28px] border p-5",
-        isDark
-          ? "border-white/10 bg-white/[0.035]"
-          : "border-orange-100 bg-white/85"
+        "rounded-card border p-5","border-line bg-surface-2"
       )}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <h3
             className={cx(
-              "text-lg font-bold",
-              isDark ? "text-white" : "text-slate-900"
+              "text-lg font-bold","text-text"
             )}
           >
             Monthly Bonus Flow
           </h3>
           <p
             className={cx(
-              "mt-1 text-sm",
-              isDark ? "text-white/50" : "text-slate-500"
+              "mt-1 text-sm","text-subtle"
             )}
           >
             Deposit bonus + trade lot bonus
@@ -335,10 +303,7 @@ function MonthlyBonusBars({ chart, isDark }) {
               <div className="flex h-[165px] w-full items-end justify-center">
                 <div
                   className={cx(
-                    "relative w-9 rounded-t-2xl",
-                    isDark
-                      ? "bg-gradient-to-t from-orange-500/35 to-orange-300"
-                      : "bg-gradient-to-t from-orange-300 to-orange-500"
+                    "relative w-9 rounded-t-sheet",""
                   )}
                   style={{
                     height: `${heightPercent}%`,
@@ -347,8 +312,7 @@ function MonthlyBonusBars({ chart, isDark }) {
                   {totalBonus > 0 ? (
                     <span
                       className={cx(
-                        "absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold",
-                        isDark ? "text-white/70" : "text-slate-600"
+                        "absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold","text-muted"
                       )}
                     >
                       ${money(totalBonus)}
@@ -359,8 +323,7 @@ function MonthlyBonusBars({ chart, isDark }) {
 
               <p
                 className={cx(
-                  "text-xs font-bold",
-                  isDark ? "text-white/55" : "text-slate-500"
+                  "text-xs font-bold","text-subtle"
                 )}
               >
                 {item.monthName}
@@ -444,10 +407,7 @@ export default function UserBonusUsageGauge() {
   return (
     <motion.section
       className={cx(
-        "overflow-hidden rounded-[30px] border backdrop-blur-xl",
-        isDark
-          ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-          : "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+        "overflow-hidden rounded-card border backdrop-blur-xl","border-line bg-surface-2"
       )}
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
@@ -455,18 +415,14 @@ export default function UserBonusUsageGauge() {
     >
       <div
         className={cx(
-          "border-b px-5 py-5 sm:px-6",
-          isDark ? "border-white/10" : "border-orange-100"
+          "border-b px-5 py-5 sm:px-6","border-line"
         )}
       >
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div
               className={cx(
-                "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em]",
-                isDark
-                  ? "border-amber-400/20 bg-amber-500/10 text-amber-200"
-                  : "border-orange-200 bg-orange-50 text-orange-700"
+                "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
               )}
             >
               <Gauge size={14} />
@@ -475,8 +431,7 @@ export default function UserBonusUsageGauge() {
 
             <h2
               className={cx(
-                "text-2xl font-bold",
-                isDark ? "text-white" : "text-slate-900"
+                "text-2xl font-bold","text-text"
               )}
             >
               Bonus Wallet Utilization
@@ -484,8 +439,7 @@ export default function UserBonusUsageGauge() {
 
             <p
               className={cx(
-                "mt-2 max-w-2xl text-sm",
-                isDark ? "text-white/55" : "text-slate-500"
+                "mt-2 max-w-2xl text-sm","text-subtle"
               )}
             >
               Total bonus received, used bonus, and currently available bonus
@@ -497,8 +451,7 @@ export default function UserBonusUsageGauge() {
             <div>
               <label
                 className={cx(
-                  "mb-1 block text-xs font-semibold",
-                  isDark ? "text-white/50" : "text-slate-500"
+                  "mb-1 block text-xs font-semibold","text-subtle"
                 )}
               >
                 Year
@@ -508,10 +461,7 @@ export default function UserBonusUsageGauge() {
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
                 className={cx(
-                  "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-950/70 text-white"
-                    : "border-orange-200 bg-white text-slate-900"
+                  "w-full rounded-card border px-3 py-3 text-sm outline-none","border-line bg-surface text-text"
                 )}
               >
                 {yearOptions.map((item) => (
@@ -525,8 +475,7 @@ export default function UserBonusUsageGauge() {
             <div>
               <label
                 className={cx(
-                  "mb-1 block text-xs font-semibold",
-                  isDark ? "text-white/50" : "text-slate-500"
+                  "mb-1 block text-xs font-semibold","text-subtle"
                 )}
               >
                 MT5 Account
@@ -536,10 +485,7 @@ export default function UserBonusUsageGauge() {
                 value={mt5Account}
                 onChange={(e) => setMt5Account(e.target.value)}
                 className={cx(
-                  "w-full rounded-2xl border px-3 py-3 text-sm outline-none",
-                  isDark
-                    ? "border-white/10 bg-slate-950/70 text-white"
-                    : "border-orange-200 bg-white text-slate-900"
+                  "w-full rounded-card border px-3 py-3 text-sm outline-none","border-line bg-surface text-text"
                 )}
               >
                 <option value="">All Accounts</option>
@@ -556,7 +502,7 @@ export default function UserBonusUsageGauge() {
                 type="button"
                 onClick={fetchBonusUsage}
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600 disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-card bg-primary px-4 py-3 text-sm font-bold text-text transition hover:bg-primary disabled:opacity-60"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 Refresh
@@ -570,11 +516,10 @@ export default function UserBonusUsageGauge() {
         {loading ? (
           <div className="flex min-h-[360px] items-center justify-center">
             <div className="text-center">
-              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-orange-500" />
+              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
               <p
                 className={cx(
-                  "mt-3 text-sm font-semibold",
-                  isDark ? "text-white/55" : "text-slate-500"
+                  "mt-3 text-sm font-semibold","text-subtle"
                 )}
               >
                 Loading bonus gauge...
@@ -584,11 +529,11 @@ export default function UserBonusUsageGauge() {
         ) : errorText ? (
           <div className="flex min-h-[280px] items-center justify-center text-center">
             <div>
-              <p className="font-semibold text-rose-500">{errorText}</p>
+              <p className="font-semibold text-danger">{errorText}</p>
               <button
                 type="button"
                 onClick={fetchBonusUsage}
-                className="mt-4 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-white"
+                className="mt-4 rounded-card bg-primary px-5 py-3 text-sm font-bold text-text"
               >
                 Retry
               </button>

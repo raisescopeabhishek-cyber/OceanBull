@@ -82,7 +82,7 @@ const EmptyState = ({ title, subtitle, theme }: any) => (
     <div
       className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
       style={{
-        background: rgba(theme?.surface2 || theme?.card || "18 18 18", 0.22),
+        background: rgba(theme?.surface2 || theme?.card || "15 24 41", 0.22),
         border: `1px solid ${rgba(theme?.border || theme?.inputBorder || "255 255 255", 0.14)}`,
         color: rgba(theme?.mutedFg || theme?.fg || "255 255 255", 0.7),
       }}
@@ -146,26 +146,26 @@ export default function UserTransactionWidget() {
       fg: theme?.fg || "255 255 255",
       mutedFg: theme?.mutedFg || theme?.fg || "255 255 255",
       border: theme?.border || theme?.inputBorder || "255 255 255",
-      card: theme?.card || "18 18 18",
+      card: theme?.card || "15 24 41",
       surface1: theme?.surface1 || theme?.bg || "0 0 0",
-      surface2: theme?.surface2 || theme?.card || "18 18 18",
-      surface3: theme?.surface3 || theme?.card || "18 18 18",
-      accent: theme?.accent || "59 130 246",
+      surface2: theme?.surface2 || theme?.card || "15 24 41",
+      surface3: theme?.surface3 || theme?.card || "15 24 41",
+      accent: theme?.accent || "79 125 246",
       accentFg: theme?.accentFg || theme?.fg || "255 255 255",
-      primary: theme?.primary || theme?.accent || "147 51 234",
+      primary: theme?.primary || theme?.accent || "23 157 166",
       primaryFg: theme?.primaryFg || "0 0 0",
-      success: theme?.success || "34 197 94",
-      warning: theme?.warning || "234 179 8",
-      danger: theme?.danger || "244 63 94",
-      ring: theme?.ring || theme?.accent || "59 130 246",
-      glow: theme?.glow || theme?.accent || "59 130 246",
+      success: theme?.success || "15 159 110",
+      warning: theme?.warning || "163 113 37",
+      danger: theme?.danger || "220 58 58",
+      ring: theme?.ring || theme?.accent || "79 125 246",
+      glow: theme?.glow || theme?.accent || "79 125 246",
       shadow: theme?.shadowColor || "0 0 0",
       radius: theme?.radius || "18px",
-      input: theme?.input || theme?.surface2 || "18 18 18",
-      rowHover: theme?.rowHover || theme?.surface3 || "30 30 30",
-      headerRow: theme?.headerRow || theme?.surface3 || "30 30 30",
-      gradientFrom: theme?.gradientFrom || theme?.accent || "59 130 246",
-      gradientTo: theme?.gradientTo || "147 51 234",
+      input: theme?.input || theme?.surface2 || "15 24 41",
+      rowHover: theme?.rowHover || theme?.surface3 || "19 32 52",
+      headerRow: theme?.headerRow || theme?.surface3 || "19 32 52",
+      gradientFrom: theme?.gradientFrom || theme?.accent || "79 125 246",
+      gradientTo: theme?.gradientTo || "23 157 166",
     }),
     [theme]
   );
@@ -492,10 +492,10 @@ export default function UserTransactionWidget() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="overflow-x-auto rounded-xl relative z-10"
+            className="overflow-x-auto rounded-card relative z-10"
             style={{ border: `1px solid ${rgba(C.border, 0.14)}` }}
           >
-            <table className="w-full text-sm">
+            <table className="table-stack w-full text-sm">
               <thead>
                 <tr style={headerRowStyle}>
                   {activeTab === "account" ? (
@@ -546,7 +546,7 @@ export default function UserTransactionWidget() {
                         onMouseEnter={onEnter}
                         onMouseLeave={onLeave}
                       >
-                        <td className="py-2 px-4">
+                        <td data-label="Direction" className="py-2 px-4">
                           <span
                             className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-bold border font-mono"
                             style={{
@@ -559,19 +559,19 @@ export default function UserTransactionWidget() {
                             {(dir || "unknown").toUpperCase()}
                           </span>
                         </td>
-                        <td className="py-2 px-4 font-mono" style={{ color: rgba(C.accent, 0.9) }}>
+                        <td data-label="From" className="py-2 px-4 font-mono" style={{ color: rgba(C.accent, 0.9) }}>
                           #{t?.fromAccountNumber || "—"}
                         </td>
-                        <td className="py-2 px-4 font-mono" style={{ color: rgba(C.primary, 0.9) }}>
+                        <td data-label="To" className="py-2 px-4 font-mono" style={{ color: rgba(C.primary, 0.9) }}>
                           #{t?.toAccountNumber || "—"}
                         </td>
-                        <td className="py-2 px-4 font-mono font-extrabold" style={{ color: rgba(C.fg, 0.9) }}>
+                        <td data-label="Amount" className="py-2 px-4 font-mono font-extrabold" style={{ color: rgba(C.fg, 0.9) }}>
                           ${money(t?.amount)}
                         </td>
-                        <td className="py-2 px-4">
+                        <td data-label="Status" className="py-2 px-4">
                           <StatusPill s={t?.status} C={C} />
                         </td>
-                        <td className="py-2 px-4 text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.65) }}>
+                        <td data-label="Time" className="py-2 px-4 text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.65) }}>
                           {formatDate(t?.createdAt)}
                         </td>
                       </motion.tr>
@@ -592,22 +592,22 @@ export default function UserTransactionWidget() {
                       onMouseEnter={onEnter}
                       onMouseLeave={onLeave}
                     >
-                      <td className="py-2 px-4 font-mono" style={{ color: rgba(C.accent, 0.9) }}>
+                      <td data-label="Account" className="py-2 px-4 font-mono" style={{ color: rgba(C.accent, 0.9) }}>
                         #{acc}
                       </td>
-                      <td className="py-2 px-4" style={{ color: rgba(C.fg, 0.78) }}>
+                      <td data-label="Type" className="py-2 px-4" style={{ color: rgba(C.fg, 0.78) }}>
                         {t?.accountType || "—"}
                       </td>
-                      <td className="py-2 px-4 font-mono font-bold" style={{ color: rgba(C.success, 0.92) }}>
+                      <td data-label={activeTab === "withdrawal" ? "Amount" : "Deposit"} className="py-2 px-4 font-mono font-bold" style={{ color: rgba(C.success, 0.92) }}>
                         ${money(amount)}
                       </td>
-                      <td className="py-2 px-4" style={{ color: rgba(C.mutedFg, 0.7) }}>
+                      <td data-label="Method" className="py-2 px-4" style={{ color: rgba(C.mutedFg, 0.7) }}>
                         {String(t?.method || "—").toUpperCase()}
                       </td>
-                      <td className="py-2 px-4">
+                      <td data-label="Status" className="py-2 px-4">
                         <StatusPill s={t?.status} C={C} />
                       </td>
-                      <td className="py-2 px-4 text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.65) }}>
+                      <td data-label="Time" className="py-2 px-4 text-xs font-mono" style={{ color: rgba(C.mutedFg, 0.65) }}>
                         {formatDate(t?.createdAt)}
                       </td>
                     </motion.tr>

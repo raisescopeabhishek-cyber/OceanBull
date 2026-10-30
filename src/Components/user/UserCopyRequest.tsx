@@ -6,6 +6,7 @@ import { backendApi } from "../../utils/apiClients";
 import UserCopyRequestHistory from "./UserCopyRequestHistory";
 import ModernHeading from "../lib/ModernHeading";
 import { AnimatedGrid } from "../../utils/AnimatedGrid";
+import { PageHeader } from "@/Components/ui";
 
 /** ========= Small inline SVG icons for the theme (no extra deps) ========= */
 const BadgeCheckIcon = () => (
@@ -30,7 +31,7 @@ const FloatingParticles = () => (
     {Array.from({ length: 20 }).map((_, i) => (
       <motion.div
         key={i}
-        className="absolute w-1 h-1 bg-cyan-400/30 rounded-full"
+        className="absolute w-1 h-1 bg-primary-soft rounded-full"
         style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
         initial={{ y: 0, opacity: 0 }}
         animate={{ y: -120, opacity: [0, 1, 0] }}
@@ -89,30 +90,20 @@ export default function UserCopyRequest() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+    <div className="relative w-full">
       <AnimatedGrid />
       <FloatingParticles />
 
-      {/* Header */}
-      <div className="relative z-10 px-6 pt-8">
-        <div className="flex items-center gap-4 animate-slide-in-left">
-          <div className="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
-            <BadgeCheckIcon />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Copy Trading Access</h1>
-            <p className="text-gray-400">Request a role or review your past requests</p>
-          </div>
-          <div className="ml-auto animate-spin-slow text-cyan-400/60">
-            <SparkleIcon />
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumb="Trading / Copy trading"
+        title="Copy trading access"
+        description="Request a role, or review your past requests."
+      />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20">
         <motion.div
-          className="mt-6 p-6 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl"
+          className="mt-6 p-6 backdrop-blur-xl rounded-card border border-line"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -123,8 +114,8 @@ export default function UserCopyRequest() {
               <button
                 className={`px-4 py-2 text-sm font-medium rounded-full transition-all border ${
                   activeTab === "request"
-                    ? "text-white bg-gradient-to-r from-cyan-500 to-purple-600 border-transparent shadow-xl shadow-cyan-500/25"
-                    : "text-gray-300 bg-gray-800/60 border-gray-600 hover:border-gray-500"
+                    ? "text-text border-transparent shadow-cyan-500/25"
+                    : "text-muted bg-surface border-line hover:border-line"
                 }`}
                 onClick={() => setActiveTab("request")}
               >
@@ -133,8 +124,8 @@ export default function UserCopyRequest() {
               <button
                 className={`px-4 py-2 text-sm font-medium rounded-full transition-all border ${
                   activeTab === "history"
-                    ? "text-white bg-gradient-to-r from-cyan-500 to-purple-600 border-transparent shadow-xl shadow-cyan-500/25"
-                    : "text-gray-300 bg-gray-800/60 border-gray-600 hover:border-gray-500"
+                    ? "text-text border-transparent shadow-cyan-500/25"
+                    : "text-muted bg-surface border-line hover:border-line"
                 }`}
                 onClick={() => setActiveTab("history")}
               >
@@ -156,8 +147,8 @@ export default function UserCopyRequest() {
                   <div className="mb-4">
                     <ModernHeading text="Request Copy Trading Role" />
                   </div>
-                  <p className="text-gray-400 mb-6">
-                    Use the form below to request approval as a <span className="text-cyan-400">Master</span> or <span className="text-purple-400">Copier</span> for copy trading.
+                  <p className="text-subtle mb-6">
+                    Use the form below to request approval as a <span className="text-primary">Master</span> or <span className="text-primary">Copier</span> for copy trading.
                     Your request will be reviewed by the admin.
                   </p>
 
@@ -170,8 +161,8 @@ export default function UserCopyRequest() {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Role Selection */}
-                      <div className="p-5 bg-gray-900/70 rounded-2xl border border-gray-700/60">
-                        <div className="flex items-center gap-3 mb-3 text-white">
+                      <div className="p-5 bg-surface rounded-card border border-line">
+                        <div className="flex items-center gap-3 mb-3 text-text">
                           <BadgeCheckIcon />
                           <h3 className="text-lg font-semibold">Select Role</h3>
                         </div>
@@ -179,34 +170,34 @@ export default function UserCopyRequest() {
                           id="role"
                           value={role}
                           onChange={(e) => setRole(e.target.value)}
-                          className="w-full bg-gray-900/80 text-white px-4 py-3 rounded-xl border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                          className="w-full bg-surface text-text px-4 py-3 rounded-card border border-line focus:border-line focus:ring-2 focus:ring-primary transition-all"
                         >
-                          <option className="bg-gray-900" value="" disabled>
+                          <option className="bg-surface" value="" disabled>
                             Choose a role
                           </option>
-                          <option className="bg-gray-900" value="master">Master</option>
-                          <option className="bg-gray-900" value="copier">Copier</option>
+                          <option className="bg-surface" value="master">Master</option>
+                          <option className="bg-surface" value="copier">Copier</option>
                         </select>
                       </div>
 
                       {/* Account Selection */}
-                      <div className="p-5 bg-gray-900/70 rounded-2xl border border-gray-700/60">
-                        <div className="flex items-center gap-3 mb-3 text-white">
+                      <div className="p-5 bg-surface rounded-card border border-line">
+                        <div className="flex items-center gap-3 mb-3 text-text">
                           <UsersIcon />
                           <h3 className="text-lg font-semibold">Select Accounts</h3>
-                          <span className="ml-auto text-xs text-gray-300">Selected: <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">{selectedAccounts.length}</span></span>
+                          <span className="ml-auto text-xs text-muted">Selected: <span className="px-2 py-0.5 rounded-full bg-success-soft text-success border border-success">{selectedAccounts.length}</span></span>
                         </div>
 
                         {/* Select All Toggle */}
-                        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-gray-800/70 border border-gray-700/60">
+                        <div className="flex items-center gap-3 mb-4 p-3 rounded-card bg-surface border border-line">
                           <input type="checkbox" id="select-all" checked={selectedAccounts.length === (loggedUser?.accounts?.length || 0)} onChange={handleSelectAll} className="hidden" />
                           <label htmlFor="select-all" className="flex items-center cursor-pointer w-full select-none">
-                            <span className="relative inline-flex items-center h-6 w-11 rounded-full bg-gray-700 transition-colors duration-200 ease-in-out">
+                            <span className="relative inline-flex items-center h-6 w-11 rounded-full bg-surface-3 transition-colors duration-200 ease-in-out">
                               <span
-                                className={`absolute h-5 w-5 rounded-full bg-white transform transition-transform duration-200 ease-in-out ${selectedAccounts.length === (loggedUser?.accounts?.length || 0) ? "translate-x-5 bg-cyan-400" : "translate-x-0.5"}`}
+                                className={`absolute h-5 w-5 rounded-full bg-surface transform transition-transform duration-200 ease-in-out ${selectedAccounts.length === (loggedUser?.accounts?.length || 0) ? "translate-x-5 bg-primary" : "translate-x-0.5"}`}
                               />
                             </span>
-                            <span className="ml-3 text-gray-200">
+                            <span className="ml-3 text-muted">
                               {selectedAccounts.length === (loggedUser?.accounts?.length || 0) ? "Deselect All" : "Select All"}
                             </span>
                           </label>
@@ -217,12 +208,12 @@ export default function UserCopyRequest() {
                           {(loggedUser?.accounts || []).map((value: any, index: number) => {
                             const checked = selectedAccounts.includes(String(value.accountNumber));
                             return (
-                              <div key={index} className={`p-3 rounded-xl border transition-all cursor-pointer ${checked ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-cyan-400 shadow-lg shadow-cyan-500/20" : "bg-gray-800/60 border-gray-600 hover:border-gray-500"}`}
+                              <div key={index} className={`p-3 rounded-xl border transition-all cursor-pointer ${checked ? "border-line shadow-cyan-500/20" : "bg-surface border-line hover:border-line"}`}
                                    onClick={() => handleAccountChange(String(value.accountNumber))}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className={`inline-flex h-5 w-5 rounded-full border ${checked ? "border-cyan-400 bg-cyan-400/30" : "border-gray-500"}`} />
-                                  <span className="text-gray-200 text-sm">{value.accountNumber}</span>
+                                  <span className={`inline-flex h-5 w-5 rounded-full border ${checked ? "border-line bg-primary-soft" : "border-line"}`} />
+                                  <span className="text-muted text-sm">{value.accountNumber}</span>
                                 </div>
                               </div>
                             );
@@ -234,10 +225,10 @@ export default function UserCopyRequest() {
                     {/* Selected Accounts Chips */}
                     {selectedAccounts.length > 0 && (
                       <div>
-                        <label className="text-sm font-medium text-gray-200">Selected Accounts</label>
+                        <label className="text-sm font-medium text-muted">Selected Accounts</label>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {selectedAccounts.map((acc) => (
-                            <span key={acc} className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-sm">
+                            <span key={acc} className="px-3 py-1 rounded-full bg-primary-soft text-primary border border-line text-sm">
                               {acc}
                             </span>
                           ))}
@@ -250,10 +241,10 @@ export default function UserCopyRequest() {
                       <button
                         type="submit"
                         disabled={isSubmitting || !role || selectedAccounts.length === 0}
-                        className={`flex items-center justify-center py-4 px-12 rounded-full text-white font-semibold text-lg transition-all ${
+                        className={`flex items-center justify-center py-4 px-12 rounded-full text-text font-semibold text-lg transition-all ${
                           !isSubmitting && role && selectedAccounts.length > 0
-                            ? "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 hover:scale-105 shadow-xl shadow-cyan-500/25"
-                            : "bg-gray-600 cursor-not-allowed opacity-60"
+                            ? "hover:scale-105 shadow-cyan-500/25"
+                            : "bg-surface-3 cursor-not-allowed opacity-60"
                         }`}
                       >
                         {isSubmitting && (

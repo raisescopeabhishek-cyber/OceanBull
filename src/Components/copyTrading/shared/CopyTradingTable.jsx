@@ -1,8 +1,16 @@
 import React from "react";
 import { cx } from "../utils/copyTradingHelpers";
 
+/**
+ * Shared copy-trading table.
+ *
+ * Rows come from each caller's `renderRow`, so the cells can't be labelled
+ * where they're written. Instead the header text is attached to each cell
+ * here, at render time: `table-stack` (see styles/base.css) then turns the
+ * table into labelled rows below `lg`, and every page using this component
+ * becomes readable on a phone without touching its row markup.
+ */
 const CopyTradingTable = ({
-  isDark,
   columns = [],
   rows = [],
   renderRow,
@@ -13,33 +21,38 @@ const CopyTradingTable = ({
 }) => {
   const colSpan = Math.max(columns.length, 1);
 
+  /** Attach the matching column header to each <td> of a rendered row. */
+  const withLabels = (rowElement) => {
+    if (!React.isValidElement(rowElement)) return rowElement;
+
+    const cells = React.Children.toArray(rowElement.props.children);
+    let column = 0;
+
+    const labelled = cells.map((cell) => {
+      if (!React.isValidElement(cell) || cell.type !== "td") return cell;
+
+      const label = columns[column] ?? "";
+      column += cell.props.colSpan ? Number(cell.props.colSpan) : 1;
+
+      // Never override a label the caller set deliberately.
+      if (cell.props["data-label"] != null) return cell;
+      return React.cloneElement(cell, { "data-label": String(label) });
+    });
+
+    return React.cloneElement(rowElement, undefined, labelled);
+  };
+
   return (
-    <div
-      className={cx(
-        "overflow-hidden rounded-[22px] border",
-        isDark
-          ? "border-white/10 bg-white/[0.025]"
-          : "border-emerald-100 bg-white/90 shadow-[0_10px_26px_rgba(16,185,129,0.07)]"
-      )}
-    >
+    <div className={cx("overflow-hidden rounded-card border", "border-line bg-surface")}>
       <div className="max-w-full overflow-x-auto">
         <table
-          className="w-full text-left text-sm"
-          style={{
-            minWidth,
-          }}
+          className="table-stack w-full text-left text-sm"
+          style={{ minWidth }}
         >
           <thead>
-            <tr
-              className={cx(
-                "border-b text-xs uppercase tracking-[0.16em]",
-                isDark
-                  ? "border-white/10 bg-white/[0.035] text-white/45"
-                  : "border-emerald-100 bg-emerald-50/80 text-slate-500"
-              )}
-            >
+            <tr className="border-b border-line bg-surface-2">
               {columns.map((column) => (
-                <th key={column} className="whitespace-nowrap px-4 py-3">
+                <th key={column} className="lbl whitespace-nowrap px-3 py-2">
                   {column}
                 </th>
               ))}
@@ -48,28 +61,14 @@ const CopyTradingTable = ({
 
           <tbody>
             {rows.length > 0 ? (
-              rows.map((row, index) => renderRow(row, index))
+              rows.map((row, index) => withLabels(renderRow(row, index)))
             ) : (
               <tr>
-                <td colSpan={colSpan} className="px-4 py-10 text-center">
-                  <div
-                    className={cx(
-                      "mx-auto max-w-md rounded-2xl border p-6",
-                      isDark
-                        ? "border-white/10 bg-white/[0.025] text-white"
-                        : "border-emerald-100 bg-emerald-50/40 text-slate-900"
-                    )}
-                  >
-                    <p className="text-sm font-black">{emptyTitle}</p>
-                    <p
-                      className={cx(
-                        "mt-1 text-xs leading-5",
-                        isDark ? "text-white/50" : "text-slate-500"
-                      )}
-                    >
-                      {emptySubtitle}
-                    </p>
-                  </div>
+                <td colSpan={colSpan} className="px-3 py-10 text-center">
+                  <p className="lbl-sm text-text">{emptyTitle}</p>
+                  <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-muted">
+                    {emptySubtitle}
+                  </p>
                 </td>
               </tr>
             )}

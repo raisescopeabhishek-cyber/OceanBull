@@ -1019,65 +1019,47 @@ export default function UserDashboard() {
   }, [insuranceEligibleAccounts, selectedInsuranceAccount]);
 
   const sectionShell = cx(
-    "h-full rounded-[30px] border backdrop-blur-xl",
-    isDark
-      ? "border-white/10 bg-white/[0.04] shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-      : "border-orange-100/80 bg-white/75 shadow-[0_20px_60px_rgba(251,146,60,0.10)]"
+    "h-full rounded-card border backdrop-blur-xl","border-line bg-surface-2"
   );
 
   const metricShell = cx(
-    "relative min-h-[182px] h-full overflow-hidden rounded-[26px] border p-5 backdrop-blur-xl transition-all duration-300",
-    isDark
-      ? "border-white/10 bg-white/[0.045] hover:bg-white/[0.06]"
-      : "border-orange-100/80 bg-white/90 hover:bg-white"
+    "relative min-h-[182px] h-full overflow-hidden rounded-card border p-5 backdrop-blur-xl transition-all duration-300","border-line bg-surface-2 hover:bg-surface-2"
   );
 
-  const mutedText = isDark ? "text-white/55" : "text-slate-500";
-  const strongText = isDark ? "text-white" : "text-slate-900";
+  const mutedText ="text-subtle";
+  const strongText ="text-text";
   const statsGridClass = "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3";
 
   const getSummaryTone = (tone: SummaryItem["tone"]) => {
     if (tone === "primary") {
-      return isDark
-        ? "bg-blue-500/10 text-blue-300"
-        : "bg-orange-50 text-orange-700";
+      return "bg-primary-soft text-primary";
     }
 
     if (tone === "warning") {
-      return isDark
-        ? "bg-amber-500/10 text-amber-300"
-        : "bg-amber-50 text-amber-700";
+      return "bg-primary-soft text-primary";
     }
 
-    return isDark
-      ? "bg-emerald-500/10 text-emerald-300"
-      : "bg-emerald-50 text-emerald-700";
+    return "bg-success-soft text-success";
   };
 
   const insurancePopupModal =
     isClient && insurancePopupOpen
       ? createPortal(
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.25 }}
               className={cx(
-                "relative w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-orange-100 bg-white text-slate-900"
+                "relative w-full max-w-5xl overflow-hidden rounded-card border","border-line bg-surface text-text"
               )}
             >
               <button
                 type="button"
                 onClick={closeInsurancePopup}
                 className={cx(
-                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
-                  isDark
-                    ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                    : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                  "absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
                 )}
               >
                 <X size={18} />
@@ -1085,19 +1067,13 @@ export default function UserDashboard() {
 
               <div
                 className={cx(
-                  "px-6 py-6 sm:px-7 sm:py-7",
-                  isDark
-                    ? "bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(59,130,246,0.10))]"
-                    : "bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(236,253,245,1))]"
+                  "px-6 py-6 sm:px-7 sm:py-7",""
                 )}
               >
                 <div className="flex items-start gap-4 pr-10">
                   <div
                     className={cx(
-                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl",
-                      isDark
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-emerald-50 text-emerald-700"
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-card","bg-success-soft text-success"
                     )}
                   >
                     <ShieldCheck size={28} />
@@ -1106,8 +1082,7 @@ export default function UserDashboard() {
                   <div>
                     <p
                       className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.18em]",
-                        isDark ? "text-emerald-300" : "text-emerald-700"
+                        "text-xs font-semibold uppercase tracking-[0.18em]","text-success"
                       )}
                     >
                       Insurance Eligible
@@ -1127,10 +1102,7 @@ export default function UserDashboard() {
               <div className="grid gap-0 lg:grid-cols-[340px_minmax(0,1fr)]">
                 <div
                   className={cx(
-                    "border-b px-6 py-5 lg:border-b-0 lg:border-r",
-                    isDark
-                      ? "border-white/10 bg-white/[0.02]"
-                      : "border-orange-100 bg-orange-50/30"
+                    "border-b px-6 py-5 lg:border-b-0 lg:border-r","border-line bg-surface-2"
                   )}
                 >
                   <div className="mb-4">
@@ -1157,14 +1129,10 @@ export default function UserDashboard() {
                             setInsuranceClaimSuccess("");
                           }}
                           className={cx(
-                            "w-full rounded-2xl border p-4 text-left transition",
+                            "w-full rounded-card border p-4 text-left transition",
                             isSelected
-                              ? isDark
-                                ? "border-emerald-400/40 bg-emerald-500/10"
-                                : "border-emerald-300 bg-emerald-50"
-                              : isDark
-                              ? "border-white/10 bg-white/[0.04] hover:bg-white/[0.06]"
-                              : "border-orange-100 bg-white hover:bg-orange-50"
+                              ?"border-success bg-success-soft"
+                              :"border-line bg-surface-2 hover:bg-surface-2"
                           )}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -1179,10 +1147,7 @@ export default function UserDashboard() {
 
                             <div
                               className={cx(
-                                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                                isDark
-                                  ? "bg-white/8 text-white/80"
-                                  : "bg-white text-slate-700"
+                                "rounded-full px-2.5 py-1 text-[11px] font-semibold","bg-surface text-muted"
                               )}
                             >
                               {item.unclaimedCount} unclaimed
@@ -1260,14 +1225,12 @@ export default function UserDashboard() {
                               })
                             }
                             className={cx(
-                              "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+                              "inline-flex items-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition",
                               insuranceDetailsLoading ||
                                 insuranceClaimLoading ||
                                 !insuranceClaimDetails?.coverages?.length
-                                ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                                : isDark
-                                ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                ? "cursor-not-allowed bg-surface-3 text-muted"
+                                :"bg-success text-text hover:bg-success"
                             )}
                           >
                             <ShieldCheck
@@ -1282,10 +1245,7 @@ export default function UserDashboard() {
                       {insuranceClaimError ? (
                         <div
                           className={cx(
-                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
-                            isDark
-                              ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
-                              : "border-rose-200 bg-rose-50 text-rose-700"
+                            "mb-4 rounded-card border px-4 py-3 text-sm","border-danger bg-danger-soft text-danger"
                           )}
                         >
                           {insuranceClaimError}
@@ -1295,10 +1255,7 @@ export default function UserDashboard() {
                       {insuranceClaimSuccess ? (
                         <div
                           className={cx(
-                            "mb-4 rounded-2xl border px-4 py-3 text-sm",
-                            isDark
-                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            "mb-4 rounded-card border px-4 py-3 text-sm","border-success bg-success-soft text-success"
                           )}
                         >
                           {insuranceClaimSuccess}
@@ -1308,10 +1265,7 @@ export default function UserDashboard() {
                       {insuranceDetailsLoading ? (
                         <div
                           className={cx(
-                            "flex min-h-[240px] items-center justify-center rounded-2xl border",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03]"
-                              : "border-orange-100 bg-orange-50/30"
+                            "flex min-h-[240px] items-center justify-center rounded-card border","border-line bg-surface-2"
                           )}
                         >
                           <div className="inline-flex items-center gap-2 text-sm">
@@ -1325,10 +1279,7 @@ export default function UserDashboard() {
                             <div
                               key={`${coverage.coverageId}-${index}`}
                               className={cx(
-                                "rounded-2xl border p-4",
-                                isDark
-                                  ? "border-white/10 bg-white/[0.04]"
-                                  : "border-orange-100 bg-orange-50/40"
+                                "rounded-card border p-4","border-line bg-surface-2"
                               )}
                             >
                               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1369,13 +1320,11 @@ export default function UserDashboard() {
                                     })
                                   }
                                   className={cx(
-                                    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:min-w-[130px]",
+                                    "inline-flex items-center justify-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold transition sm:min-w-[130px]",
                                     insuranceClaimLoading ||
                                       claimingCoverageId === coverage.coverageId
-                                      ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                                      : isDark
-                                      ? "bg-blue-500 text-white hover:bg-blue-400"
-                                      : "bg-blue-600 text-white hover:bg-blue-700"
+                                      ? "cursor-not-allowed bg-surface-3 text-muted"
+                                      :"bg-primary text-text hover:bg-primary"
                                   )}
                                 >
                                   <Gift
@@ -1396,10 +1345,7 @@ export default function UserDashboard() {
                       ) : (
                         <div
                           className={cx(
-                            "rounded-2xl border px-4 py-8 text-center",
-                            isDark
-                              ? "border-white/10 bg-white/[0.03]"
-                              : "border-orange-100 bg-orange-50/30"
+                            "rounded-card border px-4 py-8 text-center","border-line bg-surface-2"
                           )}
                         >
                           <p className="text-base font-semibold">
@@ -1414,10 +1360,7 @@ export default function UserDashboard() {
                   ) : (
                     <div
                       className={cx(
-                        "flex min-h-[240px] items-center justify-center rounded-2xl border",
-                        isDark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-orange-100 bg-orange-50/30"
+                        "flex min-h-[240px] items-center justify-center rounded-card border","border-line bg-surface-2"
                       )}
                     >
                       <p className={cx("text-sm", mutedText)}>
@@ -1443,24 +1386,19 @@ export default function UserDashboard() {
               exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.2 }}
               className={cx(
-                "w-full max-w-2xl rounded-[28px] border shadow-2xl",
-                isDark
-                  ? "border-white/10 bg-slate-900 text-white"
-                  : "border-orange-100 bg-white text-slate-900"
+                "w-full max-w-2xl rounded-card border","border-line bg-surface text-text"
               )}
             >
               <div
                 className={cx(
-                  "border-b px-6 py-5",
-                  isDark ? "border-white/10" : "border-orange-100"
+                  "border-b px-6 py-5","border-line"
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p
                       className={cx(
-                        "text-xs font-semibold uppercase tracking-[0.18em]",
-                        isDark ? "text-blue-300" : "text-blue-700"
+                        "text-xs font-semibold uppercase tracking-[0.18em]","text-primary"
                       )}
                     >
                       Claim Decision
@@ -1488,10 +1426,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={closeClaimDecision}
                     className={cx(
-                      "inline-flex h-10 w-10 items-center justify-center rounded-full border transition",
-                      isDark
-                        ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                        : "border-orange-100 bg-white text-slate-600 hover:bg-orange-50"
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full border transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
                     )}
                   >
                     <X size={18} />
@@ -1502,10 +1437,7 @@ export default function UserDashboard() {
               <div className="px-6 py-6">
                 <div
                   className={cx(
-                    "rounded-2xl border p-4",
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-orange-100 bg-orange-50/40"
+                    "rounded-card border p-4","border-line bg-surface-2"
                   )}
                 >
                   <p className="text-sm leading-7">
@@ -1526,10 +1458,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={closeClaimDecision}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
-                      isDark
-                        ? "bg-white/5 text-white/80 hover:bg-white/10"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      "rounded-card px-4 py-3 text-sm font-semibold transition","bg-surface-2 text-muted hover:bg-surface-2"
                     )}
                   >
                     Cancel
@@ -1540,12 +1469,10 @@ export default function UserDashboard() {
                     onClick={handleClaimWithoutInsurance}
                     disabled={insuranceClaimLoading}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
+                      "rounded-card px-4 py-3 text-sm font-semibold transition",
                       insuranceClaimLoading
-                        ? "cursor-not-allowed bg-slate-300 text-slate-600"
-                        : isDark
-                        ? "bg-blue-500 text-white hover:bg-blue-400"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "cursor-not-allowed bg-surface-3 text-muted"
+                        :"bg-primary text-text hover:bg-primary"
                     )}
                   >
                     {insuranceClaimLoading ? "Processing..." : "Claim Now"}
@@ -1555,10 +1482,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={handleClaimWithInsurance}
                     className={cx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold transition",
-                      isDark
-                        ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                      "rounded-card px-4 py-3 text-sm font-semibold transition","bg-success text-text hover:bg-success"
                     )}
                   >
                     Claim With Insurance
@@ -1579,17 +1503,17 @@ export default function UserDashboard() {
       transition={{ duration: 0.35 }}
     >
       <div
-        className="pointer-events-none absolute inset-0 rounded-[32px]"
+        className="pointer-events-none absolute inset-0 rounded-card"
         aria-hidden
         style={{
           background: isDark
             ? `
-              radial-gradient(circle at 12% 18%, rgba(59,130,246,0.10), transparent 24%),
+              radial-gradient(circle at 12% 18%, rgba(79, 125, 246,0.10), transparent 24%),
               radial-gradient(circle at 88% 0%, rgba(34,211,238,0.08), transparent 22%),
               radial-gradient(circle at 50% 100%, rgba(255,255,255,0.03), transparent 32%)
             `
             : `
-              radial-gradient(circle at 14% 20%, rgba(251,146,60,0.12), transparent 24%),
+              radial-gradient(circle at 14% 20%, rgba(79, 125, 246,0.12), transparent 24%),
               radial-gradient(circle at 86% 0%, rgba(255,255,255,0.78), transparent 30%),
               linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08))
             `,
@@ -1600,18 +1524,12 @@ export default function UserDashboard() {
         <section className={cx("overflow-hidden", sectionShell)}>
           <div
             className={cx(
-              "relative px-5 py-5 sm:px-6 sm:py-6",
-              isDark
-                ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
-                : "bg-[linear-gradient(135deg,rgba(255,255,255,0.90),rgba(255,247,240,0.82))]"
+              "relative px-5 py-5 sm:px-6 sm:py-6",""
             )}
           >
             <div
               className={cx(
-                "pointer-events-none absolute inset-x-0 top-0 h-px",
-                isDark
-                  ? "bg-gradient-to-r from-transparent via-blue-300/30 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-orange-300/70 to-transparent"
+                "pointer-events-none absolute inset-x-0 top-0 h-px",""
               )}
             />
 
@@ -1619,10 +1537,7 @@ export default function UserDashboard() {
               <div className="min-w-0">
                 <div
                   className={cx(
-                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                    isDark
-                      ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                      : "border-orange-200 bg-orange-50 text-orange-700"
+                    "mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]","border-line bg-primary-soft text-primary"
                   )}
                 >
                   <TrendingUp size={14} />
@@ -1646,14 +1561,14 @@ export default function UserDashboard() {
                 </p>
 
                 {summary.hasMixedCurrencies ? (
-                  <p className="mt-3 text-sm text-amber-500">
+                  <p className="mt-3 text-sm text-primary">
                     Multiple account currencies detected ({summary.currencies.join(", ")}).
                     Totals are combined directly, so backend normalization is recommended.
                   </p>
                 ) : null}
 
                 {errorText ? (
-                  <p className="mt-3 text-sm text-rose-500">{errorText}</p>
+                  <p className="mt-3 text-sm text-danger">{errorText}</p>
                 ) : null}
               </div>
 
@@ -1663,10 +1578,7 @@ export default function UserDashboard() {
                     type="button"
                     onClick={loadDashboardSummary}
                     className={cx(
-                      "inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition",
-                      isDark
-                        ? "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/[0.07]"
-                        : "border-orange-100 bg-white text-slate-700 hover:bg-orange-50"
+                      "inline-flex items-center justify-center gap-2 rounded-card border px-4 py-2.5 text-sm font-medium transition","border-line bg-surface-2 text-muted hover:bg-surface-2"
                     )}
                   >
                     <RefreshCw
@@ -1682,16 +1594,13 @@ export default function UserDashboard() {
                     <div
                       key={item.title}
                       className={cx(
-                        "rounded-2xl border px-4 py-3 backdrop-blur-md",
-                        isDark
-                          ? "border-white/10 bg-white/[0.04]"
-                          : "border-orange-100 bg-white/80"
+                        "rounded-card border px-4 py-3 backdrop-blur-md","border-line bg-surface-2"
                       )}
                     >
                       <div className="flex items-center gap-2">
                         <div
                           className={cx(
-                            "flex h-8 w-8 items-center justify-center rounded-xl",
+                            "flex h-8 w-8 items-center justify-center rounded-card",
                             getSummaryTone(item.tone)
                           )}
                         >
@@ -1762,7 +1671,7 @@ export default function UserDashboard() {
                   className={cx(
                     metricShell,
                     item.link &&
-                      "cursor-pointer hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+                      "cursor-pointer hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-line"
                   )}
                 >
                   <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -1770,12 +1679,8 @@ export default function UserDashboard() {
                       className={cx(
                         "absolute -right-6 top-4 h-24 w-24 rounded-full blur-3xl",
                         item.positive
-                          ? isDark
-                            ? "bg-emerald-400/20"
-                            : "bg-orange-200/40"
-                          : isDark
-                          ? "bg-rose-400/15"
-                          : "bg-rose-200/35"
+                          ?"bg-success-soft"
+                          :"bg-danger-soft"
                       )}
                     />
 
@@ -1783,12 +1688,8 @@ export default function UserDashboard() {
                       className={cx(
                         "absolute right-5 top-5 h-px w-24",
                         item.positive
-                          ? isDark
-                            ? "bg-gradient-to-l from-cyan-300/45 to-transparent"
-                            : "bg-gradient-to-l from-amber-400/45 to-transparent"
-                          : isDark
-                          ? "bg-gradient-to-l from-rose-300/40 to-transparent"
-                          : "bg-gradient-to-l from-rose-400/35 to-transparent"
+                          ?"to-transparent"
+                          :"to-transparent"
                       )}
                     />
 
@@ -1796,12 +1697,8 @@ export default function UserDashboard() {
                       className={cx(
                         "absolute right-5 top-9 h-px w-16",
                         item.positive
-                          ? isDark
-                            ? "bg-gradient-to-l from-emerald-300/35 to-transparent"
-                            : "bg-gradient-to-l from-orange-300/40 to-transparent"
-                          : isDark
-                          ? "bg-gradient-to-l from-rose-300/30 to-transparent"
-                          : "bg-gradient-to-l from-rose-300/30 to-transparent"
+                          ?"to-transparent"
+                          :"to-transparent"
                       )}
                     />
 
@@ -1819,10 +1716,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(34,211,238,0.10)"
-                                    : "rgba(245,158,11,0.10)"
+                                    : "rgba(42, 86, 220,0.10)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.10)"
-                                  : "rgba(244,63,94,0.08)"
+                                  ? "rgba(248, 113, 113,0.10)"
+                                  : "rgba(220, 58, 58,0.08)"
                               }
                             />
                             <stop
@@ -1831,10 +1728,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(74,222,128,0.06)"
-                                    : "rgba(34,197,94,0.06)"
+                                    : "rgba(15, 159, 110,0.06)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.05)"
-                                  : "rgba(244,63,94,0.04)"
+                                  ? "rgba(248, 113, 113,0.05)"
+                                  : "rgba(220, 58, 58,0.04)"
                               }
                             />
                             <stop
@@ -1850,10 +1747,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(74,222,128,0.55)"
-                                    : "rgba(34,197,94,0.55)"
+                                    : "rgba(15, 159, 110,0.55)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.55)"
-                                  : "rgba(239,68,68,0.50)"
+                                  ? "rgba(248, 113, 113,0.55)"
+                                  : "rgba(220, 58, 58,0.50)"
                               }
                             />
                             <stop
@@ -1862,10 +1759,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(34,211,238,0.95)"
-                                    : "rgba(245,158,11,0.95)"
+                                    : "rgba(42, 86, 220,0.95)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.90)"
-                                  : "rgba(239,68,68,0.88)"
+                                  ? "rgba(248, 113, 113,0.90)"
+                                  : "rgba(220, 58, 58,0.88)"
                               }
                             />
                           </linearGradient>
@@ -1883,10 +1780,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(74,222,128,0.18)"
-                                    : "rgba(34,197,94,0.16)"
+                                    : "rgba(15, 159, 110,0.16)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.18)"
-                                  : "rgba(239,68,68,0.15)"
+                                  ? "rgba(248, 113, 113,0.18)"
+                                  : "rgba(220, 58, 58,0.15)"
                               }
                             />
                             <stop
@@ -1895,10 +1792,10 @@ export default function UserDashboard() {
                                 item.positive
                                   ? isDark
                                     ? "rgba(34,211,238,0.42)"
-                                    : "rgba(245,158,11,0.35)"
+                                    : "rgba(42, 86, 220,0.35)"
                                   : isDark
-                                  ? "rgba(251,113,133,0.36)"
-                                  : "rgba(239,68,68,0.30)"
+                                  ? "rgba(248, 113, 113,0.36)"
+                                  : "rgba(220, 58, 58,0.30)"
                               }
                             />
                           </linearGradient>
@@ -1944,10 +1841,7 @@ export default function UserDashboard() {
 
                     <div
                       className={cx(
-                        "absolute inset-y-0 left-0 w-[58%]",
-                        isDark
-                          ? "bg-gradient-to-r from-[rgba(10,14,24,0.88)] via-[rgba(10,14,24,0.62)] to-transparent"
-                          : "bg-gradient-to-r from-[rgba(255,255,255,0.96)] via-[rgba(255,255,255,0.82)] to-transparent"
+                        "absolute inset-y-0 left-0 w-[58%]","from-[rgba(10,14,24,0.88)] via-[rgba(10,14,24,0.62)] to-transparent"
                       )}
                     />
                   </div>
@@ -1968,10 +1862,7 @@ export default function UserDashboard() {
 
                       <div
                         className={cx(
-                          "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl backdrop-blur-md",
-                          isDark
-                            ? "bg-white/6 text-white/85"
-                            : "bg-white/90 text-orange-700 shadow-[0_10px_22px_rgba(251,146,60,0.12)]"
+                          "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-card backdrop-blur-md","bg-surface text-muted"
                         )}
                       >
                         {item.icon}
@@ -1983,12 +1874,8 @@ export default function UserDashboard() {
                         className={cx(
                           "max-w-[72%] truncate rounded-full px-3 py-1 text-xs font-medium backdrop-blur-md",
                           item.positive
-                            ? isDark
-                              ? "bg-emerald-500/10 text-emerald-300"
-                              : "bg-emerald-50/95 text-emerald-700"
-                            : isDark
-                            ? "bg-rose-500/10 text-rose-300"
-                            : "bg-rose-50/95 text-rose-700"
+                            ?"bg-success-soft text-success"
+                            :"bg-danger-soft text-danger"
                         )}
                       >
                         {item.change}

@@ -1,35 +1,35 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { MoonStar, SunMedium, CheckCircle2 } from "lucide-react";
-import { setSuperadminTheme } from "../../../redux/superadminThemeSlice";
+import { useTheme } from "@/theme/ThemeProvider";
 
 const ThemeCard = ({ active, title, desc, icon, onClick, dark }) => {
   return (
     <button
       onClick={onClick}
       className={[
-        "relative w-full rounded-3xl border p-6 text-left transition-all duration-300",
+        "relative w-full rounded-card border p-6 text-left transition-all duration-300",
         active
           ? dark
-            ? "border-blue-400/30 bg-blue-500/10 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
-            : "border-blue-200 bg-blue-50 shadow-[0_16px_40px_rgba(59,130,246,0.08)]"
+            ? "border-line bg-primary-soft shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
+            : "border-line bg-primary-soft shadow-[0_16px_40px_rgba(59,130,246,0.08)]"
           : dark
-          ? "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
-          : "border-slate-200 bg-white hover:bg-slate-50",
+          ? "border-line bg-surface-2 hover:bg-surface-2"
+          : "border-line bg-surface hover:bg-surface-2",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-4">
         <div>
           <div
             className={[
-              "mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border",
+              "mb-4 inline-flex h-12 w-12 items-center justify-center rounded-card border",
               active
                 ? dark
-                  ? "border-blue-400/20 bg-blue-500/10 text-blue-200"
-                  : "border-blue-200 bg-blue-50 text-blue-700"
+                  ? "border-line bg-primary-soft text-primary"
+                  : "border-line bg-primary-soft text-primary"
                 : dark
-                ? "border-white/10 bg-black/20 text-white/80"
-                : "border-slate-200 bg-slate-50 text-slate-700",
+                ? "border-line bg-black/60 text-muted"
+                : "border-line bg-surface-2 text-muted",
             ].join(" ")}
           >
             {icon}
@@ -38,7 +38,7 @@ const ThemeCard = ({ active, title, desc, icon, onClick, dark }) => {
           <h3
             className={[
               "text-lg font-semibold",
-              dark ? "text-white" : "text-slate-900",
+              dark ? "text-text" : "text-text",
             ].join(" ")}
           >
             {title}
@@ -47,7 +47,7 @@ const ThemeCard = ({ active, title, desc, icon, onClick, dark }) => {
           <p
             className={[
               "mt-2 text-sm leading-6",
-              dark ? "text-white/55" : "text-slate-500",
+              dark ? "text-subtle" : "text-subtle",
             ].join(" ")}
           >
             {desc}
@@ -56,7 +56,7 @@ const ThemeCard = ({ active, title, desc, icon, onClick, dark }) => {
 
         {active && (
           <CheckCircle2
-            className={dark ? "text-blue-300" : "text-blue-600"}
+            className={dark ? "text-primary" : "text-primary"}
             size={22}
           />
         )}
@@ -67,6 +67,7 @@ const ThemeCard = ({ active, title, desc, icon, onClick, dark }) => {
 
 const ThemeConfig = () => {
   const dispatch = useDispatch();
+  const { setMode: setThemeMode } = useTheme();
   const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
   const isDark = mode === "dark";
 
@@ -75,16 +76,14 @@ const ThemeConfig = () => {
       <div>
         <h2
           className={[
-            "text-2xl font-bold",
-            isDark ? "text-white" : "text-slate-900",
+            "text-2xl font-bold","text-text",
           ].join(" ")}
         >
           SuperAdmin Theme Configuration
         </h2>
         <p
           className={[
-            "mt-2 text-sm",
-            isDark ? "text-white/55" : "text-slate-500",
+            "mt-2 text-sm","text-subtle",
           ].join(" ")}
         >
           Choose a refined interface mode for the SuperAdmin dashboard.
@@ -98,7 +97,7 @@ const ThemeConfig = () => {
           title="Dark Mode"
           desc="Elegant and premium dark appearance with blue highlights, glass surfaces, and deep contrast."
           icon={<MoonStar className="w-6 h-6" />}
-          onClick={() => dispatch(setSuperadminTheme("dark"))}
+          onClick={() => setThemeMode("dark")}
         />
 
         <ThemeCard
@@ -107,32 +106,27 @@ const ThemeConfig = () => {
           title="Light Mode"
           desc="Clean, bright and professional workspace with soft shadows and subtle blue accents."
           icon={<SunMedium className="w-6 h-6" />}
-          onClick={() => dispatch(setSuperadminTheme("light"))}
+          onClick={() => setThemeMode("light")}
         />
       </div>
 
       <div
         className={[
-          "rounded-3xl border p-6",
-          isDark
-            ? "border-white/10 bg-white/[0.03]"
-            : "border-slate-200 bg-white",
+          "rounded-card border p-6","border-line bg-surface-2",
         ].join(" ")}
       >
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h3
               className={[
-                "text-lg font-semibold",
-                isDark ? "text-white" : "text-slate-900",
+                "text-lg font-semibold","text-text",
               ].join(" ")}
             >
               Active Theme
             </h3>
             <p
               className={[
-                "mt-1 text-sm",
-                isDark ? "text-white/55" : "text-slate-500",
+                "mt-1 text-sm","text-subtle",
               ].join(" ")}
             >
               Current mode is{" "}
@@ -144,8 +138,8 @@ const ThemeConfig = () => {
             className={[
               "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em]",
               mode === "dark"
-                ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                : "border-blue-200 bg-blue-50 text-blue-700",
+                ? "border-line bg-primary-soft text-primary"
+                : "border-line bg-primary-soft text-primary",
             ].join(" ")}
           >
             {mode} mode enabled

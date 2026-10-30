@@ -46,7 +46,7 @@ const EmailUnverified = () => {
   }, [page, search]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-indigo-900 rounded-xl p-6 shadow-lg text-white">
+    <div className="rounded-card p-6 text-text">
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <MailX size={18} /> Email Unverified Users
       </h2>
@@ -56,7 +56,7 @@ const EmailUnverified = () => {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
           />
           <input
             type="text"
@@ -66,52 +66,52 @@ const EmailUnverified = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring focus:ring-red-300 text-black"
+            className="pl-9 pr-4 py-2 border rounded-field w-full focus:outline-none focus:ring focus:ring-danger text-text"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <p className="text-gray-300">Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : users.length === 0 ? (
-        <p className="text-gray-300">No email unverified users found.</p>
+        <p className="text-muted">No email unverified users found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border border-red-800">
+          <table className="min-w-full border-collapse border border-danger table-stack">
             <thead>
-              <tr className="bg-red-800/50">
-                <th className="p-3 text-left border border-red-800">Name</th>
-                <th className="p-3 text-left border border-red-800">Email</th>
-                <th className="p-3 text-left border border-red-800">Phone</th>
-                <th className="p-3 text-left border border-red-800">Email varified</th>
-                <th className="p-3 text-left border border-red-800">Country</th>
-                <th className="p-3 text-left border border-red-800">Accounts</th>
+              <tr className="bg-danger-soft">
+                <th className="p-3 text-left border border-danger">Name</th>
+                <th className="p-3 text-left border border-danger">Email</th>
+                <th className="p-3 text-left border border-danger">Phone</th>
+                <th className="p-3 text-left border border-danger">Email varified</th>
+                <th className="p-3 text-left border border-danger">Country</th>
+                <th className="p-3 text-left border border-danger">Accounts</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr
                   key={u._id}
-                  className="hover:bg-red-800/30 transition duration-200"
+                  className="hover:bg-danger-soft transition duration-200"
                 >
-                  <td className="p-3 border border-red-800">
+                  <td data-label="Name" className="p-3 border border-danger">
                     {u.firstName} {u.lastName}
                   </td>
-                  <td className="p-3 border border-red-800 text-yellow-300">
+                  <td data-label="Email" className="p-3 border border-danger text-warning">
                     {u.email}
                   </td>
-                  <td className="p-3 border border-red-800">{u.phone || "-"}</td>
-                  <td className="p-3 border border-red-800">{u.phone || "-"}</td>
+                  <td data-label="Phone" className="p-3 border border-danger">{u.phone || "-"}</td>
+                  <td data-label="Email varified" className="p-3 border border-danger">{u.phone || "-"}</td>
 
-                  <td className="p-3 border border-red-800">{u.country || "-"}</td>
-                  <td className="p-3 border border-red-800">
+                  <td data-label="Country" className="p-3 border border-danger">{u.country || "-"}</td>
+                  <td data-label="Accounts" className="p-3 border border-danger">
                     {u.accounts && u.accounts.length > 0 ? (
                       <div className="space-y-1">
                         {u.accounts.map((acc) => (
                           <div
                             key={acc._id}
-                            className="bg-red-900 px-2 py-1 rounded text-xs"
+                            className="bg-danger-soft text-danger px-2 py-1 rounded-field text-xs"
                           >
                             {acc.accountNumber} ({acc.platform})
                           </div>
@@ -133,17 +133,17 @@ const EmailUnverified = () => {
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Prev
         </button>
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-muted">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           disabled={page === pagination.totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 bg-red-600 text-white rounded disabled:bg-gray-400"
+          className="px-3 py-1 bg-danger text-text rounded disabled:bg-surface-3"
         >
           Next
         </button>

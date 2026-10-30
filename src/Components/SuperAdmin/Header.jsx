@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   LogOut,
+  Menu,
   User,
   KeyRound,
   Shield,
@@ -10,6 +11,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useSidebar } from "@/Components/ui/SidebarContext";
+import { IconButton } from "@/Components/ui/Button";
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 const isSafeImageSrc = (src) => {
@@ -58,6 +61,7 @@ const Header = () => {
 
   const dispatch = useDispatch();
   const { toggle: toggleTheme } = useTheme();
+  const { open, openSidebar } = useSidebar();
   const navigate = useNavigate();
 
   const safeHeightRem = useMemo(() => {
@@ -116,15 +120,17 @@ const Header = () => {
 
 
         <div className="relative py-9 sm:py-8">
-          <div className="flex items-center justify-between px-6">
-            <div className="w-0 md:w-0" />
+          <div className="flex items-center justify-between gap-2 px-4 sm:px-6">
+            <IconButton label="Open menu" onClick={openSidebar} aria-expanded={open} className="shrink-0 lg:hidden">
+              <Menu className="h-[18px] w-[18px]" />
+            </IconButton>
 
             <div className="flex-1 flex items-center justify-center">
               {shouldRenderLogo ? (
                 <img
                   src={safeLogoSrc}
                   alt={safeAlt}
-                  className="object-contain w-44"
+                  className="object-contain w-24 max-h-12 sm:w-44 sm:max-h-none"
                   style={{ height: `${safeHeightRem}rem` }}
                   loading="lazy"
                   decoding="async"
@@ -137,7 +143,7 @@ const Header = () => {
               )}
             </div>
 
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 sm:gap-3">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <button
                 className={[
                   "grid h-10 w-10 place-items-center rounded-card border transition","border-line bg-surface-2 text-muted hover:bg-surface-2 hover:text-text",

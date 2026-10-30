@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   User,
+  Menu,
   Bell,
   X,
   Sun,
@@ -31,6 +32,8 @@ import { backendApi } from "../../../utils/apiClients";
 import { setNotification, setLoggedUser } from "../../../redux/user/userSlice";
 import { mt5AccountsStore } from "../../../services/mt5Accounts";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useSidebar } from "@/Components/ui/SidebarContext";
+import { IconButton } from "@/Components/ui/Button";
 import { FloatingParticles } from "../../../utils/FloatingParticles";
 
 const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -472,6 +475,7 @@ const UserHeader = () => {
 
   const dispatch = useDispatch();
   const { toggle: toggleTheme } = useTheme();
+  const { open, openSidebar } = useSidebar();
   const navigate = useNavigate();
 
   const isDark = mode === "dark";
@@ -519,14 +523,17 @@ const UserHeader = () => {
       <FloatingParticles />
 
       <div className="flex h-full items-center justify-between px-3 md:px-5">
-        <div className="flex items-center gap-2">
-          <div className="mr-2">
+        <div className="relative flex min-w-0 items-center gap-2">
+          <IconButton label="Open menu" onClick={openSidebar} aria-expanded={open} className="shrink-0 lg:hidden">
+            <Menu className="h-[18px] w-[18px]" />
+          </IconButton>
+          <div className="min-w-0">
             <Link to="/user/dashboard" className="mr-2">
               {siteConfig?.logo ? (
                 <img
                   src={siteConfig.logo}
                   alt={siteConfig.siteName || "Logo"}
-                  className="block w-auto object-contain md:hidden"
+                  className="block max-h-12 w-auto max-w-[64px] object-contain min-[375px]:max-w-[100px] md:hidden"
                   style={{ height: `${baseHeight * 0.8}rem` }}
                 />
               ) : null}
@@ -535,7 +542,7 @@ const UserHeader = () => {
         </div>
 
 
-        <div className="relative flex items-center gap-2 md:gap-3">
+        <div className="relative flex shrink-0 items-center gap-2 md:gap-3">
           <button
             type="button"
             onClick={() => dispatch(openNewChallengeModal())}

@@ -14,7 +14,8 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { adminApi, backendApi } from "@/utils/apiClients";
+import { backendApi } from "@/utils/apiClients";
+import { useMt5Account } from "../../../hooks/useMt5Accounts";
 
 export default function UserDeposit() {
   const loggedUser = useSelector((store) => store.user.loggedUser);
@@ -30,8 +31,15 @@ export default function UserDeposit() {
     transactionId: "",
   });
   const [accountType, setAccountType] = useState("");
-  const [accountBalance, setAccountBalance] = useState("");
-  const [balanceLoading, setBalanceLoading] = useState(false);
+  const selectedAccountExists = loggedUser?.accounts?.some(
+    (item) => String(item.accountNumber) === String(formData.accountNumber)
+  );
+  const { info: liveAccount, isReady } = useMt5Account(
+    selectedAccountExists ? formData.accountNumber : ""
+  );
+  const balanceReady = isReady(["Equity"]);
+  const accountBalance = balanceReady ? liveAccount.Equity : "";
+  const balanceLoading = !!formData.accountNumber && !balanceReady;
   const [creatingLoading, setCreatingLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -45,32 +53,6 @@ export default function UserDeposit() {
 
   // Effects
   useEffect(() => getPaymentMethod(), []);
-  useEffect(() => {
-    const fetchAccountInfo = async () => {
-      console.log("Fetching account info for:", formData.accountNumber);
-
-      if (!formData.accountNumber) return;
-
-      try {
-        setBalanceLoading(true);
-        setAccountBalance("");
-
-        const res = await adminApi.get(
-          `/server-logger-info`
-        );
-
-        setBalanceLoading(false);
-
-        if (res.data.data.Equity) setAccountBalance(res.data.data.Equity);
-      } catch (error) {
-        console.error(error);
-        setBalanceLoading(false);
-      }
-    };
-
-    fetchAccountInfo();
-  }, [formData?.accountNumber]);
-
   // Filter and deduplicate active payment methods
   const bankTransfers = paymentMethods?.filter(
     (value) => value.status === "active" && value.name === "Bank Transfer"
@@ -320,7 +302,7 @@ export default function UserDeposit() {
                   {balanceLoading ? (
                     <LoaderPinwheelIcon className="animate-spin text-secondary-500" />
                   ) : (
-                    accountBalance && (
+                    balanceReady && (
                       <p className="px-4">
                         Balance:{" "}
                         <span className="bg-secondary-500-10 px-3 py-1 rounded-full text-secondary-500">

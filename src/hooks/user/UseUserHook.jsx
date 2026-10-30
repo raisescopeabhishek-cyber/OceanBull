@@ -9,6 +9,7 @@ import { userApi } from "../../utils/apiClients";
 import { useDispatch, useSelector } from "react-redux";
 import { useRef, useEffect } from "react";
 import { setAccountStats } from "../../redux/user/userSlice";
+import { mt5AccountsStore } from "../../services/mt5Accounts";
 
 export default function UseUserHook() {
   const dispatch = useDispatch();
@@ -30,6 +31,7 @@ export default function UseUserHook() {
 
   // 🔁 Resets user-related state
   const getReset = () => {
+    mt5AccountsStore.reset();
     dispatch(setLoggedUser(""));
     dispatch(setOpenTrades([]));
     dispatch(setPlatforms([]));

@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Coins, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { motion, animate } from "framer-motion";
 import { userApi} from "@/utils/apiClients";
-import { setTotalFinalPnL } from "@/redux/user/userSlice";
 import { useGetInfoByAccounts } from "../../../hooks/user/UseGetInfoByAccounts";
 
 /* -------------------- theme helpers (RGB strings -> css) ------------------- */
@@ -140,7 +139,6 @@ const getAccentPair = (key: string, theme: any, isPositive?: boolean) => {
 };
 
 const UserDashboardBalanceCards = () => {
-  const totalFinalPnL = useSelector((store: any) => store.user.totalFinalPnL);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
 
@@ -149,23 +147,21 @@ const UserDashboardBalanceCards = () => {
 
 
   const loggedUser = useSelector((store: any) => store.user.loggedUser);
-  console.log("loggedUser ------------>>>>>>" , loggedUser);
   
   const accountIds = loggedUser?.accounts?.map((acc: any) => +acc.accountNumber) || [];
-  // useGetInfoByAccounts(accountIds, "accounts");
-  const { accountsStats } = useSelector((store: any) => store.user);
+  const { stats: accountsStats, byLogin } = useGetInfoByAccounts(accountIds);
+  const balancesLoaded = accountIds.every((id: number) => Number.isFinite(byLogin[String(id)]?.Equity));
 
   const availableBalance = Number(accountsStats?.totalEquity || 0);
   
 
-  const dispatch = useDispatch();
 
   // ✅ theme
   const themeConfig = useSelector((s: any) => s.user.themeConfig);
   const theme = useMemo(() => themeConfig?.theme || {}, [themeConfig]);
   const radius = theme?.radius || "14px";
 
-  const isPositive = parseFloat(totalFinalPnL) >= 0;
+  const isPositive = availableBalance >= 0;
 
 
 
@@ -196,24 +192,6 @@ const fetch_TotalTransfer = async () => {
 };
 
 
-  const fetchAccountsInfo = async () => {
-    try {
-      let Balance = 0;
-      for (const account of loggedUser?.accounts || []) {
-
-        const res = await userApi.get(
-          `/server-logger-info?account=${account.accountNumber}`
-        );
-        console.log("available_balance ------>>>>" ,  res.data.data.Equity);
-        
-        Balance += Number(res.data.data.Equity);
-      }
-      dispatch(setTotalFinalPnL(Balance.toFixed(2)));
-    } catch (error) {
-      console.error("Error fetching accounts info:", error);
-    }
-  };
-
   const fetchTotalDeposits = async () => {
     try {
       const res = await userApi.get(`/deposit/${loggedUser._id}`);
@@ -241,15 +219,10 @@ const fetch_TotalTransfer = async () => {
     fetchTotalWithdrawals();
     fetchCommissions();
     fetch_TotalTransfer();
-    const fetchBalance = setInterval(() => {
-      fetchAccountsInfo();
-    }, 4000);
-    return () => clearInterval(fetchBalance);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cards = useMemo(() => {
-    const equity = Number(accountsStats?.totalEquity || 0);
     return [
       {
         key: "accounts",
@@ -346,7 +319,9 @@ const fetch_TotalTransfer = async () => {
                   </p>
 
                   <p className="text-lg font-extrabold leading-tight" style={{ color: rgba(theme?.fg || "255 255 255", 0.92) }}>
-                    <AnimatedNumber value={c.value} decimals={c.decimals} suffix={c.suffix || ""} />
+                    {c.key === "balance" && !balancesLoaded ? "--" : (
+                      <AnimatedNumber value={c.value} decimals={c.decimals} suffix={c.suffix || ""} />
+                    )}
                   </p>
                 </div>
               </div>

@@ -23,6 +23,7 @@ import { adminApi } from "../../../utils/apiClients";
 import { CFformatDate } from "../../../utils/CustomFunctions";
 import { FloatingParticles } from "../../../utils/FloatingParticles";
 import { AnimatedGrid } from "../../../utils/AnimatedGrid";
+import { useMt5Accounts } from "../../../hooks/useMt5Accounts";
 
 const containerVariants = {
   hidden: { opacity: 1 },
@@ -174,11 +175,22 @@ const UserDetailDashboard = () => {
   const [userData, setUserData] = useState<any>(null);
   const [deposits, setDeposits] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const [totalBalance, setTotalBalance] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
-  const [equityLoading, setEquityLoading] = useState<boolean>(false);
 
   const accountsRef = useRef<HTMLDivElement | null>(null);
+  const userRequestRef = useRef(0);
+  const accountNumbers = useMemo(
+    () => String(userData?._id) === String(id)
+      ? (userData?.accounts || []).map((account: any) => account.accountNumber)
+      : [],
+    [userData, id]
+  );
+  const { byLogin, isReady, refresh: refreshBalances } = useMt5Accounts(accountNumbers);
+  const equityLoading = loading || accountNumbers.some((account: any) => !isReady(account, ["Equity"]));
+  const totalBalance = accountNumbers.reduce(
+    (total: number, account: any) => total + (byLogin[String(account)]?.Equity ?? 0),
+    0
+  );
 
   const totalTransactions = useMemo(
     () => [...deposits, ...withdrawals],
@@ -196,6 +208,7 @@ const UserDetailDashboard = () => {
   );
 
   const fetchUserData = async () => {
+    const request = ++userRequestRef.current;
     setLoading(true);
     try {
       const [res, depRes, wRes] = await Promise.all([
@@ -203,6 +216,7 @@ const UserDetailDashboard = () => {
         adminApi.get(`/deposits`),
         adminApi.get(`/withdrawals`),
       ]);
+      if (request !== userRequestRef.current) return;
 
       const user = res?.data?.data || null;
       setUserData(user);
@@ -219,39 +233,11 @@ const UserDetailDashboard = () => {
       setDeposits(userDeposits);
       setWithdrawals(userWithdrawals);
     } catch (error) {
+      if (request !== userRequestRef.current) return;
       console.error("Failed to load user:", error);
       toast.error("Failed to load user data");
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAccountsEquity = async (accounts: any[]) => {
-    if (!accounts?.length) {
-      setTotalBalance(0);
-      return;
-    }
-
-    setEquityLoading(true);
-    try {
-      const results = await Promise.allSettled(
-        accounts.map(() => adminApi.get(`/server-logger-info`))
-      );
-
-      const sum = results.reduce((total, result) => {
-        if (result.status === "fulfilled") {
-          const equity = Number(result.value?.data?.data?.Equity || 0);
-          return total + (Number.isFinite(equity) ? equity : 0);
-        }
-        return total;
-      }, 0);
-
-      setTotalBalance(Number(sum.toFixed(2)));
-    } catch (error) {
-      console.error("Equity fetch failed:", error);
-      toast.error("Could not refresh account balances");
-    } finally {
-      setEquityLoading(false);
+      if (request === userRequestRef.current) setLoading(false);
     }
   };
 
@@ -263,15 +249,8 @@ const UserDetailDashboard = () => {
 
   useEffect(() => {
     if (id) fetchUserData();
+    return () => { userRequestRef.current += 1; };
   }, [id]);
-
-  useEffect(() => {
-    if (userData?.accounts?.length) {
-      fetchAccountsEquity(userData.accounts);
-    } else {
-      setTotalBalance(0);
-    }
-  }, [userData]);
 
   const fullName = `${userData?.firstName || ""} ${userData?.lastName || ""}`.trim();
   const email = userData?.email || "—";
@@ -597,7 +576,7 @@ const UserDetailDashboard = () => {
               subtitle="Manage and inspect user trading accounts"
               right={
                 <button
-                  onClick={() => userData?.accounts && fetchAccountsEquity(userData.accounts)}
+                  onClick={refreshBalances}
                   disabled={equityLoading}
                   className={[
                     "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300",

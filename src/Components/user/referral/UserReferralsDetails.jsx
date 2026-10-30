@@ -36,8 +36,7 @@ const UserReferralsDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const allAccounts = commissionsData.map((v) => Number(v.accountNumber));
-  useGetInfoByAccounts(allAccounts, "ib");
-  const { ibAccountsData } = useSelector((store) => store.user);
+  const { data: ibAccountsData } = useGetInfoByAccounts(allAccounts);
 
   // ------- stats -------
   const stats = useMemo(() => {
@@ -91,7 +90,7 @@ const UserReferralsDetails = () => {
     const totalUserEquity = commissionsData.reduce((sum, u) => {
       if (+u.accountNumber <= 0) return sum;
       const acc = ibAccountsData?.find(
-        (i) => i.MT5Account === +u.accountNumber
+        (i) => String(i.Login) === String(u.accountNumber)
       );
       return sum + (acc?.Equity || 0);
     }, 0);
@@ -390,7 +389,7 @@ const UserReferralsDetails = () => {
                                 "--"
                               ) : (
                                 ibAccountsData?.find(
-                                  (i) => i.MT5Account === +first.accountNumber
+                                  (i) => String(i.Login) === String(first.accountNumber)
                                 )?.Equity ?? "--"
                               )
                             ) : (
@@ -430,7 +429,7 @@ const UserReferralsDetails = () => {
                                 {+u.accountNumber <= 0
                                   ? "--"
                                   : ibAccountsData?.find(
-                                      (i) => i.MT5Account === +u.accountNumber
+                                      (i) => String(i.Login) === String(u.accountNumber)
                                     )?.Equity ?? "--"}
                               </td>
                               <td className="p-2 text-center text-slate-300">{u.level}</td>

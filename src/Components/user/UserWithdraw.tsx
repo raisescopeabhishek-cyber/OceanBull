@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
+import { useMt5Account } from "../../hooks/useMt5Accounts";
 import { withdrawRequestMail } from "./emails/WithdrwalsMails";
 
 /* -------------------- theme helpers -------------------- */
@@ -602,8 +603,17 @@ export default function UserWithdraw() {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
 
-  const [balanceLoading, setBalanceLoading] = useState(false);
-  const [accountBalance, setAccountBalance] = useState<string | number>("");
+  const selectedAccountExists = loggedUser?.accounts?.some(
+    (item: any) => String(item.accountNumber) === String(account)
+  );
+  const { info: liveAccount, isReady, refresh: refreshBalance } = useMt5Account(
+    selectedAccountExists ? account : ""
+  );
+  const balanceReady = isReady(["Equity", "Credit"]);
+  const balanceLoading = !!account && !balanceReady;
+  const accountBalance = balanceReady
+    ? Math.max(0, Number(liveAccount.Equity) - Number(liveAccount.Credit))
+    : "";
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [apiLoader, setApiLoader] = useState(false);
 
@@ -619,6 +629,21 @@ export default function UserWithdraw() {
   const [step3Completed, setStep3Completed] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [highlightSubmit, setHighlightSubmit] = useState(false);
+  const withdrawalDraftKey = JSON.stringify([
+    loggedUser?._id, account, amount, accountType, selectedGateway, selectWallet,
+  ]);
+  const latestWithdrawalRef = useRef({
+    key: withdrawalDraftKey, balanceReady, accountBalance,
+  });
+  latestWithdrawalRef.current = {
+    key: withdrawalDraftKey, balanceReady, accountBalance,
+  };
+
+  useEffect(() => {
+    setOtp("");
+    setOtpSent(false);
+    setStep3Completed(false);
+  }, [withdrawalDraftKey]);
 
   const dollarRate = siteConfig?.dollarWithdrawalRate || 0;
   const inrUiEnabled = siteConfig?.inrUi !== false;
@@ -643,31 +668,6 @@ export default function UserWithdraw() {
       }
     };
   }, []);
-
-  const fetchAccountInfo = useCallback(async () => {
-    if (!account) return;
-
-    setBalanceLoading(true);
-
-    try {
-      setAccountBalance("");
-      const res = await userApi.get(`/server-logger-info?account=${account}`);
-
-      if (res?.data?.data?.Equity !== undefined && res?.data?.data?.Equity !== null) {
-        setAccountBalance(res.data.data.Equity);
-      } else {
-        setAccountBalance("0.00");
-      }
-    } catch {
-      setAccountBalance("0.00");
-    } finally {
-      setBalanceLoading(false);
-    }
-  }, [account]);
-
-  useEffect(() => {
-    if (account) fetchAccountInfo();
-  }, [account, fetchAccountInfo]);
 
   const getWalletAddress = useCallback(
     (walletType: string) => {
@@ -776,14 +776,16 @@ export default function UserWithdraw() {
   }, [amount, dollarRate]);
 
   const canContinueStep1 =
+    balanceReady &&
     !!account &&
     !!amount &&
+    Number.isFinite(Number(amount)) &&
     Number(amount) > 0 &&
     Number(amount) <= Number(accountBalance || 0);
 
   const canContinueStep2 = !!selectedGateway && !!selectWallet;
   const canRequestOtp = step1Completed && step2Completed && canContinueStep1 && canContinueStep2;
-  const canSubmitOtp = !!otp && otp.length >= 4 && otpSent && !apiLoader && !isWithdrawing;
+  const canSubmitOtp = canRequestOtp && !!otp && otp.length >= 4 && otpSent && !apiLoader && !isWithdrawing;
 
   const ctaEnabled = canSubmitOtp;
 
@@ -899,6 +901,10 @@ export default function UserWithdraw() {
   const handleAccountChange = (e: any) => {
     const value = e.target.value;
     setAccount(value);
+    setStep1Completed(false);
+    setStep2Completed(false);
+    setOtpSent(false);
+    setOtp("");
 
     const selectedAcc = loggedUser?.accounts?.find(
       (acc: any) => String(acc.accountNumber) === String(value)
@@ -910,7 +916,12 @@ export default function UserWithdraw() {
   const handleContinueStep1 = () => {
     setError("");
 
-    if (!account || !amount || Number(amount) <= 0) {
+    if (!balanceReady) {
+      toast.error("Waiting for live account balance. Please try again when connected.");
+      return;
+    }
+
+    if (!account || !amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
       toast.error("Please select account and enter a valid amount.");
       return;
     }
@@ -926,6 +937,11 @@ export default function UserWithdraw() {
 
   const handleContinueStep2 = () => {
     setError("");
+
+    if (!canContinueStep1) {
+      toast.error("Check your amount and wait for the live account balance.");
+      return;
+    }
 
     if (!selectedGateway) {
       toast.error("Please select a withdrawal method.");
@@ -953,11 +969,17 @@ export default function UserWithdraw() {
 
     setIsWithdrawing(true);
     const toastId = toast.loading("Sending OTP...");
+    const requestDraftKey = withdrawalDraftKey;
 
     try {
       const sendOtpRes = await userApi.post("/send-otp", {
         email: loggedUser.email,
       });
+
+      if (latestWithdrawalRef.current.key !== requestDraftKey) {
+        toast.error("Withdrawal details changed. Please request a new OTP.", { id: toastId });
+        return;
+      }
 
       if (sendOtpRes?.data?.message === "OTP sent successfully") {
         toast.success("OTP sent to your email", { id: toastId });
@@ -975,6 +997,13 @@ export default function UserWithdraw() {
   };
 
   const verifyOtpHandler = async () => {
+    if (apiLoader || isWithdrawing) return;
+
+    if (!canRequestOtp || !isReady(["Equity", "Credit"]) || !otpSent) {
+      setError("Check your amount and wait for the live account balance before submitting.");
+      return;
+    }
+
     if (!otp) {
       setError("OTP required");
       return;
@@ -990,6 +1019,7 @@ export default function UserWithdraw() {
     setIsWithdrawing(true);
 
     const toastId = toast.loading("Verifying your request...");
+    const requestDraftKey = withdrawalDraftKey;
 
     try {
       await userApi.post("/verify-otp", {
@@ -997,7 +1027,14 @@ export default function UserWithdraw() {
         otp,
       });
 
-      if (parseFloat(amount) > Number(accountBalance || 0)) {
+      const latest = latestWithdrawalRef.current;
+      if (latest.key !== requestDraftKey || !latest.balanceReady || !isReady(["Equity", "Credit"])) {
+        setError("Withdrawal details changed or the live balance is unavailable. Please try again.");
+        toast.error("Please check your withdrawal and live account balance.", { id: toastId });
+        return;
+      }
+
+      if (Number(amount) > Number(latest.accountBalance)) {
         setError("You do not have enough balance for withdrawal.");
         toast.error("Insufficient balance for withdrawal", { id: toastId });
         return;
@@ -1010,13 +1047,13 @@ export default function UserWithdraw() {
         mt5Account: account,
         status: "pending",
         userId: loggedUser._id,
-        lastBalance: accountBalance,
+        lastBalance: latest.accountBalance,
       });
 
       const customContent = withdrawRequestMail({
         loggedUser,
         amount,
-        accountBalance,
+        accountBalance: latest.accountBalance,
       });
 
       await userApi.post(`/custom-mail`, {
@@ -1029,7 +1066,7 @@ export default function UserWithdraw() {
       setStep3Completed(true);
       setOtpSent(false);
       setOtp("");
-      fetchAccountInfo();
+      refreshBalance();
       fetchWithdrawTransactions();
 
       window.setTimeout(() => {
@@ -1526,7 +1563,7 @@ export default function UserWithdraw() {
                   `$${money(accountBalance || 0)}`
                 )
               }
-              hint="Live equity"
+              hint="Live equity less credit"
               tone="success"
             />
 
@@ -1615,7 +1652,7 @@ export default function UserWithdraw() {
                           style={inputStyle}
                         />
 
-                        {amount && numericBalance && Number(amount) > numericBalance ? (
+                        {amount && balanceReady && Number(amount) > numericBalance ? (
                           <AlertCircle
                             className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
                             style={{ color: colors.danger }}
@@ -1623,7 +1660,7 @@ export default function UserWithdraw() {
                         ) : null}
                       </div>
 
-                      {amount && numericBalance && Number(amount) > numericBalance ? (
+                      {amount && balanceReady && Number(amount) > numericBalance ? (
                         <p className="mt-2 text-xs" style={{ color: colors.danger }}>
                           Withdrawal amount cannot exceed available balance.
                         </p>
@@ -2103,7 +2140,7 @@ export default function UserWithdraw() {
                     </div>
 
                     <div className="mt-4 text-base font-semibold" style={{ color: colors.success }}>
-                      Available Balance ${money(accountBalance || 0)}
+                      {balanceLoading ? "Waiting for live balance..." : `Available Balance $${money(accountBalance || 0)}`}
                     </div>
 
                     <div

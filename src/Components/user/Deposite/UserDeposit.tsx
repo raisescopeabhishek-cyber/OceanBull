@@ -31,6 +31,7 @@ import {
 
 import UserNewChallengeHook from "../../../hooks/user/UseNewChallengeHook";
 import { userApi } from "../../../utils/apiClients";
+import { useMt5Account } from "../../../hooks/useMt5Accounts";
 import SelectedPaymentMethod from "./SelectedPaymentMethod";
 
 /* -------------------- theme helpers -------------------- */
@@ -589,8 +590,15 @@ const colors = useMemo(() => {
   });
 
   const [accountType, setAccountType] = useState("");
-  const [accountBalance, setAccountBalance] = useState<string | number>("");
-  const [balanceLoading, setBalanceLoading] = useState(false);
+  const selectedAccountExists = loggedUser?.accounts?.some(
+    (item: any) => String(item.accountNumber) === String(formData.accountNumber)
+  );
+  const { info: liveAccount, isReady } = useMt5Account(
+    selectedAccountExists ? formData.accountNumber : ""
+  );
+  const balanceReady = isReady(["Equity"]);
+  const accountBalance = balanceReady ? liveAccount.Equity : "";
+  const balanceLoading = !!formData.accountNumber && !balanceReady;
   const [creatingLoading, setCreatingLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -659,33 +667,6 @@ const colors = useMemo(() => {
 
     toast.success("Claim amount imported into deposit form.");
   }, [claimPrefill, loggedUser?.accounts]);
-
-  useEffect(() => {
-    const fetchAccountInfo = async () => {
-      if (!formData.accountNumber) return;
-
-      try {
-        setBalanceLoading(true);
-        setAccountBalance("");
-
-        const res = await userApi.get(
-          `/server-logger-info?account=${formData.accountNumber}`
-        );
-
-        if (res?.data?.data?.Equity != null) {
-          setAccountBalance(res.data.data.Equity);
-        } else {
-          setAccountBalance("0.00");
-        }
-      } catch {
-        setAccountBalance("0.00");
-      } finally {
-        setBalanceLoading(false);
-      }
-    };
-
-    fetchAccountInfo();
-  }, [formData.accountNumber]);
 
   const fetchInsuranceQuote = useCallback(
     async (amount: string | number) => {

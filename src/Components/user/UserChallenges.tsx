@@ -757,8 +757,7 @@ const UserChallenges = () => {
   const accountIds =
     loggedUser?.accounts?.map((acc: any) => +acc.accountNumber) || [];
 
-  useGetInfoByAccounts(accountIds, "accounts");
-  const { accountsData } = useSelector((store: any) => store.user);
+  const { byLogin } = useGetInfoByAccounts(accountIds);
 
   const handleMoreInfo = (value: any) => {
     setSelectedChallenge(value);
@@ -795,9 +794,7 @@ const UserChallenges = () => {
       .slice()
       .reverse()
       .map((acc: any, index: number) => {
-        const info = accountsData?.find(
-          (item: any) => item.MT5Account === +acc.accountNumber
-        );
+        const info = byLogin[String(acc.accountNumber)];
 
         return {
           ...acc,
@@ -808,7 +805,11 @@ const UserChallenges = () => {
           createdDate: acc?.createdAt,
         };
       });
-  }, [loggedUser?.accounts, accountsData]);
+  }, [loggedUser?.accounts, byLogin]);
+
+  const liveSelectedChallenge = selectedChallenge
+    ? mergedAccounts.find((account: any) => account.rowId === selectedChallenge.rowId) || null
+    : null;
 
   const filteredAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -835,9 +836,9 @@ const UserChallenges = () => {
 
     return {
       accounts: mergedAccounts.length,
-      totalBalance: isFinite(totalBalance) ? totalBalance : null,
-      totalEquity: isFinite(totalEquity) ? totalEquity : null,
-      totalPL: isFinite(totalPL) ? totalPL : null,
+      totalBalance: mergedAccounts.every((account: any) => account.balance !== null) ? totalBalance : null,
+      totalEquity: mergedAccounts.every((account: any) => account.equity !== null) ? totalEquity : null,
+      totalPL: mergedAccounts.every((account: any) => account.profit !== null) ? totalPL : null,
     };
   }, [mergedAccounts]);
 
@@ -1608,7 +1609,7 @@ const UserChallenges = () => {
       <AccountInfoPortalModal
         open={isDialogOpen}
         onClose={handleCloseInfo}
-        selectedChallenge={selectedChallenge}
+        selectedChallenge={liveSelectedChallenge}
         siteConfig={siteConfig}
         theme={theme}
         isDark={isDark}

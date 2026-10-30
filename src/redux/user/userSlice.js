@@ -74,6 +74,11 @@ export const userSlice = createSlice({
 
       if (isPlainObject) {
         state.loggedUser = payload;
+      } else if (!payload) {
+        state.loggedUser = "";
+        state.accountsData = [];
+        state.accountsStats = {};
+        state.ibAccountsData = [];
       }
     },
 

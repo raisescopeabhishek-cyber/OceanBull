@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { backendApi } from "./apiClients";
 import { fetchCurrentUser } from "@/redux/AsyncThunk/fetchCurrentUser";
 import { useDispatch } from "react-redux";
+import { mt5AccountsStore } from "../services/mt5Accounts";
 
 const RequireAuth = ({ children }) => {
   const location = useLocation();
@@ -50,6 +51,8 @@ const RequireAuth = ({ children }) => {
           setState({ loading: false, ok });
         }
       } catch (err) {
+        if (cancelled) return;
+        mt5AccountsStore.reset();
         if (!cancelled) setState({ loading: false, ok: false });
 
         const msg = "Unauthorized";

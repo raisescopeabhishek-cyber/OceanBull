@@ -37,6 +37,7 @@ export const adminSlice = createSlice({
 });
 
 export const {
+  resetAdmin,
   setNotification,
   setAdminUser,
   setDbUsers,

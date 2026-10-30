@@ -28,7 +28,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 
 import { backendApi } from "../../../utils/apiClients";
-import { setNotification } from "../../../redux/user/userSlice";
+import { setNotification, setLoggedUser } from "../../../redux/user/userSlice";
+import { mt5AccountsStore } from "../../../services/mt5Accounts";
 import { toggleUserTheme } from "../../../redux/userThemeSlice";
 import { FloatingParticles } from "../../../utils/FloatingParticles";
 
@@ -259,6 +260,7 @@ const NotificationDropdown = ({ isOpen, onClose, userId, colors }) => {
 };
 
 const UserDropdown = ({ isOpen, onClose, user, colors }) => {
+  const dispatch = useDispatch();
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -324,6 +326,8 @@ const UserDropdown = ({ isOpen, onClose, user, colors }) => {
   }, [onClose]);
 
   const logoutHandler = async () => {
+    mt5AccountsStore.reset();
+    dispatch(setLoggedUser(""));
     const loadingToast = toast.loading("Logging out...");
 
     try {

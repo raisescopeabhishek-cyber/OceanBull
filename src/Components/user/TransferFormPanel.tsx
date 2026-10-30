@@ -29,6 +29,7 @@ type Props = {
   toAccountBalance: string | number;
   loadingFromBalance: boolean;
   loadingToBalance: boolean;
+  balancesReady: boolean;
   fromAccountOptions: AccountType[];
   toAccountOptions: AccountType[];
   refreshBalances: () => void;
@@ -136,6 +137,7 @@ export default function TransferFormPanel({
   toAccountBalance,
   loadingFromBalance,
   loadingToBalance,
+  balancesReady,
   fromAccountOptions,
   toAccountOptions,
   refreshBalances,
@@ -184,7 +186,7 @@ export default function TransferFormPanel({
   });
 
   const canContinueStep1 = !!fromAccount && !!toAccount && fromAccount !== toAccount;
-  const canContinueStep2 = !!amount && Number(amount) > 0 && Number(amount) <= Number(fromAccountBalance || 0);
+  const canContinueStep2 = balancesReady && !!amount && Number.isFinite(Number(amount)) && Number(amount) > 0 && Number(amount) <= Number(fromAccountBalance || 0);
   const ctaEnabled = canContinueStep1 && canContinueStep2 && !isTransferLoading;
 
   const quickAmounts = useMemo(() => [100, 500, 1000, 5000, 10000], []);
@@ -382,7 +384,9 @@ export default function TransferFormPanel({
               ${formatBalance(amount || 0)}
             </span>
             <span className="ml-2" style={{ color: colors.softText }}>
-              • projected source ${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}
+              {loadingFromBalance
+                ? "Waiting for live balance..."
+                : `• projected source $${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}`}
             </span>
           </>
         }
@@ -440,7 +444,7 @@ export default function TransferFormPanel({
                 Source Balance
               </div>
               <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                ${formatBalance(fromAccountBalance || 0)}
+                {loadingFromBalance ? "Waiting for live balance..." : `$${formatBalance(fromAccountBalance || 0)}`}
               </div>
             </div>
 
@@ -456,7 +460,7 @@ export default function TransferFormPanel({
                 Destination Balance
               </div>
               <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                ${formatBalance(toAccountBalance || 0)}
+                {loadingToBalance ? "Waiting for live balance..." : `$${formatBalance(toAccountBalance || 0)}`}
               </div>
             </div>
 
@@ -472,7 +476,7 @@ export default function TransferFormPanel({
                 Projected Source
               </div>
               <div className="mt-1 font-semibold" style={{ color: titleColor }}>
-                ${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}
+                {loadingFromBalance ? "Waiting for live balance..." : `$${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}`}
               </div>
             </div>
           </div>

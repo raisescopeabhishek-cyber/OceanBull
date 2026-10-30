@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { userApi } from "../../utils/apiClients";
+import { useMt5Accounts } from "../../hooks/useMt5Accounts";
 import TransferFormPanel from "./TransferFormPanel";
 
 /* -------------------- types -------------------- */
@@ -422,11 +423,6 @@ export default function UserTransfer() {
   const [toAccount, setToAccount] = useState("");
   const [amount, setAmount] = useState("");
 
-  const [fromAccountBalance, setFromAccountBalance] = useState<string | number>("");
-  const [toAccountBalance, setToAccountBalance] = useState<string | number>("");
-
-  const [loadingFromBalance, setLoadingFromBalance] = useState(false);
-  const [loadingToBalance, setLoadingToBalance] = useState(false);
   const [isTransferLoading, setIsTransferLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -437,6 +433,16 @@ export default function UserTransfer() {
   const [transferTransactions, setTransferTransactions] = useState<any[]>([]);
 
   const accounts = useMemo(() => loggedUser?.accounts || [], [loggedUser]);
+  const { byLogin, isReady, refresh: refreshBalances } = useMt5Accounts(
+    accounts.map((account) => account.accountNumber)
+  );
+  const fromBalanceReady = isReady(fromAccount, ["Balance"]);
+  const toBalanceReady = isReady(toAccount, ["Balance"]);
+  const balancesReady = fromBalanceReady && toBalanceReady;
+  const fromAccountBalance = fromBalanceReady ? byLogin[String(fromAccount)].Balance : "";
+  const toAccountBalance = toBalanceReady ? byLogin[String(toAccount)].Balance : "";
+  const loadingFromBalance = !!fromAccount && !fromBalanceReady;
+  const loadingToBalance = !!toAccount && !toBalanceReady;
 
   const subtleCard = useCallback(
     (): React.CSSProperties => ({
@@ -464,55 +470,6 @@ export default function UserTransfer() {
     [accounts, fromAccount]
   );
 
-  const fetchAccountBalance = useCallback(
-    async (
-      accountNumber: string,
-      setBalance: React.Dispatch<React.SetStateAction<string | number>>,
-      setLoading: React.Dispatch<React.SetStateAction<boolean>>
-    ) => {
-      if (!accountNumber) {
-        setBalance("");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setBalance("");
-
-        const res = await userApi.get(`/transfer/balance`, {
-          params: { accountNumber },
-        });
-
-        setBalance(res?.data?.balance ?? "0.00");
-      } catch (e: any) {
-        toast.error(getToastError(e, "Failed to fetch balance"));
-        setBalance("0.00");
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    fetchAccountBalance(fromAccount, setFromAccountBalance, setLoadingFromBalance);
-  }, [fromAccount, fetchAccountBalance]);
-
-  useEffect(() => {
-    fetchAccountBalance(toAccount, setToAccountBalance, setLoadingToBalance);
-  }, [toAccount, fetchAccountBalance]);
-
-  const refreshBalances = useCallback(async () => {
-    await Promise.all([
-      fromAccount
-        ? fetchAccountBalance(fromAccount, setFromAccountBalance, setLoadingFromBalance)
-        : Promise.resolve(),
-      toAccount
-        ? fetchAccountBalance(toAccount, setToAccountBalance, setLoadingToBalance)
-        : Promise.resolve(),
-    ]);
-  }, [fromAccount, toAccount, fetchAccountBalance]);
-
   const validateTransfer = useCallback(() => {
     if (!fromAccount || !toAccount) {
       toast.error("Please select both source and destination accounts.");
@@ -524,7 +481,12 @@ export default function UserTransfer() {
       return false;
     }
 
-    if (!amount || Number(amount) <= 0) {
+    if (!isReady(fromAccount, ["Balance"]) || !isReady(toAccount, ["Balance"])) {
+      toast.error("Waiting for live account balances. Please try again when connected.");
+      return false;
+    }
+
+    if (!amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
       toast.error("Please enter a valid transfer amount.");
       return false;
     }
@@ -535,7 +497,7 @@ export default function UserTransfer() {
     }
 
     return true;
-  }, [fromAccount, toAccount, amount, fromAccountBalance]);
+  }, [fromAccount, toAccount, amount, fromAccountBalance, isReady]);
 
   const handleSubmit = async () => {
     if (isTransferLoading || !validateTransfer()) return;
@@ -558,14 +520,7 @@ export default function UserTransfer() {
       setShowSuccess(true);
       setAmount("");
 
-      const balances = res?.data?.balances;
-
-      if (balances) {
-        setFromAccountBalance(balances.from ?? "0.00");
-        setToAccountBalance(balances.to ?? "0.00");
-      } else {
-        await refreshBalances();
-      }
+      refreshBalances();
 
       window.setTimeout(() => setShowSuccess(false), 2500);
     } catch (e: any) {
@@ -1149,7 +1104,9 @@ export default function UserTransfer() {
               icon={<CircleDollarSign className="h-5 w-5" />}
               label="Projected Source"
               value={
-                fromAccount && amount
+                loadingFromBalance
+                  ? "Waiting for live balance..."
+                  : fromAccount && amount
                   ? `$${formatBalance(projectedSourceBalance > 0 ? projectedSourceBalance : 0)}`
                   : "$0.00"
               }
@@ -1172,6 +1129,7 @@ export default function UserTransfer() {
                 toAccountBalance={toAccountBalance}
                 loadingFromBalance={loadingFromBalance}
                 loadingToBalance={loadingToBalance}
+                balancesReady={balancesReady}
                 fromAccountOptions={fromAccountOptions}
                 toAccountOptions={toAccountOptions}
                 refreshBalances={refreshBalances}
@@ -1228,12 +1186,13 @@ export default function UserTransfer() {
                             className="text-lg font-semibold"
                             style={{ color: colors.text }}
                           >
-                            $
-                            {formatBalance(
-                              projectedDestinationBalance > 0
-                                ? projectedDestinationBalance
-                                : 0
-                            )}
+                            {loadingToBalance
+                              ? "Waiting for live balance..."
+                              : `$${formatBalance(
+                                  projectedDestinationBalance > 0
+                                    ? projectedDestinationBalance
+                                    : 0
+                                )}`}
                           </span>
                         </div>
                       </div>
@@ -1243,7 +1202,9 @@ export default function UserTransfer() {
                       className="mt-4 text-base font-semibold"
                       style={{ color: colors.success }}
                     >
-                      Live source balance ${formatBalance(fromAccountBalance || 0)}
+                      {loadingFromBalance
+                        ? "Waiting for live source balance..."
+                        : `Live source balance $${formatBalance(fromAccountBalance || 0)}`}
                     </div>
 
                     <div

@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { backendApi } from "@/utils/apiClients";
 import toast from "react-hot-toast";
-import resetAdmin from "../../redux/adminSlice";
+import { resetAdmin } from "../../redux/adminSlice";
+import { mt5AccountsStore } from "../../services/mt5Accounts";
 import sidebarBg from "@/assets/sidebar.png";
 
 const modules = [
@@ -140,6 +141,7 @@ const SidebarContent = ({ close }) => {
 
   const handleLogout = async () => {
     if (logoutLoading) return;
+    mt5AccountsStore.reset();
     setLogoutLoading(true);
 
     const loadingToast = toast.loading("Logging out...");

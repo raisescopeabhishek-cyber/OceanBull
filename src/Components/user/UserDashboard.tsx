@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { userApi } from "@/utils/apiClients";
+import { useMt5Accounts } from "@/hooks/useMt5Accounts";
 import MonthlyTradeCommissionGraph from "./MonthlyTradeCommissionGraph";
 import AccountOpenTradesMarketSection from "./AccountOpenTradesMarketSection";
 import UserBonusUsageGauge from "./UserBonusUsageGauge";
@@ -350,7 +351,13 @@ export default function UserDashboard() {
   const mode = useSelector((store: any) => store.userTheme?.mode || "light");
   const userSiteconfig = useSelector((store: any) => store.user?.siteConfig);
   const loggedUser = useSelector((store: any) => store.user?.loggedUser);
-  const accountsData = useSelector((store: any) => store.user?.accountsData);
+  const accountIds = useMemo(
+    () => (loggedUser?.accounts || []).map((account: any) => account.accountNumber),
+    [loggedUser?.accounts]
+  );
+  const { data: allAccounts, byLogin } = useMt5Accounts(accountIds);
+  const balancesLoaded = accountIds.every((id: string | number) => Number.isFinite(byLogin[String(id)]?.Balance));
+  const equitiesLoaded = accountIds.every((id: string | number) => Number.isFinite(byLogin[String(id)]?.Equity));
 
   
 
@@ -360,7 +367,7 @@ export default function UserDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorText, setErrorText] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
-  const [summary, setSummary] = useState<DashboardSummary>(
+  const [financialSummary, setSummary] = useState<DashboardSummary>(
     getEmptyDashboardSummary("USD")
   );
 
@@ -390,17 +397,15 @@ export default function UserDashboard() {
   const [pendingClaimAction, setPendingClaimAction] =
     useState<InsuranceClaimDecisionPayload | null>(null);
 
-  const allAccounts = useMemo(
-    () => extractAccounts(accountsData, loggedUser),
-    [accountsData, loggedUser]
-  );
-
-
-   console.log("accountsData source:", accountsData);
-console.log("allAccounts used for balance:", allAccounts);
+  // Live account ticks update only MT5 totals; history APIs load independently.
+  const summary = useMemo(() => ({
+    ...financialSummary,
+    ...aggregateAccountOverview(allAccounts, financialSummary.currency),
+    totalAccounts: accountIds.length,
+  }), [financialSummary, allAccounts, accountIds.length]);
 
   const allServerNames = useMemo(() => {
-    const names = allAccounts
+    const names = (loggedUser?.accounts || [])
       .map((acc: any) =>
         acc?.serverName ||
         acc?.server ||
@@ -411,7 +416,7 @@ console.log("allAccounts used for balance:", allAccounts);
       .filter(Boolean);
 
     return Array.from(new Set(names));
-  }, [allAccounts]);
+  }, [loggedUser?.accounts]);
 
   useEffect(() => {
     setIsClient(true);
@@ -833,9 +838,6 @@ console.log("allAccounts used for balance:", allAccounts);
         loggedUser?.currency ||
         "USD";
 
-      const accountOverview = aggregateAccountOverview(allAccounts, baseCurrency);
-      console.log(accountOverview);
-      console.log(allAccounts);
 
       
 
@@ -871,16 +873,11 @@ console.log("allAccounts used for balance:", allAccounts);
       }
 
       setSummary({
-        totalBalance: accountOverview.totalBalance,
-        totalEquity: accountOverview.totalEquity,
+        ...getEmptyDashboardSummary(baseCurrency),
         totalDeposit,
         totalWithdrawal,
         totalBonus,
         totalIbCommission,
-        currency: accountOverview.currency,
-        currencies: accountOverview.currencies,
-        totalAccounts: accountOverview.totalAccounts,
-        hasMixedCurrencies: accountOverview.hasMixedCurrencies,
       });
 
       setLastUpdated(new Date().toLocaleString());
@@ -901,7 +898,6 @@ console.log("allAccounts used for balance:", allAccounts);
       setRefreshing(false);
     }
   }, [
-    allAccounts,
     checkInsuranceEligibility,
     fetchBonusTotalFromWallet,
     fetchDepositTotal,
@@ -932,7 +928,7 @@ console.log("allAccounts used for balance:", allAccounts);
     () => [
       {
         title: "Total Balance",
-        value: formatCurrency(summary.totalBalance, summary.currency),
+        value: balancesLoaded ? formatCurrency(summary.totalBalance, summary.currency) : "--",
         change: `Combined from ${summary.totalAccounts} account${
           summary.totalAccounts === 1 ? "" : "s"
         }`,
@@ -943,8 +939,8 @@ console.log("allAccounts used for balance:", allAccounts);
       },
       {
         title: "Total Equity",
-        value: formatCurrency(summary.totalEquity, summary.currency),
-        change: "Summed from accountsData",
+        value: equitiesLoaded ? formatCurrency(summary.totalEquity, summary.currency) : "--",
+        change: "Live account equity",
         icon: <TrendingUp size={20} />,
         positive: summary.totalEquity >= summary.totalBalance,
         trend: [0.2, 0, 0.6, 0.1, 0.5, 0, 0.4, 0.1],
@@ -991,7 +987,7 @@ console.log("allAccounts used for balance:", allAccounts);
         link: CARD_LINKS[5],
       },
     ],
-    [summary]
+    [summary, balancesLoaded, equitiesLoaded]
   );
 
   const miniSummary: SummaryItem[] = [

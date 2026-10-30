@@ -7,8 +7,11 @@ import sidebarBg from "@/assets/sidebar.png";
 import UserHeader from "@/Components/user/Header/UserHeader";
 import UserSidebar from "@/Components/user/UserSidebar";
 import UserNewChallenge from "@/Components/user/UserNewChallenge";
+import { useMt5Accounts } from "@/hooks/useMt5Accounts";
 
 const UserLayout = () => {
+  const accounts = useSelector((store) => store.user.loggedUser?.accounts);
+  useMt5Accounts(accounts || []);
   const mode = useSelector((store) => store.userTheme?.mode || "light");
   const isDark = mode === "dark";
 

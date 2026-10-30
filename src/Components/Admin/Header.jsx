@@ -17,6 +17,7 @@ import { setNotification } from "../../redux/adminSlice";
 import { handleToggleSidebar } from "../../redux/user/userSlice";
 import { toggleAdminTheme } from "../../redux/adminThemeSlice";
 import { FloatingParticles } from "../../utils/FloatingParticles";
+import { mt5AccountsStore } from "../../services/mt5Accounts";
 
 /* helpers */
 const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -202,6 +203,7 @@ const AdminDropdown = ({ isOpen, onClose, admin, colors }) => {
   }, [onClose]);
 
   const logoutHandler = () => {
+    mt5AccountsStore.reset();
     navigate("/auth/admin/login");
   };
 

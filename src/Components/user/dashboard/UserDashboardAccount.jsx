@@ -62,21 +62,14 @@ const CredentialItem = ({
 const UserDashboardAccount = () => {
   const loggedUser = useSelector((store) => store.user.loggedUser);
   const siteConfig = useSelector((store) => store.user.siteConfig);
-  const [currentAccount, setCurrentAccount] = useState(() => {
-    if (loggedUser?.accounts?.length > 0) {
-      return loggedUser.accounts[0];
-    }
-    return { accountNumber: "000", leverage: "00" };
-  });
-  const { info, loading } = useGetIdInfo(currentAccount.accountNumber);
+  const [selectedAccountNumber, setSelectedAccountNumber] = useState("");
+  const currentAccount = loggedUser?.accounts?.find(
+    (account) => String(account.accountNumber) === selectedAccountNumber
+  ) || loggedUser?.accounts?.[0] || { accountNumber: "", leverage: "N/A" };
+  const { info } = useGetIdInfo(currentAccount.accountNumber);
 
   const handleAccountChange = (e) => {
-    const selectedAccount = loggedUser.accounts.find(
-      (account) => account.accountNumber === e.target.value
-    );
-    setCurrentAccount(
-      selectedAccount || { accountNumber: "000", leverage: "N/A" }
-    );
+    setSelectedAccountNumber(e.target.value);
   };
 
   return (
@@ -104,6 +97,7 @@ const UserDashboardAccount = () => {
           {Array.isArray(loggedUser?.accounts) &&
             loggedUser.accounts.length > 0 && (
               <select
+                value={currentAccount.accountNumber}
                 onChange={handleAccountChange}
                 id="accountNumber"
                 name="accountNumber"
@@ -153,14 +147,14 @@ const UserDashboardAccount = () => {
         <CredentialItem
           icon={MdOutlineAccountBalanceWallet}
           label="Balance"
-          value={`$${info?.Balance || 0}`}
+          value={info?.Balance != null ? `$${info.Balance}` : "--"}
           badgeColor="bg-sky-100 text-sky-800"
           delay={0.3}
         />
         <CredentialItem
           icon={CiMoneyBill}
           label="Equity"
-          value={`$${info?.Equity || 0}`}
+          value={info?.Equity != null ? `$${info.Equity}` : "--"}
           badgeColor="bg-sky-100 text-sky-800"
           delay={0.4}
         />

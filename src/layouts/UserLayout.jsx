@@ -7,6 +7,7 @@ import sidebarBg from "@/assets/sidebar.png";
 import UserHeader from "@/Components/user/Header/UserHeader";
 import UserSidebar from "@/Components/user/UserSidebar";
 import UserNewChallenge from "@/Components/user/UserNewChallenge";
+import { SidebarToggleProvider } from "@/Components/ui/SidebarToggleContext";
 
 const UserLayout = () => {
   const mode = useSelector((store) => store.userTheme?.mode || "light");
@@ -39,6 +40,7 @@ const UserLayout = () => {
   }, [isDark]);
 
   return (
+    <SidebarToggleProvider>
     <div
       className={shellClasses}
       onMouseMove={handleMouseMove}
@@ -336,6 +338,7 @@ const UserLayout = () => {
       </div>
       <UserNewChallenge />
     </div>
+    </SidebarToggleProvider>
   );
 };
 

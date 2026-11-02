@@ -6,7 +6,9 @@ import {
   Shield,
   SunMedium,
   MoonStar,
+  Menu,
 } from "lucide-react";
+import { useSidebarToggle } from "../ui/SidebarToggleContext";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleSuperadminTheme } from "@/redux/superadminThemeSlice";
@@ -62,6 +64,7 @@ const Header = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { open: openSidebar } = useSidebarToggle();
 
   const safeHeightRem = useMemo(() => {
     const n = Number(siteConfig?.logoSize);
@@ -123,7 +126,19 @@ const Header = () => {
 
         <div className="relative py-9 sm:py-8">
           <div className="flex items-center justify-between px-6">
-            <div className="w-0 md:w-0" />
+            <button
+              type="button"
+              onClick={openSidebar}
+              aria-label="Open navigation menu"
+              className={[
+                "absolute left-6 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl border transition md:hidden",
+                isDark
+                  ? "border-blue-400/30 bg-blue-500/15 text-blue-200 hover:bg-blue-500/25"
+                  : "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100",
+              ].join(" ")}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
             <div className="flex-1 flex items-center justify-center">
               {shouldRenderLogo ? (

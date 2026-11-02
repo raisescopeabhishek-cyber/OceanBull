@@ -14,9 +14,9 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { adminApi } from "../../utils/apiClients";
 import { setNotification } from "../../redux/adminSlice";
-import { handleToggleSidebar } from "../../redux/user/userSlice";
 import { toggleAdminTheme } from "../../redux/adminThemeSlice";
 import { FloatingParticles } from "../../utils/FloatingParticles";
+import { useSidebarToggle } from "../ui/SidebarToggleContext";
 
 /* helpers */
 const rgba = (r, g, b, a = 1) => `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -271,7 +271,6 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const isSidebarOpen = useSelector((store) => store.admin?.isSidebarOpen);
   const admin = useSelector((store) => store.admin?.adminUser);
   const adminSiteConfig = useSelector((store) => store.admin?.siteConfig);
   const userSiteConfig = useSelector((store) => store.user?.siteConfig);
@@ -287,9 +286,7 @@ const Header = () => {
   const siteConfig = adminSiteConfig || userSiteConfig || {};
   const baseHeight = siteConfig.logoSize || 4;
 
-  const sidebarHandler = () => {
-    dispatch(handleToggleSidebar(!isSidebarOpen));
-  };
+  const { toggle: sidebarHandler } = useSidebarToggle();
 
   const toggleThemeHandler = () => {
     dispatch(toggleAdminTheme());
@@ -309,15 +306,16 @@ const Header = () => {
       <div className="flex justify-between items-center px-3 md:px-5 h-full">
         <div className="flex gap-2 items-center">
           <button
-            className="md:hidden flex items-center justify-center"
+            className="md:hidden flex shrink-0 items-center justify-center"
             onClick={sidebarHandler}
-            aria-label="Toggle sidebar"
+            aria-label="Open navigation menu"
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: "999px",
-              border: `1px solid ${rgba(...colors.border.split(",").map(Number), 0.16)}`,
-              background: rgba(...colors.surface.split(",").map(Number), 0.35),
+              width: 38,
+              height: 38,
+              borderRadius: "12px",
+              border: `1px solid ${rgba(...colors.accent.split(",").map(Number), 0.3)}`,
+              background: rgba(...colors.accent.split(",").map(Number), 0.14),
+              color: rgba(...colors.accent.split(",").map(Number), 1),
             }}
           >
             <Menu className="w-4 h-4" />

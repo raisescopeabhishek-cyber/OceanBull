@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   ChevronDown,
   ChevronRight,
-  Menu,
+  X,
   LogOut,
   HandCoins,
   ShieldCheck,
@@ -19,6 +19,7 @@ import { backendApi } from "@/utils/apiClients";
 import toast from "react-hot-toast";
 import resetAdmin from "../../redux/adminSlice";
 import sidebarBg from "@/assets/sidebar.png";
+import { useSidebarToggle } from "@/Components/ui/SidebarToggleContext";
 
 const modules = [
   {
@@ -268,7 +269,7 @@ const SidebarContent = ({ close }) => {
 
       <div
         className={[
-          "relative z-[2] h-full border-r backdrop-blur-xl transition-colors duration-300",
+          "relative z-[2] flex h-full flex-col border-r backdrop-blur-xl transition-colors duration-300",
           isDark
             ? "border-white/10 bg-white/[0.03] shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
             : "border-orange-100/80 bg-white/55 shadow-[0_20px_50px_rgba(251,146,60,0.10)]",
@@ -276,7 +277,7 @@ const SidebarContent = ({ close }) => {
       >
         <div
           className={[
-            "relative px-5 py-5 border-b transition-colors duration-300",
+            "relative shrink-0 px-5 py-5 border-b transition-colors duration-300",
             isDark ? "border-white/10" : "border-orange-100/80",
           ].join(" ")}
         >
@@ -323,12 +324,28 @@ const SidebarContent = ({ close }) => {
                 Security World
               </div>
             </div>
+
+            {close && (
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Close sidebar"
+                className={[
+                  "ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition md:hidden",
+                  isDark
+                    ? "border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/[0.12]"
+                    : "border-orange-200 bg-white/85 text-slate-600 hover:bg-orange-50",
+                ].join(" ")}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
         <div
           className={[
-            "h-[calc(100%-88px)] overflow-y-auto px-4 py-4 scrollbar-thin",
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 scrollbar-thin",
             isDark
               ? "scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20"
               : "scrollbar-track-transparent scrollbar-thumb-orange-200 hover:scrollbar-thumb-orange-300",
@@ -612,9 +629,7 @@ const SidebarContent = ({ close }) => {
 };
 
 const Sidebar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const mode = useSelector((store) => store.adminTheme?.mode || "light");
-  const isDark = mode === "dark";
+  const { isOpen, close } = useSidebarToggle();
 
   return (
     <>
@@ -622,45 +637,29 @@ const Sidebar = () => {
         <SidebarContent />
       </aside>
 
-      {!mobileOpen && (
-        <div className="md:hidden fixed top-4 left-4 z-[70]">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className={[
-              "grid h-11 w-11 place-items-center rounded-xl border backdrop-blur-md transition",
-              "hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:scale-105 hover:brightness-110",
-              isDark
-                ? "border-white/10 bg-[#111]/90 text-white/85 shadow-[0_12px_30px_rgba(0,0,0,0.45)] hover:bg-white/[0.08]"
-                : "border-orange-100 bg-white/90 text-slate-700 shadow-[0_12px_30px_rgba(251,146,60,0.12)] hover:bg-orange-50/70",
-            ].join(" ")}
-            aria-label="Open sidebar"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-
       <div
         className={[
           "md:hidden fixed inset-0 z-[80] transition-all duration-300",
-          mobileOpen
+          isOpen
             ? "pointer-events-auto bg-black/40 backdrop-blur-[2px]"
             : "pointer-events-none bg-black/0",
         ].join(" ")}
+        aria-hidden={!isOpen}
       >
         <button
           aria-label="Close sidebar backdrop"
           className="absolute inset-0"
-          onClick={() => setMobileOpen(false)}
+          onClick={close}
+          tabIndex={isOpen ? 0 : -1}
         />
 
         <aside
           className={[
-            "absolute left-0 top-0 h-screen w-72 max-w-[86vw] transition-transform duration-300 ease-out",
-            mobileOpen ? "translate-x-0" : "-translate-x-full",
+            "absolute left-0 top-0 h-dvh w-72 max-w-[86vw] transition-transform duration-300 ease-out",
+            isOpen ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
         >
-          <SidebarContent close={() => setMobileOpen(false)} />
+          <SidebarContent close={close} />
         </aside>
       </div>
     </>

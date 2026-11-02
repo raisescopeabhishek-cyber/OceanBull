@@ -5,6 +5,7 @@ import Sidebar from "@/Components/SuperAdmin/Sidebar";
 import Header from "@/Components/SuperAdmin/Header";
 import sidebarBg from "@/assets/sidebar.png";
 import { ShieldCheck, Sparkles, Lock } from "lucide-react";
+import { SidebarToggleProvider } from "@/Components/ui/SidebarToggleContext";
 
 const SuperAdminLayout = () => {
   const mode = useSelector((store) => store.superadminTheme?.mode || "dark");
@@ -39,6 +40,7 @@ const SuperAdminLayout = () => {
   );
 
   return (
+    <SidebarToggleProvider>
     <div
       className={shellClasses}
       onMouseMove={handleMouseMove}
@@ -380,6 +382,7 @@ const SuperAdminLayout = () => {
         </main>
       </div>
     </div>
+    </SidebarToggleProvider>
   );
 };
 

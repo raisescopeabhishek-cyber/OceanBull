@@ -6,6 +6,7 @@ import { ShieldCheck, Sparkles, Lock } from "lucide-react";
 import Header from "@/Components/Admin/Header";
 import Sidebar from "@/Components/Admin/Sidebar";
 import sidebarBg from "@/assets/sidebar.png";
+import { SidebarToggleProvider } from "@/Components/ui/SidebarToggleContext";
 
 const AdminLayout = () => {
   const mode = useSelector((store) => store.adminTheme?.mode || "light");
@@ -38,6 +39,7 @@ const AdminLayout = () => {
   }, [isDark]);
 
   return (
+    <SidebarToggleProvider>
     <div
       className={shellClasses}
       onMouseMove={handleMouseMove}
@@ -213,6 +215,7 @@ const AdminLayout = () => {
         </main>
       </div>
     </div>
+    </SidebarToggleProvider>
   );
 };
 

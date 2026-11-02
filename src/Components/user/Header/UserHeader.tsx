@@ -18,7 +18,10 @@ import {
   CirclePlus,
   Sparkles,
   BadgeDollarSign,
+  Menu,
 } from "lucide-react";
+
+import { useSidebarToggle } from "../../ui/SidebarToggleContext";
 
 import { openNewChallengeModal } from "../../../redux/user/userSlice";
 
@@ -468,6 +471,7 @@ const UserHeader = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { toggle: toggleSidebar } = useSidebarToggle();
 
   const isDark = mode === "dark";
   const colors = getThemeColors(isDark);
@@ -515,6 +519,26 @@ const UserHeader = () => {
 
       <div className="flex h-full items-center justify-between px-3 md:px-5">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="flex shrink-0 items-center justify-center transition md:hidden"
+            aria-label="Open navigation menu"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: "12px",
+              border: `1px solid ${rgba(
+                ...colors.accent.split(",").map(Number),
+                0.3
+              )}`,
+              background: rgba(...colors.accent.split(",").map(Number), 0.14),
+              color: rgba(...colors.accent.split(",").map(Number), 1),
+            }}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           <div className="mr-2">
             <Link to="/user/dashboard" className="mr-2">
               {siteConfig?.logo ? (
